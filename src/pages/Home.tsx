@@ -36,10 +36,14 @@ const Home = () => {
                   Start Your Journey <ArrowRight className="ml-2" />
                 </Link>
               </Button>
-              <Button asChild variant="glass" size="xl">
-                <Link to="/features">
-                  Explore Features
-                </Link>
+              <Button 
+                variant="glass" 
+                size="xl"
+                onClick={() => {
+                  document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+              >
+                Explore Features
               </Button>
             </div>
 
@@ -69,11 +73,11 @@ const Home = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-24 px-4">
+      <section id="features" className="py-24 px-4">
         <div className="container mx-auto">
           <div className="text-center max-w-3xl mx-auto mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-4">
-              Why Choose <span className="text-gradient">FitAI Pro</span>
+              Why Choose <span className="text-gradient">SmartFit Hub</span>
             </h2>
             <p className="text-xl text-muted-foreground">
               Cutting-edge technology meets personalized fitness coaching
@@ -83,24 +87,44 @@ const Home = () => {
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {[
               {
-                icon: Zap,
-                title: "AI Personal Trainer",
-                description: "Get custom workout plans powered by advanced AI algorithms"
+                icon: Users,
+                title: "Trainer Dashboard",
+                description: "Manage clients, track sessions, upload workouts"
               },
               {
                 icon: Target,
-                title: "Goal Tracking",
-                description: "Monitor your progress with real-time analytics and insights"
+                title: "Class Booking",
+                description: "Book yoga, zumba, PT sessions, and gym floor slots"
+              },
+              {
+                icon: Zap,
+                title: "AI Workout Generator",
+                description: "Personalized workouts based on goals, BMI, age"
               },
               {
                 icon: TrendingUp,
-                title: "Smart Nutrition",
-                description: "Personalized meal plans based on your fitness goals"
+                title: "AI Diet Generator",
+                description: "Smart meal plans using AI"
               },
               {
                 icon: Users,
-                title: "Community",
-                description: "Connect with like-minded fitness enthusiasts"
+                title: "Community Feed",
+                description: "Share transformations & interact with members"
+              },
+              {
+                icon: Target,
+                title: "QR Entry Pass",
+                description: "Scan at gym entrance for smart attendance"
+              },
+              {
+                icon: TrendingUp,
+                title: "Progress Analytics",
+                description: "Track weight, BMI, fat %, weekly reports"
+              },
+              {
+                icon: Zap,
+                title: "Gamification System",
+                description: "Streaks, rewards, leaderboards"
               },
             ].map((feature, index) => (
               <div 
@@ -131,10 +155,14 @@ const Home = () => {
               Join thousands of members who have already achieved their fitness goals with our AI-powered platform
             </p>
             <Button asChild variant="hero" size="xl">
-              <Link to="/dashboard">
-                Get Started Free <ArrowRight className="ml-2" />
+              <Link to="/auth">
+                Continue to Dashboard <ArrowRight className="ml-2" />
               </Link>
             </Button>
+            <div className="mt-6 space-y-2">
+              <p className="text-sm text-muted-foreground">🔒 Your data is securely stored.</p>
+              <p className="text-sm text-muted-foreground">✓ Protected login recommended for all users.</p>
+            </div>
           </div>
         </div>
       </section>
