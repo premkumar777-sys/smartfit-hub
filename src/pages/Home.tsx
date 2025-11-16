@@ -32,7 +32,7 @@ const Home = () => {
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
               <Button asChild variant="hero" size="xl">
-                <Link to="/dashboard">
+                <Link to="/auth">
                   Start Your Journey <ArrowRight className="ml-2" />
                 </Link>
               </Button>
