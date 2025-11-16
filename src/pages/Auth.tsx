@@ -12,7 +12,21 @@ import { z } from "zod";
 
 const authSchema = z.object({
   email: z.string().trim().email({ message: "Invalid email address" }).max(255),
-  password: z.string().min(6, { message: "Password must be at least 6 characters" }).max(100),
+  password: z.string()
+    .min(8, { message: "Password must be at least 8 characters long." })
+    .max(100)
+    .refine((password) => /[A-Z]/.test(password), {
+      message: "Password must contain at least one uppercase letter.",
+    })
+    .refine((password) => /[a-z]/.test(password), {
+      message: "Password must contain at least one lowercase letter.",
+    })
+    .refine((password) => /[0-9]/.test(password), {
+      message: "Password must contain at least one number.",
+    })
+    .refine((password) => /[!@#$%^&*()_\-+=?<>/]/.test(password), {
+      message: "Password must contain at least one special character.",
+    }),
   username: z.string().trim().min(2, { message: "Username must be at least 2 characters" }).max(50).optional(),
 });
 
