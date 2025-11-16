@@ -1,8 +1,60 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Activity, Apple, Dumbbell, Target, TrendingUp, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 const Dashboard = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Check authentication
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) {
+        navigate("/auth");
+      } else {
+        setIsLoading(false);
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!session) {
+        navigate("/auth");
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [navigate]);
+
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast({
+        title: "Logout failed",
+        description: error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+    toast({
+      title: "Logged out successfully",
+      description: "See you next time!",
+    });
+    navigate("/auth");
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen p-6 md:p-8">
       <div className="max-w-7xl mx-auto space-y-8">
@@ -12,9 +64,14 @@ const Dashboard = () => {
             <h1 className="text-4xl font-bold mb-2">Welcome Back, Athlete! 💪</h1>
             <p className="text-muted-foreground text-lg">Let's crush your goals today</p>
           </div>
-          <Button variant="hero" size="lg">
-            Start Workout
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="hero" size="lg">
+              Start Workout
+            </Button>
+            <Button variant="outline" size="lg" onClick={handleLogout}>
+              Logout
+            </Button>
+          </div>
         </div>
 
         {/* Stats Grid */}
