@@ -99,7 +99,8 @@ const Home = () => {
               {
                 icon: Zap,
                 title: "AI Workout Generator",
-                description: "Personalized workouts based on goals, BMI, age"
+                description: "Personalized workouts based on goals, BMI, age",
+                link: "/ai-workout"
               },
               {
                 icon: TrendingUp,
@@ -126,19 +127,28 @@ const Home = () => {
                 title: "Gamification System",
                 description: "Streaks, rewards, leaderboards"
               },
-            ].map((feature, index) => (
-              <div 
-                key={feature.title}
-                className="glass p-8 rounded-2xl hover:scale-105 transition-transform duration-300"
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
-                <div className="w-14 h-14 gradient-primary rounded-xl flex items-center justify-center mb-6">
-                  <feature.icon className="w-7 h-7 text-white" />
+            ].map((feature, index) => {
+              const content = (
+                <div 
+                  className="glass p-8 rounded-2xl hover:scale-105 transition-transform duration-300"
+                  style={{ animationDelay: `${index * 100}ms` }}
+                >
+                  <div className="w-14 h-14 gradient-primary rounded-xl flex items-center justify-center mb-6">
+                    <feature.icon className="w-7 h-7 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-3">{feature.title}</h3>
+                  <p className="text-muted-foreground">{feature.description}</p>
                 </div>
-                <h3 className="text-xl font-bold mb-3">{feature.title}</h3>
-                <p className="text-muted-foreground">{feature.description}</p>
-              </div>
-            ))}
+              );
+
+              return feature.link ? (
+                <Link key={feature.title} to={feature.link}>
+                  {content}
+                </Link>
+              ) : (
+                <div key={feature.title}>{content}</div>
+              );
+            })}
           </div>
         </div>
       </section>
