@@ -49,7 +49,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      send_welcome_email: {
+        Args: { user_email: string; user_name?: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
