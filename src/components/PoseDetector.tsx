@@ -86,8 +86,8 @@ export default function PoseDetector() {
     setIsDetecting(false);
   };
 
-  const detectPose = async () => {
-    if (!detector || !videoRef.current || !canvasRef.current) return;
+   const detectPose = async () => {
+     if (!videoRef.current || !canvasRef.current) return;
 
     const video = videoRef.current;
     const canvas = canvasRef.current;
@@ -98,10 +98,15 @@ export default function PoseDetector() {
     const detect = async () => {
       if (!isDetectingRef.current) return;
 
-      const poses = await detector.estimatePoses(video);
-      
+      // Always draw the video frame first
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      // Run pose estimation only when the model is ready
+      let poses: any[] = [];
+      if (detector) {
+        poses = await detector.estimatePoses(video);
+      }
 
       if (poses.length > 0) {
         const pose = poses[0];
