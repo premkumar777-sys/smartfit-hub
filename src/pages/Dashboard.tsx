@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Activity, Apple, Dumbbell, Target, TrendingUp, Calendar } from "lucide-react";
@@ -65,8 +65,10 @@ const Dashboard = () => {
             <p className="text-muted-foreground text-lg">Let's crush your goals today</p>
           </div>
           <div className="flex gap-2">
-            <Button variant="hero" size="lg">
-              Start Workout
+            <Button asChild variant="hero" size="lg">
+              <Link to="/workout-session">
+                Start Workout
+              </Link>
             </Button>
             <Button variant="outline" size="lg" onClick={handleLogout}>
               Logout
