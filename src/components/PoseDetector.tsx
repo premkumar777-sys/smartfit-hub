@@ -10,6 +10,7 @@ export default function PoseDetector() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDetecting, setIsDetecting] = useState(false);
+  const isDetectingRef = useRef(false);
   const [detector, setDetector] = useState<poseDetection.PoseDetector | null>(null);
   const [repCount, setRepCount] = useState(0);
   const [isDown, setIsDown] = useState(false);
@@ -53,8 +54,17 @@ export default function PoseDetector() {
       });
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        isDetectingRef.current = true;
         setIsDetecting(true);
-        detectPose();
+        
+        // Wait for video to be ready before starting detection
+        videoRef.current.onloadedmetadata = () => {
+          if (canvasRef.current && videoRef.current) {
+            canvasRef.current.width = videoRef.current.videoWidth;
+            canvasRef.current.height = videoRef.current.videoHeight;
+            detectPose();
+          }
+        };
       }
     } catch (error) {
       console.error("Error accessing camera:", error);
@@ -67,6 +77,7 @@ export default function PoseDetector() {
   };
 
   const stopCamera = () => {
+    isDetectingRef.current = false;
     if (videoRef.current?.srcObject) {
       const stream = videoRef.current.srcObject as MediaStream;
       stream.getTracks().forEach(track => track.stop());
@@ -85,7 +96,7 @@ export default function PoseDetector() {
     if (!ctx) return;
 
     const detect = async () => {
-      if (!isDetecting) return;
+      if (!isDetectingRef.current) return;
 
       const poses = await detector.estimatePoses(video);
       
@@ -180,12 +191,6 @@ export default function PoseDetector() {
             playsInline
             muted
             className="absolute inset-0 w-full h-full object-cover opacity-0"
-            onLoadedMetadata={() => {
-              if (canvasRef.current && videoRef.current) {
-                canvasRef.current.width = videoRef.current.videoWidth;
-                canvasRef.current.height = videoRef.current.videoHeight;
-              }
-            }}
           />
           <canvas
             ref={canvasRef}
