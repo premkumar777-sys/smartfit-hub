@@ -1,75 +1,119 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Zap, Target, TrendingUp, Users } from "lucide-react";
 import { Link } from "react-router-dom";
-import gymHero from "@/assets/gym-hero.jpg";
+import { motion } from "framer-motion";
+import { Suspense, lazy } from "react";
+
+const Hero3DScene = lazy(() => import("@/components/Hero3DScene"));
 
 const Home = () => {
   return (
     <div className="min-h-screen">
-      {/* Hero Section */}
+      {/* Hero Section with 3D Background */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        {/* Background Image with Overlay */}
-        <div className="absolute inset-0 z-0">
-          <img 
-            src={gymHero} 
-            alt="Modern gym interior" 
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-background/95 via-background/80 to-background"></div>
+        {/* Dark Gradient Background */}
+        <div className="absolute inset-0 z-0 bg-gradient-to-b from-[#0b0b0f] via-[#111118] to-background"></div>
+
+        {/* 3D Scene */}
+        <div className="absolute inset-0 z-0 opacity-80">
+          <Suspense fallback={<div className="w-full h-full bg-gradient-to-b from-[#0b0b0f] to-[#111118]" />}>
+            <Hero3DScene />
+          </Suspense>
         </div>
 
         {/* Content */}
-        <div className="relative z-10 container mx-auto px-4 text-center">
-          <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
-            <h1 className="text-5xl md:text-7xl font-bold leading-tight">
-              Transform Your Body with
-              <span className="text-gradient block mt-2">AI-Powered Training</span>
-            </h1>
-            
-            <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto">
-              Experience the future of fitness with personalized workouts, smart nutrition plans, and real-time AI coaching
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
-              <Button asChild variant="hero" size="xl">
-                <Link to="/auth">
-                  Start Your Journey <ArrowRight className="ml-2" />
-                </Link>
-              </Button>
-              <Button 
-                variant="glass" 
-                size="xl"
-                onClick={() => {
-                  document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
-                }}
+        <div className="relative z-10 container mx-auto px-4">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            {/* Left: Text Content */}
+            <motion.div 
+              className="space-y-8"
+              initial={{ opacity: 0, x: -50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+            >
+              <motion.h1 
+                className="text-5xl md:text-7xl font-bold leading-tight"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.2 }}
               >
-                Explore Features
-              </Button>
-            </div>
+                Transform Your Body with
+                <span className="text-gradient block mt-2">AI-Powered Training</span>
+              </motion.h1>
+              
+              <motion.p 
+                className="text-xl md:text-2xl text-muted-foreground max-w-2xl"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.4 }}
+              >
+                Experience the future of fitness with personalized workouts, smart nutrition plans, and real-time AI coaching
+              </motion.p>
 
-            {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 pt-12">
-              {[
-                { number: "10K+", label: "Active Members" },
-                { number: "500+", label: "Workouts" },
-                { number: "98%", label: "Success Rate" },
-                { number: "24/7", label: "AI Support" },
-              ].map((stat) => (
-                <div key={stat.label} className="space-y-2">
-                  <div className="text-3xl md:text-4xl font-bold text-primary">{stat.number}</div>
-                  <div className="text-sm text-muted-foreground">{stat.label}</div>
-                </div>
-              ))}
-            </div>
+              <motion.div 
+                className="flex flex-col sm:flex-row gap-4 pt-4"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.6 }}
+              >
+                <Button asChild variant="hero" size="xl">
+                  <Link to="/auth">
+                    Start Your Journey <ArrowRight className="ml-2" />
+                  </Link>
+                </Button>
+                <Button 
+                  variant="glass" 
+                  size="xl"
+                  onClick={() => {
+                    document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                >
+                  Explore Features
+                </Button>
+              </motion.div>
+
+              {/* Stats */}
+              <motion.div 
+                className="grid grid-cols-2 gap-8 pt-12"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.8 }}
+              >
+                {[
+                  { number: "10K+", label: "Active Members" },
+                  { number: "500+", label: "Workouts" },
+                  { number: "98%", label: "Success Rate" },
+                  { number: "24/7", label: "AI Support" },
+                ].map((stat, index) => (
+                  <motion.div 
+                    key={stat.label} 
+                    className="space-y-2"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.5, delay: 1 + index * 0.1 }}
+                  >
+                    <div className="text-3xl md:text-4xl font-bold text-primary">{stat.number}</div>
+                    <div className="text-sm text-muted-foreground">{stat.label}</div>
+                  </motion.div>
+                ))}
+              </motion.div>
+            </motion.div>
+
+            {/* Right: 3D Scene Space (handled by absolute positioned canvas) */}
+            <div className="hidden lg:block" />
           </div>
         </div>
 
         {/* Scroll Indicator */}
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+        <motion.div 
+          className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
+          animate={{ y: [0, 10, 0] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        >
           <div className="w-6 h-10 border-2 border-primary rounded-full flex items-start justify-center p-2">
             <div className="w-1 h-3 bg-primary rounded-full"></div>
           </div>
-        </div>
+        </motion.div>
       </section>
 
       {/* Features Section */}
