@@ -35,18 +35,18 @@ function Dumbbell() {
 
   useFrame((state) => {
     if (groupRef.current) {
-      // Smooth rotation
-      groupRef.current.rotation.y += 0.003;
+      // Slower, gentler rotation
+      groupRef.current.rotation.y += 0.001;
       
-      // Floating animation
-      groupRef.current.position.y = Math.sin(state.clock.elapsedTime * 0.6) * 0.2;
+      // Subtle floating animation
+      groupRef.current.position.y = Math.sin(state.clock.elapsedTime * 0.3) * 0.15;
       
-      // Mouse-follow tilt (only on desktop)
+      // Very gentle mouse-follow tilt (only on desktop)
       if (!isMobile) {
-        const targetRotationX = mousePosition.y * 0.15;
-        const targetRotationZ = mousePosition.x * 0.15;
-        groupRef.current.rotation.x += (targetRotationX - groupRef.current.rotation.x) * 0.05;
-        groupRef.current.rotation.z += (targetRotationZ - groupRef.current.rotation.z) * 0.05;
+        const targetRotationX = mousePosition.y * 0.08;
+        const targetRotationZ = mousePosition.x * 0.08;
+        groupRef.current.rotation.x += (targetRotationX - groupRef.current.rotation.x) * 0.03;
+        groupRef.current.rotation.z += (targetRotationZ - groupRef.current.rotation.z) * 0.03;
       }
     }
   });
@@ -170,16 +170,16 @@ function ParticleSystem({ mousePosition }: { mousePosition: { x: number; y: numb
     const positions = particlesRef.current.geometry.attributes.position.array as Float32Array;
 
     for (let i = 0; i < count; i++) {
-      // Floating animation
-      positions[i * 3] += particles.velocities[i * 3];
-      positions[i * 3 + 1] += particles.velocities[i * 3 + 1] + Math.sin(state.clock.elapsedTime + i) * 0.001;
-      positions[i * 3 + 2] += particles.velocities[i * 3 + 2];
+      // Slower, gentler floating animation
+      positions[i * 3] += particles.velocities[i * 3] * 0.5;
+      positions[i * 3 + 1] += particles.velocities[i * 3 + 1] * 0.5 + Math.sin(state.clock.elapsedTime * 0.5 + i) * 0.0005;
+      positions[i * 3 + 2] += particles.velocities[i * 3 + 2] * 0.5;
 
-      // Mouse influence
-      const dx = mousePosition.x * 3 - positions[i * 3];
-      const dy = mousePosition.y * 3 - positions[i * 3 + 1];
-      positions[i * 3] += dx * 0.001;
-      positions[i * 3 + 1] += dy * 0.001;
+      // Very subtle mouse influence
+      const dx = mousePosition.x * 2 - positions[i * 3];
+      const dy = mousePosition.y * 2 - positions[i * 3 + 1];
+      positions[i * 3] += dx * 0.0005;
+      positions[i * 3 + 1] += dy * 0.0005;
 
       // Boundary check - wrap around
       if (Math.abs(positions[i * 3]) > 6) positions[i * 3] *= -0.9;
@@ -207,10 +207,10 @@ function ParticleSystem({ mousePosition }: { mousePosition: { x: number; y: numb
         />
       </bufferGeometry>
       <pointsMaterial
-        size={0.15}
+        size={0.12}
         color="#00FF9C"
         transparent
-        opacity={0.6}
+        opacity={0.4}
         sizeAttenuation
         blending={THREE.AdditiveBlending}
         depthWrite={false}
@@ -278,16 +278,29 @@ function Scene() {
 }
 
 export default function Hero3DScene() {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    setIsMobile(window.innerWidth < 768);
+    
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   return (
-    <div className="w-full h-full">
+    <div className="w-full h-full" style={{ transform: isMobile ? 'scale(0.6)' : 'scale(1)' }}>
       <Canvas
         camera={{ position: [0, 0, 6], fov: 45 }}
         gl={{ 
           antialias: true, 
           alpha: true,
-          powerPreference: "high-performance"
+          powerPreference: isMobile ? "low-power" : "high-performance"
         }}
-        dpr={[1, 2]}
+        dpr={isMobile ? [1, 1] : [1, 2]}
       >
         <Scene />
       </Canvas>

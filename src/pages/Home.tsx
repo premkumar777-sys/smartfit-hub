@@ -14,10 +14,27 @@ const Home = () => {
         {/* Dark Gradient Background */}
         <div className="absolute inset-0 z-0 bg-gradient-to-b from-[#0b0b0f] via-[#111118] to-background"></div>
 
+        {/* 3D Background Animation */}
+        <div className="absolute inset-0 z-[1] opacity-30 pointer-events-none overflow-hidden">
+          <div className="absolute inset-0 flex items-center justify-center md:justify-end md:pr-20">
+            <div 
+              className="w-full h-full max-w-[800px] max-h-[800px]"
+              style={{
+                filter: 'blur(1px)',
+                background: 'radial-gradient(ellipse at center, transparent 0%, rgba(10, 10, 15, 0.5) 70%)'
+              }}
+            >
+              <Suspense fallback={null}>
+                <Hero3DScene />
+              </Suspense>
+            </div>
+          </div>
+        </div>
+
         {/* Content */}
         <div className="relative z-10 container mx-auto px-4">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            {/* Left: Text Content */}
+          <div className="max-w-4xl">
+            {/* Text Content */}
             <motion.div 
               className="space-y-8"
               initial={{ opacity: 0, x: -50 }}
@@ -91,15 +108,6 @@ const Home = () => {
                 ))}
               </motion.div>
             </motion.div>
-
-            {/* Right: 3D Scene */}
-            <div className="hidden lg:block">
-              <div className="relative w-full h-[500px]">
-                <Suspense fallback={null}>
-                  <Hero3DScene />
-                </Suspense>
-              </div>
-            </div>
           </div>
         </div>
 
