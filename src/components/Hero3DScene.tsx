@@ -1,6 +1,6 @@
 import { Canvas, useFrame } from "@react-three/fiber";
-import { OrbitControls, PerspectiveCamera } from "@react-three/drei";
-import { useRef, useState, useEffect } from "react";
+import { OrbitControls } from "@react-three/drei";
+import { useRef, useState, useEffect, useMemo } from "react";
 import * as THREE from "three";
 
 function Dumbbell() {
@@ -138,7 +138,102 @@ function Dumbbell() {
   );
 }
 
+// Particle system with gym-themed floating particles
+function ParticleSystem({ mousePosition }: { mousePosition: { x: number; y: number } }) {
+  const particlesRef = useRef<THREE.Points>(null);
+  const count = 50;
+
+  const particles = useMemo(() => {
+    const positions = new Float32Array(count * 3);
+    const velocities = new Float32Array(count * 3);
+    const sizes = new Float32Array(count);
+
+    for (let i = 0; i < count; i++) {
+      // Spread particles in a wider area around the dumbbell
+      positions[i * 3] = (Math.random() - 0.5) * 12;
+      positions[i * 3 + 1] = (Math.random() - 0.5) * 10;
+      positions[i * 3 + 2] = (Math.random() - 0.5) * 8;
+
+      velocities[i * 3] = (Math.random() - 0.5) * 0.02;
+      velocities[i * 3 + 1] = (Math.random() - 0.5) * 0.02;
+      velocities[i * 3 + 2] = (Math.random() - 0.5) * 0.02;
+
+      sizes[i] = Math.random() * 0.15 + 0.05;
+    }
+
+    return { positions, velocities, sizes };
+  }, []);
+
+  useFrame((state) => {
+    if (!particlesRef.current) return;
+
+    const positions = particlesRef.current.geometry.attributes.position.array as Float32Array;
+
+    for (let i = 0; i < count; i++) {
+      // Floating animation
+      positions[i * 3] += particles.velocities[i * 3];
+      positions[i * 3 + 1] += particles.velocities[i * 3 + 1] + Math.sin(state.clock.elapsedTime + i) * 0.001;
+      positions[i * 3 + 2] += particles.velocities[i * 3 + 2];
+
+      // Mouse influence
+      const dx = mousePosition.x * 3 - positions[i * 3];
+      const dy = mousePosition.y * 3 - positions[i * 3 + 1];
+      positions[i * 3] += dx * 0.001;
+      positions[i * 3 + 1] += dy * 0.001;
+
+      // Boundary check - wrap around
+      if (Math.abs(positions[i * 3]) > 6) positions[i * 3] *= -0.9;
+      if (Math.abs(positions[i * 3 + 1]) > 5) positions[i * 3 + 1] *= -0.9;
+      if (Math.abs(positions[i * 3 + 2]) > 4) positions[i * 3 + 2] *= -0.9;
+    }
+
+    particlesRef.current.geometry.attributes.position.needsUpdate = true;
+  });
+
+  return (
+    <points ref={particlesRef}>
+      <bufferGeometry>
+        <bufferAttribute
+          attach="attributes-position"
+          count={count}
+          array={particles.positions}
+          itemSize={3}
+        />
+        <bufferAttribute
+          attach="attributes-size"
+          count={count}
+          array={particles.sizes}
+          itemSize={1}
+        />
+      </bufferGeometry>
+      <pointsMaterial
+        size={0.15}
+        color="#00FF9C"
+        transparent
+        opacity={0.6}
+        sizeAttenuation
+        blending={THREE.AdditiveBlending}
+        depthWrite={false}
+      />
+    </points>
+  );
+}
+
 function Scene() {
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    const handleMouseMove = (event: MouseEvent) => {
+      setMousePosition({
+        x: (event.clientX / window.innerWidth) * 2 - 1,
+        y: -(event.clientY / window.innerHeight) * 2 + 1,
+      });
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
   return (
     <>
       {/* Lighting */}
@@ -168,6 +263,7 @@ function Scene() {
       />
 
       <Dumbbell />
+      <ParticleSystem mousePosition={mousePosition} />
       
       <OrbitControls
         enableZoom={false}

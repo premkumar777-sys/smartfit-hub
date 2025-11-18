@@ -18,14 +18,16 @@ const Home = () => {
         <div className="relative z-10 container mx-auto px-4">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* 3D Scene - Right Side */}
-            <div className="hidden lg:block absolute right-0 top-1/2 -translate-y-1/2 w-[45vw] h-[45vh] max-w-[600px] opacity-90 pointer-events-none">
-              <Suspense fallback={null}>
-                <Hero3DScene />
-              </Suspense>
+            <div className="hidden lg:block order-2">
+              <div className="relative w-full h-[500px] max-w-[600px] ml-auto">
+                <Suspense fallback={null}>
+                  <Hero3DScene />
+                </Suspense>
+              </div>
             </div>
             {/* Left: Text Content */}
             <motion.div 
-              className="space-y-8"
+              className="space-y-8 order-1"
               initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, ease: "easeOut" }}
