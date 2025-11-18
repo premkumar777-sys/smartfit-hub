@@ -14,16 +14,15 @@ const Home = () => {
         {/* Dark Gradient Background */}
         <div className="absolute inset-0 z-0 bg-gradient-to-b from-[#0b0b0f] via-[#111118] to-background"></div>
 
-        {/* 3D Scene */}
-        <div className="absolute inset-0 z-0 opacity-80">
-          <Suspense fallback={<div className="w-full h-full bg-gradient-to-b from-[#0b0b0f] to-[#111118]" />}>
-            <Hero3DScene />
-          </Suspense>
-        </div>
-
         {/* Content */}
         <div className="relative z-10 container mx-auto px-4">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
+            {/* 3D Scene - Right Side */}
+            <div className="hidden lg:block absolute right-0 top-1/2 -translate-y-1/2 w-[45vw] h-[45vh] max-w-[600px] opacity-90 pointer-events-none">
+              <Suspense fallback={null}>
+                <Hero3DScene />
+              </Suspense>
+            </div>
             {/* Left: Text Content */}
             <motion.div 
               className="space-y-8"
