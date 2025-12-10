@@ -5,9 +5,10 @@ import { cn } from "@/lib/utils";
 interface MobileMenuProps {
   children: ReactNode;
   className?: string;
+  onMenuToggle?: (isOpen: boolean) => void;
 }
 
-export function MobileMenu({ children, className }: MobileMenuProps) {
+export function MobileMenu({ children, className, onMenuToggle }: MobileMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -26,18 +27,23 @@ export function MobileMenu({ children, className }: MobileMenuProps) {
 
     if (isOpen) {
       document.body.style.overflow = "hidden";
+      onMenuToggle?.(true);
       document.addEventListener("mousedown", handleClickOutside);
       document.addEventListener("keydown", handleEscape);
     } else {
       document.body.style.overflow = "unset";
+      onMenuToggle?.(false);
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
     }
 
     return () => {
       document.body.style.overflow = "unset";
+      onMenuToggle?.(false);
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("keydown", handleEscape);
     };
-  }, [isOpen]);
+  }, [isOpen, onMenuToggle]);
 
   return (
     <>

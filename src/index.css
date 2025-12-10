@@ -137,3 +137,10 @@ All colors MUST be HSL.
     50% { transform: translateY(-20px); }
   }
 }
+
+@layer base {
+  /* Disable pointer events on hero when mobile menu is open */
+  [data-mobile-menu-open="true"] .hero-3d-scene {
+    pointer-events: none;
+  }
+}

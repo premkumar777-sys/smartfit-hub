@@ -59,14 +59,12 @@ export function AuthMenu() {
 
   if (!user) {
     return (
-      <div className="flex items-center space-x-3">
-        <Button asChild variant="ghost" className="text-gray-300 hover:text-white">
-          <Link to="/auth">Login</Link>
-        </Button>
-        <Button asChild variant="hero" size="sm">
-          <Link to="/auth">Get Started</Link>
-        </Button>
-      </div>
+      <Link
+        to="/auth"
+        className="text-gray-300 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4CC9F0] rounded-lg px-3 py-2"
+      >
+        Login
+      </Link>
     );
   }
 

@@ -11,7 +11,7 @@ const Home = () => {
     <div className="min-h-screen">
       {/* Hero Section */}
       <section className="relative overflow-hidden py-20">
-        <div className="absolute inset-0 z-0 opacity-30 pointer-events-none">
+        <div className="absolute inset-0 z-0 opacity-30 pointer-events-none hero-3d-scene">
           <Suspense fallback={null}>
             <HeroDumbbellScene />
           </Suspense>

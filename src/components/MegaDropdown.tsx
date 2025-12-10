@@ -6,12 +6,18 @@ interface MegaDropdownProps {
   trigger: ReactNode;
   children: ReactNode;
   className?: string;
+  isMega?: boolean;
 }
 
-export function MegaDropdown({ trigger, children, className }: MegaDropdownProps) {
+export function MegaDropdown({ trigger, children, className, isMega = false }: MegaDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const hoverTimeoutRef = useRef<NodeJS.Timeout>();
+
+  const openDelay = 150; // ms delay for hover open
+  const closeDelay = 300; // ms delay for hover close
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -23,6 +29,7 @@ export function MegaDropdown({ trigger, children, className }: MegaDropdownProps
     function handleEscape(event: KeyboardEvent) {
       if (event.key === "Escape") {
         setIsOpen(false);
+        setIsHovered(false);
         triggerRef.current?.focus();
       }
     }
@@ -38,23 +45,62 @@ export function MegaDropdown({ trigger, children, className }: MegaDropdownProps
     };
   }, [isOpen]);
 
+  // Handle hover open/close with delay
+  useEffect(() => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+    }
+
+    if (isHovered) {
+      hoverTimeoutRef.current = setTimeout(() => {
+        setIsOpen(true);
+      }, openDelay);
+    } else {
+      hoverTimeoutRef.current = setTimeout(() => {
+        setIsOpen(false);
+      }, closeDelay);
+    }
+
+    return () => {
+      if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current);
+      }
+    };
+  }, [isHovered]);
+
+  const handleMouseEnter = () => setIsHovered(true);
+  const handleMouseLeave = () => setIsHovered(false);
+
   const handleKeyDown = (event: React.KeyboardEvent) => {
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
       setIsOpen(!isOpen);
+      setIsHovered(!isOpen);
     }
   };
 
+  const handleClick = () => {
+    setIsOpen(!isOpen);
+    setIsHovered(!isOpen);
+  };
+
+  const dropdownWidth = isMega ? "w-[600px]" : "w-80";
+
   return (
-    <div className="relative" ref={dropdownRef}>
+    <div
+      className="relative"
+      ref={dropdownRef}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
       <button
         ref={triggerRef}
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={handleClick}
         onKeyDown={handleKeyDown}
         className={cn(
           "flex items-center space-x-1 px-4 py-2 text-sm font-medium text-gray-300 hover:text-white transition-colors rounded-lg",
           "focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4CC9F0]",
-          isOpen && "text-[#00FF9C] bg-white/10"
+          (isOpen || isHovered) && "text-[#00FF9C] bg-white/10"
         )}
         aria-haspopup="true"
         aria-expanded={isOpen}
@@ -64,7 +110,7 @@ export function MegaDropdown({ trigger, children, className }: MegaDropdownProps
         <ChevronDown
           className={cn(
             "w-4 h-4 transition-transform duration-200",
-            isOpen && "rotate-180"
+            (isOpen || isHovered) && "rotate-180"
           )}
         />
       </button>
@@ -72,9 +118,10 @@ export function MegaDropdown({ trigger, children, className }: MegaDropdownProps
       {isOpen && (
         <div
           className={cn(
-            "absolute top-full left-0 mt-2 w-80 max-h-96 overflow-auto",
+            "absolute top-full left-1/2 transform -translate-x-1/2 mt-2 max-h-96 overflow-auto",
             "bg-gray-900/95 backdrop-blur-md border border-gray-800 rounded-2xl shadow-2xl",
             "animate-in fade-in-0 zoom-in-95 duration-200",
+            dropdownWidth,
             className
           )}
           role="menu"
