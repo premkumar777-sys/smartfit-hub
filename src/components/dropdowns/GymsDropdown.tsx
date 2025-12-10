@@ -116,13 +116,13 @@ export default function GymsDropdown() {
             to="/gyms/map"
             className="flex items-center justify-center px-4 py-3 text-sm font-medium text-[#00FF9C] hover:text-white transition-colors rounded-lg hover:bg-white/10"
           >
-            🗺️ View Map
+            View Map
           </Link>
           <Link
             to="/gyms/list"
             className="flex items-center justify-center px-4 py-3 text-sm font-medium text-[#00FF9C] hover:text-white transition-colors rounded-lg hover:bg-white/10"
           >
-            📋 Browse All
+            Browse All
           </Link>
         </div>
       </div>

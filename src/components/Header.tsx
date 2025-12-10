@@ -7,7 +7,6 @@ import { MobileMenu } from "./MobileMenu";
 import { AuthMenu } from "./AuthMenu";
 import { SearchOverlay } from "./SearchOverlay";
 import { Button } from "@/components/ui/button";
-import { Search, Phone } from "lucide-react";
 
 // Lazy load dropdown content
 const FeaturesDropdown = lazy(() => import("./dropdowns/FeaturesDropdown"));
@@ -52,7 +51,6 @@ const menuStructure = [
 
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
@@ -163,29 +161,11 @@ export function Header() {
             </div>
 
             {/* Desktop Right Side */}
-            <div className="hidden lg:flex items-center space-x-4">
-              {/* Search Icon */}
-              <button
-                onClick={() => setIsSearchOpen(true)}
-                className="p-2 text-gray-300 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4CC9F0] rounded-lg"
-                aria-label="Open search"
-              >
-                <Search className="w-5 h-5" />
-              </button>
-
-              {/* Contact/Book Demo Button */}
-              <button
-                onClick={handleContactClick}
-                className="inline-flex items-center px-4 py-2 rounded-md border border-gray-700 text-sm text-gray-200 hover:bg-gray-800 transition"
-              >
-                <Phone className="w-4 h-4 mr-2" />
-                Contact / Book Demo
-              </button>
-
+            <div className="hidden lg:flex items-center space-x-6">
               {/* Get Started Button */}
               <Button
                 onClick={handleGetStartedClick}
-                className="ml-4 inline-flex px-6 py-2 rounded-lg font-semibold bg-[#00FF9C] text-black shadow-md hover:brightness-95"
+                className="inline-flex px-6 py-2 rounded-lg font-semibold bg-[#00FF9C] text-black shadow-md hover:brightness-95"
               >
                 Get Started
               </Button>
@@ -197,35 +177,14 @@ export function Header() {
             {/* Mobile Menu Button */}
             <div className="lg:hidden">
               <MobileMenu onMenuToggle={setIsMobileMenuOpen}>
-                {/* Mobile Search */}
-                <div className="px-4 py-3 border-b border-gray-800">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <input
-                      type="text"
-                      placeholder="Search..."
-                      className="w-full pl-9 pr-3 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-400 text-sm focus:outline-none focus:ring-1 focus:ring-[#4CC9F0]"
-                      onClick={() => setIsSearchOpen(true)}
-                      readOnly
-                    />
-                  </div>
-                </div>
-
-                {/* Mobile CTA Buttons */}
-                <div className="px-4 py-4 space-y-3 border-b border-gray-800">
+                {/* Mobile CTA Button */}
+                <div className="px-4 py-4 border-b border-gray-800">
                   <Button
                     onClick={handleGetStartedClick}
                     className="w-full bg-[#00FF9C] text-black hover:brightness-95"
                   >
                     Get Started
                   </Button>
-                  <button
-                    onClick={handleContactClick}
-                    className="w-full inline-flex items-center justify-center px-4 py-3 rounded-md border border-gray-700 text-sm text-gray-200 hover:bg-gray-800 transition"
-                  >
-                    <Phone className="w-4 h-4 mr-2" />
-                    Contact / Book Demo
-                  </button>
                 </div>
 
                 {/* Mobile Navigation Items */}
@@ -297,11 +256,8 @@ export function Header() {
               </MobileMenu>
             </div>
           </div>
-        </nav>
-      </header>
-
-      {/* Search Overlay */}
-      <SearchOverlay isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
-    </>
-  );
+      </nav>
+    </header>
+  </>
+);
 }
