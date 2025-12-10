@@ -30,7 +30,6 @@ export function NavItem({
   isActive,
   dataNav
 }: NavItemProps) {
-  const [showTooltip, setShowTooltip] = useState(false);
   const baseClasses = "px-4 py-2 text-sm font-medium text-gray-300 hover:text-white transition-colors rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4CC9F0] relative group flex items-center space-x-2";
 
   const isDisabled = requiresAuth && !isAuthenticated;
@@ -38,7 +37,7 @@ export function NavItem({
   const handleClick = (e: React.MouseEvent) => {
     if (isDisabled) {
       e.preventDefault();
-      // Navigate to auth page
+      // Navigate to auth page using React Router
       window.location.href = '/auth';
       return;
     }
@@ -54,44 +53,18 @@ export function NavItem({
           {badge}
         </span>
       )}
+      {micro && (
+        <div className="text-xs text-gray-500 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          {micro}
+        </div>
+      )}
     </>
   );
 
-  const tooltipContent = isDisabled ? "Login to view your progress" : micro;
-
   if (href && !isDisabled) {
     return (
-      <div className="relative">
-        <Link
-          to={href}
-          className={cn(
-            baseClasses,
-            isActive && "text-[#00FF9C] bg-white/10",
-            isDisabled && "opacity-50 cursor-not-allowed",
-            className
-          )}
-          onClick={handleClick}
-          aria-current={isActive ? "page" : undefined}
-          aria-label={typeof children === 'string' ? children : undefined}
-          data-nav={dataNav}
-          onMouseEnter={() => setShowTooltip(true)}
-          onMouseLeave={() => setShowTooltip(false)}
-        >
-          {content}
-        </Link>
-        {tooltipContent && showTooltip && (
-          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap z-50">
-            {tooltipContent}
-            <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  return (
-    <div className="relative">
-      <button
+      <Link
+        to={href}
         className={cn(
           baseClasses,
           isActive && "text-[#00FF9C] bg-white/10",
@@ -99,20 +72,29 @@ export function NavItem({
           className
         )}
         onClick={handleClick}
-        disabled={isDisabled}
+        aria-current={isActive ? "page" : undefined}
         aria-label={typeof children === 'string' ? children : undefined}
         data-nav={dataNav}
-        onMouseEnter={() => setShowTooltip(true)}
-        onMouseLeave={() => setShowTooltip(false)}
       >
         {content}
-      </button>
-      {tooltipContent && showTooltip && (
-        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap z-50">
-          {tooltipContent}
-          <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
-        </div>
+      </Link>
+    );
+  }
+
+  return (
+    <button
+      className={cn(
+        baseClasses,
+        isActive && "text-[#00FF9C] bg-white/10",
+        isDisabled && "opacity-50 cursor-not-allowed",
+        className
       )}
-    </div>
+      onClick={handleClick}
+      disabled={isDisabled}
+      aria-label={typeof children === 'string' ? children : undefined}
+      data-nav={dataNav}
+    >
+      {content}
+    </button>
   );
 }

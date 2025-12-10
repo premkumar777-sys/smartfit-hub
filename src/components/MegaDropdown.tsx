@@ -16,8 +16,8 @@ export function MegaDropdown({ trigger, children, className, isMega = false }: M
   const triggerRef = useRef<HTMLButtonElement>(null);
   const hoverTimeoutRef = useRef<NodeJS.Timeout>();
 
-  const openDelay = 150; // ms delay for hover open
-  const closeDelay = 300; // ms delay for hover close
+  const openDelay = 100; // ms delay for hover open
+  const closeDelay = 200; // ms delay for hover close
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -79,7 +79,13 @@ export function MegaDropdown({ trigger, children, className, isMega = false }: M
     }
   };
 
-  const handleClick = () => {
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Clear any pending hover timeout
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+    }
     setIsOpen(!isOpen);
     setIsHovered(!isOpen);
   };
@@ -97,6 +103,7 @@ export function MegaDropdown({ trigger, children, className, isMega = false }: M
         ref={triggerRef}
         onClick={handleClick}
         onKeyDown={handleKeyDown}
+        type="button"
         className={cn(
           "flex items-center space-x-1 px-4 py-2 text-sm font-medium text-gray-300 hover:text-white transition-colors rounded-lg",
           "focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4CC9F0]",
@@ -118,7 +125,7 @@ export function MegaDropdown({ trigger, children, className, isMega = false }: M
       {isOpen && (
         <div
           className={cn(
-            "absolute top-full left-1/2 transform -translate-x-1/2 mt-2 max-h-96 overflow-auto",
+            "absolute top-full left-1/2 transform -translate-x-1/2 mt-2 max-h-96 overflow-auto z-60",
             "bg-gray-900/95 backdrop-blur-md border border-gray-800 rounded-2xl shadow-2xl",
             "animate-in fade-in-0 zoom-in-95 duration-200",
             dropdownWidth,
