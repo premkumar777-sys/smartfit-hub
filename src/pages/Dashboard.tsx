@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
+import { Container } from "@/components/Container";
 import { Activity, Apple, Dumbbell, Target, TrendingUp, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -56,13 +57,13 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen p-6 md:p-8">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <div className="min-h-screen py-20">
+      <Container className="space-y-8">
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <h1 className="text-4xl font-bold mb-2">Welcome Back, Athlete! 💪</h1>
-            <p className="text-muted-foreground text-lg">Let's crush your goals today</p>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-2">Welcome Back, Athlete! 💪</h1>
+            <p className="text-lg md:text-xl leading-relaxed text-gray-300">Let's crush your goals today</p>
           </div>
           <div className="flex gap-2">
             <Button asChild variant="hero" size="lg">
@@ -70,14 +71,14 @@ const Dashboard = () => {
                 Start Workout
               </Link>
             </Button>
-            <Button variant="outline" size="lg" onClick={handleLogout}>
+            <Button variant="glass" size="lg" onClick={handleLogout}>
               Logout
             </Button>
           </div>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {[
             {
               icon: Dumbbell,
@@ -108,7 +109,7 @@ const Dashboard = () => {
               color: "text-yellow-500"
             },
           ].map((stat) => (
-            <Card key={stat.label} className="glass p-6 hover:scale-105 transition-transform duration-300">
+            <Card key={stat.label}>
               <div className="flex items-start justify-between mb-4">
                 <div className={`w-12 h-12 rounded-xl gradient-primary flex items-center justify-center`}>
                   <stat.icon className="w-6 h-6 text-white" />
@@ -124,17 +125,17 @@ const Dashboard = () => {
         </div>
 
         {/* Main Content Grid */}
-        <div className="grid lg:grid-cols-3 gap-6">
+        <div className="grid lg:grid-cols-3 gap-8">
           {/* Today's Workout */}
-          <Card className="lg:col-span-2 glass p-6">
+          <Card className="lg:col-span-2">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold flex items-center gap-2">
-                <Dumbbell className="text-primary" />
+              <h2 className="text-2xl font-bold flex items-center gap-2 leading-relaxed text-gray-300">
+                <Dumbbell className="text-primary h-6 w-6" />
                 Today's Workout
               </h2>
               <Button variant="ghost" size="sm">View All</Button>
             </div>
-            
+
             <div className="space-y-4">
               {[
                 { name: "Bench Press", sets: "4 sets", reps: "8-10 reps", completed: true },
@@ -142,9 +143,9 @@ const Dashboard = () => {
                 { name: "Deadlifts", sets: "3 sets", reps: "6-8 reps", completed: false },
                 { name: "Pull-ups", sets: "3 sets", reps: "To failure", completed: false },
               ].map((exercise) => (
-                <div 
+                <div
                   key={exercise.name}
-                  className={`p-4 rounded-lg border border-border flex items-center justify-between ${
+                  className={`p-4 rounded-lg border border-border flex items-center justify-between transition-all duration-200 hover:-translate-y-1 hover:shadow-lg ${
                     exercise.completed ? 'bg-accent/10' : 'bg-card/50'
                   }`}
                 >
@@ -159,7 +160,7 @@ const Dashboard = () => {
                       )}
                     </div>
                     <div>
-                      <p className="font-semibold">{exercise.name}</p>
+                      <p className="font-semibold leading-relaxed text-gray-300">{exercise.name}</p>
                       <p className="text-sm text-muted-foreground">{exercise.sets} × {exercise.reps}</p>
                     </div>
                   </div>
@@ -172,12 +173,12 @@ const Dashboard = () => {
           </Card>
 
           {/* Nutrition Overview */}
-          <Card className="glass p-6">
-            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-              <Apple className="text-orange-500" />
+          <Card>
+            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 leading-relaxed text-gray-300">
+              <Apple className="text-orange-500 h-6 w-6" />
               Nutrition Today
             </h2>
-            
+
             <div className="space-y-6">
               {[
                 { name: "Protein", current: 120, target: 180, color: "bg-primary", unit: "g" },
@@ -186,13 +187,13 @@ const Dashboard = () => {
               ].map((macro) => (
                 <div key={macro.name}>
                   <div className="flex justify-between mb-2">
-                    <span className="font-medium">{macro.name}</span>
+                    <span className="font-medium leading-relaxed text-gray-300">{macro.name}</span>
                     <span className="text-sm text-muted-foreground">
                       {macro.current}/{macro.target}{macro.unit}
                     </span>
                   </div>
                   <div className="h-2 bg-muted rounded-full overflow-hidden">
-                    <div 
+                    <div
                       className={`h-full ${macro.color} transition-all duration-500`}
                       style={{ width: `${(macro.current / macro.target) * 100}%` }}
                     ></div>
@@ -212,12 +213,12 @@ const Dashboard = () => {
         </div>
 
         {/* Weekly Progress Chart */}
-        <Card className="glass p-6">
-          <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-            <Activity className="text-primary" />
+        <Card>
+          <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 leading-relaxed text-gray-300">
+            <Activity className="text-primary h-6 w-6" />
             Weekly Activity
           </h2>
-          
+
           <div className="flex items-end justify-between h-48 gap-4">
             {[
               { day: "Mon", hours: 1.5, completed: true },
@@ -231,20 +232,20 @@ const Dashboard = () => {
               <div key={day.day} className="flex-1 flex flex-col items-center gap-2">
                 <div className="w-full flex items-end justify-center h-40">
                   {day.hours > 0 && (
-                    <div 
-                      className={`w-full rounded-t-lg ${
+                    <div
+                      className={`w-full rounded-t-lg transition-all duration-200 hover:-translate-y-1 hover:shadow-lg ${
                         day.completed ? 'gradient-primary' : 'bg-muted'
-                      } transition-all duration-500 hover:scale-105`}
+                      }`}
                       style={{ height: `${(day.hours / 2.5) * 100}%` }}
                     ></div>
                   )}
                 </div>
-                <span className="text-sm font-medium">{day.day}</span>
+                <span className="text-sm font-medium leading-relaxed text-gray-300">{day.day}</span>
               </div>
             ))}
           </div>
         </Card>
-      </div>
+      </Container>
     </div>
   );
 };

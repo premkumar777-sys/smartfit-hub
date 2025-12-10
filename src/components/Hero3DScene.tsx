@@ -139,9 +139,9 @@ function Dumbbell() {
 }
 
 // Particle system with gym-themed floating particles
-function ParticleSystem({ mousePosition }: { mousePosition: { x: number; y: number } }) {
+function ParticleSystem({ mousePosition, isMobile }: { mousePosition: { x: number; y: number }, isMobile: boolean }) {
   const particlesRef = useRef<THREE.Points>(null);
-  const count = 50;
+  const count = isMobile ? 20 : 50;
 
   const particles = useMemo(() => {
     const positions = new Float32Array(count * 3);
@@ -219,51 +219,55 @@ function ParticleSystem({ mousePosition }: { mousePosition: { x: number; y: numb
   );
 }
 
-function Scene() {
+function Scene({ isMobile }: { isMobile: boolean }) {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
-    const handleMouseMove = (event: MouseEvent) => {
-      setMousePosition({
-        x: (event.clientX / window.innerWidth) * 2 - 1,
-        y: -(event.clientY / window.innerHeight) * 2 + 1,
-      });
-    };
+    if (!isMobile) {
+      const handleMouseMove = (event: MouseEvent) => {
+        setMousePosition({
+          x: (event.clientX / window.innerWidth) * 2 - 1,
+          y: -(event.clientY / window.innerHeight) * 2 + 1,
+        });
+      };
 
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
+      window.addEventListener('mousemove', handleMouseMove);
+      return () => window.removeEventListener('mousemove', handleMouseMove);
+    }
+  }, [isMobile]);
 
   return (
     <>
       {/* Lighting */}
       <ambientLight intensity={0.4} />
-      
-      <pointLight 
-        position={[5, 5, 5]} 
-        intensity={2} 
+
+      <pointLight
+        position={[5, 5, 5]}
+        intensity={isMobile ? 1.5 : 2}
         color="#00FF9C"
         distance={15}
       />
-      
-      <pointLight 
-        position={[-5, -5, 5]} 
-        intensity={1.5} 
+
+      <pointLight
+        position={[-5, -5, 5]}
+        intensity={isMobile ? 1 : 1.5}
         color="#4CC9F0"
         distance={15}
       />
-      
-      <spotLight
-        position={[0, 10, 0]}
-        intensity={1}
-        angle={0.6}
-        penumbra={1}
-        color="#7B2CBF"
-        distance={20}
-      />
+
+      {!isMobile && (
+        <spotLight
+          position={[0, 10, 0]}
+          intensity={1}
+          angle={0.6}
+          penumbra={1}
+          color="#7B2CBF"
+          distance={20}
+        />
+      )}
 
       <Dumbbell />
-      <ParticleSystem mousePosition={mousePosition} />
+      <ParticleSystem mousePosition={mousePosition} isMobile={isMobile} />
       
       <OrbitControls
         enableZoom={false}
@@ -295,14 +299,14 @@ export default function Hero3DScene() {
     <div className="w-full h-full" style={{ transform: isMobile ? 'scale(0.6)' : 'scale(1)' }}>
       <Canvas
         camera={{ position: [0, 0, 6], fov: 45 }}
-        gl={{ 
-          antialias: true, 
+        gl={{
+          antialias: !isMobile,
           alpha: true,
           powerPreference: isMobile ? "low-power" : "high-performance"
         }}
         dpr={isMobile ? [1, 1] : [1, 2]}
       >
-        <Scene />
+        <Scene isMobile={isMobile} />
       </Canvas>
     </div>
   );

@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Container } from "@/components/Container";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, Dumbbell, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -68,12 +69,12 @@ const AIWorkout = () => {
   };
 
   return (
-    <div className="min-h-screen px-4 py-12 relative overflow-hidden">
+    <div className="min-h-screen py-20 relative overflow-hidden">
       <div className="absolute inset-0 gradient-hero opacity-20"></div>
-      
-      <div className="relative z-10 container mx-auto max-w-5xl">
-        <Link to="/" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-8 transition-colors">
-          <ArrowLeft className="w-4 h-4 mr-2" />
+
+      <Container className="relative z-10">
+        <Link to="/" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-8 transition-colors" aria-label="Back to home page">
+          <ArrowLeft className="w-4 h-4 mr-2" aria-hidden="true" />
           Back to Home
         </Link>
 
@@ -81,10 +82,10 @@ const AIWorkout = () => {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full gradient-primary mb-4">
             <Dumbbell className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4">
             <span className="text-gradient">AI Workout Generator</span>
           </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-lg md:text-xl leading-relaxed text-gray-300 max-w-prose mx-auto">
             Get a personalized workout plan tailored to your goals and fitness level
           </p>
         </div>
@@ -211,7 +212,7 @@ const AIWorkout = () => {
             </CardContent>
           </Card>
         </div>
-      </div>
+      </Container>
     </div>
   );
 };

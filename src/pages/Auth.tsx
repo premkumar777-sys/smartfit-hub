@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Container } from "@/components/Container";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
@@ -242,13 +243,13 @@ export default function Auth() {
   const isResettingPassword = urlParams.get('reset') === 'true';
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 gradient-bg">
-      <div className="w-full max-w-md">
-        <Link to="/" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6">
+    <div className="min-h-screen flex items-center justify-center py-20 gradient-bg">
+      <Container className="w-full max-w-md">
+        <Link to="/" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6" aria-label="Back to home page">
           ← Back to Home
         </Link>
-        
-        <Card className="glass border-border/50">
+
+        <Card>
           <CardHeader>
             <CardTitle className="text-2xl text-center">Welcome to FitAI</CardTitle>
             <CardDescription className="text-center">
@@ -422,13 +423,13 @@ export default function Auth() {
               </TabsContent>
               </Tabs>
             )}
-            
+
             <p className="text-xs text-muted-foreground text-center mt-6">
               By continuing, you agree to our Terms of Service and Privacy Policy
             </p>
           </CardContent>
         </Card>
-      </div>
+      </Container>
     </div>
   );
 }

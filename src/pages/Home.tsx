@@ -4,115 +4,97 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Suspense, lazy } from "react";
 
-const Hero3DScene = lazy(() => import("@/components/Hero3DScene"));
+const HeroDumbbellScene = lazy(() => import("@/components/Hero3DScene"));
 
 const Home = () => {
   return (
     <div className="min-h-screen">
-      {/* Hero Section with 3D Background */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        {/* Dark Gradient Background */}
-        <div className="absolute inset-0 z-0 bg-gradient-to-b from-[#0b0b0f] via-[#111118] to-background"></div>
-
-        {/* 3D Background Animation */}
-        <div className="absolute inset-0 z-[1] opacity-30 pointer-events-none overflow-hidden">
-          <div className="absolute inset-0 flex items-center justify-center md:justify-end md:pr-20">
-            <div 
-              className="w-full h-full max-w-[800px] max-h-[800px]"
-              style={{
-                filter: 'blur(1px)',
-                background: 'radial-gradient(ellipse at center, transparent 0%, rgba(10, 10, 15, 0.5) 70%)'
-              }}
-            >
-              <Suspense fallback={null}>
-                <Hero3DScene />
-              </Suspense>
-            </div>
-          </div>
+      {/* Hero Section */}
+      <section className="relative overflow-hidden py-20">
+        <div className="absolute inset-0 z-0 opacity-30 pointer-events-none">
+          <Suspense fallback={null}>
+            <HeroDumbbellScene />
+          </Suspense>
         </div>
-
-        {/* Content */}
-        <div className="relative z-10 container mx-auto px-4">
-          <div className="max-w-4xl">
-            {/* Text Content */}
-            <motion.div 
-              className="space-y-8"
-              initial={{ opacity: 0, x: -50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
+        <div className="relative z-10 max-w-4xl mx-auto px-6">
+          <motion.div
+            className="text-center space-y-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+            <motion.h1
+              className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
             >
-              <motion.h1 
-                className="text-5xl md:text-7xl font-bold leading-tight"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.2 }}
-              >
-                Transform Your Body with
-                <span className="text-gradient block mt-2">AI-Powered Training</span>
-              </motion.h1>
-              
-              <motion.p 
-                className="text-xl md:text-2xl text-muted-foreground max-w-2xl"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.4 }}
-              >
-                Experience the future of fitness with personalized workouts, smart nutrition plans, and real-time AI coaching
-              </motion.p>
+              Transform Your Body with
+              <span className="text-gradient block mt-2">AI-Powered Training</span>
+            </motion.h1>
 
-              <motion.div 
-                className="flex flex-col sm:flex-row gap-4 pt-4"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.6 }}
-              >
-                <Button asChild variant="hero" size="xl">
-                  <Link to="/auth">
-                    Start Your Journey <ArrowRight className="ml-2" />
-                  </Link>
-                </Button>
-                <Button 
-                  variant="glass" 
+            <motion.p
+              className="text-lg md:text-xl leading-relaxed text-gray-300 max-w-prose mx-auto"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+            >
+              Experience the future of fitness with personalized workouts, smart nutrition plans, and real-time AI coaching
+            </motion.p>
+
+            <motion.div
+              className="flex flex-col sm:flex-row gap-4 justify-center pt-4"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.6 }}
+            >
+              <Button asChild variant="hero" size="xl">
+                <Link to="/auth">
+                  Start Your Journey <ArrowRight className="ml-2" />
+                </Link>
+              </Button>
+                <Button
+                  variant="glass"
                   size="xl"
                   onClick={() => {
                     document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
                   }}
+                  aria-label="Scroll to features section"
                 >
                   Explore Features
                 </Button>
-              </motion.div>
-
-              {/* Stats */}
-              <motion.div 
-                className="grid grid-cols-2 gap-8 pt-12"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.8 }}
-              >
-                {[
-                  { number: "10K+", label: "Active Members" },
-                  { number: "500+", label: "Workouts" },
-                  { number: "98%", label: "Success Rate" },
-                  { number: "24/7", label: "AI Support" },
-                ].map((stat, index) => (
-                  <motion.div 
-                    key={stat.label} 
-                    className="space-y-2"
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.5, delay: 1 + index * 0.1 }}
-                  >
-                    <div className="text-3xl md:text-4xl font-bold text-primary">{stat.number}</div>
-                    <div className="text-sm text-muted-foreground">{stat.label}</div>
-                  </motion.div>
-                ))}
-              </motion.div>
             </motion.div>
-          </div>
+
+            {/* Stats */}
+            <motion.div
+              className="grid grid-cols-2 md:grid-cols-4 gap-8 pt-12"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.8 }}
+            >
+              {[
+                { number: "10K+", label: "Active Members" },
+                { number: "500+", label: "Workouts" },
+                { number: "98%", label: "Success Rate" },
+                { number: "24/7", label: "AI Support" },
+              ].map((stat, index) => (
+                <motion.div
+                  key={stat.label}
+                  className="space-y-2"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.5, delay: 1 + index * 0.1 }}
+                >
+                  <div className="text-3xl md:text-4xl font-bold text-primary">{stat.number}</div>
+                  <div className="text-sm text-muted-foreground">{stat.label}</div>
+                </motion.div>
+              ))}
+            </motion.div>
+          </motion.div>
         </div>
 
         {/* Scroll Indicator */}
-        <motion.div 
+        <motion.div
           className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
           animate={{ y: [0, 10, 0] }}
           transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
@@ -124,18 +106,18 @@ const Home = () => {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-24 px-4">
-        <div className="container mx-auto">
+      <section id="features" className="py-16">
+        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4">
               Why Choose <span className="text-gradient">SmartFit Hub</span>
             </h2>
-            <p className="text-xl text-muted-foreground">
+            <p className="text-lg md:text-xl leading-relaxed text-gray-300 max-w-prose mx-auto">
               Cutting-edge technology meets personalized fitness coaching
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
               {
                 icon: Users,
@@ -180,15 +162,10 @@ const Home = () => {
               },
             ].map((feature, index) => {
               const content = (
-                <div 
-                  className="glass p-8 rounded-2xl hover:scale-105 transition-transform duration-300"
-                  style={{ animationDelay: `${index * 100}ms` }}
-                >
-                  <div className="w-14 h-14 gradient-primary rounded-xl flex items-center justify-center mb-6">
-                    <feature.icon className="w-7 h-7 text-white" />
-                  </div>
-                  <h3 className="text-xl font-bold mb-3">{feature.title}</h3>
-                  <p className="text-muted-foreground">{feature.description}</p>
+                <div className="group">
+                  <feature.icon className="h-10 w-10 text-[#00FF9C] mb-6" />
+                  <h3 className="text-xl font-bold mb-3 leading-relaxed text-gray-300">{feature.title}</h3>
+                  <p className="leading-relaxed text-gray-300">{feature.description}</p>
                 </div>
               );
 
@@ -205,14 +182,14 @@ const Home = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 px-4 relative overflow-hidden">
+      <section className="py-16 relative overflow-hidden">
         <div className="absolute inset-0 gradient-hero opacity-50"></div>
-        <div className="container mx-auto relative z-10">
+        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 relative z-10">
           <div className="glass max-w-4xl mx-auto p-12 rounded-3xl text-center">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6">
               Ready to Transform Your Life?
             </h2>
-            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+            <p className="text-lg md:text-xl leading-relaxed text-gray-300 mb-8 max-w-prose mx-auto">
               Join thousands of members who have already achieved their fitness goals with our AI-powered platform
             </p>
             <Button asChild variant="hero" size="xl">

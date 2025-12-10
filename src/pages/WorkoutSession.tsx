@@ -1,16 +1,17 @@
 import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Container } from "@/components/Container";
 import PoseDetector from "@/components/PoseDetector";
 
 export default function WorkoutSession() {
   return (
-    <div className="min-h-screen bg-background p-4">
-      <div className="container mx-auto max-w-6xl">
+    <div className="min-h-screen bg-background py-20">
+      <Container>
         <div className="mb-6">
           <Button asChild variant="ghost">
-            <Link to="/dashboard">
-              <ArrowLeft className="mr-2" />
+            <Link to="/dashboard" aria-label="Back to dashboard">
+              <ArrowLeft className="mr-2" aria-hidden="true" />
               Back to Dashboard
             </Link>
           </Button>
@@ -18,15 +19,15 @@ export default function WorkoutSession() {
 
         <div className="space-y-6">
           <div>
-            <h1 className="text-4xl font-bold mb-2">Workout Session</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-2">Workout Session</h1>
+            <p className="text-lg md:text-xl leading-relaxed text-gray-300">
               AI-powered pose detection for real-time form tracking
             </p>
           </div>
 
           <PoseDetector />
         </div>
-      </div>
+      </Container>
     </div>
   );
 }
