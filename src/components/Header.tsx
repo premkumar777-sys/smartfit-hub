@@ -7,12 +7,28 @@ import { MobileMenu } from "./MobileMenu";
 import { AuthMenu } from "./AuthMenu";
 import { SearchOverlay } from "./SearchOverlay";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/use-auth";
+import { Calculator, Book, Chart } from "lucide-react";
 
 // Lazy load dropdown content
 const FeaturesDropdown = lazy(() => import("./dropdowns/FeaturesDropdown"));
 const GymsDropdown = lazy(() => import("./dropdowns/GymsDropdown"));
 const MarketplaceDropdown = lazy(() => import("./dropdowns/MarketplaceDropdown"));
 const BusinessDropdown = lazy(() => import("./dropdowns/BusinessDropdown"));
+
+// Icon helper function
+const getIcon = (iconName: string) => {
+  switch (iconName) {
+    case "Calculator":
+      return Calculator;
+    case "Book":
+      return Book;
+    case "Chart":
+      return Chart;
+    default:
+      return null;
+  }
+};
 
 const menuStructure = [
   {
@@ -40,6 +56,26 @@ const menuStructure = [
     isMega: true
   },
   {
+    label: "Nutrition",
+    href: "/nutrition",
+    badge: "Beta",
+    micro: "Calorie & macro calculator",
+    icon: "Calculator"
+  },
+  {
+    label: "Training Guides",
+    href: "/guides",
+    micro: "Workouts & how-tos",
+    icon: "Book"
+  },
+  {
+    label: "Progress",
+    href: "/dashboard",
+    micro: "Your progress & stats",
+    requiresAuth: true,
+    icon: "Chart"
+  },
+  {
     label: "AI Workout",
     href: "/ai-workout"
   },
@@ -54,6 +90,7 @@ export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -151,7 +188,12 @@ export function Header() {
                     <NavItem
                       href={item.href}
                       badge={item.badge}
+                      micro={item.micro}
+                      icon={item.icon ? getIcon(item.icon) : undefined}
+                      requiresAuth={item.requiresAuth}
+                      isAuthenticated={isAuthenticated}
                       isActive={item.href ? isActive(item.href) : false}
+                      dataNav={item.label.toLowerCase().replace(/\s+/g, '-')}
                     >
                       {item.label}
                     </NavItem>
@@ -235,6 +277,62 @@ export function Header() {
                       <NavItem href="/business" className="block py-3">Gym Management</NavItem>
                       <NavItem href="/business/demo" className="block py-3">Schedule Demo</NavItem>
                     </div>
+                  </div>
+
+                  {/* Nutrition */}
+                  <div>
+                    <NavItem
+                      href="/nutrition"
+                      badge="Beta"
+                      micro="Calorie & macro calculator"
+                      icon={Calculator}
+                      className="block py-3"
+                      dataNav="nutrition"
+                    >
+                      Nutrition
+                    </NavItem>
+                  </div>
+
+                  {/* Training Guides */}
+                  <div>
+                    <NavItem
+                      href="/guides"
+                      micro="Workouts & how-tos"
+                      icon={Book}
+                      className="block py-3"
+                      dataNav="guides"
+                    >
+                      Training Guides
+                    </NavItem>
+                  </div>
+
+                  {/* Progress */}
+                  <div>
+                    {isAuthenticated ? (
+                      <NavItem
+                        href="/dashboard"
+                        micro="Your progress & stats"
+                        icon={Chart}
+                        className="block py-3"
+                        dataNav="progress"
+                      >
+                        Progress
+                      </NavItem>
+                    ) : (
+                      <div className="py-3">
+                        <div className="flex items-center space-x-2 text-gray-400 mb-2">
+                          <Chart className="w-4 h-4" />
+                          <span>Progress</span>
+                        </div>
+                        <p className="text-xs text-gray-500 mb-2">Your progress & stats</p>
+                        <Button
+                          onClick={() => navigate('/auth')}
+                          className="w-full bg-[#00FF9C] text-black hover:brightness-95 text-sm py-2"
+                        >
+                          Login to View
+                        </Button>
+                      </div>
+                    )}
                   </div>
 
                   {/* Other */}
