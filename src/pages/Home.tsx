@@ -48,9 +48,9 @@ const Home = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.6 }}
             >
-              <Button asChild variant="hero" size="xl">
-                <Link to="/auth">
-                  Start Your Journey <ArrowRight className="ml-2" />
+              <Button asChild variant="hero" size="xl" className="hover:scale-[1.03] hover:shadow-[0_0_20px_rgba(0,255,156,0.35)] transition-all duration-200 ease-out">
+                <Link to="/auth" aria-label="Generate My AI Workout">
+                  Start Transformation <ArrowRight className="ml-2" />
                 </Link>
               </Button>
                 <Button
