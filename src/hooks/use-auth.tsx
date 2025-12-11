@@ -10,15 +10,42 @@ interface User {
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // For now, just return unauthenticated state to prevent crashes
-  // TODO: Set up proper Supabase environment variables
-  console.log("Auth hook: Supabase not configured, using fallback");
+  useEffect(() => {
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setUser({
+          id: session.user.id,
+          email: session.user.email!,
+          username: session.user.user_metadata?.username,
+          avatar_url: session.user.user_metadata?.avatar_url,
+        });
+      }
+      setIsLoading(false);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        setUser({
+          id: session.user.id,
+          email: session.user.email!,
+          username: session.user.user_metadata?.username,
+          avatar_url: session.user.user_metadata?.avatar_url,
+        });
+      } else {
+        setUser(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   return {
-    user: null,
-    isAuthenticated: false,
-    isLoading: false,
+    user,
+    isAuthenticated: !!user,
+    isLoading,
   };
 }

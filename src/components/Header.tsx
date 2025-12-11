@@ -6,8 +6,9 @@ import { MegaDropdown } from "./MegaDropdown";
 import { MobileMenu } from "./MobileMenu";
 import { AuthMenu } from "./AuthMenu";
 import { Button } from "@/components/ui/button";
-// import { useAuth } from "@/hooks/use-auth";
-import { Calculator, Book, BarChart3 } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { SearchOverlay } from "./SearchOverlay";
+import { Search, Phone } from "lucide-react";
 
 // Lazy load dropdown content
 const FeaturesDropdown = lazy(() => import("./dropdowns/FeaturesDropdown"));
@@ -15,19 +16,6 @@ const GymsDropdown = lazy(() => import("./dropdowns/GymsDropdown"));
 const MarketplaceDropdown = lazy(() => import("./dropdowns/MarketplaceDropdown"));
 const BusinessDropdown = lazy(() => import("./dropdowns/BusinessDropdown"));
 
-// Icon helper function
-const getIcon = (iconName: string) => {
-  switch (iconName) {
-    case "Calculator":
-      return Calculator;
-    case "Book":
-      return Book;
-    case "Chart":
-      return BarChart3;
-    default:
-      return null;
-  }
-};
 
 const menuStructure = [
   {
@@ -55,26 +43,6 @@ const menuStructure = [
     isMega: true
   },
   {
-    label: "Nutrition",
-    href: "/nutrition",
-    badge: "Beta",
-    micro: "Calorie & macro calculator",
-    icon: "Calculator"
-  },
-  {
-    label: "Training Guides",
-    href: "/guides",
-    micro: "Workouts & how-tos",
-    icon: "Book"
-  },
-  {
-    label: "Progress",
-    href: "/dashboard",
-    micro: "Your progress & stats",
-    requiresAuth: true,
-    icon: "Chart"
-  },
-  {
     label: "AI Workout",
     href: "/ai-workout"
   },
@@ -86,6 +54,7 @@ const menuStructure = [
 
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
@@ -187,12 +156,7 @@ export function Header() {
                     <NavItem
                       href={item.href}
                       badge={item.badge}
-                      micro={item.micro}
-                      icon={item.icon ? getIcon(item.icon) : undefined}
-                      requiresAuth={item.requiresAuth}
-                      isAuthenticated={isAuthenticated}
                       isActive={item.href ? isActive(item.href) : false}
-                      dataNav={item.label.toLowerCase().replace(/\s+/g, '-')}
                     >
                       {item.label}
                     </NavItem>
@@ -202,11 +166,29 @@ export function Header() {
             </div>
 
             {/* Desktop Right Side */}
-            <div className="hidden lg:flex items-center space-x-6">
+            <div className="hidden lg:flex items-center space-x-4">
+              {/* Search Icon */}
+              <button
+                onClick={() => setIsSearchOpen(true)}
+                className="p-2 text-gray-300 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4CC9F0] rounded-lg"
+                aria-label="Open search"
+              >
+                <Search className="w-5 h-5" />
+              </button>
+
+              {/* Contact/Book Demo Button */}
+              <button
+                onClick={handleContactClick}
+                className="inline-flex items-center px-4 py-2 rounded-md border border-gray-700 text-sm text-gray-200 hover:bg-gray-800 transition"
+              >
+                <Phone className="w-4 h-4 mr-2" />
+                Contact / Book Demo
+              </button>
+
               {/* Get Started Button */}
               <Button
                 onClick={handleGetStartedClick}
-                className="inline-flex px-6 py-2 rounded-lg font-semibold bg-[#00FF9C] text-black shadow-md hover:brightness-95"
+                className="ml-4 inline-flex px-6 py-2 rounded-lg font-semibold bg-[#00FF9C] text-black shadow-md hover:brightness-95"
               >
                 Get Started
               </Button>
@@ -218,14 +200,35 @@ export function Header() {
             {/* Mobile Menu Button */}
             <div className="lg:hidden">
               <MobileMenu onMenuToggle={setIsMobileMenuOpen}>
-                {/* Mobile CTA Button */}
-                <div className="px-4 py-4 border-b border-gray-800">
+                {/* Mobile Search */}
+                <div className="px-4 py-3 border-b border-gray-800">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Search..."
+                      className="w-full pl-9 pr-3 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-400 text-sm focus:outline-none focus:ring-1 focus:ring-[#4CC9F0]"
+                      onClick={() => setIsSearchOpen(true)}
+                      readOnly
+                    />
+                  </div>
+                </div>
+
+                {/* Mobile CTA Buttons */}
+                <div className="px-4 py-4 space-y-3 border-b border-gray-800">
                   <Button
                     onClick={handleGetStartedClick}
                     className="w-full bg-[#00FF9C] text-black hover:brightness-95"
                   >
                     Get Started
                   </Button>
+                  <button
+                    onClick={handleContactClick}
+                    className="w-full inline-flex items-center justify-center px-4 py-3 rounded-md border border-gray-700 text-sm text-gray-200 hover:bg-gray-800 transition"
+                  >
+                    <Phone className="w-4 h-4 mr-2" />
+                    Contact / Book Demo
+                  </button>
                 </div>
 
                 {/* Mobile Navigation Items */}
@@ -278,61 +281,6 @@ export function Header() {
                     </div>
                   </div>
 
-                  {/* Nutrition */}
-                  <div>
-                    <NavItem
-                      href="/nutrition"
-                      badge="Beta"
-                      micro="Calorie & macro calculator"
-                      icon={Calculator}
-                      className="block py-3"
-                      dataNav="nutrition"
-                    >
-                      Nutrition
-                    </NavItem>
-                  </div>
-
-                  {/* Training Guides */}
-                  <div>
-                    <NavItem
-                      href="/guides"
-                      micro="Workouts & how-tos"
-                      icon={Book}
-                      className="block py-3"
-                      dataNav="guides"
-                    >
-                      Training Guides
-                    </NavItem>
-                  </div>
-
-                  {/* Progress */}
-                  <div>
-                    {isAuthenticated ? (
-                      <NavItem
-                        href="/dashboard"
-                        micro="Your progress & stats"
-                        icon={Chart}
-                        className="block py-3"
-                        dataNav="progress"
-                      >
-                        Progress
-                      </NavItem>
-                    ) : (
-                      <div className="py-3">
-                        <div className="flex items-center space-x-2 text-gray-400 mb-2">
-                          <Chart className="w-4 h-4" />
-                          <span>Progress</span>
-                        </div>
-                        <p className="text-xs text-gray-500 mb-2">Your progress & stats</p>
-                        <Button
-                          onClick={() => navigate('/auth')}
-                          className="w-full bg-[#00FF9C] text-black hover:brightness-95 text-sm py-2"
-                        >
-                          Login to View
-                        </Button>
-                      </div>
-                    )}
-                  </div>
 
                   {/* Other */}
                   <div>
@@ -355,6 +303,9 @@ export function Header() {
           </div>
       </nav>
     </header>
+
+    {/* Search Overlay */}
+    <SearchOverlay isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
   </>
 );
 }
