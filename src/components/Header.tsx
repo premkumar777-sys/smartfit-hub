@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from "react";
+import { useState, useEffect, useRef, lazy, Suspense } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Logo } from "./Logo";
 import { NavItem } from "./NavItem";
@@ -7,6 +7,7 @@ import { MobileMenu } from "./MobileMenu";
 import { AuthMenu } from "./AuthMenu";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { SearchOverlay } from "./SearchOverlay";
 import { Search, Phone } from "lucide-react";
 
@@ -56,9 +57,15 @@ export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0, transform: 'translateX(0px)' });
+  const [isIndicatorVisible, setIsIndicatorVisible] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated, isLoading } = useAuth();
+  const prefersReducedMotion = useReducedMotion();
+  const navRef = useRef<HTMLDivElement>(null);
+  const indicatorRef = useRef<HTMLDivElement>(null);
+  const lastActiveItemRef = useRef<string | null>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -76,6 +83,18 @@ export function Header() {
       document.body.removeAttribute("data-mobile-menu-open");
     }
   }, [isMobileMenuOpen]);
+
+  // Handle window resize to update indicator position
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 1024) {
+        setIsIndicatorVisible(false);
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const renderDropdown = (dropdownType: string) => {
     switch (dropdownType) {
@@ -123,6 +142,60 @@ export function Header() {
     navigate("/auth");
   };
 
+  // Function to update indicator position
+  const updateIndicator = (element: HTMLElement | null, immediate = false) => {
+    if (!element || !navRef.current || window.innerWidth < 1024) {
+      setIsIndicatorVisible(false);
+      return;
+    }
+
+    const navRect = navRef.current.getBoundingClientRect();
+    const itemRect = element.getBoundingClientRect();
+
+    const left = itemRect.left - navRect.left;
+    const width = itemRect.width;
+
+    setIndicatorStyle({
+      left,
+      width,
+      transform: `translateX(0px)`
+    });
+    setIsIndicatorVisible(true);
+
+    // Add flash effect for quick movements
+    if (!immediate && !prefersReducedMotion && lastActiveItemRef.current !== element.getAttribute('data-nav')) {
+      if (indicatorRef.current) {
+        indicatorRef.current.style.animation = 'none';
+        setTimeout(() => {
+          if (indicatorRef.current) {
+            indicatorRef.current.style.animation = 'flash 0.3s ease-out';
+          }
+        }, 10);
+      }
+    }
+
+    lastActiveItemRef.current = element.getAttribute('data-nav');
+  };
+
+  // Handle mouse enter on nav items
+  const handleItemHover = (element: HTMLElement) => {
+    if (!prefersReducedMotion) {
+      updateIndicator(element);
+    }
+  };
+
+  // Handle mouse leave from nav area
+  const handleNavLeave = () => {
+    if (!prefersReducedMotion) {
+      setIsIndicatorVisible(false);
+    }
+  };
+
+  // Handle keyboard focus
+  const handleItemFocus = (element: HTMLElement) => {
+    updateIndicator(element, true);
+  };
+
   return (
     <>
       <header
@@ -142,27 +215,57 @@ export function Header() {
             </div>
 
             {/* Desktop Navigation */}
-            <div className="hidden lg:flex items-center space-x-1">
+            <div
+              ref={navRef}
+              className="hidden lg:flex items-center space-x-1 relative"
+              onMouseLeave={handleNavLeave}
+            >
               {menuStructure.map((item) => (
                 <div key={item.label}>
                   {item.hasDropdown ? (
-                    <MegaDropdown
-                      trigger={item.label}
-                      isMega={item.isMega}
+                    <div
+                      data-nav={item.label.toLowerCase().replace(/\s+/g, '-')}
+                      onMouseEnter={(e) => handleItemHover(e.currentTarget)}
+                      onFocus={() => handleItemFocus(e.currentTarget)}
                     >
-                      {renderDropdown(item.dropdown!)}
-                    </MegaDropdown>
+                      <MegaDropdown
+                        trigger={item.label}
+                        isMega={item.isMega}
+                      >
+                        {renderDropdown(item.dropdown!)}
+                      </MegaDropdown>
+                    </div>
                   ) : (
-                    <NavItem
-                      href={item.href}
-                      badge={item.badge}
-                      isActive={item.href ? isActive(item.href) : false}
+                    <div
+                      data-nav={item.label.toLowerCase().replace(/\s+/g, '-')}
+                      onMouseEnter={(e) => handleItemHover(e.currentTarget)}
+                      onFocus={() => handleItemFocus(e.currentTarget)}
                     >
-                      {item.label}
-                    </NavItem>
+                      <NavItem
+                        href={item.href}
+                        badge={item.badge}
+                        isActive={item.href ? isActive(item.href) : false}
+                      >
+                        {item.label}
+                      </NavItem>
+                    </div>
                   )}
                 </div>
               ))}
+
+              {/* Sliding Indicator */}
+              <div
+                ref={indicatorRef}
+                aria-hidden="true"
+                className={`absolute bottom-0 h-1 rounded-full bg-gradient-to-r from-[#00FF9C] via-[#4CC9F0] to-[#7B2CBF] transition-all pointer-events-none ${
+                  prefersReducedMotion ? 'duration-0' : 'duration-250 ease-out'
+                } ${isIndicatorVisible ? 'opacity-100' : 'opacity-0'}`}
+                style={{
+                  left: `${indicatorStyle.left}px`,
+                  width: `${indicatorStyle.width}px`,
+                  transform: indicatorStyle.transform
+                }}
+              />
             </div>
 
             {/* Desktop Right Side */}
