@@ -5,9 +5,8 @@ import { NavItem } from "./NavItem";
 import { MegaDropdown } from "./MegaDropdown";
 import { MobileMenu } from "./MobileMenu";
 import { AuthMenu } from "./AuthMenu";
-import { SearchOverlay } from "./SearchOverlay";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/use-auth";
+// import { useAuth } from "@/hooks/use-auth";
 import { Calculator, Book, BarChart3 } from "lucide-react";
 
 // Lazy load dropdown content
@@ -90,7 +89,7 @@ export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
