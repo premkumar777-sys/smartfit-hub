@@ -21,7 +21,7 @@ BEGIN
   
   -- Fallback to constructing URL (this works in Supabase hosted environments)
   IF supabase_url IS NULL THEN
-    supabase_url := 'https://fgndvazoastvtpmqtvhx.supabase.co';
+    supabase_url := 'https://ideehirwwovbeezlqoqj.supabase.co';
   END IF;
   
   function_url := supabase_url || '/functions/v1/send-welcome-email';
