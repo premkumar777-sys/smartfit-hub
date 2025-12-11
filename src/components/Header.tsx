@@ -8,7 +8,7 @@ import { AuthMenu } from "./AuthMenu";
 import { SearchOverlay } from "./SearchOverlay";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
-import { Calculator, Book, Chart } from "lucide-react";
+import { Calculator, Book, BarChart3 } from "lucide-react";
 
 // Lazy load dropdown content
 const FeaturesDropdown = lazy(() => import("./dropdowns/FeaturesDropdown"));
@@ -24,7 +24,7 @@ const getIcon = (iconName: string) => {
     case "Book":
       return Book;
     case "Chart":
-      return Chart;
+      return BarChart3;
     default:
       return null;
   }
