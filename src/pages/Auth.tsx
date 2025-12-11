@@ -119,6 +119,7 @@ export default function Auth() {
           data: {
             username: validated.username,
           },
+          // Disable email confirmation for immediate signup
         },
       });
 
