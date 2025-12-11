@@ -25,8 +25,8 @@ export function AuthMenu() {
         setUser({
           id: session.user.id,
           email: session.user.email!,
-          username: session.user.user_metadata?.username,
-          avatar_url: session.user.user_metadata?.avatar_url,
+          username: (session.user as any).username || session.user.email!.split('@')[0],
+          avatar_url: (session.user as any).avatar_url,
         });
       }
     });
@@ -37,8 +37,8 @@ export function AuthMenu() {
         setUser({
           id: session.user.id,
           email: session.user.email!,
-          username: session.user.user_metadata?.username,
-          avatar_url: session.user.user_metadata?.avatar_url,
+          username: (session.user as any).username || session.user.email!.split('@')[0],
+          avatar_url: (session.user as any).avatar_url,
         });
       } else {
         setUser(null);
