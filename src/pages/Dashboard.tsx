@@ -7,10 +7,50 @@ import { Activity, Apple, Dumbbell, Target, TrendingUp, Calendar } from "lucide-
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
+interface Profile {
+  id: string;
+  username: string;
+  fitness_goal?: string;
+  created_at: string;
+}
+
 const Dashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
+  const [profile, setProfile] = useState<Profile | null>(null);
+
+  const fetchProfile = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+
+        if (error) {
+          console.error('Error fetching profile:', error);
+          toast({
+            title: "Database Error",
+            description: `Failed to fetch profile: ${error.message}`,
+            variant: "destructive",
+          });
+        } else {
+          setProfile(data);
+          console.log('Profile fetched successfully:', data);
+        }
+      }
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      toast({
+        title: "Unexpected Error",
+        description: "An unexpected error occurred while fetching your profile.",
+        variant: "destructive",
+      });
+    }
+  };
 
   useEffect(() => {
     // Check authentication
@@ -18,6 +58,7 @@ const Dashboard = () => {
       if (!session) {
         navigate("/auth");
       } else {
+        fetchProfile();
         setIsLoading(false);
       }
     });
@@ -25,6 +66,8 @@ const Dashboard = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (!session) {
         navigate("/auth");
+      } else {
+        fetchProfile();
       }
     });
 
@@ -62,8 +105,18 @@ const Dashboard = () => {
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-2">Welcome Back, Athlete! 💪</h1>
-            <p className="text-lg md:text-xl leading-relaxed text-gray-300">Let's crush your goals today</p>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-2">
+              Welcome Back{profile?.username ? `, ${profile.username}` : ''}! 💪
+            </h1>
+            <p className="text-lg md:text-xl leading-relaxed text-gray-300">
+              {profile ? `Let's crush your goals today!` : 'Loading your profile...'}
+            </p>
+            {profile && (
+              <p className="text-sm text-muted-foreground mt-2">
+                Member since {new Date(profile.created_at).toLocaleDateString()}
+                {profile.fitness_goal && ` • Goal: ${profile.fitness_goal}`}
+              </p>
+            )}
           </div>
           <div className="flex gap-2">
             <Button asChild variant="hero" size="lg">
