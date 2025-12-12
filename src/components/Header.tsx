@@ -192,9 +192,10 @@ export function Header() {
   return (
     <>
       <header
-        className={`sticky top-0 z-50 backdrop-blur-sm bg-white/5 border-b border-gray-800 transition-all duration-300 ${
+        className={`sticky top-0 z-50 backdrop-blur-sm bg-red-500/20 border-b-2 border-red-500 transition-all duration-300 ${
           isScrolled ? "py-2 shadow-md" : "py-4"
         }`}
+        style={{ minHeight: '60px' }}
       >
         <nav
           className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12"
