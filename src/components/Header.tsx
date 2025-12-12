@@ -48,6 +48,18 @@ const menuStructure = [
     href: "/ai-workout"
   },
   {
+    label: "Nutrition",
+    href: "/nutrition"
+  },
+  {
+    label: "Progress",
+    href: "/progress"
+  },
+  {
+    label: "Guides",
+    href: "/guides"
+  },
+  {
     label: "Pricing",
     href: "#pricing"
   }
@@ -395,7 +407,8 @@ export function Header() {
                     </h3>
                     <div className="space-y-1">
                       <NavItem href="/guides" className="block py-4">Training Guides</NavItem>
-                      <NavItem href="/blog" className="block py-4">Fitness Blog</NavItem>
+                      <NavItem href="/nutrition" className="block py-4">Nutrition Calculator</NavItem>
+                      <NavItem href="/progress" className="block py-4">Progress Dashboard</NavItem>
                       <NavItem href="/support" className="block py-4">Help Center</NavItem>
                     </div>
                   </div>

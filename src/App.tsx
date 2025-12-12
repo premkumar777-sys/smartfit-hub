@@ -9,6 +9,9 @@ import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
 import AIWorkout from "./pages/AIWorkout";
 import WorkoutSession from "./pages/WorkoutSession";
+import Nutrition from "./pages/Nutrition";
+import Progress from "./pages/Progress";
+import Guides from "./pages/Guides";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +29,9 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/ai-workout" element={<AIWorkout />} />
           <Route path="/workout-session" element={<WorkoutSession />} />
+          <Route path="/nutrition" element={<Nutrition />} />
+          <Route path="/progress" element={<Progress />} />
+          <Route path="/guides" element={<Guides />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
