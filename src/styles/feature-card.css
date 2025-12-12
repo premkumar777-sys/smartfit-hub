@@ -1,26 +1,16 @@
 /* Feature Card 3D Animations */
 
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-3px);
-  }
-}
-
 /* Feature card base styles */
 .feature-card {
   position: relative;
   transform-style: preserve-3d;
   backface-visibility: hidden;
-  animation: float 4s ease-in-out infinite;
-  transition: all 0.3s ease-out;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform, box-shadow;
 }
 
 /* Hover state enhancements */
 .feature-card:hover {
-  animation-play-state: paused;
   z-index: 10;
 }
 
@@ -33,18 +23,18 @@
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .feature-card {
-    animation-duration: 6s; /* Slower on mobile */
+    transition-duration: 0.3s; /* Faster on mobile for better responsiveness */
   }
 
   .feature-card:hover {
-    transform: scale(1.02) !important; /* Reduced scale on mobile */
+    transform: scale(1.03) !important; /* Slightly more scale on mobile for better feedback */
   }
 }
 
 /* Reduce motion for accessibility */
 @media (prefers-reduced-motion: reduce) {
   .feature-card {
-    animation: none;
+    transition: transform 0.2s ease-out;
   }
 
   .feature-card:hover {
