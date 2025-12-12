@@ -1,0 +1,53 @@
+/* Feature Card 3D Animations */
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+/* Feature card base styles */
+.feature-card {
+  position: relative;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  animation: float 4s ease-in-out infinite;
+  transition: all 0.3s ease-out;
+}
+
+/* Hover state enhancements */
+.feature-card:hover {
+  animation-play-state: paused;
+  z-index: 10;
+}
+
+/* Focus state for accessibility */
+.feature-card:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(0, 255, 156, 0.5);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .feature-card {
+    animation-duration: 6s; /* Slower on mobile */
+  }
+
+  .feature-card:hover {
+    transform: scale(1.02) !important; /* Reduced scale on mobile */
+  }
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .feature-card {
+    animation: none;
+  }
+
+  .feature-card:hover {
+    transform: scale(1.02) !important;
+  }
+}

@@ -3,6 +3,7 @@ import { ArrowRight, Zap, Target, TrendingUp, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Suspense, lazy } from "react";
+import { FeatureCard } from "@/components/FeatureCard";
 
 const HeroDumbbellScene = lazy(() => import("@/components/Hero3DScene"));
 
@@ -160,23 +161,22 @@ const Home = () => {
                 title: "Gamification System",
                 description: "Streaks, rewards, leaderboards"
               },
-            ].map((feature, index) => {
-              const content = (
-                <div className="group">
-                  <feature.icon className="h-10 w-10 text-[#00FF9C] mb-6" />
-                  <h3 className="text-xl font-bold mb-3 leading-relaxed text-gray-300">{feature.title}</h3>
-                  <p className="leading-relaxed text-gray-300">{feature.description}</p>
-                </div>
-              );
-
-              return feature.link ? (
-                <Link key={feature.title} to={feature.link}>
-                  {content}
-                </Link>
-              ) : (
-                <div key={feature.title}>{content}</div>
-              );
-            })}
+            ].map((feature, index) => (
+              <motion.div
+                key={feature.title}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+              >
+                <FeatureCard
+                  icon={feature.icon}
+                  title={feature.title}
+                  description={feature.description}
+                  link={feature.link}
+                  index={index}
+                />
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>

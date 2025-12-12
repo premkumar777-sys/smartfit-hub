@@ -1,3 +1,6 @@
+/* Feature Card 3D Animations */
+@import './styles/feature-card.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
