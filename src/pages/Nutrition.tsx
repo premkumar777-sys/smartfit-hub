@@ -186,18 +186,46 @@ export default function Nutrition() {
             <Card className="glass border-primary/20">
               <CardHeader><CardTitle>Quick Macro Splits</CardTitle></CardHeader>
               <CardContent className="space-y-3 text-sm text-muted-foreground">
-                <p>Cut: High protein, moderate fats, controlled carbs.</p>
-                <p>Recomp: Balanced protein/carbs, moderate fats.</p>
-                <p>Lean Bulk: High carbs to support training volume.</p>
+                <p className="text-foreground font-semibold">
+                  {goalMap[goal].label} ({goal})
+                </p>
+                <p>Protein: ~{goalMap[goal].protein} g/kg</p>
+                <p>Fats: ~{goalMap[goal].fats} g/kg</p>
+                <p>Carbs: Fill the rest (aim higher for training volume).</p>
+                {result && (
+                  <div className="rounded-lg border border-primary/20 bg-primary/5 p-2 text-xs text-foreground">
+                    Target: {result.calories} kcal · P {result.protein}g · C {result.carbs}g · F {result.fats}g
+                  </div>
+                )}
               </CardContent>
             </Card>
             <Card className="glass border-primary/20">
               <CardHeader><CardTitle>Meal Ideas</CardTitle></CardHeader>
               <CardContent className="space-y-2 text-sm text-muted-foreground">
-                <p>Breakfast: Greek yogurt, berries, oats, whey.</p>
-                <p>Lunch: Chicken, rice, veggies, olive oil.</p>
-                <p>Dinner: Salmon, potatoes, greens.</p>
-                <p>Snacks: Cottage cheese, fruit, nuts.</p>
+                {goal === "cut" && (
+                  <>
+                    <p>Breakfast: Egg whites + oats + berries.</p>
+                    <p>Lunch: Chicken, greens, olive oil, quinoa (measured).</p>
+                    <p>Dinner: White fish, potatoes, broccoli.</p>
+                    <p>Snacks: Greek yogurt, fruit; limit nuts.</p>
+                  </>
+                )}
+                {goal === "recomp" && (
+                  <>
+                    <p>Breakfast: Greek yogurt, oats, whey, banana.</p>
+                    <p>Lunch: Chicken, rice, veggies, avocado.</p>
+                    <p>Dinner: Salmon, sweet potato, greens.</p>
+                    <p>Snacks: Cottage cheese, fruit, light nuts.</p>
+                  </>
+                )}
+                {goal === "bulk" && (
+                  <>
+                    <p>Breakfast: Oats, whey, nut butter, berries.</p>
+                    <p>Lunch: Beef or chicken, rice/pasta, veggies, olive oil.</p>
+                    <p>Dinner: Salmon or beef, potatoes, veggies.</p>
+                    <p>Snacks: Greek yogurt + granola; smoothies.</p>
+                  </>
+                )}
               </CardContent>
             </Card>
             <Card className="glass border-primary/20">
@@ -206,6 +234,9 @@ export default function Nutrition() {
                 <p>Hydrate: 30–40 ml/kg daily.</p>
                 <p>Electrolytes on high-sweat days.</p>
                 <p>Sleep: 7–9 hours; light mobility on rest days.</p>
+                {activity === "athlete" && (
+                  <p className="text-foreground font-semibold">Athlete tip: add 300–500 ml/hour of training.</p>
+                )}
               </CardContent>
             </Card>
           </div>
