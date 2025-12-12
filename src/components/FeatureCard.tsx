@@ -43,13 +43,13 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index }: Fea
     const mouseX = e.clientX - centerX;
     const mouseY = e.clientY - centerY;
 
-    // Calculate rotation for 3D flip effect
-    const rotateY = (mouseX / rect.width) * 20; // -20 to 20 degrees
-    const rotateX = -(mouseY / rect.height) * 15; // -15 to 15 degrees
+    // Calculate rotation for 3D flip effect (gentler to reduce shake)
+    const rotateY = (mouseX / rect.width) * 10; // -10 to 10 degrees
+    const rotateX = -(mouseY / rect.height) * 8; // -8 to 8 degrees
 
-    // Calculate mouse position for parallax
-    const normalizedX = (mouseX / (rect.width / 2)) * 100;
-    const normalizedY = (mouseY / (rect.height / 2)) * 100;
+    // Calculate mouse position for parallax (smaller range)
+    const normalizedX = (mouseX / (rect.width / 2)) * 60;
+    const normalizedY = (mouseY / (rect.height / 2)) * 60;
 
     setRotation({ x: rotateX, y: rotateY, z: 0 });
     setMousePosition({ x: normalizedX, y: normalizedY });
@@ -99,11 +99,11 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index }: Fea
       }
 
       const elapsed = (Date.now() - startTime) * 0.001;
-      const floatY = Math.sin(elapsed * 0.8 + baseDelay) * 4;
-      const floatX = Math.cos(elapsed * 0.6 + baseDelay) * 2;
-      const rotateZ = Math.sin(elapsed * 0.4 + baseDelay) * 1;
+      const floatY = Math.sin(elapsed * 0.8 + baseDelay) * 1.5;
+      const floatX = Math.cos(elapsed * 0.6 + baseDelay) * 1;
 
-      cardRef.current.style.transform = `translate3d(${floatX}px, ${floatY}px, 0) rotateZ(${rotateZ}deg)`;
+      // Minimal movement to avoid visible shake
+      cardRef.current.style.transform = `translate3d(${floatX}px, ${floatY}px, 0)`;
       
       rafRef.current = requestAnimationFrame(animate);
     };
@@ -177,7 +177,7 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index }: Fea
         ref={innerRef}
         className="relative z-10"
         style={{
-          transform: prefersReducedMotion ? undefined : `translateZ(20px) translate(${mousePosition.x * 0.03}px, ${mousePosition.y * 0.03}px)`,
+          transform: prefersReducedMotion ? undefined : `translateZ(20px) translate(${mousePosition.x * 0.02}px, ${mousePosition.y * 0.02}px)`,
           transformStyle: 'preserve-3d',
           willChange: 'transform'
         }}
@@ -186,7 +186,7 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index }: Fea
         <motion.div
           className="flex justify-center mb-6"
           style={{
-            transform: prefersReducedMotion ? undefined : `translateZ(30px) rotateY(${rotation.y * 0.3}deg)`,
+            transform: prefersReducedMotion ? undefined : `translateZ(30px) rotateY(${rotation.y * 0.25}deg)`,
             transformStyle: 'preserve-3d'
           }}
         >

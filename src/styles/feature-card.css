@@ -5,13 +5,13 @@
     transform: translate3d(0, 0, 0) rotateZ(0deg);
   }
   25% {
-    transform: translate3d(2px, -3px, 0) rotateZ(0.5deg);
+    transform: translate3d(1px, -2px, 0) rotateZ(0deg);
   }
   50% {
-    transform: translate3d(-1px, -4px, 0) rotateZ(0deg);
+    transform: translate3d(-1px, -2px, 0) rotateZ(0deg);
   }
   75% {
-    transform: translate3d(-2px, -2px, 0) rotateZ(-0.3deg);
+    transform: translate3d(-1px, -1px, 0) rotateZ(0deg);
   }
 }
 
