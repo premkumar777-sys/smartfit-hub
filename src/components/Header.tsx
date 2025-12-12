@@ -6,6 +6,7 @@ import { MegaDropdown } from "./MegaDropdown";
 import { MobileMenu } from "./MobileMenu";
 import { AuthMenu } from "./AuthMenu";
 import { Button } from "@/components/ui/button";
+import NeonButton from "@/components/NeonButton";
 import { useAuth } from "@/hooks/use-auth";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 
@@ -219,7 +220,7 @@ export function Header() {
                     <div
                       data-nav={item.label.toLowerCase().replace(/\s+/g, '-')}
                       onMouseEnter={(e) => handleItemHover(e.currentTarget)}
-                      onFocus={() => handleItemFocus(e.currentTarget)}
+                      onFocus={(e) => handleItemFocus(e.currentTarget)}
                     >
                       <MegaDropdown
                         trigger={item.label}
@@ -232,7 +233,7 @@ export function Header() {
                     <div
                       data-nav={item.label.toLowerCase().replace(/\s+/g, '-')}
                       onMouseEnter={(e) => handleItemHover(e.currentTarget)}
-                      onFocus={() => handleItemFocus(e.currentTarget)}
+                      onFocus={(e) => handleItemFocus(e.currentTarget)}
                     >
                       <NavItem
                         href={item.href}
@@ -264,13 +265,7 @@ export function Header() {
             {/* Desktop Right Side */}
             <div className="hidden lg:flex items-center space-x-6">
               {/* Get Started Button */}
-              <Button
-                onClick={handleGetStartedClick}
-                className="inline-flex px-6 py-2 rounded-lg font-semibold bg-[#00FF9C] text-black shadow-md hover:brightness-95 hover:scale-[1.03] hover:shadow-[0_0_20px_rgba(0,255,156,0.35)] transition-all duration-200 ease-out"
-                aria-label="Get My Personalized Plan"
-              >
-                Get My Personalized Plan
-              </Button>
+              <NeonButton href="/auth">Get My Personalized Plan</NeonButton>
 
               {/* Auth Menu */}
               <AuthMenu />
@@ -281,13 +276,7 @@ export function Header() {
               <MobileMenu onMenuToggle={setIsMobileMenuOpen}>
                 {/* Mobile CTA Button */}
                 <div className="px-4 py-4 border-b border-gray-800">
-                  <Button
-                    onClick={handleGetStartedClick}
-                    className="w-full bg-[#00FF9C] text-black hover:brightness-95 hover:scale-[1.03] hover:shadow-[0_0_20px_rgba(0,255,156,0.35)] transition-all duration-200 ease-out"
-                    aria-label="Get My Personalized Plan"
-                  >
-                    Get My Personalized Plan
-                  </Button>
+                  <NeonButton href="/auth">Get My Personalized Plan</NeonButton>
                 </div>
 
                 {/* Mobile Navigation Items */}
