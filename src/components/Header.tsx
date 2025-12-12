@@ -58,6 +58,8 @@ export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0, transform: 'translateX(0px)' });
   const [isIndicatorVisible, setIsIndicatorVisible] = useState(false);
+  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated, isLoading } = useAuth();
@@ -176,14 +178,29 @@ export function Header() {
   // Handle mouse enter on nav items
   const handleItemHover = (element: HTMLElement) => {
     if (!prefersReducedMotion) {
-      updateIndicator(element);
+      const navItem = element.getAttribute('data-nav');
+      setHoveredItem(navItem);
+      setIsTransitioning(true);
+
+      // Add smooth transition delay for better UX
+      setTimeout(() => {
+        updateIndicator(element);
+        setIsTransitioning(false);
+      }, 50);
     }
   };
 
   // Handle mouse leave from nav area
   const handleNavLeave = () => {
     if (!prefersReducedMotion) {
-      setIsIndicatorVisible(false);
+      setHoveredItem(null);
+      setIsTransitioning(true);
+
+      // Smooth fade out with delay
+      setTimeout(() => {
+        setIsIndicatorVisible(false);
+        setIsTransitioning(false);
+      }, 150);
     }
   };
 
@@ -213,49 +230,87 @@ export function Header() {
             {/* Desktop Navigation */}
             <div
               ref={navRef}
-              className="hidden lg:flex items-center space-x-1 relative"
+              className="hidden lg:flex items-center space-x-1 relative nav-container"
               onMouseLeave={handleNavLeave}
             >
-              {menuStructure.map((item) => (
-                <div key={item.label}>
-                  {item.hasDropdown ? (
+              {menuStructure.map((item) => {
+                const navKey = item.label.toLowerCase().replace(/\s+/g, '-');
+                const isHovered = hoveredItem === navKey;
+
+                return (
+                  <div key={item.label} className="relative">
+                    {item.hasDropdown ? (
                     <div
-                      data-nav={item.label.toLowerCase().replace(/\s+/g, '-')}
+                      data-nav={navKey}
+                      className={`nav-item-hover ${
+                        isHovered ? 'transform scale-105' : ''
+                      }`}
                       onMouseEnter={(e) => handleItemHover(e.currentTarget)}
                       onFocus={(e) => handleItemFocus(e.currentTarget)}
                     >
-                      <MegaDropdown
-                        trigger={item.label}
-                        isMega={item.isMega}
-                      >
-                        {renderDropdown(item.dropdown!)}
-                      </MegaDropdown>
-                    </div>
-                  ) : (
+                      <div className={`transition-all duration-300 ease-out ${
+                        isHovered ? 'drop-shadow-[0_0_8px_rgba(0,255,156,0.4)]' : ''
+                      }`}>
+                        <MegaDropdown
+                            trigger={item.label}
+                            isMega={item.isMega}
+                          >
+                            {renderDropdown(item.dropdown!)}
+                          </MegaDropdown>
+                        </div>
+                      </div>
+                    ) : (
                     <div
-                      data-nav={item.label.toLowerCase().replace(/\s+/g, '-')}
+                      data-nav={navKey}
+                      className={`nav-item-hover ${
+                        isHovered ? 'transform scale-105' : ''
+                      }`}
                       onMouseEnter={(e) => handleItemHover(e.currentTarget)}
                       onFocus={(e) => handleItemFocus(e.currentTarget)}
                     >
-                      <NavItem
-                        href={item.href}
-                        badge={item.badge}
-                        isActive={item.href ? isActive(item.href) : false}
-                      >
-                        {item.label}
-                      </NavItem>
-                    </div>
-                  )}
-                </div>
-              ))}
+                      <div className={`transition-all duration-300 ease-out ${
+                        isHovered ? 'drop-shadow-[0_0_8px_rgba(0,255,156,0.4)]' : ''
+                      }`}>
+                        <NavItem
+                            href={item.href}
+                            badge={item.badge}
+                            isActive={item.href ? isActive(item.href) : false}
+                          >
+                            {item.label}
+                          </NavItem>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Subtle glow effect on hover */}
+                    {isHovered && (
+                      <div className="absolute inset-0 bg-gradient-to-r from-[#00FF9C]/10 via-[#4CC9F0]/10 to-[#7B2CBF]/10 rounded-lg blur-xl opacity-50 animate-pulse -z-10" />
+                    )}
+                  </div>
+                );
+              })}
 
               {/* Sliding Indicator */}
               <div
                 ref={indicatorRef}
                 aria-hidden="true"
-                className={`absolute bottom-0 h-1 rounded-full bg-gradient-to-r from-[#00FF9C] via-[#4CC9F0] to-[#7B2CBF] transition-all pointer-events-none ${
-                  prefersReducedMotion ? 'duration-0' : 'duration-250 ease-out'
-                } ${isIndicatorVisible ? 'opacity-100' : 'opacity-0'}`}
+                className={`absolute bottom-0 h-1 rounded-full bg-gradient-to-r from-[#00FF9C] via-[#4CC9F0] to-[#7B2CBF] nav-indicator-enhanced pointer-events-none ${
+                  isIndicatorVisible ? 'show' : ''
+                }`}
+                style={{
+                  left: `${indicatorStyle.left}px`,
+                  width: `${indicatorStyle.width}px`,
+                  transform: indicatorStyle.transform,
+                  boxShadow: isIndicatorVisible ? '0 0 20px rgba(0, 255, 156, 0.6), 0 0 40px rgba(76, 201, 240, 0.4), 0 0 60px rgba(123, 44, 191, 0.3)' : 'none'
+                }}
+              />
+
+              {/* Secondary glow indicator for smoother transitions */}
+              <div
+                aria-hidden="true"
+                className={`absolute bottom-0 h-0.5 rounded-full bg-gradient-to-r from-[#00FF9C]/50 via-[#4CC9F0]/50 to-[#7B2CBF]/50 transition-all pointer-events-none blur-sm ${
+                  prefersReducedMotion ? 'duration-0' : isTransitioning ? 'duration-500 ease-out' : 'duration-400 ease-out'
+                } ${isIndicatorVisible ? 'opacity-60 scale-110' : 'opacity-0 scale-100'}`}
                 style={{
                   left: `${indicatorStyle.left}px`,
                   width: `${indicatorStyle.width}px`,
