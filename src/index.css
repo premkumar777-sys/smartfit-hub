@@ -155,34 +155,4 @@ All colors MUST be HSL.
     50% { opacity: 0.7; transform: scaleY(1.2); }
   }
 
-  /* Neon Button Styles */
-  .sf-neon-glow {
-    text-shadow: 0 0 15px var(--color);
-  }
-
-  .sf-glow-bars {
-    box-shadow:
-      0 0 10px var(--color),
-      0 0 20px var(--color),
-      0 0 30px var(--color),
-      0 0 50px var(--color),
-      0 0 100px var(--color);
-  }
-
-  .sf-expand-bg {
-    transform: scale(0);
-    transition: transform 0.5s ease;
-  }
-  .sf-button:hover .sf-expand-bg {
-    transform: scale(1);
-  }
-
-  .sf-bar {
-    transition: opacity 0.5s ease-in-out;
-    transition-delay: 0.25s;
-  }
-  .sf-button:hover .sf-bar {
-    opacity: 0;
-    transition-delay: 0s;
-  }
 }

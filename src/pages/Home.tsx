@@ -4,7 +4,6 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Suspense, lazy } from "react";
 import { FeatureCard } from "@/components/FeatureCard";
-import NeonButton from "@/components/NeonButton";
 
 const HeroDumbbellScene = lazy(() => import("@/components/Hero3DScene"));
 
@@ -50,7 +49,11 @@ const Home = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.6 }}
             >
-              <NeonButton href="/auth">Generate My AI Workout</NeonButton>
+              <Button asChild variant="hero" size="xl" className="hover:scale-[1.03] hover:shadow-[0_0_20px_rgba(0,255,156,0.35)] transition-all duration-200 ease-out">
+                <Link to="/auth" aria-label="Generate My AI Workout">
+                  Start Transformation <ArrowRight className="ml-2" />
+                </Link>
+              </Button>
                 <Button
                   variant="glass"
                   size="xl"
@@ -198,7 +201,11 @@ const Home = () => {
             <p className="text-lg md:text-xl leading-relaxed text-gray-300 mb-8 max-w-prose mx-auto">
               Join thousands of members who have already achieved their fitness goals with our AI-powered platform
             </p>
-            <NeonButton href="/auth">Continue to Dashboard</NeonButton>
+            <Button asChild variant="hero" size="xl">
+              <Link to="/auth">
+                Continue to Dashboard <ArrowRight className="ml-2" />
+              </Link>
+            </Button>
             <div className="mt-6 space-y-2">
               <p className="text-sm text-muted-foreground">🔒 Your data is securely stored.</p>
               <p className="text-sm text-muted-foreground">✓ Protected login recommended for all users.</p>
