@@ -1,8 +1,10 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Zap, Target, TrendingUp, Users } from "lucide-react";
+import { ArrowRight, Zap, Target, TrendingUp, Users, Brain, Eye, BarChart3, Utensils, Calendar, QrCode, Trophy, Wrench, PieChart, ShoppingBag } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Suspense, lazy } from "react";
+import { FeatureCard } from "@/components/FeatureCard";
+import "@/styles/feature-card.css";
 
 const HeroDumbbellScene = lazy(() => import("@/components/Hero3DScene"));
 
@@ -120,63 +122,65 @@ const Home = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
               {
-                icon: Users,
-                title: "Trainer Dashboard",
-                description: "Manage clients, track sessions, upload workouts"
+                icon: Brain,
+                title: "AI Personal Trainer",
+                description: "Intelligent workout recommendations powered by advanced AI algorithms"
               },
               {
-                icon: Target,
-                title: "Class Booking",
-                description: "Book yoga, zumba, PT sessions, and gym floor slots"
+                icon: Eye,
+                title: "Real-Time Form Detection",
+                description: "Computer vision technology analyzes your form and provides instant feedback"
               },
               {
-                icon: Zap,
-                title: "AI Workout Generator",
-                description: "Personalized workouts based on goals, BMI, age",
-                link: "/ai-workout"
+                icon: BarChart3,
+                title: "Smart Progress Dashboard",
+                description: "Comprehensive analytics tracking your fitness journey and achievements"
               },
               {
-                icon: TrendingUp,
-                title: "AI Diet Generator",
-                description: "Smart meal plans using AI"
+                icon: Utensils,
+                title: "Nutrition & Macro AI",
+                description: "AI-powered meal planning with precise macro calculations"
               },
               {
-                icon: Users,
-                title: "Community Feed",
-                description: "Share transformations & interact with members"
+                icon: Calendar,
+                title: "Class & Session Booking",
+                description: "Seamlessly schedule personal training, group classes, and gym sessions"
               },
               {
-                icon: Target,
-                title: "QR Entry Pass",
-                description: "Scan at gym entrance for smart attendance"
+                icon: QrCode,
+                title: "QR Smart Attendance",
+                description: "Contactless entry system with automated check-in and attendance tracking"
               },
               {
-                icon: TrendingUp,
-                title: "Progress Analytics",
-                description: "Track weight, BMI, fat %, weekly reports"
+                icon: Trophy,
+                title: "Gamified Training System",
+                description: "Earn rewards, unlock achievements, and compete with friends"
               },
               {
-                icon: Zap,
-                title: "Gamification System",
-                description: "Streaks, rewards, leaderboards"
+                icon: Wrench,
+                title: "Trainer Performance Tools",
+                description: "Advanced tools for trainers to optimize client results and track progress"
               },
-            ].map((feature, index) => {
-              const content = (
-                <div className="group">
-                  <feature.icon className="h-10 w-10 text-[#00FF9C] mb-6" />
-                  <h3 className="text-xl font-bold mb-3 leading-relaxed text-gray-300">{feature.title}</h3>
-                  <p className="leading-relaxed text-gray-300">{feature.description}</p>
-                </div>
-              );
-
-              return feature.link ? (
-                <Link key={feature.title} to={feature.link}>
-                  {content}
-                </Link>
-              ) : (
-                <div key={feature.title}>{content}</div>
-              );
-            })}
+              {
+                icon: PieChart,
+                title: "Gym Owner Analytics",
+                description: "Business intelligence dashboard for gym management and growth"
+              },
+              {
+                icon: ShoppingBag,
+                title: "Supplement Marketplace",
+                description: "Curated selection of premium supplements with AI recommendations"
+              },
+            ].map((feature, index) => (
+              <FeatureCard
+                key={feature.title}
+                icon={feature.icon}
+                title={feature.title}
+                description={feature.description}
+                link={feature.link}
+                index={index}
+              />
+            ))}
           </div>
         </div>
       </section>
