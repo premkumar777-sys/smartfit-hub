@@ -21,7 +21,7 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index }: Fea
   const [isFocused, setIsFocused] = useState(false);
   const prefersReducedMotion = useReducedMotion();
 
-  // Handle mouse movement for 3D tilt and parallax
+  // Handle mouse movement for 3D depth and morphing effects
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (prefersReducedMotion || !cardRef.current) return;
 
@@ -32,17 +32,18 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index }: Fea
     const mouseX = e.clientX - centerX;
     const mouseY = e.clientY - centerY;
 
-    // Calculate tilt (max 10 degrees)
-    const rotateX = (mouseY / (rect.height / 2)) * -10;
-    const rotateY = (mouseX / (rect.width / 2)) * 10;
+    // Calculate 3D perspective shift (creates depth effect)
+    const depthX = (mouseX / (rect.width / 2)) * 15; // -15 to 15
+    const depthY = (mouseY / (rect.height / 2)) * 15; // -15 to 15
 
-    // Calculate mouse position relative to card for parallax
-    const relativeX = (mouseX / (rect.width / 2)) * 100; // -100 to 100
-    const relativeY = (mouseY / (rect.height / 2)) * 100; // -100 to 100
+    // Calculate morphing scale based on mouse position
+    const distanceFromCenter = Math.sqrt(mouseX * mouseX + mouseY * mouseY);
+    const maxDistance = Math.sqrt((rect.width / 2) ** 2 + (rect.height / 2) ** 2);
+    const morphScale = 1 + (distanceFromCenter / maxDistance) * 0.1; // 1.0 to 1.1
 
-    setTilt({ rotateX, rotateY });
-    setMousePosition({ x: relativeX, y: relativeY });
-    setGlowIntensity(Math.min(1, Math.abs(mouseX) / 100 + Math.abs(mouseY) / 100));
+    setTilt({ rotateX: depthY, rotateY: depthX });
+    setMousePosition({ x: mouseX / 10, y: mouseY / 10 }); // Reduced parallax
+    setGlowIntensity(Math.min(1, distanceFromCenter / (maxDistance / 2)));
   };
 
   const handleMouseEnter = () => {
@@ -77,14 +78,18 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index }: Fea
     }
   };
 
-  // Floating animation
+  // Enhanced floating animation with subtle breathing effect
   useEffect(() => {
     if (prefersReducedMotion) return;
 
     const interval = setInterval(() => {
       if (!isHovered && cardRef.current) {
-        const floatY = Math.sin(Date.now() * 0.002 + index * 0.5) * 2;
-        cardRef.current.style.transform = `translateY(${floatY}px)`;
+        const time = Date.now() * 0.002;
+        const floatY = Math.sin(time + index * 0.5) * 3;
+        const breatheScale = 1 + Math.sin(time * 0.8 + index * 0.3) * 0.02; // Subtle breathing
+        const subtleRotate = Math.sin(time * 0.5 + index * 0.7) * 0.5; // Subtle rotation
+
+        cardRef.current.style.transform = `translateY(${floatY}px) scale(${breatheScale}) rotateZ(${subtleRotate}deg)`;
       }
     }, 16);
 
@@ -119,16 +124,16 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index }: Fea
         "feature-card group relative p-8 rounded-2xl",
         "bg-gradient-to-br from-gray-900/80 to-gray-800/60",
         "backdrop-blur-md border border-gray-700/50",
-        "transition-all duration-300 ease-out",
+        "transition-all duration-400 ease-out",
         "hover:shadow-2xl hover:shadow-[#00FF9C]/20",
         "focus:outline-none focus:ring-2 focus:ring-[#00FF9C] focus:ring-offset-2 focus:ring-offset-gray-900",
         "cursor-pointer select-none",
-        isHovered && "scale-105",
-        isFocused && "scale-105 ring-2 ring-[#00FF9C]"
+        isHovered && "scale-105 border-[#00FF9C]/30",
+        isFocused && "scale-105 ring-2 ring-[#00FF9C] border-[#00FF9C]/30"
       )}
       style={{
-        transform: prefersReducedMotion ? undefined : `perspective(1000px) rotateX(${tilt.rotateX}deg) rotateY(${tilt.rotateY}deg)`,
-        boxShadow: `0 8px 32px rgba(0, 0, 0, 0.3), 0 0 ${glowIntensity * 20}px rgba(0, 255, 156, ${glowIntensity * 0.3})`
+        transform: prefersReducedMotion ? undefined : `perspective(1200px) translateZ(${glowIntensity * 30}px) rotateX(${tilt.rotateX * 0.5}deg) rotateY(${tilt.rotateY * 0.5}deg) scale(${1 + glowIntensity * 0.08})`,
+        boxShadow: `0 ${8 + glowIntensity * 12}px ${32 + glowIntensity * 20}px rgba(0, 0, 0, ${0.3 + glowIntensity * 0.2}), 0 0 ${glowIntensity * 25}px rgba(0, 255, 156, ${glowIntensity * 0.4}), 0 0 ${glowIntensity * 40}px rgba(76, 201, 240, ${glowIntensity * 0.2})`
       }}
       onMouseMove={handleMouseMove}
       onMouseEnter={handleMouseEnter}
@@ -151,75 +156,107 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index }: Fea
 
       {/* Content */}
       <div className="relative z-10">
-        {/* Icon with parallax */}
+        {/* Icon with 3D depth effect */}
         <motion.div
           className="flex justify-center mb-6"
           style={{
-            transform: prefersReducedMotion ? undefined : `translate(${mousePosition.x * 0.1}px, ${mousePosition.y * 0.1}px)`
+            transform: prefersReducedMotion ? undefined : `translateZ(${glowIntensity * 20}px) translate(${mousePosition.x * 0.08}px, ${mousePosition.y * 0.08}px) scale(${1 + glowIntensity * 0.1})`
           }}
         >
           <motion.div
-            animate={isHovered ? { y: -5 } : { y: 0 }}
-            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            animate={isHovered ? { rotateY: 15, scale: 1.1 } : { rotateY: 0, scale: 1 }}
+            transition={{ type: "spring", stiffness: 400, damping: 25 }}
           >
             <Icon
               className={cn(
-                "h-12 w-12 transition-colors duration-300",
-                isHovered || isFocused ? "text-[#00FF9C]" : "text-[#00FF9C]/80"
+                "h-12 w-12 transition-all duration-500",
+                isHovered || isFocused ? "text-[#00FF9C] drop-shadow-[0_0_10px_rgba(0,255,156,0.6)]" : "text-[#00FF9C]/80"
               )}
             />
           </motion.div>
         </motion.div>
 
-        {/* Title with parallax */}
+        {/* Title with 3D layering */}
         <motion.h3
           className="text-xl font-bold mb-4 text-center text-white leading-relaxed"
           style={{
-            transform: prefersReducedMotion ? undefined : `translate(${mousePosition.x * 0.05}px, ${mousePosition.y * 0.05}px)`
+            transform: prefersReducedMotion ? undefined : `translateZ(${glowIntensity * 15}px) translate(${mousePosition.x * 0.04}px, ${mousePosition.y * 0.04}px)`
           }}
+          animate={isHovered ? { scale: 1.02 } : { scale: 1 }}
+          transition={{ type: "spring", stiffness: 300, damping: 20 }}
         >
           {title}
         </motion.h3>
 
-        {/* Description with parallax */}
+        {/* Description with subtle depth */}
         <motion.p
           className="text-gray-300 text-center leading-relaxed"
           style={{
-            transform: prefersReducedMotion ? undefined : `translate(${mousePosition.x * 0.03}px, ${mousePosition.y * 0.03}px)`
+            transform: prefersReducedMotion ? undefined : `translateZ(${glowIntensity * 10}px) translate(${mousePosition.x * 0.02}px, ${mousePosition.y * 0.02}px)`
           }}
+          animate={isHovered ? { opacity: 0.9 } : { opacity: 1 }}
+          transition={{ duration: 0.3 }}
         >
           {description}
         </motion.p>
       </div>
 
-      {/* Particle effects on hover */}
+      {/* Enhanced 3D particle effects on hover */}
       <AnimatePresence>
         {isHovered && !prefersReducedMotion && (
-          <div className="absolute inset-0 pointer-events-none">
-            {[...Array(3)].map((_, i) => (
+          <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl">
+            {[...Array(5)].map((_, i) => (
               <motion.div
                 key={i}
-                className="absolute w-1 h-1 bg-[#00FF9C] rounded-full"
+                className="absolute w-2 h-2 rounded-full"
+                style={{
+                  background: `linear-gradient(45deg, ${['#00FF9C', '#4CC9F0', '#7B2CBF'][i % 3]}, transparent)`,
+                  boxShadow: `0 0 10px ${['#00FF9C', '#4CC9F0', '#7B2CBF'][i % 3]}`
+                }}
                 initial={{
                   opacity: 0,
                   scale: 0,
                   x: Math.random() * 100 + '%',
-                  y: Math.random() * 100 + '%'
+                  y: Math.random() * 100 + '%',
+                  rotateZ: 0
                 }}
                 animate={{
-                  opacity: [0, 1, 0],
-                  scale: [0, 1, 0],
-                  x: Math.random() * 100 + '%',
-                  y: Math.random() * 100 + '%'
+                  opacity: [0, 0.8, 0],
+                  scale: [0, 1.5, 0],
+                  x: [
+                    Math.random() * 100 + '%',
+                    Math.random() * 100 + '%',
+                    Math.random() * 100 + '%'
+                  ],
+                  y: [
+                    Math.random() * 100 + '%',
+                    Math.random() * 100 + '%',
+                    Math.random() * 100 + '%'
+                  ],
+                  rotateZ: [0, 180, 360]
                 }}
                 transition={{
-                  duration: 2,
+                  duration: 3,
                   repeat: Infinity,
-                  delay: i * 0.3,
+                  delay: i * 0.4,
                   ease: "easeInOut"
                 }}
               />
             ))}
+
+            {/* Energy waves */}
+            <motion.div
+              className="absolute inset-0 rounded-2xl border-2 border-[#00FF9C]/30"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1.1, opacity: [0, 0.5, 0] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeOut" }}
+            />
+            <motion.div
+              className="absolute inset-2 rounded-xl border border-[#4CC9F0]/20"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1.05, opacity: [0, 0.3, 0] }}
+              transition={{ duration: 2.5, repeat: Infinity, delay: 0.5, ease: "easeOut" }}
+            />
           </div>
         )}
       </AnimatePresence>
