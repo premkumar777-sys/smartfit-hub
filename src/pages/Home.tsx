@@ -1,9 +1,8 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Zap, Target, TrendingUp, Users, Brain, Scan, BarChart3, Apple, Calendar, QrCode, Trophy, UserCheck, PieChart, ShoppingCart } from "lucide-react";
+import { ArrowRight, Zap, Target, TrendingUp, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Suspense, lazy } from "react";
-import { FeatureCard } from "@/components/FeatureCard";
 
 const HeroDumbbellScene = lazy(() => import("@/components/Hero3DScene"));
 
@@ -121,71 +120,63 @@ const Home = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
               {
-                icon: Brain,
-                title: "AI Personal Trainer",
-                description: "Intelligent workout planning with real-time adjustments based on your performance and goals"
+                icon: Users,
+                title: "Trainer Dashboard",
+                description: "Manage clients, track sessions, upload workouts"
               },
               {
-                icon: Scan,
-                title: "Real-Time Form Detection",
-                description: "AI-powered camera analysis to ensure perfect exercise form and prevent injuries"
+                icon: Target,
+                title: "Class Booking",
+                description: "Book yoga, zumba, PT sessions, and gym floor slots"
               },
               {
-                icon: BarChart3,
-                title: "Smart Progress Dashboard",
-                description: "Advanced analytics tracking strength gains, endurance, and body composition changes"
+                icon: Zap,
+                title: "AI Workout Generator",
+                description: "Personalized workouts based on goals, BMI, age",
+                link: "/ai-workout"
               },
               {
-                icon: Apple,
-                title: "Nutrition & Macro AI",
-                description: "Personalized meal plans with precise macro calculations and smart food recommendations"
+                icon: TrendingUp,
+                title: "AI Diet Generator",
+                description: "Smart meal plans using AI"
               },
               {
-                icon: Calendar,
-                title: "Class & Session Booking",
-                description: "Seamless scheduling for group classes, personal training, and gym floor reservations"
+                icon: Users,
+                title: "Community Feed",
+                description: "Share transformations & interact with members"
               },
               {
-                icon: QrCode,
-                title: "QR Smart Attendance",
-                description: "Contactless entry system with instant check-in tracking and membership validation"
+                icon: Target,
+                title: "QR Entry Pass",
+                description: "Scan at gym entrance for smart attendance"
               },
               {
-                icon: Trophy,
-                title: "Gamified Training System",
-                description: "Achievement unlocks, streak rewards, and competitive leaderboards to stay motivated"
+                icon: TrendingUp,
+                title: "Progress Analytics",
+                description: "Track weight, BMI, fat %, weekly reports"
               },
               {
-                icon: UserCheck,
-                title: "Trainer Performance Tools",
-                description: "Comprehensive client management with progress tracking and automated reporting"
+                icon: Zap,
+                title: "Gamification System",
+                description: "Streaks, rewards, leaderboards"
               },
-              {
-                icon: PieChart,
-                title: "Gym Owner Analytics",
-                description: "Business intelligence dashboard with revenue tracking, member retention, and insights"
-              },
-              {
-                icon: ShoppingCart,
-                title: "Supplement Marketplace",
-                description: "Curated selection of premium supplements with AI-powered recommendation engine"
-              },
-            ].map((feature, index) => (
-              <motion.div
-                key={feature.title}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-              >
-                <FeatureCard
-                  icon={feature.icon}
-                  title={feature.title}
-                  description={feature.description}
-                  link={feature.title === "AI Personal Trainer" ? "/ai-workout" : undefined}
-                  delay={index * 100}
-                />
-              </motion.div>
-            ))}
+            ].map((feature, index) => {
+              const content = (
+                <div className="group">
+                  <feature.icon className="h-10 w-10 text-[#00FF9C] mb-6" />
+                  <h3 className="text-xl font-bold mb-3 leading-relaxed text-gray-300">{feature.title}</h3>
+                  <p className="leading-relaxed text-gray-300">{feature.description}</p>
+                </div>
+              );
+
+              return feature.link ? (
+                <Link key={feature.title} to={feature.link}>
+                  {content}
+                </Link>
+              ) : (
+                <div key={feature.title}>{content}</div>
+              );
+            })}
           </div>
         </div>
       </section>
