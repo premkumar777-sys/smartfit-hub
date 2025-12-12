@@ -6,6 +6,8 @@ import { MegaDropdown } from "./MegaDropdown";
 import { MobileMenu } from "./MobileMenu";
 import { AuthMenu } from "./AuthMenu";
 import { Button } from "@/components/ui/button";
+import NeonButton from "@/components/NeonButton";
+import { Search, Menu, X } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 
@@ -54,6 +56,7 @@ const menuStructure = [
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0, transform: 'translateX(0px)' });
   const [isIndicatorVisible, setIsIndicatorVisible] = useState(false);
   const location = useLocation();
@@ -135,6 +138,31 @@ export function Header() {
     navigate("/auth");
   };
 
+  // Close search when clicking outside or pressing escape
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isSearchOpen && !(event.target as Element).closest('.search-overlay')) {
+        setIsSearchOpen(false);
+      }
+    };
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && isSearchOpen) {
+        setIsSearchOpen(false);
+      }
+    };
+
+    if (isSearchOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleEscape);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [isSearchOpen]);
+
   // Function to update indicator position
   const updateIndicator = (element: HTMLElement | null, immediate = false) => {
     if (!element || !navRef.current || window.innerWidth < 1024) {
@@ -192,10 +220,9 @@ export function Header() {
   return (
     <>
       <header
-        className={`sticky top-0 z-50 backdrop-blur-sm bg-red-500/20 border-b-2 border-red-500 transition-all duration-300 ${
+        className={`sticky top-0 z-50 backdrop-blur-sm bg-white/5 border-b border-gray-800 transition-all duration-300 ${
           isScrolled ? "py-2 shadow-md" : "py-4"
         }`}
-        style={{ minHeight: '60px' }}
       >
         <nav
           className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12"
@@ -264,14 +291,26 @@ export function Header() {
 
             {/* Desktop Right Side */}
             <div className="hidden lg:flex items-center space-x-6">
-              {/* Get Started Button */}
-              <Button
-                onClick={handleGetStartedClick}
-                className="inline-flex px-6 py-2 rounded-lg font-semibold bg-[#00FF9C] text-black shadow-md hover:brightness-95 hover:scale-[1.03] hover:shadow-[0_0_20px_rgba(0,255,156,0.35)] transition-all duration-200 ease-out"
-                aria-label="Get My Personalized Plan"
+              {/* Secondary Button */}
+              <button
+                className="inline-flex items-center px-4 py-2 rounded-md border border-gray-700 text-sm text-gray-200 hover:bg-gray-800 transition-colors"
+                onClick={() => navigate('/contact')}
+                aria-label="Contact or Book Demo"
               >
-                Get My Personalized Plan
-              </Button>
+                Contact / Book Demo
+              </button>
+
+              {/* Search Icon */}
+              <button
+                onClick={() => setIsSearchOpen(!isSearchOpen)}
+                className="p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-800 transition-colors"
+                aria-label="Search"
+              >
+                <Search className="h-5 w-5" />
+              </button>
+
+              {/* Get Started Button */}
+              <NeonButton href="/auth">Get Started</NeonButton>
 
               {/* Auth Menu */}
               <AuthMenu />
@@ -280,15 +319,33 @@ export function Header() {
             {/* Mobile Menu Button */}
             <div className="lg:hidden">
               <MobileMenu onMenuToggle={setIsMobileMenuOpen}>
-                {/* Mobile CTA Button */}
+                {/* Search Input */}
                 <div className="px-4 py-4 border-b border-gray-800">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Search..."
+                      className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00FF9C] focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
+                {/* Mobile CTA Buttons */}
+                <div className="px-4 py-4 space-y-3 border-b border-gray-800">
                   <Button
                     onClick={handleGetStartedClick}
                     className="w-full bg-[#00FF9C] text-black hover:brightness-95 hover:scale-[1.03] hover:shadow-[0_0_20px_rgba(0,255,156,0.35)] transition-all duration-200 ease-out"
-                    aria-label="Get My Personalized Plan"
+                    aria-label="Get Started"
                   >
-                    Get My Personalized Plan
+                    Get Started
                   </Button>
+                  <button
+                    className="w-full inline-flex items-center justify-center px-4 py-2 rounded-md border border-gray-700 text-sm text-gray-200 hover:bg-gray-800 transition-colors"
+                    onClick={() => navigate('/contact')}
+                  >
+                    Book Demo
+                  </button>
                 </div>
 
                 {/* Mobile Navigation Items */}
@@ -299,22 +356,22 @@ export function Header() {
                       Features
                     </h3>
                     <div className="space-y-1">
-                      <NavItem href="/ai-workout" className="block py-3">AI Workout Generator</NavItem>
-                      <NavItem href="/workout-session" className="block py-3">Smart Progress Tracking</NavItem>
-                      <NavItem href="/nutrition" className="block py-3">Nutrition Analytics</NavItem>
-                      <NavItem href="/dashboard" className="block py-3">Performance Analytics</NavItem>
+                      <NavItem href="/ai-workout" className="block py-4">AI Workout Generator</NavItem>
+                      <NavItem href="/workout-session" className="block py-4">Smart Progress Tracking</NavItem>
+                      <NavItem href="/nutrition" className="block py-4">Nutrition Analytics</NavItem>
+                      <NavItem href="/dashboard" className="block py-4">Performance Analytics</NavItem>
                     </div>
                   </div>
 
-                  {/* Find Gyms */}
+                  {/* For Gyms */}
                   <div>
                     <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-3">
-                      Find Gyms
+                      For Gyms
                     </h3>
                     <div className="space-y-1">
-                      <NavItem href="/gyms" className="block py-3">Find Nearby Gyms</NavItem>
-                      <NavItem href="/gyms/map" className="block py-3">View Map</NavItem>
-                      <NavItem href="/gyms/list" className="block py-3">Browse All</NavItem>
+                      <NavItem href="/gyms" className="block py-4">Find Nearby Gyms</NavItem>
+                      <NavItem href="/gyms/map" className="block py-4">View Map</NavItem>
+                      <NavItem href="/gyms/list" className="block py-4">Browse All</NavItem>
                     </div>
                   </div>
 
@@ -324,32 +381,55 @@ export function Header() {
                       Marketplace
                     </h3>
                     <div className="space-y-1">
-                      <NavItem href="/marketplace/equipment" className="block py-3">Equipment Store</NavItem>
-                      <NavItem href="/marketplace/nutrition" className="block py-3">Nutrition Shop</NavItem>
-                      <NavItem href="/marketplace/deals" className="block py-3">Special Deals</NavItem>
+                      <NavItem href="/marketplace/equipment" className="block py-4">Equipment Store</NavItem>
+                      <NavItem href="/marketplace/nutrition" className="block py-4">Nutrition Shop</NavItem>
+                      <NavItem href="/marketplace/deals" className="block py-4">Special Deals</NavItem>
                     </div>
                   </div>
 
-                  {/* Business */}
+                  {/* Local Gyms */}
                   <div>
                     <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-3">
-                      For Business
+                      Local Gyms
                     </h3>
                     <div className="space-y-1">
-                      <NavItem href="/business" className="block py-3">Gym Management</NavItem>
-                      <NavItem href="/business/demo" className="block py-3">Schedule Demo</NavItem>
+                      <NavItem href="/gyms/local" className="block py-4">Partner Gyms</NavItem>
+                      <NavItem href="/gyms/featured" className="block py-4">Featured Locations</NavItem>
                     </div>
                   </div>
 
-
-                  {/* Other */}
+                  {/* Resources */}
                   <div>
                     <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-3">
-                      Other
+                      Resources
                     </h3>
                     <div className="space-y-1">
-                      <NavItem href="#pricing" className="block py-3">Pricing</NavItem>
-                      <NavItem href="/contact" className="block py-3">Contact</NavItem>
+                      <NavItem href="/guides" className="block py-4">Training Guides</NavItem>
+                      <NavItem href="/blog" className="block py-4">Fitness Blog</NavItem>
+                      <NavItem href="/support" className="block py-4">Help Center</NavItem>
+                    </div>
+                  </div>
+
+                  {/* Partners */}
+                  <div>
+                    <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-3">
+                      Partners
+                    </h3>
+                    <div className="space-y-1">
+                      <NavItem href="/partners" className="block py-4">Become a Partner</NavItem>
+                      <NavItem href="/partners/program" className="block py-4">Affiliate Program</NavItem>
+                    </div>
+                  </div>
+
+                  {/* Contact */}
+                  <div>
+                    <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-3">
+                      Contact
+                    </h3>
+                    <div className="space-y-1">
+                      <NavItem href="/contact" className="block py-4">Get in Touch</NavItem>
+                      <NavItem href="/support" className="block py-4">Support</NavItem>
+                      <NavItem href="#pricing" className="block py-4">Pricing</NavItem>
                     </div>
                   </div>
                 </div>
@@ -362,6 +442,30 @@ export function Header() {
             </div>
           </div>
       </nav>
+
+      {/* Search Overlay */}
+      {isSearchOpen && (
+        <>
+          {/* Backdrop */}
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40" />
+
+          {/* Search Panel */}
+          <div className="search-overlay absolute top-full left-1/2 transform -translate-x-1/2 mt-2 w-96 max-w-[calc(100vw-2rem)] bg-gray-900 border border-gray-700 rounded-lg shadow-xl z-50 p-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search workouts, gyms, exercises..."
+                className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00FF9C] focus:border-transparent"
+                autoFocus
+              />
+            </div>
+            <div className="mt-3 text-xs text-gray-400">
+              Press <kbd className="px-1 py-0.5 bg-gray-700 rounded text-xs">Esc</kbd> to close
+            </div>
+          </div>
+        </>
+      )}
     </header>
   </>
 );
