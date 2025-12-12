@@ -21,9 +21,19 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index }: Fea
   const [isFocused, setIsFocused] = useState(false);
   const prefersReducedMotion = useReducedMotion();
 
-  // Handle mouse movement for 3D depth and morphing effects
+  // Throttle mouse move for better performance
+  const mouseMoveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Handle mouse movement for 3D depth and morphing effects (optimized)
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (prefersReducedMotion || !cardRef.current) return;
+
+    // Throttle updates to ~60fps
+    if (mouseMoveTimeoutRef.current) return;
+
+    mouseMoveTimeoutRef.current = setTimeout(() => {
+      mouseMoveTimeoutRef.current = null;
+    }, 16);
 
     const rect = cardRef.current.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
@@ -32,18 +42,17 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index }: Fea
     const mouseX = e.clientX - centerX;
     const mouseY = e.clientY - centerY;
 
-    // Calculate 3D perspective shift (creates depth effect)
-    const depthX = (mouseX / (rect.width / 2)) * 15; // -15 to 15
-    const depthY = (mouseY / (rect.height / 2)) * 15; // -15 to 15
+    // Simplified calculations for better performance
+    const depthX = (mouseX / rect.width) * 12; // Reduced from 15
+    const depthY = (mouseY / rect.height) * 12; // Reduced from 15
 
-    // Calculate morphing scale based on mouse position
-    const distanceFromCenter = Math.sqrt(mouseX * mouseX + mouseY * mouseY);
-    const maxDistance = Math.sqrt((rect.width / 2) ** 2 + (rect.height / 2) ** 2);
-    const morphScale = 1 + (distanceFromCenter / maxDistance) * 0.1; // 1.0 to 1.1
+    // Simplified distance calculation
+    const distanceFromCenter = Math.abs(mouseX) + Math.abs(mouseY);
+    const maxDistance = rect.width + rect.height;
 
-    setTilt({ rotateX: depthY, rotateY: depthX });
-    setMousePosition({ x: mouseX / 10, y: mouseY / 10 }); // Reduced parallax
-    setGlowIntensity(Math.min(1, distanceFromCenter / (maxDistance / 2)));
+    setTilt({ rotateX: depthY * 0.5, rotateY: depthX * 0.5 }); // Reduced rotation
+    setMousePosition({ x: mouseX * 0.05, y: mouseY * 0.05 }); // Reduced parallax
+    setGlowIntensity(Math.min(1, distanceFromCenter / (maxDistance * 0.3)));
   };
 
   const handleMouseEnter = () => {
@@ -56,6 +65,12 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index }: Fea
     setTilt({ rotateX: 0, rotateY: 0 });
     setMousePosition({ x: 0, y: 0 });
     setGlowIntensity(0);
+    
+    // Clear throttle timeout
+    if (mouseMoveTimeoutRef.current) {
+      clearTimeout(mouseMoveTimeoutRef.current);
+      mouseMoveTimeoutRef.current = null;
+    }
   };
 
   // Keyboard accessibility
@@ -78,44 +93,41 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index }: Fea
     }
   };
 
-  // Enhanced floating animation with subtle breathing effect
+  // Optimized floating animation using requestAnimationFrame
   useEffect(() => {
-    if (prefersReducedMotion) return;
+    if (prefersReducedMotion || isHovered) return;
 
-    const interval = setInterval(() => {
-      if (!isHovered && cardRef.current) {
-        const time = Date.now() * 0.002;
-        const floatY = Math.sin(time + index * 0.5) * 3;
-        const breatheScale = 1 + Math.sin(time * 0.8 + index * 0.3) * 0.02; // Subtle breathing
-        const subtleRotate = Math.sin(time * 0.5 + index * 0.7) * 0.5; // Subtle rotation
+    let animationFrame: number;
+    let startTime = Date.now();
 
-        cardRef.current.style.transform = `translateY(${floatY}px) scale(${breatheScale}) rotateZ(${subtleRotate}deg)`;
-      }
-    }, 16);
+    const animate = () => {
+      if (!cardRef.current || isHovered) return;
 
-    return () => clearInterval(interval);
-  }, [isHovered, index, prefersReducedMotion]);
+      const elapsed = (Date.now() - startTime) * 0.001;
+      const floatY = Math.sin(elapsed + index * 0.5) * 2; // Reduced from 3
+      const breatheScale = 1 + Math.sin(elapsed * 0.6 + index * 0.3) * 0.01; // Reduced breathing
 
-  // Flash effect for quick movements
-  useEffect(() => {
-    if (prefersReducedMotion) return;
+      // Use transform3d for GPU acceleration
+      cardRef.current.style.transform = `translate3d(0, ${floatY}px, 0) scale(${breatheScale})`;
+      
+      animationFrame = requestAnimationFrame(animate);
+    };
 
-    let flashTimeout: NodeJS.Timeout;
-    if (glowIntensity > 0.8 && !isHovered) {
-      if (cardRef.current) {
-        cardRef.current.style.animation = 'flash 0.3s ease-out';
-        flashTimeout = setTimeout(() => {
-          if (cardRef.current) {
-            cardRef.current.style.animation = '';
-          }
-        }, 300);
-      }
-    }
+    animationFrame = requestAnimationFrame(animate);
 
     return () => {
-      if (flashTimeout) clearTimeout(flashTimeout);
+      if (animationFrame) cancelAnimationFrame(animationFrame);
     };
-  }, [glowIntensity, isHovered, prefersReducedMotion]);
+  }, [isHovered, index, prefersReducedMotion]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (mouseMoveTimeoutRef.current) {
+        clearTimeout(mouseMoveTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const cardContent = (
     <motion.div
@@ -132,8 +144,9 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index }: Fea
         isFocused && "scale-105 ring-2 ring-[#00FF9C] border-[#00FF9C]/30"
       )}
       style={{
-        transform: prefersReducedMotion ? undefined : `perspective(1200px) translateZ(${glowIntensity * 30}px) rotateX(${tilt.rotateX * 0.5}deg) rotateY(${tilt.rotateY * 0.5}deg) scale(${1 + glowIntensity * 0.08})`,
-        boxShadow: `0 ${8 + glowIntensity * 12}px ${32 + glowIntensity * 20}px rgba(0, 0, 0, ${0.3 + glowIntensity * 0.2}), 0 0 ${glowIntensity * 25}px rgba(0, 255, 156, ${glowIntensity * 0.4}), 0 0 ${glowIntensity * 40}px rgba(76, 201, 240, ${glowIntensity * 0.2})`
+        transform: prefersReducedMotion ? undefined : `perspective(1200px) translate3d(0, 0, ${glowIntensity * 20}px) rotateX(${tilt.rotateX}deg) rotateY(${tilt.rotateY}deg) scale(${1 + glowIntensity * 0.05})`,
+        boxShadow: `0 ${8 + glowIntensity * 8}px ${24 + glowIntensity * 12}px rgba(0, 0, 0, ${0.3 + glowIntensity * 0.15}), 0 0 ${glowIntensity * 20}px rgba(0, 255, 156, ${glowIntensity * 0.3})`,
+        willChange: 'transform, box-shadow'
       }}
       onMouseMove={handleMouseMove}
       onMouseEnter={handleMouseEnter}
@@ -156,34 +169,36 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index }: Fea
 
       {/* Content */}
       <div className="relative z-10">
-        {/* Icon with 3D depth effect */}
+        {/* Icon with optimized 3D depth effect */}
         <motion.div
           className="flex justify-center mb-6"
           style={{
-            transform: prefersReducedMotion ? undefined : `translateZ(${glowIntensity * 20}px) translate(${mousePosition.x * 0.08}px, ${mousePosition.y * 0.08}px) scale(${1 + glowIntensity * 0.1})`
+            transform: prefersReducedMotion ? undefined : `translate3d(${mousePosition.x * 0.05}px, ${mousePosition.y * 0.05}px, ${glowIntensity * 15}px) scale(${1 + glowIntensity * 0.08})`,
+            willChange: 'transform'
           }}
         >
           <motion.div
-            animate={isHovered ? { rotateY: 15, scale: 1.1 } : { rotateY: 0, scale: 1 }}
-            transition={{ type: "spring", stiffness: 400, damping: 25 }}
+            animate={isHovered ? { scale: 1.08 } : { scale: 1 }}
+            transition={{ type: "spring", stiffness: 300, damping: 20 }}
           >
             <Icon
               className={cn(
-                "h-12 w-12 transition-all duration-500",
-                isHovered || isFocused ? "text-[#00FF9C] drop-shadow-[0_0_10px_rgba(0,255,156,0.6)]" : "text-[#00FF9C]/80"
+                "h-12 w-12 transition-colors duration-300",
+                isHovered || isFocused ? "text-[#00FF9C] drop-shadow-[0_0_8px_rgba(0,255,156,0.5)]" : "text-[#00FF9C]/80"
               )}
             />
           </motion.div>
         </motion.div>
 
-        {/* Title with 3D layering */}
+        {/* Title with optimized layering */}
         <motion.h3
           className="text-xl font-bold mb-4 text-center text-white leading-relaxed"
           style={{
-            transform: prefersReducedMotion ? undefined : `translateZ(${glowIntensity * 15}px) translate(${mousePosition.x * 0.04}px, ${mousePosition.y * 0.04}px)`
+            transform: prefersReducedMotion ? undefined : `translate3d(${mousePosition.x * 0.03}px, ${mousePosition.y * 0.03}px, ${glowIntensity * 10}px)`,
+            willChange: 'transform'
           }}
-          animate={isHovered ? { scale: 1.02 } : { scale: 1 }}
-          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          animate={isHovered ? { scale: 1.01 } : { scale: 1 }}
+          transition={{ duration: 0.2 }}
         >
           {title}
         </motion.h3>
@@ -192,70 +207,54 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index }: Fea
         <motion.p
           className="text-gray-300 text-center leading-relaxed"
           style={{
-            transform: prefersReducedMotion ? undefined : `translateZ(${glowIntensity * 10}px) translate(${mousePosition.x * 0.02}px, ${mousePosition.y * 0.02}px)`
+            transform: prefersReducedMotion ? undefined : `translate3d(${mousePosition.x * 0.015}px, ${mousePosition.y * 0.015}px, ${glowIntensity * 5}px)`,
+            willChange: 'transform'
           }}
-          animate={isHovered ? { opacity: 0.9 } : { opacity: 1 }}
-          transition={{ duration: 0.3 }}
+          transition={{ duration: 0.2 }}
         >
           {description}
         </motion.p>
       </div>
 
-      {/* Enhanced 3D particle effects on hover */}
+      {/* Optimized particle effects on hover (reduced for performance) */}
       <AnimatePresence>
         {isHovered && !prefersReducedMotion && (
           <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl">
-            {[...Array(5)].map((_, i) => (
+            {[...Array(3)].map((_, i) => (
               <motion.div
                 key={i}
-                className="absolute w-2 h-2 rounded-full"
+                className="absolute w-1.5 h-1.5 rounded-full"
                 style={{
-                  background: `linear-gradient(45deg, ${['#00FF9C', '#4CC9F0', '#7B2CBF'][i % 3]}, transparent)`,
-                  boxShadow: `0 0 10px ${['#00FF9C', '#4CC9F0', '#7B2CBF'][i % 3]}`
+                  background: ['#00FF9C', '#4CC9F0', '#7B2CBF'][i],
+                  boxShadow: `0 0 8px ${['#00FF9C', '#4CC9F0', '#7B2CBF'][i]}`
                 }}
                 initial={{
                   opacity: 0,
                   scale: 0,
-                  x: Math.random() * 100 + '%',
-                  y: Math.random() * 100 + '%',
-                  rotateZ: 0
+                  x: '50%',
+                  y: '50%'
                 }}
                 animate={{
-                  opacity: [0, 0.8, 0],
-                  scale: [0, 1.5, 0],
-                  x: [
-                    Math.random() * 100 + '%',
-                    Math.random() * 100 + '%',
-                    Math.random() * 100 + '%'
-                  ],
-                  y: [
-                    Math.random() * 100 + '%',
-                    Math.random() * 100 + '%',
-                    Math.random() * 100 + '%'
-                  ],
-                  rotateZ: [0, 180, 360]
+                  opacity: [0, 0.6, 0],
+                  scale: [0, 1.2, 0],
+                  x: ['50%', `${30 + i * 20}%`, '50%'],
+                  y: ['50%', `${40 + i * 15}%`, '50%']
                 }}
                 transition={{
-                  duration: 3,
+                  duration: 2.5,
                   repeat: Infinity,
-                  delay: i * 0.4,
+                  delay: i * 0.3,
                   ease: "easeInOut"
                 }}
               />
             ))}
 
-            {/* Energy waves */}
+            {/* Single energy wave for better performance */}
             <motion.div
-              className="absolute inset-0 rounded-2xl border-2 border-[#00FF9C]/30"
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1.1, opacity: [0, 0.5, 0] }}
-              transition={{ duration: 2, repeat: Infinity, ease: "easeOut" }}
-            />
-            <motion.div
-              className="absolute inset-2 rounded-xl border border-[#4CC9F0]/20"
+              className="absolute inset-0 rounded-2xl border border-[#00FF9C]/20"
               initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1.05, opacity: [0, 0.3, 0] }}
-              transition={{ duration: 2.5, repeat: Infinity, delay: 0.5, ease: "easeOut" }}
+              animate={{ scale: 1.05, opacity: [0, 0.4, 0] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeOut" }}
             />
           </div>
         )}

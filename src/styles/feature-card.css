@@ -2,46 +2,14 @@
 
 @keyframes float {
   0%, 100% {
-    transform: translateY(0px) scale(1) rotateZ(0deg);
-  }
-  25% {
-    transform: translateY(-2px) scale(1.01) rotateZ(0.3deg);
+    transform: translate3d(0, 0, 0) scale(1);
   }
   50% {
-    transform: translateY(-3px) scale(1.02) rotateZ(0deg);
-  }
-  75% {
-    transform: translateY(-1px) scale(0.99) rotateZ(-0.2deg);
+    transform: translate3d(0, -2px, 0) scale(1.01);
   }
 }
 
-@keyframes depthPulse {
-  0%, 100% {
-    transform: translateZ(0px) scale(1);
-  }
-  50% {
-    transform: translateZ(5px) scale(1.02);
-  }
-}
-
-@keyframes liquidMorph {
-  0%, 100% {
-    border-radius: 1rem;
-    transform: scale(1);
-  }
-  25% {
-    border-radius: 1.2rem 0.8rem 1.1rem 0.9rem;
-    transform: scale(1.01);
-  }
-  50% {
-    border-radius: 0.9rem 1.1rem 0.8rem 1.2rem;
-    transform: scale(0.99);
-  }
-  75% {
-    border-radius: 1.1rem 0.9rem 1.2rem 0.8rem;
-    transform: scale(1.005);
-  }
-}
+/* Removed complex morphing animations for better performance */
 
 @keyframes flash {
   0% {
@@ -64,14 +32,15 @@
   }
 }
 
-/* Feature card base styles */
+/* Feature card base styles - optimized for performance */
 .feature-card {
   position: relative;
   transform-style: preserve-3d;
   backface-visibility: hidden;
-  animation: float 6s ease-in-out infinite, liquidMorph 8s ease-in-out infinite;
-  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  will-change: transform, box-shadow, border-radius;
+  animation: float 4s ease-in-out infinite;
+  transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.3s ease-out;
+  will-change: transform;
+  transform: translate3d(0, 0, 0); /* Force GPU acceleration */
 }
 
 /* Reduce motion for users who prefer it */
