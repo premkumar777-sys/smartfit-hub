@@ -7,7 +7,7 @@ import { MobileMenu } from "./MobileMenu";
 import { AuthMenu } from "./AuthMenu";
 import { Button } from "@/components/ui/button";
 import NeonButton from "@/components/NeonButton";
-import { Search, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 
@@ -56,7 +56,6 @@ const menuStructure = [
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0, transform: 'translateX(0px)' });
   const [isIndicatorVisible, setIsIndicatorVisible] = useState(false);
   const location = useLocation();
@@ -138,30 +137,6 @@ export function Header() {
     navigate("/auth");
   };
 
-  // Close search when clicking outside or pressing escape
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (isSearchOpen && !(event.target as Element).closest('.search-overlay')) {
-        setIsSearchOpen(false);
-      }
-    };
-
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && isSearchOpen) {
-        setIsSearchOpen(false);
-      }
-    };
-
-    if (isSearchOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      document.addEventListener('keydown', handleEscape);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('keydown', handleEscape);
-    };
-  }, [isSearchOpen]);
 
   // Function to update indicator position
   const updateIndicator = (element: HTMLElement | null, immediate = false) => {
@@ -291,24 +266,6 @@ export function Header() {
 
             {/* Desktop Right Side */}
             <div className="hidden lg:flex items-center space-x-6">
-              {/* Secondary Button */}
-              <button
-                className="inline-flex items-center px-4 py-2 rounded-md border border-gray-700 text-sm text-gray-200 hover:bg-gray-800 transition-colors"
-                onClick={() => navigate('/contact')}
-                aria-label="Contact or Book Demo"
-              >
-                Contact / Book Demo
-              </button>
-
-              {/* Search Icon */}
-              <button
-                onClick={() => setIsSearchOpen(!isSearchOpen)}
-                className="p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-800 transition-colors"
-                aria-label="Search"
-              >
-                <Search className="h-5 w-5" />
-              </button>
-
               {/* Get Started Button */}
               <NeonButton href="/auth">Get Started</NeonButton>
 
@@ -319,18 +276,6 @@ export function Header() {
             {/* Mobile Menu Button */}
             <div className="lg:hidden">
               <MobileMenu onMenuToggle={setIsMobileMenuOpen}>
-                {/* Search Input */}
-                <div className="px-4 py-4 border-b border-gray-800">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <input
-                      type="text"
-                      placeholder="Search..."
-                      className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00FF9C] focus:border-transparent"
-                    />
-                  </div>
-                </div>
-
                 {/* Mobile CTA Buttons */}
                 <div className="px-4 py-4 space-y-3 border-b border-gray-800">
                   <Button
@@ -340,12 +285,6 @@ export function Header() {
                   >
                     Get Started
                   </Button>
-                  <button
-                    className="w-full inline-flex items-center justify-center px-4 py-2 rounded-md border border-gray-700 text-sm text-gray-200 hover:bg-gray-800 transition-colors"
-                    onClick={() => navigate('/contact')}
-                  >
-                    Book Demo
-                  </button>
                 </div>
 
                 {/* Mobile Navigation Items */}
@@ -443,29 +382,6 @@ export function Header() {
           </div>
       </nav>
 
-      {/* Search Overlay */}
-      {isSearchOpen && (
-        <>
-          {/* Backdrop */}
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40" />
-
-          {/* Search Panel */}
-          <div className="search-overlay absolute top-full left-1/2 transform -translate-x-1/2 mt-2 w-96 max-w-[calc(100vw-2rem)] bg-gray-900 border border-gray-700 rounded-lg shadow-xl z-50 p-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search workouts, gyms, exercises..."
-                className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00FF9C] focus:border-transparent"
-                autoFocus
-              />
-            </div>
-            <div className="mt-3 text-xs text-gray-400">
-              Press <kbd className="px-1 py-0.5 bg-gray-700 rounded text-xs">Esc</kbd> to close
-            </div>
-          </div>
-        </>
-      )}
     </header>
   </>
 );
