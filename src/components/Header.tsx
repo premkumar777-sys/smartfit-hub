@@ -282,10 +282,6 @@ export function Header() {
                       </div>
                     )}
 
-                    {/* Subtle glow effect on hover */}
-                    {isHovered && (
-                      <div className="absolute inset-0 bg-gradient-to-r from-[#00FF9C]/10 via-[#4CC9F0]/10 to-[#7B2CBF]/10 rounded-lg blur-xl opacity-50 animate-pulse -z-10" />
-                    )}
                   </div>
                 );
               })}

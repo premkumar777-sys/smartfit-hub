@@ -178,20 +178,3 @@
 .nav-container {
   position: relative;
 }
-
-.nav-container::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(90deg, transparent, rgba(0, 255, 156, 0.05), transparent);
-  opacity: 0;
-  transition: opacity 0.3s ease-out;
-  pointer-events: none;
-}
-
-.nav-container:hover::before {
-  opacity: 1;
-}
