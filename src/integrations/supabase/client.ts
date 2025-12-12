@@ -53,6 +53,18 @@ class PureFrontendClient {
       return { error: null };
     },
 
+    resetPasswordForEmail: async (email: string) => {
+      // Mock reset email success
+      console.info(`Mock reset password email sent to ${email}`);
+      return { error: null };
+    },
+
+    updateUser: async ({ password }: { password: string }) => {
+      // Mock password update success
+      console.info(`Mock password updated (${password.length} chars)`);
+      return { data: { user: null }, error: null };
+    },
+
     onAuthStateChange: (callback: (event: string, session: SimpleSession | null) => void) => {
       // Basic listener implementation
       return {

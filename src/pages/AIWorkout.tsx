@@ -7,7 +7,6 @@ import { Container } from "@/components/Container";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, Dumbbell, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const AIWorkout = () => {
@@ -37,32 +36,51 @@ const AIWorkout = () => {
     const bmi = calculateBMI();
 
     try {
-      const { data, error } = await supabase.functions.invoke("generate-workout", {
-        body: {
-          age: formData.age,
-          weight: formData.weight,
-          height: formData.height,
-          bmi: bmi,
-          goal: formData.goal,
-        },
-      });
+      // Pure frontend mock plan (no backend)
+      const goal = formData.goal || "general-fitness";
+      const goalTitle = {
+        "weight-loss": "Fat Loss & Conditioning",
+        "muscle-gain": "Hypertrophy & Strength",
+        "endurance": "Endurance & Cardio",
+        "strength": "Strength Focus",
+        "flexibility": "Mobility & Flexibility",
+        "general-fitness": "Balanced Fitness",
+      }[goal] || "Balanced Fitness";
 
-      if (error) {
-        if (error.message.includes("429")) {
-          toast.error("Too many requests. Please try again in a moment.");
-        } else if (error.message.includes("402")) {
-          toast.error("AI credits exhausted. Please contact support.");
-        } else {
-          toast.error("Failed to generate workout plan. Please try again.");
-        }
-        console.error("Error:", error);
-      } else if (data?.workoutPlan) {
-        setWorkoutPlan(data.workoutPlan);
-        toast.success("Workout plan generated successfully!");
-      }
+      const plan = [
+        `Plan: ${goalTitle}`,
+        bmi ? `BMI: ${bmi}` : null,
+        "",
+        "Day 1 — Upper",
+        "- Push-ups 3x12",
+        "- Dumbbell Press 3x10",
+        "- Rows 3x12",
+        "- Plank 3x45s",
+        "",
+        "Day 2 — Lower",
+        "- Squats 3x12",
+        "- Lunges 3x12/leg",
+        "- Romanian Deadlift 3x10",
+        "- Side Plank 3x30s/side",
+        "",
+        "Day 3 — Conditioning",
+        "- 20–30 mins cardio (moderate)",
+        "- 5–7 mins mobility & stretching",
+        "",
+        "Weekly Notes:",
+        "- Progress weights slowly (2.5–5%)",
+        "- Sleep 7–9h, hydrate well",
+        "- Light stretch daily",
+      ]
+        .filter(Boolean)
+        .join("\\n");
+
+      await new Promise((res) => setTimeout(res, 400)); // small delay for UX
+      setWorkoutPlan(plan);
+      toast.success("Workout plan generated (local)!");
     } catch (err) {
       console.error("Unexpected error:", err);
-      toast.error("An unexpected error occurred. Please try again.");
+      toast.error("Could not generate workout. Please try again.");
     } finally {
       setIsLoading(false);
     }

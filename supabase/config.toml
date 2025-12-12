@@ -1,4 +1,0 @@
-project_id = "ideehirwwovbeezlqoqj"
-
-[functions.generate-workout]
-verify_jwt = false
