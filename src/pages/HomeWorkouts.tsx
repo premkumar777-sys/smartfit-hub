@@ -221,17 +221,19 @@ export default function HomeWorkouts() {
                     </Card>
 
                     {/* CTA */}
-                    <div className="text-center space-y-4">
-                        <p className="text-muted-foreground">
-                            Want a personalized workout plan based on your goals?
-                        </p>
-                        <Button asChild variant="hero" size="lg">
-                            <Link to="/ai-workout">
-                                <Dumbbell className="w-5 h-5 mr-2" />
-                                Generate AI Workout Plan
-                            </Link>
-                        </Button>
-                    </div>
+                    <Card className="glass border-primary/20 text-center">
+                        <CardContent className="py-8">
+                            <p className="text-lg text-muted-foreground mb-6">
+                                Want a personalized workout plan based on your goals?
+                            </p>
+                            <Button asChild variant="hero" size="lg">
+                                <Link to="/ai-workout">
+                                    <Dumbbell className="w-5 h-5 mr-2" />
+                                    Generate AI Workout Plan
+                                </Link>
+                            </Button>
+                        </CardContent>
+                    </Card>
                 </div>
             </Container>
         </div>
