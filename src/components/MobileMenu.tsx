@@ -59,15 +59,15 @@ export function MobileMenu({ children, className, onMenuToggle }: MobileMenuProp
       {isOpen && (
         <>
           {/* Backdrop */}
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40" />
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[100]" />
 
           {/* Mobile Menu */}
           <div
             ref={menuRef}
             className={cn(
-              "fixed top-16 left-0 right-0 bottom-0 z-60",
-              "bg-gray-900/95 backdrop-blur-md border-t border-gray-800",
-              "animate-in slide-in-from-top-2 duration-300",
+              "fixed top-16 left-0 right-0 bottom-0 z-[110]",
+              "bg-gray-900 backdrop-blur-md border-t border-gray-800",
+              "animate-in slide-in-from-top-2 duration-300 overflow-y-auto",
               className
             )}
           >
