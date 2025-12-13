@@ -49,8 +49,16 @@ const AIWorkout = () => {
         },
       });
 
+      // Check for error in response data (Edge Function returns error in data when status is non-2xx)
       if (error) {
-        throw new Error(error.message || "Failed to generate workout");
+        // Try to get detailed error from data
+        const errorMessage = data?.error || error.message || "Failed to generate workout";
+        throw new Error(errorMessage);
+      }
+
+      // Also check if data contains an error field (happens with 4xx/5xx responses)
+      if (data?.error) {
+        throw new Error(data.error);
       }
 
       if (data?.workoutPlan) {
