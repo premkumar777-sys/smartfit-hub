@@ -6,29 +6,68 @@ import { Container } from "@/components/Container";
 import { Activity, Apple, Dumbbell, Target, TrendingUp, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-
-interface Profile {
-  id: string;
-  username: string;
-  fitness_goal?: string;
-  created_at: string;
-}
+import type { Profile, Workout, WorkoutSession } from "@/integrations/supabase/types";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [recentWorkouts, setRecentWorkouts] = useState<Workout[]>([]);
+  const [weeklyStats, setWeeklyStats] = useState({ workouts: 0, sessions: 0 });
 
-  const loadMockProfile = () => {
-    // Mock profile data for development
-    const mockProfile: Profile = {
-      id: 'mock-profile-id',
-      username: 'Demo User',
-      fitness_goal: 'Build strength and endurance',
-      created_at: new Date().toISOString(),
-    };
-    setProfile(mockProfile);
+  const loadDashboardData = async (userId: string) => {
+    try {
+      // Load profile
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (profileError && profileError.code !== 'PGRST116') {
+        console.error("Profile error:", profileError);
+      }
+
+      if (profileData) {
+        setProfile(profileData);
+      }
+
+      // Load recent workouts
+      const { data: workoutsData } = await supabase
+        .from('workouts')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      if (workoutsData) {
+        setRecentWorkouts(workoutsData);
+      }
+
+      // Count this week's workout sessions
+      const oneWeekAgo = new Date();
+      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+      const { count: sessionsCount } = await supabase
+        .from('workout_sessions')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId)
+        .gte('created_at', oneWeekAgo.toISOString());
+
+      const { count: workoutsCount } = await supabase
+        .from('workouts')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId)
+        .gte('created_at', oneWeekAgo.toISOString());
+
+      setWeeklyStats({
+        workouts: workoutsCount || 0,
+        sessions: sessionsCount || 0,
+      });
+    } catch (err) {
+      console.error("Error loading dashboard data:", err);
+    }
   };
 
   useEffect(() => {
@@ -37,7 +76,7 @@ const Dashboard = () => {
       if (!session) {
         navigate("/auth");
       } else {
-        loadMockProfile();
+        loadDashboardData(session.user.id);
         setIsLoading(false);
       }
     });
@@ -46,7 +85,7 @@ const Dashboard = () => {
       if (!session) {
         navigate("/auth");
       } else {
-        loadMockProfile();
+        loadDashboardData(session.user.id);
       }
     });
 
@@ -169,14 +208,12 @@ const Dashboard = () => {
               ].map((exercise) => (
                 <div
                   key={exercise.name}
-                  className={`p-4 rounded-lg border border-border flex items-center justify-between transition-all duration-200 hover:-translate-y-1 hover:shadow-lg ${
-                    exercise.completed ? 'bg-accent/10' : 'bg-card/50'
-                  }`}
+                  className={`p-4 rounded-lg border border-border flex items-center justify-between transition-all duration-200 hover:-translate-y-1 hover:shadow-lg ${exercise.completed ? 'bg-accent/10' : 'bg-card/50'
+                    }`}
                 >
                   <div className="flex items-center gap-4">
-                    <div className={`w-10 h-10 rounded-full ${
-                      exercise.completed ? 'bg-accent' : 'bg-muted'
-                    } flex items-center justify-center`}>
+                    <div className={`w-10 h-10 rounded-full ${exercise.completed ? 'bg-accent' : 'bg-muted'
+                      } flex items-center justify-center`}>
                       {exercise.completed && (
                         <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -257,9 +294,8 @@ const Dashboard = () => {
                 <div className="w-full flex items-end justify-center h-40">
                   {day.hours > 0 && (
                     <div
-                      className={`w-full rounded-t-lg transition-all duration-200 hover:-translate-y-1 hover:shadow-lg ${
-                        day.completed ? 'gradient-primary' : 'bg-muted'
-                      }`}
+                      className={`w-full rounded-t-lg transition-all duration-200 hover:-translate-y-1 hover:shadow-lg ${day.completed ? 'gradient-primary' : 'bg-muted'
+                        }`}
                       style={{ height: `${(day.hours / 2.5) * 100}%` }}
                     ></div>
                   )}
