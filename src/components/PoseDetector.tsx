@@ -28,20 +28,30 @@ export default function PoseDetector() {
 
   const loadModel = async () => {
     try {
+      // Set up TensorFlow.js backend
+      await tf.setBackend('webgl');
       await tf.ready();
-      const detectorConfig = {
+      console.log("TensorFlow.js ready with backend:", tf.getBackend());
+      
+      const detectorConfig: poseDetection.MoveNetModelConfig = {
         modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING,
+        enableSmoothing: true,
       };
       const poseDetector = await poseDetection.createDetector(
         poseDetection.SupportedModels.MoveNet,
         detectorConfig
       );
       setDetector(poseDetector);
+      console.log("Pose detector loaded successfully");
+      toast({
+        title: "Ready",
+        description: "AI Pose Detector loaded successfully",
+      });
     } catch (error) {
       console.error("Error loading model:", error);
       toast({
         title: "Error",
-        description: "Failed to load pose detection model",
+        description: "Failed to load pose detection model. Please refresh the page.",
         variant: "destructive",
       });
     }
