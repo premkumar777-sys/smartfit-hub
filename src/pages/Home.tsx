@@ -139,7 +139,8 @@ const Home = () => {
               {
                 icon: Utensils,
                 title: "Nutrition & Macro AI",
-                description: "AI-powered meal planning with precise macro calculations"
+                description: "AI-powered meal planning with precise macro calculations",
+                link: "/nutrition"
               },
               {
                 icon: Calendar,
