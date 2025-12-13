@@ -241,7 +241,7 @@ export function Header() {
             {/* Desktop Navigation */}
             <div
               ref={navRef}
-              className="hidden lg:flex items-center space-x-4 relative nav-container"
+              className="hidden lg:flex items-center space-x-1 relative nav-container"
               onMouseLeave={handleNavLeave}
             >
               {menuStructure.map((item) => {
