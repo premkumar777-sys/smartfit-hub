@@ -144,7 +144,8 @@ const Home = () => {
               {
                 icon: Calendar,
                 title: "Home Workouts",
-                description: "Complete 6-day workout plan you can do anywhere – no equipment needed"
+                description: "Complete 6-day workout plan you can do anywhere – no equipment needed",
+                link: "/home-workouts"
               },
               {
                 icon: QrCode,
@@ -177,6 +178,7 @@ const Home = () => {
                 icon={feature.icon}
                 title={feature.title}
                 description={feature.description}
+                link={'link' in feature ? feature.link : undefined}
                 index={index}
               />
             ))}
