@@ -44,6 +44,39 @@ export type Database = {
         }
         Relationships: []
       }
+      workouts: {
+        Row: {
+          bmi: number | null
+          content: string
+          created_at: string
+          goal: string | null
+          id: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bmi?: number | null
+          content: string
+          created_at?: string
+          goal?: string | null
+          id?: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bmi?: number | null
+          content?: string
+          created_at?: string
+          goal?: string | null
+          id?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
