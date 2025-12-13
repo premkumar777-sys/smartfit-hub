@@ -1,5 +1,5 @@
 import { DropdownItem } from "../DropdownItem";
-import { Dumbbell, Target, Users, Zap, TrendingUp, Apple, Activity } from "lucide-react";
+import { Dumbbell, Target, Zap, Apple, Activity, Home } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const features = [
@@ -11,10 +11,11 @@ const features = [
     badge: "Popular"
   },
   {
-    icon: Target,
-    title: "Smart Progress Dashboard",
-    description: "Track your weight, progress logs, and fitness journey",
-    href: "/progress"
+    icon: Home,
+    title: "Home Workouts",
+    description: "Complete 6-day workout plan – no equipment needed",
+    href: "/home-workouts",
+    badge: "New"
   },
   {
     icon: Apple,
@@ -23,23 +24,22 @@ const features = [
     href: "/nutrition"
   },
   {
+    icon: Target,
+    title: "Smart Progress Dashboard",
+    description: "Track your weight, progress logs, and fitness journey",
+    href: "/progress"
+  },
+  {
     icon: Activity,
     title: "Performance Analytics",
     description: "Detailed insights into your fitness journey and improvements",
     href: "/dashboard"
   },
   {
-    icon: TrendingUp,
-    title: "Training Guides",
-    description: "Expert workout plans and training programs for all levels",
-    href: "/guides"
-  },
-  {
     icon: Zap,
     title: "Real-time Coaching",
     description: "Get instant feedback on your form and technique during workouts",
-    href: "/workout-session",
-    badge: "New"
+    href: "/workout-session"
   }
 ];
 

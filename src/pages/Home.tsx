@@ -55,16 +55,16 @@ const Home = () => {
                   Start Transformation <ArrowRight className="ml-2" />
                 </Link>
               </Button>
-                <Button
-                  variant="glass"
-                  size="xl"
-                  onClick={() => {
-                    document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
-                  }}
-                  aria-label="Scroll to features section"
-                >
-                  Explore Features
-                </Button>
+              <Button
+                variant="glass"
+                size="xl"
+                onClick={() => {
+                  document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                aria-label="Scroll to features section"
+              >
+                Explore Features
+              </Button>
             </motion.div>
 
             {/* Stats */}
@@ -143,8 +143,8 @@ const Home = () => {
               },
               {
                 icon: Calendar,
-                title: "Class & Session Booking",
-                description: "Seamlessly schedule personal training, group classes, and gym sessions"
+                title: "Home Workouts",
+                description: "Complete 6-day workout plan you can do anywhere – no equipment needed"
               },
               {
                 icon: QrCode,

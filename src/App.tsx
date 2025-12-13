@@ -12,6 +12,7 @@ import WorkoutSession from "./pages/WorkoutSession";
 import Nutrition from "./pages/Nutrition";
 import Progress from "./pages/Progress";
 import Guides from "./pages/Guides";
+import HomeWorkouts from "./pages/HomeWorkouts";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => (
           <Route path="/nutrition" element={<Nutrition />} />
           <Route path="/progress" element={<Progress />} />
           <Route path="/guides" element={<Guides />} />
+          <Route path="/home-workouts" element={<HomeWorkouts />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
