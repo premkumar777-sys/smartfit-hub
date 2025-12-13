@@ -177,7 +177,6 @@ const Home = () => {
                 icon={feature.icon}
                 title={feature.title}
                 description={feature.description}
-                link={feature.link}
                 index={index}
               />
             ))}

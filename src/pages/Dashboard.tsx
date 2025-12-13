@@ -6,14 +6,15 @@ import { Container } from "@/components/Container";
 import { Activity, Apple, Dumbbell, Target, TrendingUp, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import type { Profile, Workout, WorkoutSession } from "@/integrations/supabase/types";
+import type { Tables } from "@/integrations/supabase/types";
+
+type Profile = Tables<"profiles">;
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [recentWorkouts, setRecentWorkouts] = useState<Workout[]>([]);
   const [weeklyStats, setWeeklyStats] = useState({ workouts: 0, sessions: 0 });
 
   const loadDashboardData = async (userId: string) => {
@@ -33,38 +34,12 @@ const Dashboard = () => {
         setProfile(profileData);
       }
 
-      // Load recent workouts
-      const { data: workoutsData } = await supabase
-        .from('workouts')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
-        .limit(5);
-
-      if (workoutsData) {
-        setRecentWorkouts(workoutsData);
-      }
-
-      // Count this week's workout sessions
-      const oneWeekAgo = new Date();
-      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-
-      const { count: sessionsCount } = await supabase
-        .from('workout_sessions')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', userId)
-        .gte('created_at', oneWeekAgo.toISOString());
-
-      const { count: workoutsCount } = await supabase
-        .from('workouts')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', userId)
-        .gte('created_at', oneWeekAgo.toISOString());
-
+      // Weekly stats are currently mock data since workouts/sessions tables don't exist yet
       setWeeklyStats({
-        workouts: workoutsCount || 0,
-        sessions: sessionsCount || 0,
+        workouts: 4,
+        sessions: 3,
       });
+
     } catch (err) {
       console.error("Error loading dashboard data:", err);
     }

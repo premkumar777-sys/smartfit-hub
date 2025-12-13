@@ -1,5 +1,5 @@
 // SmartFit Hub - AI Workout Generator Edge Function
-// Deploy: supabase functions deploy generate-workout
+// Uses Lovable AI Gateway (auto-provisioned, no API key required)
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
@@ -17,13 +17,13 @@ serve(async (req) => {
     try {
         const { age, weight, height, bmi, goal } = await req.json();
 
-        // Get Gemini API key from environment
-        const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+        // Get Lovable API key (auto-provisioned)
+        const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
-        if (!GEMINI_API_KEY) {
-            console.error("GEMINI_API_KEY is not configured");
+        if (!LOVABLE_API_KEY) {
+            console.error("LOVABLE_API_KEY is not configured");
             return new Response(
-                JSON.stringify({ error: "AI service not configured. Please add GEMINI_API_KEY to Edge Function secrets." }),
+                JSON.stringify({ error: "AI service not configured. Please ensure Lovable Cloud is enabled." }),
                 { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
             );
         }
@@ -49,42 +49,25 @@ Create a comprehensive weekly workout plan that includes:
 Format the plan clearly with markdown headings and bullet points.
 Keep it practical, achievable, and motivating.`;
 
-        // Call Gemini API
-        const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    contents: [
-                        {
-                            parts: [{ text: prompt }]
-                        }
-                    ],
-                    generationConfig: {
-                        temperature: 0.7,
-                        maxOutputTokens: 2048,
-                    }
-                }),
-            }
-        );
+        // Call Lovable AI Gateway
+        const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${LOVABLE_API_KEY}`,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                model: "google/gemini-2.5-flash",
+                messages: [
+                    { role: "system", content: "You are an expert fitness trainer who creates personalized workout plans." },
+                    { role: "user", content: prompt }
+                ],
+            }),
+        });
 
         if (!response.ok) {
             const errorText = await response.text();
-            console.error("Gemini API error:", response.status, errorText);
-
-            // Parse error for better message
-            let errorMessage = "Failed to generate workout plan.";
-            try {
-                const errorJson = JSON.parse(errorText);
-                if (errorJson.error?.message) {
-                    errorMessage = `Gemini API: ${errorJson.error.message}`;
-                }
-            } catch {
-                errorMessage = `Gemini API error (${response.status}): ${errorText.substring(0, 200)}`;
-            }
+            console.error("Lovable AI error:", response.status, errorText);
 
             if (response.status === 429) {
                 return new Response(
@@ -93,21 +76,21 @@ Keep it practical, achievable, and motivating.`;
                 );
             }
 
-            if (response.status === 400) {
+            if (response.status === 402) {
                 return new Response(
-                    JSON.stringify({ error: errorMessage }),
-                    { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+                    JSON.stringify({ error: "AI credits exhausted. Please add credits to your workspace." }),
+                    { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
                 );
             }
 
             return new Response(
-                JSON.stringify({ error: errorMessage }),
+                JSON.stringify({ error: "Failed to generate workout plan. Please try again." }),
                 { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
             );
         }
 
         const data = await response.json();
-        const workoutPlan = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        const workoutPlan = data.choices?.[0]?.message?.content;
 
         if (!workoutPlan) {
             console.error("No workout plan in response:", data);
