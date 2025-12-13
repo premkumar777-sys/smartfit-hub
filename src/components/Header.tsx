@@ -48,18 +48,6 @@ const menuStructure = [
     href: "/ai-workout"
   },
   {
-    label: "Nutrition",
-    href: "/nutrition"
-  },
-  {
-    label: "Progress",
-    href: "/progress"
-  },
-  {
-    label: "Guides",
-    href: "/guides"
-  },
-  {
     label: "Pricing",
     href: "#pricing"
   }

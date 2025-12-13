@@ -12,29 +12,33 @@ const features = [
   },
   {
     icon: Target,
-    title: "Smart Progress Tracking",
-    description: "Real-time form analysis with AI-powered pose detection",
-    href: "/workout-session"
+    title: "Smart Progress Dashboard",
+    description: "Track your weight, progress logs, and fitness journey",
+    href: "/progress"
   },
   {
     icon: Apple,
-    title: "Nutrition Analytics",
-    description: "AI diet plans tailored to your metabolism and preferences"
+    title: "Nutrition & Macro AI",
+    description: "AI-powered calorie and macro calculations tailored to your goals",
+    href: "/nutrition"
   },
   {
     icon: Activity,
     title: "Performance Analytics",
-    description: "Detailed insights into your fitness journey and improvements"
+    description: "Detailed insights into your fitness journey and improvements",
+    href: "/dashboard"
   },
   {
     icon: TrendingUp,
-    title: "Goal Achievement",
-    description: "Set and track custom fitness goals with intelligent recommendations"
+    title: "Training Guides",
+    description: "Expert workout plans and training programs for all levels",
+    href: "/guides"
   },
   {
     icon: Zap,
     title: "Real-time Coaching",
     description: "Get instant feedback on your form and technique during workouts",
+    href: "/workout-session",
     badge: "New"
   }
 ];
