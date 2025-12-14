@@ -62,26 +62,23 @@ export default function AITrainer() {
         try {
             // Build conversation history for context
             const conversationHistory = messages
-                .slice(-6) // Last 6 messages for context
-                .map((m) => `${m.role === "user" ? "User" : "SmartFit AI"}: ${m.content}`)
-                .join("\n");
+                .slice(-6)
+                .map((m) => ({ role: m.role, content: m.content }));
 
-            // Create simple prompt with conversation context
-            const prompt = conversationHistory
-                ? `Previous conversation:\n${conversationHistory}\n\nUser: ${content}`
-                : content;
-
-            // Call AI via Supabase Edge Function
-            const { data, error } = await supabase.functions.invoke("generate-workout", {
+            // Call dedicated chat Edge Function
+            const { data, error } = await supabase.functions.invoke("ai-chat", {
                 body: {
-                    customPrompt: prompt,
+                    message: content,
+                    conversationHistory: conversationHistory,
                 },
             });
 
-            let aiResponse = "I apologize, but I'm having trouble responding right now. Please try again!";
+            let aiResponse = "I'm having a moment! Please try again. 💪";
 
-            if (data?.workoutPlan) {
-                aiResponse = data.workoutPlan;
+            if (data?.reply) {
+                aiResponse = data.reply;
+            } else if (data?.error) {
+                aiResponse = data.error;
             } else if (error) {
                 console.error("AI Error:", error);
                 toast.error("Failed to get response. Please try again.");

@@ -32,7 +32,10 @@ serve(async (req) => {
         let prompt: string;
         let systemMessage: string;
 
-        if (customPrompt) {
+        // Check for chat mode (customPrompt is set and is a non-empty string)
+        const isChatMode = typeof customPrompt === 'string' && customPrompt.trim().length > 0;
+
+        if (isChatMode) {
             // Chat mode - use custom prompt directly with conversational AI
             prompt = customPrompt;
             systemMessage = `You are SmartFit AI, a friendly and knowledgeable fitness coach. You're like a supportive gym buddy who happens to be an expert.
