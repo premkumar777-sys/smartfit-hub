@@ -23,14 +23,6 @@ const quickActions = [
     { icon: Target, label: "Build Muscle", prompt: "How can I build muscle at home without equipment?" },
 ];
 
-const systemContext = `You are SmartFit AI, an expert fitness trainer and nutritionist. You provide personalized, encouraging, and actionable fitness advice. Keep responses concise (2-3 paragraphs max). Use bullet points for lists. Be motivating and supportive. Focus on:
-- Workout techniques and form
-- Nutrition and meal planning
-- Exercise recommendations
-- Fitness motivation
-- Recovery and rest tips
-Always prioritize safety and recommend consulting a doctor for medical concerns.`;
-
 export default function AITrainer() {
     const [messages, setMessages] = useState<Message[]>([
         {
@@ -71,19 +63,17 @@ export default function AITrainer() {
             // Build conversation history for context
             const conversationHistory = messages
                 .slice(-6) // Last 6 messages for context
-                .map((m) => `${m.role === "user" ? "User" : "Trainer"}: ${m.content}`)
+                .map((m) => `${m.role === "user" ? "User" : "SmartFit AI"}: ${m.content}`)
                 .join("\n");
 
-            const prompt = `${systemContext}\n\nConversation:\n${conversationHistory}\nUser: ${content}\nTrainer:`;
+            // Create simple prompt with conversation context
+            const prompt = conversationHistory
+                ? `Previous conversation:\n${conversationHistory}\n\nUser: ${content}`
+                : content;
 
-            // Call Gemini via Supabase Edge Function
+            // Call AI via Supabase Edge Function
             const { data, error } = await supabase.functions.invoke("generate-workout", {
                 body: {
-                    age: 25,
-                    weight: 70,
-                    height: 170,
-                    bmi: 24,
-                    goal: "chat",
                     customPrompt: prompt,
                 },
             });
@@ -176,8 +166,8 @@ export default function AITrainer() {
                             >
                                 <div
                                     className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${message.role === "user"
-                                            ? "bg-primary/20 text-primary"
-                                            : "gradient-primary text-white"
+                                        ? "bg-primary/20 text-primary"
+                                        : "gradient-primary text-white"
                                         }`}
                                 >
                                     {message.role === "user" ? (
@@ -188,8 +178,8 @@ export default function AITrainer() {
                                 </div>
                                 <div
                                     className={`max-w-[80%] rounded-2xl px-4 py-3 ${message.role === "user"
-                                            ? "bg-primary text-primary-foreground rounded-br-sm"
-                                            : "bg-gray-800/80 text-foreground rounded-bl-sm"
+                                        ? "bg-primary text-primary-foreground rounded-br-sm"
+                                        : "bg-gray-800/80 text-foreground rounded-bl-sm"
                                         }`}
                                 >
                                     <p className="text-sm whitespace-pre-wrap">{message.content}</p>
