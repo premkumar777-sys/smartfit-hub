@@ -15,7 +15,7 @@ serve(async (req) => {
     }
 
     try {
-        const { age, weight, height, bmi, goal } = await req.json();
+        const { age, weight, height, bmi, goal, customPrompt } = await req.json();
 
         // Get Lovable API key (auto-provisioned)
         const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -28,9 +28,20 @@ serve(async (req) => {
             );
         }
 
-        console.log("Generating workout plan for:", { age, weight, height, bmi, goal });
+        // Support custom prompts for chatbot mode
+        let prompt: string;
+        let systemMessage: string;
 
-        const prompt = `You are an expert fitness trainer. Create a personalized, safe, and effective workout plan.
+        if (customPrompt) {
+            // Chat mode - use custom prompt directly
+            prompt = customPrompt;
+            systemMessage = "You are SmartFit AI, an expert fitness trainer and nutritionist. Be helpful, encouraging, and concise.";
+            console.log("Processing chat message");
+        } else {
+            // Workout generation mode
+            console.log("Generating workout plan for:", { age, weight, height, bmi, goal });
+            systemMessage = "You are an expert fitness trainer who creates personalized workout plans.";
+            prompt = `You are an expert fitness trainer. Create a personalized, safe, and effective workout plan.
 
 User Profile:
 - Age: ${age} years
@@ -48,6 +59,7 @@ Create a comprehensive weekly workout plan that includes:
 
 Format the plan clearly with markdown headings and bullet points.
 Keep it practical, achievable, and motivating.`;
+        }
 
         // Call Lovable AI Gateway
         const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -59,7 +71,7 @@ Keep it practical, achievable, and motivating.`;
             body: JSON.stringify({
                 model: "google/gemini-2.5-flash",
                 messages: [
-                    { role: "system", content: "You are an expert fitness trainer who creates personalized workout plans." },
+                    { role: "system", content: systemMessage },
                     { role: "user", content: prompt }
                 ],
             }),

@@ -124,7 +124,8 @@ const Home = () => {
               {
                 icon: Brain,
                 title: "AI Personal Trainer",
-                description: "Intelligent workout recommendations powered by advanced AI algorithms"
+                description: "Intelligent workout recommendations powered by advanced AI algorithms",
+                link: "/ai-trainer"
               },
               {
                 icon: Eye,
