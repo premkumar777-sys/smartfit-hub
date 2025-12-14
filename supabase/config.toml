@@ -2,3 +2,6 @@ project_id = "fgndvazoastvtpmqtvhx"
 
 [functions.generate-workout]
 verify_jwt = false
+
+[functions.send-otp]
+verify_jwt = false
