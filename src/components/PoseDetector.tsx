@@ -4,7 +4,7 @@ import * as poseDetection from "@tensorflow-models/pose-detection";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Camera, StopCircle, RotateCcw, ChevronDown } from "lucide-react";
+import { Camera, StopCircle, RotateCcw, ChevronDown, Volume2, VolumeX } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,6 +13,18 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 type ExerciseType = "squat" | "pushup" | "lunge" | "jumpingJack" | "bicepCurl";
+
+// Voice feedback utility
+const speak = (text: string, rate: number = 1.2) => {
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = rate;
+    utterance.pitch = 1;
+    utterance.volume = 1;
+    window.speechSynthesis.speak(utterance);
+  }
+};
 
 interface ExerciseConfig {
   name: string;
@@ -180,6 +192,9 @@ export default function PoseDetector() {
   const [isDown, setIsDown] = useState(false);
   const isDownRef = useRef(false);
   const [formQuality, setFormQuality] = useState<"good" | "fair" | "poor" | null>(null);
+  const [voiceEnabled, setVoiceEnabled] = useState(true);
+  const lastFormFeedbackRef = useRef<string | null>(null);
+  const formFeedbackTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -307,15 +322,35 @@ export default function PoseDetector() {
     return scores.reduce((a, b) => a + b, 0) / scores.length;
   };
 
-  const updateFormQuality = (avgScore: number) => {
+  const updateFormQuality = useCallback((avgScore: number) => {
+    let quality: "good" | "fair" | "poor";
     if (avgScore > 0.7) {
-      setFormQuality("good");
+      quality = "good";
     } else if (avgScore > 0.5) {
-      setFormQuality("fair");
+      quality = "fair";
     } else {
-      setFormQuality("poor");
+      quality = "poor";
     }
-  };
+    
+    setFormQuality(quality);
+    
+    // Voice feedback for form corrections (debounced)
+    if (voiceEnabled && quality !== "good" && lastFormFeedbackRef.current !== quality) {
+      if (formFeedbackTimeoutRef.current) {
+        clearTimeout(formFeedbackTimeoutRef.current);
+      }
+      formFeedbackTimeoutRef.current = setTimeout(() => {
+        if (quality === "poor") {
+          speak("Move closer to camera", 1.0);
+        } else if (quality === "fair") {
+          speak("Adjust your position", 1.0);
+        }
+        lastFormFeedbackRef.current = quality;
+      }, 2000);
+    } else if (quality === "good") {
+      lastFormFeedbackRef.current = null;
+    }
+  }, [voiceEnabled]);
 
   const drawKeypoints = (keypoints: poseDetection.Keypoint[], ctx: CanvasRenderingContext2D) => {
     keypoints.forEach((keypoint) => {
@@ -363,6 +398,9 @@ export default function PoseDetector() {
     if (result.repCompleted) {
       setRepCount(prev => {
         const newCount = prev + 1;
+        if (voiceEnabled) {
+          speak(`${newCount}`);
+        }
         toast({
           title: "Perfect Rep! 💪",
           description: `${exercise.name}: Rep ${newCount} completed`,
@@ -370,16 +408,31 @@ export default function PoseDetector() {
         return newCount;
       });
     }
-  }, [selectedExercise, toast]);
+  }, [selectedExercise, toast, voiceEnabled]);
 
   const handleExerciseChange = (exercise: ExerciseType) => {
     setSelectedExercise(exercise);
     setRepCount(0);
     setIsDown(false);
     isDownRef.current = false;
+    if (voiceEnabled) {
+      speak(`Now tracking ${EXERCISES[exercise].name}`, 1.0);
+    }
     toast({
       title: "Exercise Changed",
       description: `Now tracking: ${EXERCISES[exercise].name}`,
+    });
+  };
+
+  const toggleVoice = () => {
+    setVoiceEnabled(prev => {
+      const newState = !prev;
+      if (newState) {
+        speak("Voice feedback on", 1.0);
+      } else {
+        window.speechSynthesis.cancel();
+      }
+      return newState;
     });
   };
 
@@ -482,6 +535,13 @@ export default function PoseDetector() {
           >
             <RotateCcw className="mr-2 h-4 w-4" />
             Reset
+          </Button>
+          <Button
+            onClick={toggleVoice}
+            variant={voiceEnabled ? "secondary" : "outline"}
+            title={voiceEnabled ? "Disable voice feedback" : "Enable voice feedback"}
+          >
+            {voiceEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
           </Button>
         </div>
 
