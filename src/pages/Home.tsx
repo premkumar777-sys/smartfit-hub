@@ -129,7 +129,8 @@ const Home = () => {
               {
                 icon: Eye,
                 title: "Real-Time Form Detection",
-                description: "Computer vision technology analyzes your form and provides instant feedback"
+                description: "Computer vision technology analyzes your form and provides instant feedback",
+                link: "/workout-session"
               },
               {
                 icon: BarChart3,
