@@ -5,10 +5,11 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Container } from "@/components/Container";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Dumbbell, ArrowLeft, Save } from "lucide-react";
+import { Loader2, Dumbbell, ArrowLeft, Save, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useGamification, XP_REWARDS } from "@/hooks/useGamification";
 
 const AIWorkout = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -20,6 +21,8 @@ const AIWorkout = () => {
     height: "",
     goal: "",
   });
+
+  const gamification = useGamification();
 
   const calculateBMI = () => {
     if (formData.weight && formData.height) {
@@ -63,7 +66,9 @@ const AIWorkout = () => {
 
       if (data?.workoutPlan) {
         setWorkoutPlan(data.workoutPlan);
-        toast.success("Workout plan generated!");
+        // Award XP for generating workout
+        gamification.recordWorkout();
+        toast.success(`Workout plan generated! +${XP_REWARDS.WORKOUT_GENERATED} XP 🎉`);
       } else {
         throw new Error("No workout plan received");
       }

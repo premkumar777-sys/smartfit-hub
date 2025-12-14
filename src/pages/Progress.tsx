@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Trash2 } from "lucide-react";
+import { Loader2, Trash2, Zap } from "lucide-react";
+import { useGamification, XP_REWARDS } from "@/hooks/useGamification";
 
 // Local type for progress logs (stored in localStorage for now)
 interface ProgressLog {
@@ -26,6 +27,8 @@ export default function Progress() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+
+  const gamification = useGamification();
 
   // Load user and logs on mount
   useEffect(() => {
@@ -124,6 +127,8 @@ export default function Progress() {
         localStorage.setItem("smartfit_progress_v1", JSON.stringify(newLogs));
         toast.success("Progress logged locally!");
       }
+      // Award XP for logging progress
+      gamification.recordProgressLog();
       setWeight("");
       setNotes("");
     } catch (err) {

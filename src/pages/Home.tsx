@@ -158,7 +158,8 @@ const Home = () => {
               {
                 icon: Trophy,
                 title: "Gamified Training System",
-                description: "Earn rewards, unlock achievements, and compete with friends"
+                description: "Earn rewards, unlock achievements, and compete with friends",
+                link: "/gamification"
               },
               {
                 icon: Wrench,

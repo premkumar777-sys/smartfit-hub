@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Container } from "@/components/Container";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Send, Bot, User, Dumbbell, Heart, Flame, Apple, Target, Loader2 } from "lucide-react";
+import { ArrowLeft, Send, Bot, User, Dumbbell, Heart, Flame, Apple, Target, Loader2, Zap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useGamification, XP_REWARDS } from "@/hooks/useGamification";
 
 type Message = {
     id: string;
@@ -23,6 +24,7 @@ const quickActions = [
     { icon: Target, label: "Build Muscle", prompt: "How can I build muscle at home without equipment?" },
 ];
 
+
 export default function AITrainer() {
     const [messages, setMessages] = useState<Message[]>([
         {
@@ -36,6 +38,8 @@ export default function AITrainer() {
     const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
+
+    const gamification = useGamification();
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -77,6 +81,8 @@ export default function AITrainer() {
 
             if (data?.reply) {
                 aiResponse = data.reply;
+                // Award XP for chat session
+                gamification.recordChatSession();
             } else if (data?.error) {
                 aiResponse = data.error;
             } else if (error) {
