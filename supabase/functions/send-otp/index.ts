@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
+import nodemailer from "https://esm.sh/nodemailer@6.9.10";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -12,17 +12,26 @@ function generateOTP(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-// Send email using SMTP
+// Send email using SMTP with Nodemailer
 async function sendEmailWithSMTP(to: string, otp: string): Promise<void> {
-  const client = new SMTPClient({
-    connection: {
-      hostname: Deno.env.get("SMTP_HOST")!,
-      port: parseInt(Deno.env.get("SMTP_PORT") || "587"),
-      tls: Deno.env.get("SMTP_PORT") === "465",
-      auth: {
-        username: Deno.env.get("SMTP_USER")!,
-        password: Deno.env.get("SMTP_PASS")!,
-      },
+  const smtpHost = Deno.env.get("SMTP_HOST");
+  const smtpPort = parseInt(Deno.env.get("SMTP_PORT") || "587");
+  const smtpUser = Deno.env.get("SMTP_USER");
+  const smtpPass = Deno.env.get("SMTP_PASS");
+
+  console.log(`SMTP Config: host=${smtpHost}, port=${smtpPort}, user=${smtpUser}`);
+
+  if (!smtpHost || !smtpUser || !smtpPass) {
+    throw new Error("SMTP configuration is incomplete. Please set SMTP_HOST, SMTP_USER, and SMTP_PASS.");
+  }
+
+  const transporter = nodemailer.createTransport({
+    host: smtpHost,
+    port: smtpPort,
+    secure: smtpPort === 465,
+    auth: {
+      user: smtpUser,
+      pass: smtpPass,
     },
   });
 
@@ -60,15 +69,14 @@ async function sendEmailWithSMTP(to: string, otp: string): Promise<void> {
     </html>
   `;
 
-  await client.send({
-    from: Deno.env.get("SMTP_USER")!,
+  await transporter.sendMail({
+    from: smtpUser,
     to: to,
     subject: "Your FitAI Login Code",
-    content: "auto",
     html: htmlContent,
   });
 
-  await client.close();
+  console.log(`Email sent successfully to ${to}`);
 }
 
 serve(async (req: Request): Promise<Response> => {
@@ -80,6 +88,8 @@ serve(async (req: Request): Promise<Response> => {
   try {
     const body = await req.json();
     const { email, action, otp } = body;
+
+    console.log(`Received request: action=${action}, email=${email}`);
 
     if (!email) {
       return new Response(
@@ -127,8 +137,16 @@ serve(async (req: Request): Promise<Response> => {
       }
 
       // Send email
-      await sendEmailWithSMTP(email, generatedOtp);
-      console.log(`OTP sent to ${email}`);
+      try {
+        await sendEmailWithSMTP(email, generatedOtp);
+        console.log(`OTP sent to ${email}`);
+      } catch (emailError: any) {
+        console.error("SMTP Error:", emailError);
+        return new Response(
+          JSON.stringify({ error: `Failed to send email: ${emailError.message}` }),
+          { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        );
+      }
 
       return new Response(
         JSON.stringify({ success: true, message: "OTP sent successfully" }),
