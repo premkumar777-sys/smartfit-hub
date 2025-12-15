@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import nodemailer from "https://esm.sh/nodemailer@6.9.10";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -12,7 +11,12 @@ function generateOTP(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-// Send email using SMTP with Nodemailer
+// Base64 encode for SMTP auth
+function base64Encode(str: string): string {
+  return btoa(str);
+}
+
+// Send email using raw SMTP with Deno TCP
 async function sendEmailWithSMTP(to: string, otp: string): Promise<void> {
   const smtpHost = Deno.env.get("SMTP_HOST");
   const smtpPort = parseInt(Deno.env.get("SMTP_PORT") || "587");
@@ -25,58 +29,163 @@ async function sendEmailWithSMTP(to: string, otp: string): Promise<void> {
     throw new Error("SMTP configuration is incomplete. Please set SMTP_HOST, SMTP_USER, and SMTP_PASS.");
   }
 
-  const transporter = nodemailer.createTransport({
-    host: smtpHost,
-    port: smtpPort,
-    secure: smtpPort === 465,
-    auth: {
-      user: smtpUser,
-      pass: smtpPass,
-    },
-  });
-
   const htmlContent = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    </head>
-    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 0; background-color: #0a0a0f;">
-      <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
-        <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 16px; padding: 40px; border: 1px solid #2a2a4a;">
-          <h1 style="color: #00ff9c; margin: 0 0 24px; font-size: 28px; text-align: center;">
-            🏋️ FitAI Login
-          </h1>
-          <p style="color: #e0e0e0; font-size: 16px; line-height: 1.6; margin-bottom: 24px; text-align: center;">
-            Your one-time verification code is:
-          </p>
-          <div style="background: #0a0a0f; border-radius: 12px; padding: 24px; text-align: center; border: 2px solid #00ff9c;">
-            <span style="font-size: 36px; font-weight: bold; color: #00ff9c; letter-spacing: 8px; font-family: monospace;">
-              ${otp}
-            </span>
-          </div>
-          <p style="color: #888; font-size: 14px; line-height: 1.6; margin-top: 24px; text-align: center;">
-            This code expires in <strong style="color: #00ff9c;">10 minutes</strong>.
-            <br>If you didn't request this code, please ignore this email.
-          </p>
-        </div>
-        <p style="color: #666; font-size: 12px; text-align: center; margin-top: 24px;">
-          © ${new Date().getFullYear()} FitAI. All rights reserved.
-        </p>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 0; background-color: #0a0a0f;">
+  <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+    <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 16px; padding: 40px; border: 1px solid #2a2a4a;">
+      <h1 style="color: #00ff9c; margin: 0 0 24px; font-size: 28px; text-align: center;">
+        FitAI Login
+      </h1>
+      <p style="color: #e0e0e0; font-size: 16px; line-height: 1.6; margin-bottom: 24px; text-align: center;">
+        Your one-time verification code is:
+      </p>
+      <div style="background: #0a0a0f; border-radius: 12px; padding: 24px; text-align: center; border: 2px solid #00ff9c;">
+        <span style="font-size: 36px; font-weight: bold; color: #00ff9c; letter-spacing: 8px; font-family: monospace;">
+          ${otp}
+        </span>
       </div>
-    </body>
-    </html>
-  `;
+      <p style="color: #888; font-size: 14px; line-height: 1.6; margin-top: 24px; text-align: center;">
+        This code expires in <strong style="color: #00ff9c;">10 minutes</strong>.
+        <br>If you didn't request this code, please ignore this email.
+      </p>
+    </div>
+    <p style="color: #666; font-size: 12px; text-align: center; margin-top: 24px;">
+      FitAI. All rights reserved.
+    </p>
+  </div>
+</body>
+</html>
+  `.trim();
 
-  await transporter.sendMail({
-    from: smtpUser,
-    to: to,
-    subject: "Your FitAI Login Code",
-    html: htmlContent,
-  });
+  // Build MIME message
+  const boundary = "----=_Part_" + Math.random().toString(36).substring(2);
+  const message = [
+    `From: ${smtpUser}`,
+    `To: ${to}`,
+    `Subject: Your FitAI Login Code`,
+    `MIME-Version: 1.0`,
+    `Content-Type: multipart/alternative; boundary="${boundary}"`,
+    ``,
+    `--${boundary}`,
+    `Content-Type: text/plain; charset=utf-8`,
+    ``,
+    `Your FitAI verification code is: ${otp}. This code expires in 10 minutes.`,
+    ``,
+    `--${boundary}`,
+    `Content-Type: text/html; charset=utf-8`,
+    ``,
+    htmlContent,
+    ``,
+    `--${boundary}--`,
+  ].join("\r\n");
 
-  console.log(`Email sent successfully to ${to}`);
+  // Connect using Deno.connect and startTls
+  let conn: Deno.Conn;
+  const encoder = new TextEncoder();
+  const decoder = new TextDecoder();
+
+  const readResponse = async (connection: Deno.Conn): Promise<string> => {
+    const buffer = new Uint8Array(1024);
+    const n = await connection.read(buffer);
+    if (n === null) return "";
+    return decoder.decode(buffer.subarray(0, n));
+  };
+
+  const sendCommand = async (connection: Deno.Conn, command: string): Promise<string> => {
+    await connection.write(encoder.encode(command + "\r\n"));
+    return await readResponse(connection);
+  };
+
+  try {
+    // Initial connection
+    let conn: Deno.Conn;
+    let needsStartTls = false;
+    
+    if (smtpPort === 465) {
+      // SSL connection
+      conn = await Deno.connectTls({
+        hostname: smtpHost,
+        port: smtpPort,
+      });
+    } else {
+      // Plain connection, will upgrade with STARTTLS
+      const tcpConn = await Deno.connect({
+        hostname: smtpHost,
+        port: smtpPort,
+      });
+      conn = tcpConn;
+      needsStartTls = true;
+    }
+
+    // Read greeting
+    let response = await readResponse(conn);
+    console.log("SMTP Greeting:", response.trim());
+
+    // Send EHLO
+    response = await sendCommand(conn, `EHLO localhost`);
+    console.log("EHLO response:", response.trim());
+
+    // STARTTLS for port 587
+    if (needsStartTls && smtpPort === 587) {
+      response = await sendCommand(conn, "STARTTLS");
+      console.log("STARTTLS response:", response.trim());
+      
+      if (response.startsWith("220")) {
+        // @ts-ignore - Deno.startTls expects TcpConn but we know it is one
+        conn = await Deno.startTls(conn, { hostname: smtpHost });
+        response = await sendCommand(conn, `EHLO localhost`);
+        console.log("Post-TLS EHLO:", response.trim());
+      }
+    }
+
+    // AUTH LOGIN
+    response = await sendCommand(conn, "AUTH LOGIN");
+    console.log("AUTH response:", response.trim());
+
+    // Send username
+    response = await sendCommand(conn, base64Encode(smtpUser));
+    console.log("User response:", response.trim());
+
+    // Send password
+    response = await sendCommand(conn, base64Encode(smtpPass));
+    console.log("Pass response:", response.trim());
+
+    if (!response.startsWith("235")) {
+      throw new Error(`Authentication failed: ${response}`);
+    }
+
+    // MAIL FROM
+    response = await sendCommand(conn, `MAIL FROM:<${smtpUser}>`);
+    console.log("MAIL FROM response:", response.trim());
+
+    // RCPT TO
+    response = await sendCommand(conn, `RCPT TO:<${to}>`);
+    console.log("RCPT TO response:", response.trim());
+
+    // DATA
+    response = await sendCommand(conn, "DATA");
+    console.log("DATA response:", response.trim());
+
+    // Send message body
+    await conn.write(encoder.encode(message + "\r\n.\r\n"));
+    response = await readResponse(conn);
+    console.log("Message response:", response.trim());
+
+    // QUIT
+    await sendCommand(conn, "QUIT");
+    conn.close();
+
+    console.log(`Email sent successfully to ${to}`);
+  } catch (error) {
+    console.error("SMTP Error:", error);
+    throw error;
+  }
 }
 
 serve(async (req: Request): Promise<Response> => {
@@ -141,7 +250,7 @@ serve(async (req: Request): Promise<Response> => {
         await sendEmailWithSMTP(email, generatedOtp);
         console.log(`OTP sent to ${email}`);
       } catch (emailError: any) {
-        console.error("SMTP Error:", emailError);
+        console.error("Email send error:", emailError);
         return new Response(
           JSON.stringify({ error: `Failed to send email: ${emailError.message}` }),
           { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
