@@ -136,7 +136,8 @@ const Home = () => {
               {
                 icon: BarChart3,
                 title: "Smart Progress Dashboard",
-                description: "Comprehensive analytics tracking your fitness journey and achievements"
+                description: "Comprehensive analytics tracking your fitness journey and achievements",
+                link: "/progress"
               },
               {
                 icon: Utensils,
