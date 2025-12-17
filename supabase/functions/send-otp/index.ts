@@ -87,29 +87,71 @@ serve(async (req: Request): Promise<Response> => {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FitZone Verification Code</title>
 </head>
-<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 0; background-color: #0a0a0f;">
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif; margin: 0; padding: 0; background-color: #0a0a0f;">
   <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
-    <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 16px; padding: 40px; border: 1px solid #2a2a4a;">
-      <h1 style="color: #00ff9c; margin: 0 0 24px; font-size: 28px; text-align: center;">
-        FitZone
-      </h1>
-      <p style="color: #e0e0e0; font-size: 16px; line-height: 1.6; margin-bottom: 24px; text-align: center;">
-        Your one-time verification code is:
+    <!-- Header with Logo -->
+    <div style="text-align: center; margin-bottom: 32px;">
+      <div style="display: inline-block; background: linear-gradient(135deg, #00ff9c 0%, #4CC9F0 100%); -webkit-background-clip: text; background-clip: text;">
+        <h1 style="font-size: 42px; font-weight: 800; margin: 0; color: #00ff9c; letter-spacing: -1px;">
+          ⚡ FITZONE
+        </h1>
+      </div>
+      <p style="color: #4CC9F0; font-size: 14px; margin: 8px 0 0; letter-spacing: 3px; text-transform: uppercase;">
+        Your Fitness Journey
       </p>
-      <div style="background: #0a0a0f; border-radius: 12px; padding: 24px; text-align: center; border: 2px solid #00ff9c;">
-        <span style="font-size: 36px; font-weight: bold; color: #00ff9c; letter-spacing: 8px; font-family: monospace;">
+    </div>
+    
+    <!-- Main Card -->
+    <div style="background: linear-gradient(145deg, #1a1a2e 0%, #0f0f1a 100%); border-radius: 20px; padding: 48px 40px; border: 1px solid rgba(0, 255, 156, 0.2); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(0, 255, 156, 0.1);">
+      
+      <!-- Icon -->
+      <div style="text-align: center; margin-bottom: 24px;">
+        <span style="font-size: 48px;">🔐</span>
+      </div>
+      
+      <h2 style="color: #ffffff; margin: 0 0 16px; font-size: 24px; text-align: center; font-weight: 600;">
+        Verification Code
+      </h2>
+      
+      <p style="color: #a0a0b0; font-size: 16px; line-height: 1.6; margin-bottom: 32px; text-align: center;">
+        Enter this code to securely access your FitZone account:
+      </p>
+      
+      <!-- OTP Code Box -->
+      <div style="background: linear-gradient(135deg, #0a0a0f 0%, #12121a 100%); border-radius: 16px; padding: 28px; text-align: center; border: 2px solid #00ff9c; box-shadow: 0 0 30px rgba(0, 255, 156, 0.2), inset 0 0 20px rgba(0, 255, 156, 0.05);">
+        <span style="font-size: 40px; font-weight: 700; color: #00ff9c; letter-spacing: 12px; font-family: 'SF Mono', 'Fira Code', monospace; text-shadow: 0 0 20px rgba(0, 255, 156, 0.5);">
           ${generatedOtp}
         </span>
       </div>
-      <p style="color: #888; font-size: 14px; line-height: 1.6; margin-top: 24px; text-align: center;">
-        This code expires in <strong style="color: #00ff9c;">10 minutes</strong>.
-        <br>If you didn't request this code, please ignore this email.
+      
+      <!-- Timer Notice -->
+      <div style="text-align: center; margin-top: 28px; padding: 16px; background: rgba(76, 201, 240, 0.1); border-radius: 12px; border: 1px solid rgba(76, 201, 240, 0.2);">
+        <p style="color: #4CC9F0; font-size: 14px; margin: 0;">
+          ⏱️ This code expires in <strong>10 minutes</strong>
+        </p>
+      </div>
+      
+      <!-- Security Notice -->
+      <p style="color: #666; font-size: 13px; line-height: 1.6; margin-top: 28px; text-align: center;">
+        🛡️ If you didn't request this code, you can safely ignore this email.
+        <br>Never share this code with anyone.
       </p>
     </div>
-    <p style="color: #666; font-size: 12px; text-align: center; margin-top: 24px;">
-      © 2025 FitZone. All rights reserved.
-    </p>
+    
+    <!-- Footer -->
+    <div style="text-align: center; margin-top: 32px; padding-top: 24px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+      <p style="color: #00ff9c; font-size: 13px; margin: 0 0 8px; font-weight: 600;">
+        💪 Stay Strong. Train Smart.
+      </p>
+      <p style="color: #555; font-size: 12px; margin: 0;">
+        © 2025 FitZone. All rights reserved.
+      </p>
+      <p style="color: #444; font-size: 11px; margin: 12px 0 0;">
+        Questions? Contact us at support@fitzone.com
+      </p>
+    </div>
   </div>
 </body>
 </html>
@@ -119,7 +161,7 @@ serve(async (req: Request): Promise<Response> => {
         const { error: emailError } = await resend.emails.send({
           from: "FitZone <onboarding@resend.dev>",
           to: [email],
-          subject: "Your FitZone Login Code",
+          subject: "🔐 Your FitZone Verification Code",
           html: htmlContent,
         });
 
