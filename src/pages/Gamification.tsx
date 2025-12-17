@@ -26,24 +26,40 @@ const achievementIcons: Record<string, React.ElementType> = {
     "progress-logger": BarChart3,
 };
 
+// Leaderboard entry type
+interface LeaderboardEntry {
+    rank: number;
+    name: string;
+    xp: number;
+    level: number;
+    streak: number;
+    avatar: string;
+    isCurrentUser?: boolean;
+}
+
 // Leaderboard data (mock - in production this would come from database)
-const generateLeaderboard = (userXP: number, userLevel: number, userStreak: number) => [
-    { rank: 1, name: "FitnessPro", xp: 15420, level: 52, streak: 45, avatar: "🏆" },
-    { rank: 2, name: "GymMaster", xp: 12850, level: 43, streak: 38, avatar: "💪" },
-    { rank: 3, name: "WorkoutKing", xp: 11200, level: 38, streak: 30, avatar: "🔥" },
-    { rank: 4, name: "HealthyLife", xp: 8100, level: 28, streak: 25, avatar: "🌟" },
-    { rank: 5, name: "FitJourney", xp: 5850, level: 20, streak: 18, avatar: "🎯" },
-    { rank: 6, name: "StrongMind", xp: 3620, level: 13, streak: 12, avatar: "💎" },
-    // User's position will be calculated dynamically
-].map((entry, idx) => {
-    // Find user's rank based on XP
-    if (userXP > entry.xp && idx === 0) {
-        return { ...entry, rank: 2, name: "FitnessPro" };
-    }
-    return entry;
-}).concat([
-    { rank: 0, name: "You", xp: userXP, level: userLevel, streak: userStreak, avatar: "⭐", isCurrentUser: true }
-]).sort((a, b) => b.xp - a.xp).map((entry, idx) => ({ ...entry, rank: idx + 1 })).slice(0, 8);
+const generateLeaderboard = (userXP: number, userLevel: number, userStreak: number): LeaderboardEntry[] => {
+    const entries: LeaderboardEntry[] = [
+        { rank: 1, name: "FitnessPro", xp: 15420, level: 52, streak: 45, avatar: "🏆" },
+        { rank: 2, name: "GymMaster", xp: 12850, level: 43, streak: 38, avatar: "💪" },
+        { rank: 3, name: "WorkoutKing", xp: 11200, level: 38, streak: 30, avatar: "🔥" },
+        { rank: 4, name: "HealthyLife", xp: 8100, level: 28, streak: 25, avatar: "🌟" },
+        { rank: 5, name: "FitJourney", xp: 5850, level: 20, streak: 18, avatar: "🎯" },
+        { rank: 6, name: "StrongMind", xp: 3620, level: 13, streak: 12, avatar: "💎" },
+    ];
+    
+    // Add user entry
+    const allEntries: LeaderboardEntry[] = [
+        ...entries,
+        { rank: 0, name: "You", xp: userXP, level: userLevel, streak: userStreak, avatar: "⭐", isCurrentUser: true }
+    ];
+    
+    // Sort by XP and assign ranks
+    return allEntries
+        .sort((a, b) => b.xp - a.xp)
+        .map((entry, idx) => ({ ...entry, rank: idx + 1 }))
+        .slice(0, 8);
+};
 
 // Helper functions for UI
 const getRarityColor = (rarity: string) => {
