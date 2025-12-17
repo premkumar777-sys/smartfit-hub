@@ -16,7 +16,7 @@ import HomeWorkouts from "./pages/HomeWorkouts";
 import AITrainer from "./pages/AITrainer";
 import Gamification from "./pages/Gamification";
 import NotFound from "./pages/NotFound";
-import { AICursor } from "@/components/AICursor";
+import { FitnessCursor } from "@/components/FitnessCursor";
 
 const queryClient = new QueryClient();
 
@@ -26,7 +26,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <AICursor />
+        <FitnessCursor />
         <Header />
         <Routes>
           <Route path="/" element={<Home />} />
