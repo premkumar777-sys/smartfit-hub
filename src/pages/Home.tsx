@@ -26,13 +26,13 @@ const Home = () => {
             transition={{ duration: 0.8 }}
           >
             <motion.h1
-              className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight"
+              className="text-4xl md:text-5xl lg:text-6xl font-bold leading-normal pb-2"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
               Transform Your Body with
-              <span className="text-gradient block mt-2">AI-Powered Training</span>
+              <span className="text-gradient block mt-2 pb-1">AI-Powered Training</span>
             </motion.h1>
 
             <motion.p
