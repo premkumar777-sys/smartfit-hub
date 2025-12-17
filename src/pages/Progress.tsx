@@ -175,7 +175,7 @@ export default function Progress() {
     setIsSaving(true);
     const dateStr = new Date().toISOString().slice(0, 10);
 
-    const entry = {
+    const entry: ProgressLog = {
       id: crypto.randomUUID(),
       user_id: userId || '',
       date: dateStr,
@@ -184,48 +184,30 @@ export default function Progress() {
       created_at: new Date().toISOString(),
     };
 
-    try {
-      if (userId) {
-        // Try Supabase first
-        const { data, error } = await supabase
-          .from('progress_logs')
-          .insert({ user_id: userId, date: dateStr, weight: w, notes: notes || null })
-          .select()
-          .single();
+    // Always save to state and localStorage immediately
+    const newLogs = [entry, ...logs].slice(0, 90);
+    setLogs(newLogs);
+    localStorage.setItem(STORAGE_KEYS.PROGRESS, JSON.stringify(newLogs));
 
-        if (error) {
-          console.warn("Supabase save failed, using localStorage:", error.message);
-          // Fallback to localStorage
-          const newLogs = [entry, ...logs].slice(0, 90);
-          setLogs(newLogs as ProgressLog[]);
-          localStorage.setItem(STORAGE_KEYS.PROGRESS, JSON.stringify(newLogs));
-          toast.success("Progress saved locally!");
-        } else {
-          setLogs((prev) => [data, ...prev].slice(0, 90));
-          toast.success("Progress logged!");
-        }
-      } else {
-        // Not logged in, use localStorage
-        const newLogs = [entry, ...logs].slice(0, 90);
-        setLogs(newLogs as ProgressLog[]);
-        localStorage.setItem(STORAGE_KEYS.PROGRESS, JSON.stringify(newLogs));
-        toast.success("Progress logged locally!");
-      }
-      gamification.recordProgressLog();
-      setWeight("");
-      setNotes("");
-    } catch (err) {
-      console.error("Error saving progress:", err);
-      // Ultimate fallback - still save locally
-      const newLogs = [entry, ...logs].slice(0, 90);
-      setLogs(newLogs as ProgressLog[]);
-      localStorage.setItem(STORAGE_KEYS.PROGRESS, JSON.stringify(newLogs));
-      gamification.recordProgressLog();
-      setWeight("");
-      setNotes("");
-      toast.success("Progress saved locally!");
-    } finally {
-      setIsSaving(false);
+    // Award XP and clear form
+    gamification.recordProgressLog();
+    setWeight("");
+    setNotes("");
+    setIsSaving(false);
+    toast.success("Progress logged! +25 XP 💪");
+
+    // Try to sync to Supabase in background (non-blocking)
+    if (userId) {
+      supabase
+        .from('progress_logs')
+        .insert({ user_id: userId, date: dateStr, weight: w, notes: notes || null })
+        .then(({ error }) => {
+          if (error) {
+            console.warn("Supabase sync failed:", error.message);
+          } else {
+            console.log("Synced to Supabase");
+          }
+        });
     }
   };
 
