@@ -16,6 +16,7 @@ import HomeWorkouts from "./pages/HomeWorkouts";
 import AITrainer from "./pages/AITrainer";
 import Gamification from "./pages/Gamification";
 import NotFound from "./pages/NotFound";
+import { ReptileCursor } from "@/components/ReptileCursor";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +26,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <ReptileCursor />
         <Header />
         <Routes>
           <Route path="/" element={<Home />} />
