@@ -187,12 +187,10 @@ serve(async (req) => {
       // OTP is valid - delete it
       await supabase.from("phone_otps").delete().eq("id", storedOtp.id);
 
-      // Check if user exists
+      // Check if user exists by phone
       const { data: existingUsers } = await supabase.auth.admin.listUsers();
-      const existingUser = existingUsers?.users?.find(
-        (u) => u.phone === phone
-      );
-
+      let existingUser = existingUsers?.users?.find((u) => u.phone === phone);
+      
       let userId: string;
       let isNewUser = false;
 
@@ -200,24 +198,47 @@ serve(async (req) => {
         userId = existingUser.id;
         console.log(`Existing user found: ${userId}`);
       } else {
-        // Create new user with phone
+        // Try to create new user with phone
         const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
           phone,
           phone_confirm: true,
           user_metadata: { phone_verified: true },
         });
 
-        if (createError || !newUser.user) {
-          console.error("Failed to create user:", createError);
+        if (createError) {
+          // If phone already exists (race condition), try to find the user again
+          if (createError.code === "phone_exists") {
+            console.log("Phone exists, fetching existing user...");
+            const { data: retryUsers } = await supabase.auth.admin.listUsers();
+            const foundUser = retryUsers?.users?.find((u) => u.phone === phone);
+            
+            if (foundUser) {
+              userId = foundUser.id;
+              console.log(`Found existing user on retry: ${userId}`);
+            } else {
+              console.error("Could not find existing user with phone:", phone);
+              return new Response(
+                JSON.stringify({ error: "Failed to authenticate. Please try again." }),
+                { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+              );
+            }
+          } else {
+            console.error("Failed to create user:", createError);
+            return new Response(
+              JSON.stringify({ error: "Failed to create user account" }),
+              { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
+          }
+        } else if (newUser?.user) {
+          userId = newUser.user.id;
+          isNewUser = true;
+          console.log(`New user created: ${userId}`);
+        } else {
           return new Response(
             JSON.stringify({ error: "Failed to create user account" }),
             { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
           );
         }
-
-        userId = newUser.user.id;
-        isNewUser = true;
-        console.log(`New user created: ${userId}`);
       }
 
       // Generate a magic link / session for the user
