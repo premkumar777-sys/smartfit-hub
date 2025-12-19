@@ -17,6 +17,7 @@ import AITrainer from "./pages/AITrainer";
 import Gamification from "./pages/Gamification";
 import NotFound from "./pages/NotFound";
 import { FitnessCursor } from "@/components/FitnessCursor";
+import { FloatingChatbot } from "@/components/FloatingChatbot";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +28,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <FitnessCursor />
+        <FloatingChatbot />
         <Header />
         <Routes>
           <Route path="/" element={<Home />} />
