@@ -49,7 +49,7 @@ const menuStructure = [
   },
   {
     label: "Pricing",
-    href: "#pricing"
+    href: "/pricing"
   }
 ];
 
