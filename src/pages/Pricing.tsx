@@ -146,7 +146,7 @@ export default function Pricing() {
                 </div>
               )}
               <Card
-                className={`h-full flex flex-col p-8 transition-all duration-300 hover:scale-[1.02] ${
+                className={`h-full flex flex-col p-8 ${
                   plan.popular
                     ? "border-primary/50 bg-gradient-to-b from-primary/10 to-transparent shadow-[0_0_40px_hsl(var(--primary)/0.2)]"
                     : "border-border"
