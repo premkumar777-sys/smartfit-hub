@@ -112,3 +112,5 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
     </>
   );
 }
+
+
