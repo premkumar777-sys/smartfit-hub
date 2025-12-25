@@ -3,7 +3,6 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { FitnessCursor } from "@/components/FitnessCursor";
@@ -93,10 +92,8 @@ const App = () => {
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
-        </BrowserRouter>
-        {/* React Query DevTools for performance monitoring */}
-        <ReactQueryDevtools initialIsOpen={false} />
-      </TooltipProvider>
+      </BrowserRouter>
+    </TooltipProvider>
     </QueryClientProvider>
   );
 };
