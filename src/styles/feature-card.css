@@ -54,12 +54,13 @@
   transform-style: preserve-3d;
   backface-visibility: hidden;
   animation: float3D 5s ease-in-out infinite;
-  transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
+  transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
               box-shadow 0.3s ease-out,
               border-color 0.3s ease-out;
   will-change: transform;
   transform: translate3d(0, 0, 0); /* Force GPU acceleration */
   perspective: 1000px;
+  cursor: pointer;
 }
 
 /* Reduce motion for users who prefer it */
@@ -165,6 +166,7 @@
 .nav-item-hover {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   transform-origin: center bottom;
+  cursor: pointer;
 }
 
 .nav-item-hover:hover {
