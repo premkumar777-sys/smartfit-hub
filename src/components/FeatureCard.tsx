@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, memo } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -12,7 +12,7 @@ interface FeatureCardProps {
   index: number;
 }
 
-export const FeatureCard = memo(({ icon: Icon, title, description, link, index }: FeatureCardProps) => {
+export const FeatureCard = ({ icon: Icon, title, description, link, index }: FeatureCardProps) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
@@ -309,4 +309,4 @@ export const FeatureCard = memo(({ icon: Icon, title, description, link, index }
   ) : (
     cardContent
   );
-});
+};
