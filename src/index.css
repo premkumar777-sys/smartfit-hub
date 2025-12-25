@@ -91,10 +91,6 @@ All colors MUST be HSL.
 @layer base {
   * {
     @apply border-border;
-  }
-
-  /* Override cursor only for specific non-interactive elements */
-  .no-cursor {
     cursor: default !important;
   }
 
