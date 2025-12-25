@@ -60,7 +60,6 @@
   will-change: transform;
   transform: translate3d(0, 0, 0); /* Force GPU acceleration */
   perspective: 1000px;
-  cursor: pointer;
 }
 
 /* Reduce motion for users who prefer it */
@@ -166,7 +165,6 @@
 .nav-item-hover {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   transform-origin: center bottom;
-  cursor: pointer;
 }
 
 .nav-item-hover:hover {
