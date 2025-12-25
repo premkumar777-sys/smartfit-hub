@@ -8,6 +8,7 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    open: process.platform === 'win32' ? 'chrome' : true, // Open in Chrome on Windows
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {
