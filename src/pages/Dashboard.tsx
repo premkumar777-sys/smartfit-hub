@@ -3,14 +3,19 @@ import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Container } from "@/components/Container";
-import { Activity, Apple, Dumbbell, Target, TrendingUp, Calendar } from "lucide-react";
+import { Activity, Apple, Dumbbell, Target, TrendingUp, FileText, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import type { Tables } from "@/integrations/supabase/types";
 
-interface Profile {
+type Profile = Tables<"profiles">;
+
+interface Workout {
   id: string;
-  username: string;
-  fitness_goal?: string;
+  title: string;
+  content: string;
+  goal: string | null;
+  bmi: number | null;
   created_at: string;
 }
 
@@ -19,16 +24,66 @@ const Dashboard = () => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [savedWorkouts, setSavedWorkouts] = useState<Workout[]>([]);
 
-  const loadMockProfile = () => {
-    // Mock profile data for development
-    const mockProfile: Profile = {
-      id: 'mock-profile-id',
-      username: 'Demo User',
-      fitness_goal: 'Build strength and endurance',
-      created_at: new Date().toISOString(),
-    };
-    setProfile(mockProfile);
+  const loadDashboardData = async (userId: string) => {
+    try {
+      // Load profile
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (profileError && profileError.code !== 'PGRST116') {
+        console.error("Profile error:", profileError);
+      }
+
+      if (profileData) {
+        setProfile(profileData);
+      }
+
+      // Load saved workouts
+      const { data: workoutsData, error: workoutsError } = await supabase
+        .from('workouts')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      if (workoutsError) {
+        console.error("Workouts error:", workoutsError);
+      } else if (workoutsData) {
+        setSavedWorkouts(workoutsData);
+      }
+
+    } catch (err) {
+      console.error("Error loading dashboard data:", err);
+    }
+  };
+
+  const handleDeleteWorkout = async (workoutId: string) => {
+    try {
+      const { error } = await supabase
+        .from('workouts')
+        .delete()
+        .eq('id', workoutId);
+
+      if (error) throw error;
+
+      setSavedWorkouts(prev => prev.filter(w => w.id !== workoutId));
+      toast({
+        title: "Workout deleted",
+        description: "The workout plan has been removed.",
+      });
+    } catch (err) {
+      console.error("Error deleting workout:", err);
+      toast({
+        title: "Error",
+        description: "Failed to delete workout.",
+        variant: "destructive",
+      });
+    }
   };
 
   useEffect(() => {
@@ -37,7 +92,7 @@ const Dashboard = () => {
       if (!session) {
         navigate("/auth");
       } else {
-        loadMockProfile();
+        loadDashboardData(session.user.id);
         setIsLoading(false);
       }
     });
@@ -46,7 +101,7 @@ const Dashboard = () => {
       if (!session) {
         navigate("/auth");
       } else {
-        loadMockProfile();
+        loadDashboardData(session.user.id);
       }
     });
 
@@ -169,14 +224,12 @@ const Dashboard = () => {
               ].map((exercise) => (
                 <div
                   key={exercise.name}
-                  className={`p-4 rounded-lg border border-border flex items-center justify-between transition-all duration-200 hover:-translate-y-1 hover:shadow-lg ${
-                    exercise.completed ? 'bg-accent/10' : 'bg-card/50'
-                  }`}
+                  className={`p-4 rounded-lg border border-border flex items-center justify-between transition-all duration-200 hover:-translate-y-1 hover:shadow-lg ${exercise.completed ? 'bg-accent/10' : 'bg-card/50'
+                    }`}
                 >
                   <div className="flex items-center gap-4">
-                    <div className={`w-10 h-10 rounded-full ${
-                      exercise.completed ? 'bg-accent' : 'bg-muted'
-                    } flex items-center justify-center`}>
+                    <div className={`w-10 h-10 rounded-full ${exercise.completed ? 'bg-accent' : 'bg-muted'
+                      } flex items-center justify-center`}>
                       {exercise.completed && (
                         <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -236,6 +289,60 @@ const Dashboard = () => {
           </Card>
         </div>
 
+        {/* Saved Workouts */}
+        <Card>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold flex items-center gap-2 leading-relaxed text-gray-300">
+              <FileText className="text-primary h-6 w-6" />
+              My Saved Workouts
+            </h2>
+            <Button asChild variant="ghost" size="sm">
+              <Link to="/ai-workout">Generate New</Link>
+            </Button>
+          </div>
+
+          {savedWorkouts.length > 0 ? (
+            <div className="space-y-4">
+              {savedWorkouts.map((workout) => (
+                <div
+                  key={workout.id}
+                  className="p-4 rounded-lg border border-border bg-card/50 hover:bg-card/80 transition-all"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-foreground">{workout.title}</h3>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Created {new Date(workout.created_at).toLocaleDateString()}
+                        {workout.goal && ` • Goal: ${workout.goal.replace('-', ' ')}`}
+                        {workout.bmi && ` • BMI: ${workout.bmi}`}
+                      </p>
+                      <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
+                        {workout.content.substring(0, 150)}...
+                      </p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeleteWorkout(workout.id)}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground mb-4">No saved workouts yet</p>
+              <Button asChild variant="outline">
+                <Link to="/ai-workout">Generate Your First Workout</Link>
+              </Button>
+            </div>
+          )}
+        </Card>
+
         {/* Weekly Progress Chart */}
         <Card>
           <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 leading-relaxed text-gray-300">
@@ -257,9 +364,8 @@ const Dashboard = () => {
                 <div className="w-full flex items-end justify-center h-40">
                   {day.hours > 0 && (
                     <div
-                      className={`w-full rounded-t-lg transition-all duration-200 hover:-translate-y-1 hover:shadow-lg ${
-                        day.completed ? 'gradient-primary' : 'bg-muted'
-                      }`}
+                      className={`w-full rounded-t-lg transition-all duration-200 hover:-translate-y-1 hover:shadow-lg ${day.completed ? 'gradient-primary' : 'bg-muted'
+                        }`}
                       style={{ height: `${(day.hours / 2.5) * 100}%` }}
                     ></div>
                   )}

@@ -82,7 +82,6 @@ export default function GymsDropdown() {
           {bookingFeatures.map((feature) => (
             <DropdownItem
               key={feature.title}
-              href={feature.href}
               icon={feature.icon}
               title={feature.title}
               description={feature.description}

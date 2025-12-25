@@ -26,13 +26,13 @@ const Home = () => {
             transition={{ duration: 0.8 }}
           >
             <motion.h1
-              className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight"
+              className="text-4xl md:text-5xl lg:text-6xl font-bold leading-normal pb-2"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
               Transform Your Body with
-              <span className="text-gradient block mt-2">AI-Powered Training</span>
+              <span className="text-gradient block mt-2 pb-1">AI-Powered Training</span>
             </motion.h1>
 
             <motion.p
@@ -55,16 +55,16 @@ const Home = () => {
                   Start Transformation <ArrowRight className="ml-2" />
                 </Link>
               </Button>
-                <Button
-                  variant="glass"
-                  size="xl"
-                  onClick={() => {
-                    document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
-                  }}
-                  aria-label="Scroll to features section"
-                >
-                  Explore Features
-                </Button>
+              <Button
+                variant="glass"
+                size="xl"
+                onClick={() => {
+                  document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                aria-label="Scroll to features section"
+              >
+                Explore Features
+              </Button>
             </motion.div>
 
             {/* Stats */}
@@ -124,27 +124,32 @@ const Home = () => {
               {
                 icon: Brain,
                 title: "AI Personal Trainer",
-                description: "Intelligent workout recommendations powered by advanced AI algorithms"
+                description: "Intelligent workout recommendations powered by advanced AI algorithms",
+                link: "/ai-trainer"
               },
               {
                 icon: Eye,
                 title: "Real-Time Form Detection",
-                description: "Computer vision technology analyzes your form and provides instant feedback"
+                description: "Computer vision technology analyzes your form and provides instant feedback",
+                link: "/workout-session"
               },
               {
                 icon: BarChart3,
                 title: "Smart Progress Dashboard",
-                description: "Comprehensive analytics tracking your fitness journey and achievements"
+                description: "Comprehensive analytics tracking your fitness journey and achievements",
+                link: "/progress"
               },
               {
                 icon: Utensils,
                 title: "Nutrition & Macro AI",
-                description: "AI-powered meal planning with precise macro calculations"
+                description: "AI-powered meal planning with precise macro calculations",
+                link: "/nutrition"
               },
               {
                 icon: Calendar,
-                title: "Class & Session Booking",
-                description: "Seamlessly schedule personal training, group classes, and gym sessions"
+                title: "Home Workouts",
+                description: "Complete 6-day workout plan you can do anywhere – no equipment needed",
+                link: "/home-workouts"
               },
               {
                 icon: QrCode,
@@ -154,7 +159,8 @@ const Home = () => {
               {
                 icon: Trophy,
                 title: "Gamified Training System",
-                description: "Earn rewards, unlock achievements, and compete with friends"
+                description: "Earn rewards, unlock achievements, and compete with friends",
+                link: "/gamification"
               },
               {
                 icon: Wrench,
@@ -177,7 +183,7 @@ const Home = () => {
                 icon={feature.icon}
                 title={feature.title}
                 description={feature.description}
-                link={feature.link}
+                link={'link' in feature ? feature.link : undefined}
                 index={index}
               />
             ))}

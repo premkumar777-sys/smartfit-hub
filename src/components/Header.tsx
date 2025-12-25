@@ -48,20 +48,8 @@ const menuStructure = [
     href: "/ai-workout"
   },
   {
-    label: "Nutrition",
-    href: "/nutrition"
-  },
-  {
-    label: "Progress",
-    href: "/progress"
-  },
-  {
-    label: "Guides",
-    href: "/guides"
-  },
-  {
     label: "Pricing",
-    href: "#pricing"
+    href: "/pricing"
   }
 ];
 
@@ -224,9 +212,8 @@ export function Header() {
   return (
     <>
       <header
-        className={`sticky top-0 z-50 backdrop-blur-sm bg-white/5 border-b border-gray-800 transition-all duration-300 ${
-          isScrolled ? "py-2 shadow-md" : "py-4"
-        }`}
+        className={`sticky top-0 z-50 backdrop-blur-sm bg-white/5 border-b border-gray-800 transition-all duration-300 ${isScrolled ? "py-2 shadow-md" : "py-4"
+          }`}
       >
         <nav
           className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12"
@@ -252,18 +239,16 @@ export function Header() {
                 return (
                   <div key={item.label} className="relative">
                     {item.hasDropdown ? (
-                    <div
-                      data-nav={navKey}
-                      className={`nav-item-hover ${
-                        isHovered ? 'transform scale-105' : ''
-                      }`}
-                      onMouseEnter={(e) => handleItemHover(e.currentTarget)}
-                      onFocus={(e) => handleItemFocus(e.currentTarget)}
-                    >
-                      <div className={`transition-all duration-300 ease-out ${
-                        isHovered ? 'drop-shadow-[0_0_8px_rgba(0,255,156,0.4)]' : ''
-                      }`}>
-                        <MegaDropdown
+                      <div
+                        data-nav={navKey}
+                        className={`nav-item-hover ${isHovered ? 'transform scale-105' : ''
+                          }`}
+                        onMouseEnter={(e) => handleItemHover(e.currentTarget)}
+                        onFocus={(e) => handleItemFocus(e.currentTarget)}
+                      >
+                        <div className={`transition-all duration-300 ease-out ${isHovered ? 'drop-shadow-[0_0_8px_rgba(0,255,156,0.4)]' : ''
+                          }`}>
+                          <MegaDropdown
                             trigger={item.label}
                             isMega={item.isMega}
                           >
@@ -272,18 +257,16 @@ export function Header() {
                         </div>
                       </div>
                     ) : (
-                    <div
-                      data-nav={navKey}
-                      className={`nav-item-hover ${
-                        isHovered ? 'transform scale-105' : ''
-                      }`}
-                      onMouseEnter={(e) => handleItemHover(e.currentTarget)}
-                      onFocus={(e) => handleItemFocus(e.currentTarget)}
-                    >
-                      <div className={`transition-all duration-300 ease-out ${
-                        isHovered ? 'drop-shadow-[0_0_8px_rgba(0,255,156,0.4)]' : ''
-                      }`}>
-                        <NavItem
+                      <div
+                        data-nav={navKey}
+                        className={`nav-item-hover ${isHovered ? 'transform scale-105' : ''
+                          }`}
+                        onMouseEnter={(e) => handleItemHover(e.currentTarget)}
+                        onFocus={(e) => handleItemFocus(e.currentTarget)}
+                      >
+                        <div className={`transition-all duration-300 ease-out ${isHovered ? 'drop-shadow-[0_0_8px_rgba(0,255,156,0.4)]' : ''
+                          }`}>
+                          <NavItem
                             href={item.href}
                             badge={item.badge}
                             isActive={item.href ? isActive(item.href) : false}
@@ -302,9 +285,8 @@ export function Header() {
               <div
                 ref={indicatorRef}
                 aria-hidden="true"
-                className={`absolute bottom-0 h-1 rounded-full bg-gradient-to-r from-[#00FF9C] via-[#4CC9F0] to-[#7B2CBF] nav-indicator-enhanced pointer-events-none ${
-                  isIndicatorVisible ? 'show' : ''
-                }`}
+                className={`absolute bottom-0 h-1 rounded-full bg-gradient-to-r from-[#00FF9C] via-[#4CC9F0] to-[#7B2CBF] nav-indicator-enhanced pointer-events-none ${isIndicatorVisible ? 'show' : ''
+                  }`}
                 style={{
                   left: `${indicatorStyle.left}px`,
                   width: `${indicatorStyle.width}px`,
@@ -316,9 +298,8 @@ export function Header() {
               {/* Secondary glow indicator for smoother transitions */}
               <div
                 aria-hidden="true"
-                className={`absolute bottom-0 h-0.5 rounded-full bg-gradient-to-r from-[#00FF9C]/50 via-[#4CC9F0]/50 to-[#7B2CBF]/50 transition-all pointer-events-none blur-sm ${
-                  prefersReducedMotion ? 'duration-0' : isTransitioning ? 'duration-500 ease-out' : 'duration-400 ease-out'
-                } ${isIndicatorVisible ? 'opacity-60 scale-110' : 'opacity-0 scale-100'}`}
+                className={`absolute bottom-0 h-0.5 rounded-full bg-gradient-to-r from-[#00FF9C]/50 via-[#4CC9F0]/50 to-[#7B2CBF]/50 transition-all pointer-events-none blur-sm ${prefersReducedMotion ? 'duration-0' : isTransitioning ? 'duration-500 ease-out' : 'duration-400 ease-out'
+                  } ${isIndicatorVisible ? 'opacity-60 scale-110' : 'opacity-0 scale-100'}`}
                 style={{
                   left: `${indicatorStyle.left}px`,
                   width: `${indicatorStyle.width}px`,
@@ -444,9 +425,9 @@ export function Header() {
               </MobileMenu>
             </div>
           </div>
-      </nav>
+        </nav>
 
-    </header>
-  </>
-);
+      </header>
+    </>
+  );
 }

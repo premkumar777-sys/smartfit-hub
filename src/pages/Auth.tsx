@@ -9,6 +9,8 @@ import { Container } from "@/components/Container";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { Mail, ArrowLeft, Loader2, Phone } from "lucide-react";
 
 const authSchema = z.object({
   email: z.string().trim().email({ message: "Invalid email address" }).max(255),
@@ -30,12 +32,28 @@ const authSchema = z.object({
   username: z.string().trim().min(2, { message: "Username must be at least 2 characters" }).max(50).optional(),
 });
 
+const phoneSchema = z.object({
+  phone: z.string().regex(/^\+[1-9]\d{1,14}$/, { message: "Invalid phone number. Use format: +1234567890" }),
+});
+
 export default function Auth() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
+  
+  // Email OTP states
+  const [otpEmail, setOtpEmail] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpValue, setOtpValue] = useState("");
+  const [otpCountdown, setOtpCountdown] = useState(0);
+
+  // Phone OTP states
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [phoneOtpSent, setPhoneOtpSent] = useState(false);
+  const [phoneOtpValue, setPhoneOtpValue] = useState("");
+  const [phoneOtpCountdown, setPhoneOtpCountdown] = useState(0);
 
   useEffect(() => {
     // Check if user is already logged in
@@ -53,6 +71,22 @@ export default function Auth() {
 
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  // Countdown timer for email OTP resend
+  useEffect(() => {
+    if (otpCountdown > 0) {
+      const timer = setTimeout(() => setOtpCountdown(otpCountdown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [otpCountdown]);
+
+  // Countdown timer for phone OTP resend
+  useEffect(() => {
+    if (phoneOtpCountdown > 0) {
+      const timer = setTimeout(() => setPhoneOtpCountdown(phoneOtpCountdown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [phoneOtpCountdown]);
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -119,7 +153,6 @@ export default function Auth() {
           data: {
             username: validated.username,
           },
-          // Disable email confirmation for immediate signup
         },
       });
 
@@ -223,7 +256,6 @@ export default function Auth() {
         description: "Your password has been successfully updated.",
       });
       
-      // Clear the reset flag and redirect to dashboard
       window.history.replaceState({}, '', '/auth');
       navigate("/dashboard");
     } catch (error) {
@@ -237,6 +269,263 @@ export default function Auth() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // OTP Login handlers
+  const handleSendOTP = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      const validated = z.object({
+        email: z.string().trim().email({ message: "Invalid email address" }).max(255),
+      }).parse({ email: otpEmail });
+
+      const response = await supabase.functions.invoke("send-otp", {
+        body: { email: validated.email, action: "send" },
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message || "Failed to send OTP");
+      }
+
+      if (response.data?.error) {
+        throw new Error(response.data.error);
+      }
+
+      setOtpSent(true);
+      setOtpCountdown(60); // 60 second cooldown
+      toast({
+        title: "OTP Sent!",
+        description: "Check your email for the verification code.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Failed to send OTP",
+        description: error.message || "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVerifyOTP = async () => {
+    if (otpValue.length !== 6) {
+      toast({
+        title: "Invalid OTP",
+        description: "Please enter all 6 digits.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const response = await supabase.functions.invoke("send-otp", {
+        body: { email: otpEmail, action: "verify", otp: otpValue },
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message || "Verification failed");
+      }
+
+      if (response.data?.error) {
+        throw new Error(response.data.error);
+      }
+
+      if (response.data?.verified && response.data?.token) {
+        // Use the magic link token to sign in
+        const { error } = await supabase.auth.verifyOtp({
+          token_hash: response.data.token,
+          type: "magiclink",
+        });
+
+        if (error) {
+          throw new Error(error.message);
+        }
+
+        toast({
+          title: response.data.isNewUser ? "Account created!" : "Welcome back!",
+          description: "You've successfully logged in.",
+        });
+        navigate("/dashboard");
+      }
+    } catch (error: any) {
+      toast({
+        title: "Verification failed",
+        description: error.message || "Please try again.",
+        variant: "destructive",
+      });
+      setOtpValue("");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResendOTP = async () => {
+    if (otpCountdown > 0) return;
+    
+    setIsLoading(true);
+    try {
+      const response = await supabase.functions.invoke("send-otp", {
+        body: { email: otpEmail, action: "send" },
+      });
+
+      if (response.error || response.data?.error) {
+        throw new Error(response.data?.error || "Failed to resend OTP");
+      }
+
+      setOtpCountdown(60);
+      setOtpValue("");
+      toast({
+        title: "OTP Resent!",
+        description: "Check your email for the new code.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Failed to resend OTP",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const resetOtpFlow = () => {
+    setOtpSent(false);
+    setOtpValue("");
+    setOtpEmail("");
+    setOtpCountdown(0);
+  };
+
+  // Phone OTP handlers
+  const handleSendPhoneOTP = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      const validated = phoneSchema.parse({ phone: phoneNumber });
+
+      const response = await supabase.functions.invoke("send-phone-otp", {
+        body: { phone: validated.phone, action: "send" },
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message || "Failed to send OTP");
+      }
+
+      if (response.data?.error) {
+        throw new Error(response.data.error);
+      }
+
+      setPhoneOtpSent(true);
+      setPhoneOtpCountdown(60);
+      toast({
+        title: "OTP Sent!",
+        description: "Check your phone for the verification code.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Failed to send OTP",
+        description: error.message || "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVerifyPhoneOTP = async () => {
+    if (phoneOtpValue.length !== 6) {
+      toast({
+        title: "Invalid OTP",
+        description: "Please enter all 6 digits.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const response = await supabase.functions.invoke("send-phone-otp", {
+        body: { phone: phoneNumber, action: "verify", otp: phoneOtpValue },
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message || "Verification failed");
+      }
+
+      if (response.data?.error) {
+        throw new Error(response.data.error);
+      }
+
+      if (response.data?.verified && response.data?.token) {
+        const { error } = await supabase.auth.verifyOtp({
+          token_hash: response.data.token,
+          type: "magiclink",
+        });
+
+        if (error) {
+          throw new Error(error.message);
+        }
+
+        toast({
+          title: response.data.isNewUser ? "Account created!" : "Welcome back!",
+          description: "You've successfully logged in.",
+        });
+        navigate("/dashboard");
+      }
+    } catch (error: any) {
+      toast({
+        title: "Verification failed",
+        description: error.message || "Please try again.",
+        variant: "destructive",
+      });
+      setPhoneOtpValue("");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResendPhoneOTP = async () => {
+    if (phoneOtpCountdown > 0) return;
+
+    setIsLoading(true);
+    try {
+      const response = await supabase.functions.invoke("send-phone-otp", {
+        body: { phone: phoneNumber, action: "send" },
+      });
+
+      if (response.error || response.data?.error) {
+        throw new Error(response.data?.error || "Failed to resend OTP");
+      }
+
+      setPhoneOtpCountdown(60);
+      setPhoneOtpValue("");
+      toast({
+        title: "OTP Resent!",
+        description: "Check your phone for the new code.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Failed to resend OTP",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const resetPhoneOtpFlow = () => {
+    setPhoneOtpSent(false);
+    setPhoneOtpValue("");
+    setPhoneNumber("");
+    setPhoneOtpCountdown(0);
   };
 
   // Check if we're in password reset mode
@@ -334,11 +623,113 @@ export default function Auth() {
                 )}
               </div>
             ) : (
-              <Tabs defaultValue="login" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 mb-4">
-                  <TabsTrigger value="login">Login</TabsTrigger>
+              <Tabs defaultValue="phone" className="w-full">
+                <TabsList className="grid w-full grid-cols-4 mb-4">
+                  <TabsTrigger value="phone">Phone</TabsTrigger>
+                  <TabsTrigger value="login">Email</TabsTrigger>
                   <TabsTrigger value="signup">Sign Up</TabsTrigger>
+                  <TabsTrigger value="otp">Email OTP</TabsTrigger>
                 </TabsList>
+
+                <TabsContent value="phone">
+                  {!phoneOtpSent ? (
+                    <form onSubmit={handleSendPhoneOTP} className="space-y-4">
+                      <div className="text-center mb-4">
+                        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <Phone className="w-8 h-8 text-primary" />
+                        </div>
+                        <h3 className="text-lg font-semibold">Phone Login</h3>
+                        <p className="text-sm text-muted-foreground mt-2">
+                          We'll send a 6-digit code to your phone
+                        </p>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="phone-number">Phone Number</Label>
+                        <Input
+                          id="phone-number"
+                          type="tel"
+                          placeholder="+1234567890"
+                          value={phoneNumber}
+                          onChange={(e) => setPhoneNumber(e.target.value)}
+                          required
+                          maxLength={16}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Include country code (e.g., +1 for US, +91 for India)
+                        </p>
+                      </div>
+                      <Button type="submit" className="w-full" disabled={isLoading}>
+                        {isLoading ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Sending...
+                          </>
+                        ) : (
+                          "Send Code"
+                        )}
+                      </Button>
+                    </form>
+                  ) : (
+                    <div className="space-y-4">
+                      <Button
+                        variant="ghost"
+                        onClick={resetPhoneOtpFlow}
+                        className="mb-2"
+                      >
+                        <ArrowLeft className="mr-2 h-4 w-4" />
+                        Back
+                      </Button>
+                      <div className="text-center mb-4">
+                        <h3 className="text-lg font-semibold">Enter Verification Code</h3>
+                        <p className="text-sm text-muted-foreground mt-2">
+                          We sent a code to <strong>{phoneNumber}</strong>
+                        </p>
+                      </div>
+                      <div className="flex justify-center">
+                        <InputOTP
+                          maxLength={6}
+                          value={phoneOtpValue}
+                          onChange={(value) => setPhoneOtpValue(value)}
+                        >
+                          <InputOTPGroup>
+                            <InputOTPSlot index={0} />
+                            <InputOTPSlot index={1} />
+                            <InputOTPSlot index={2} />
+                            <InputOTPSlot index={3} />
+                            <InputOTPSlot index={4} />
+                            <InputOTPSlot index={5} />
+                          </InputOTPGroup>
+                        </InputOTP>
+                      </div>
+                      <Button
+                        onClick={handleVerifyPhoneOTP}
+                        className="w-full"
+                        disabled={isLoading || phoneOtpValue.length !== 6}
+                      >
+                        {isLoading ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Verifying...
+                          </>
+                        ) : (
+                          "Verify & Login"
+                        )}
+                      </Button>
+                      <div className="text-center">
+                        <button
+                          type="button"
+                          onClick={handleResendPhoneOTP}
+                          disabled={phoneOtpCountdown > 0 || isLoading}
+                          className="text-sm text-primary hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {phoneOtpCountdown > 0
+                            ? `Resend code in ${phoneOtpCountdown}s`
+                            : "Resend code"}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </TabsContent>
 
                 <TabsContent value="login">
                   <form onSubmit={handleLogin} className="space-y-4">
@@ -380,48 +771,145 @@ export default function Auth() {
                   </form>
                 </TabsContent>
 
-              <TabsContent value="signup">
-                <form onSubmit={handleSignup} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-username">Username</Label>
-                    <Input
-                      id="signup-username"
-                      name="username"
-                      type="text"
-                      placeholder="Your username"
-                      required
-                      minLength={2}
-                      maxLength={50}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email</Label>
-                    <Input
-                      id="signup-email"
-                      name="email"
-                      type="email"
-                      placeholder="you@example.com"
-                      required
-                      maxLength={255}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-password">Password</Label>
-                    <Input
-                      id="signup-password"
-                      name="password"
-                      type="password"
-                      placeholder="••••••••"
-                      required
-                      minLength={8}
-                      maxLength={100}
-                    />
-                  </div>
-                  <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? "Creating account..." : "Sign Up"}
-                  </Button>
-                </form>
-              </TabsContent>
+                <TabsContent value="signup">
+                  <form onSubmit={handleSignup} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-username">Username</Label>
+                      <Input
+                        id="signup-username"
+                        name="username"
+                        type="text"
+                        placeholder="Your username"
+                        required
+                        minLength={2}
+                        maxLength={50}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-email">Email</Label>
+                      <Input
+                        id="signup-email"
+                        name="email"
+                        type="email"
+                        placeholder="you@example.com"
+                        required
+                        maxLength={255}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-password">Password</Label>
+                      <Input
+                        id="signup-password"
+                        name="password"
+                        type="password"
+                        placeholder="••••••••"
+                        required
+                        minLength={8}
+                        maxLength={100}
+                      />
+                    </div>
+                    <Button type="submit" className="w-full" disabled={isLoading}>
+                      {isLoading ? "Creating account..." : "Sign Up"}
+                    </Button>
+                  </form>
+                </TabsContent>
+
+                <TabsContent value="otp">
+                  {!otpSent ? (
+                    <form onSubmit={handleSendOTP} className="space-y-4">
+                      <div className="text-center mb-4">
+                        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <Mail className="w-8 h-8 text-primary" />
+                        </div>
+                        <h3 className="text-lg font-semibold">Passwordless Login</h3>
+                        <p className="text-sm text-muted-foreground mt-2">
+                          We'll send a 6-digit code to your email
+                        </p>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="otp-email">Email</Label>
+                        <Input
+                          id="otp-email"
+                          type="email"
+                          placeholder="you@example.com"
+                          value={otpEmail}
+                          onChange={(e) => setOtpEmail(e.target.value)}
+                          required
+                          maxLength={255}
+                        />
+                      </div>
+                      <Button type="submit" className="w-full" disabled={isLoading}>
+                        {isLoading ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Sending...
+                          </>
+                        ) : (
+                          "Send Code"
+                        )}
+                      </Button>
+                    </form>
+                  ) : (
+                    <div className="space-y-4">
+                      <Button
+                        variant="ghost"
+                        onClick={resetOtpFlow}
+                        className="mb-2"
+                      >
+                        <ArrowLeft className="mr-2 h-4 w-4" />
+                        Back
+                      </Button>
+                      <div className="text-center mb-4">
+                        <h3 className="text-lg font-semibold">Enter Verification Code</h3>
+                        <p className="text-sm text-muted-foreground mt-2">
+                          We sent a code to <strong>{otpEmail}</strong>
+                        </p>
+                      </div>
+                      <div className="flex justify-center">
+                        <InputOTP
+                          maxLength={6}
+                          value={otpValue}
+                          onChange={(value) => setOtpValue(value)}
+                        >
+                          <InputOTPGroup>
+                            <InputOTPSlot index={0} />
+                            <InputOTPSlot index={1} />
+                            <InputOTPSlot index={2} />
+                            <InputOTPSlot index={3} />
+                            <InputOTPSlot index={4} />
+                            <InputOTPSlot index={5} />
+                          </InputOTPGroup>
+                        </InputOTP>
+                      </div>
+                      <Button
+                        onClick={handleVerifyOTP}
+                        className="w-full"
+                        disabled={isLoading || otpValue.length !== 6}
+                      >
+                        {isLoading ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Verifying...
+                          </>
+                        ) : (
+                          "Verify & Login"
+                        )}
+                      </Button>
+                      <div className="text-center">
+                        <button
+                          type="button"
+                          onClick={handleResendOTP}
+                          disabled={otpCountdown > 0 || isLoading}
+                          className="text-sm text-primary hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {otpCountdown > 0
+                            ? `Resend code in ${otpCountdown}s`
+                            : "Resend code"}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </TabsContent>
               </Tabs>
             )}
 

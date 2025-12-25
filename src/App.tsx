@@ -12,7 +12,13 @@ import WorkoutSession from "./pages/WorkoutSession";
 import Nutrition from "./pages/Nutrition";
 import Progress from "./pages/Progress";
 import Guides from "./pages/Guides";
+import HomeWorkouts from "./pages/HomeWorkouts";
+import AITrainer from "./pages/AITrainer";
+import Gamification from "./pages/Gamification";
+import Pricing from "./pages/Pricing";
 import NotFound from "./pages/NotFound";
+import { FitnessCursor } from "@/components/FitnessCursor";
+import { FloatingChatbot } from "@/components/FloatingChatbot";
 
 const queryClient = new QueryClient();
 
@@ -22,6 +28,8 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <FitnessCursor />
+        <FloatingChatbot />
         <Header />
         <Routes>
           <Route path="/" element={<Home />} />
@@ -32,6 +40,10 @@ const App = () => (
           <Route path="/nutrition" element={<Nutrition />} />
           <Route path="/progress" element={<Progress />} />
           <Route path="/guides" element={<Guides />} />
+          <Route path="/home-workouts" element={<HomeWorkouts />} />
+          <Route path="/ai-trainer" element={<AITrainer />} />
+          <Route path="/gamification" element={<Gamification />} />
+          <Route path="/pricing" element={<Pricing />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

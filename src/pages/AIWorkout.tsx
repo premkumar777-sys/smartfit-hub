@@ -5,12 +5,15 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Container } from "@/components/Container";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Dumbbell, ArrowLeft } from "lucide-react";
+import { Loader2, Dumbbell, ArrowLeft, Save, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useGamification, XP_REWARDS } from "@/hooks/useGamification";
 
 const AIWorkout = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [workoutPlan, setWorkoutPlan] = useState<string>("");
   const [formData, setFormData] = useState({
     age: "",
@@ -18,6 +21,8 @@ const AIWorkout = () => {
     height: "",
     goal: "",
   });
+
+  const gamification = useGamification();
 
   const calculateBMI = () => {
     if (formData.weight && formData.height) {
@@ -36,8 +41,58 @@ const AIWorkout = () => {
     const bmi = calculateBMI();
 
     try {
-      // Pure frontend mock plan (no backend)
-      const goal = formData.goal || "general-fitness";
+      // Call Supabase Edge Function
+      const { data, error } = await supabase.functions.invoke('generate-workout', {
+        body: {
+          age: parseInt(formData.age),
+          weight: parseFloat(formData.weight),
+          height: parseFloat(formData.height),
+          bmi: bmi ? parseFloat(bmi) : null,
+          goal: formData.goal || "general-fitness",
+        },
+      });
+
+      // Check for error in response data (Edge Function returns error in data when status is non-2xx)
+      if (error) {
+        // Try to get detailed error from data
+        const errorMessage = data?.error || error.message || "Failed to generate workout";
+        throw new Error(errorMessage);
+      }
+
+      // Also check if data contains an error field (happens with 4xx/5xx responses)
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+
+      if (data?.workoutPlan) {
+        setWorkoutPlan(data.workoutPlan);
+        // Award XP for generating workout
+        gamification.recordWorkout();
+        toast.success(`Workout plan generated! +${XP_REWARDS.WORKOUT_GENERATED} XP 🎉`);
+      } else {
+        throw new Error("No workout plan received");
+      }
+    } catch (err) {
+      console.error("Error generating workout:", err);
+      toast.error(err instanceof Error ? err.message : "Could not generate workout. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSaveWorkout = async () => {
+    if (!workoutPlan) return;
+
+    setIsSaving(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) {
+        toast.error("Please sign in to save workouts");
+        return;
+      }
+
+      const bmi = calculateBMI();
       const goalTitle = {
         "weight-loss": "Fat Loss & Conditioning",
         "muscle-gain": "Hypertrophy & Strength",
@@ -45,44 +100,23 @@ const AIWorkout = () => {
         "strength": "Strength Focus",
         "flexibility": "Mobility & Flexibility",
         "general-fitness": "Balanced Fitness",
-      }[goal] || "Balanced Fitness";
+      }[formData.goal] || "Balanced Fitness";
 
-      const plan = [
-        `Plan: ${goalTitle}`,
-        bmi ? `BMI: ${bmi}` : null,
-        "",
-        "Day 1 — Upper",
-        "- Push-ups 3x12",
-        "- Dumbbell Press 3x10",
-        "- Rows 3x12",
-        "- Plank 3x45s",
-        "",
-        "Day 2 — Lower",
-        "- Squats 3x12",
-        "- Lunges 3x12/leg",
-        "- Romanian Deadlift 3x10",
-        "- Side Plank 3x30s/side",
-        "",
-        "Day 3 — Conditioning",
-        "- 20–30 mins cardio (moderate)",
-        "- 5–7 mins mobility & stretching",
-        "",
-        "Weekly Notes:",
-        "- Progress weights slowly (2.5–5%)",
-        "- Sleep 7–9h, hydrate well",
-        "- Light stretch daily",
-      ]
-        .filter(Boolean)
-        .join("\\n");
+      const { error } = await supabase.from('workouts').insert({
+        user_id: user.id,
+        title: `${goalTitle} Plan`,
+        content: workoutPlan,
+        goal: formData.goal,
+        bmi: bmi ? parseFloat(bmi) : null,
+      });
 
-      await new Promise((res) => setTimeout(res, 400)); // small delay for UX
-      setWorkoutPlan(plan);
-      toast.success("Workout plan generated (local)!");
+      if (error) throw error;
+      toast.success("Workout saved to your profile!");
     } catch (err) {
-      console.error("Unexpected error:", err);
-      toast.error("Could not generate workout. Please try again.");
+      console.error("Error saving workout:", err);
+      toast.error("Failed to save workout. Please try again.");
     } finally {
-      setIsLoading(false);
+      setIsSaving(false);
     }
   };
 
@@ -214,10 +248,30 @@ const AIWorkout = () => {
             </CardHeader>
             <CardContent>
               {workoutPlan ? (
-                <div className="prose prose-invert max-w-none">
-                  <div className="whitespace-pre-wrap text-foreground">
-                    {workoutPlan}
+                <div className="space-y-4">
+                  <div className="prose prose-invert max-w-none">
+                    <div className="whitespace-pre-wrap text-foreground">
+                      {workoutPlan}
+                    </div>
                   </div>
+                  <Button
+                    onClick={handleSaveWorkout}
+                    disabled={isSaving}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    {isSaving ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="mr-2 h-4 w-4" />
+                        Save to My Workouts
+                      </>
+                    )}
+                  </Button>
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center h-64 text-center">

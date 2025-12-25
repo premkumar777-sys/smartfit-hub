@@ -1,0 +1,16 @@
+project_id = "fgndvazoastvtpmqtvhx"
+
+[functions.generate-workout]
+verify_jwt = false
+
+[functions.send-otp]
+verify_jwt = false
+
+[functions.send-phone-otp]
+verify_jwt = false
+
+[functions.ai-chat]
+verify_jwt = false
+
+[functions.smartfit-chatbot]
+verify_jwt = false
