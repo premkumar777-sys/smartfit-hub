@@ -54,7 +54,8 @@ export function useAuth() {
       if (subscription) {
         subscription.unsubscribe();
       }
-    };, []);
+    };
+  }, []);
 
   return {
     user,
