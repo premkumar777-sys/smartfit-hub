@@ -554,9 +554,21 @@ export default function Auth() {
         <Card>
           <CardHeader>
             <CardTitle className="text-2xl text-center">Welcome to FitAI</CardTitle>
-            <CardDescription className="text-center">
+            <CardDescription className="text-center mb-4">
               Sign in or create an account to get started
             </CardDescription>
+            <div className="space-y-2">
+              <Button
+                onClick={() => navigate("/pricing")}
+                variant="outline"
+                className="w-full"
+              >
+                Skip Login for Testing →
+              </Button>
+              <p className="text-xs text-muted-foreground text-center">
+                ⚡ Quick access to test payments
+              </p>
+            </div>
           </CardHeader>
           <CardContent>
             {isResettingPassword ? (

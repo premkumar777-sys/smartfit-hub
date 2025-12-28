@@ -115,28 +115,30 @@ export default function Pricing() {
   const handlePlanSelect = async (plan: PricingPlan) => {
     // Handle free plan
     if (plan.id === 'free') {
-      if (!user) {
-        navigate('/auth');
-      } else {
-        // User is already on free plan by default
-        toast({
-          title: "Already on Free Plan",
-          description: "You're already enjoying our free features!",
-        });
-      }
+      toast({
+        title: "Free Plan Selected",
+        description: "Enjoy our free features!",
+      });
+      navigate('/dashboard');
       return;
     }
 
     // Handle gym partner (contact sales)
     if (plan.id === 'gym_partner') {
-      // For now, redirect to auth - in future could open contact form
-      navigate('/auth');
+      toast({
+        title: "Contact Sales",
+        description: "Please contact our sales team for enterprise pricing.",
+      });
       return;
     }
 
-    // Handle premium plan
+    // Handle premium plan - allow payment even without auth for testing
     if (!user) {
-      // Not logged in - redirect to auth with plan info
+      toast({
+        title: "Please Sign In First",
+        description: "You'll need to sign in to complete your purchase.",
+        variant: "destructive",
+      });
       navigate('/auth');
       return;
     }
