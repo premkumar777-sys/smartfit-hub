@@ -282,13 +282,19 @@ export default function Auth() {
         email: z.string().trim().email({ message: "Invalid email address" }).max(255),
       }).parse({ email: otpEmail });
 
-      const response = await fetch('http://localhost:3000/api/send-otp', {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+      console.log('Sending email OTP request to:', `${apiUrl}/api/send-otp`);
+
+      const response = await fetch(`${apiUrl}/api/send-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: validated.email, action: "send" }),
       });
 
+      console.log('Email OTP response status:', response.status);
+
       const data = await response.json();
+      console.log('Email OTP response data:', data);
 
       if (!response.ok) {
         throw new Error(data.error || "Failed to send OTP");
@@ -327,7 +333,8 @@ export default function Auth() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:3000/api/send-otp', {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+      const response = await fetch(`${apiUrl}/api/send-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: otpEmail, action: "verify", otp: otpValue }),
@@ -417,13 +424,19 @@ export default function Auth() {
     try {
       const validated = phoneSchema.parse({ phone: phoneNumber });
 
-      const response = await fetch('http://localhost:3000/api/send-phone-otp', {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+      console.log('Sending phone OTP request to:', `${apiUrl}/api/send-phone-otp`);
+
+      const response = await fetch(`${apiUrl}/api/send-phone-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone: validated.phone, action: "send" }),
       });
 
+      console.log('Phone OTP response status:', response.status);
+
       const data = await response.json();
+      console.log('Phone OTP response data:', data);
 
       if (!response.ok) {
         throw new Error(data.error || "Failed to send OTP");
@@ -459,18 +472,20 @@ export default function Auth() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:3000/api/send-phone-otp', {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+      const response = await fetch(`${apiUrl}/api/send-phone-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone: phoneNumber, action: "verify", otp: phoneOtpValue }),
       });
 
-      if (response.error) {
-        throw new Error(response.error.message || "Verification failed");
-      }
+      console.log('Phone OTP verify response status:', response.status);
 
-      if (response.data?.error) {
-        throw new Error(response.data.error);
+      const data = await response.json();
+      console.log('Phone OTP verify response data:', data);
+
+      if (!response.ok) {
+        throw new Error(data.error || "Verification failed");
       }
 
       if (response.data?.verified && response.data?.token) {

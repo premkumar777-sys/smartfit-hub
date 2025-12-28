@@ -28,6 +28,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         message: 'Phone OTP sent successfully',
         test_otp: generatedOtp // Remove in production
+      }, {
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'POST, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type',
+        }
       })
     }
 
@@ -36,18 +42,45 @@ export async function POST(request: NextRequest) {
       const storedOtp = phoneOtpStorage[phone]
 
       if (!storedOtp || storedOtp.otp !== otp || storedOtp.expiresAt < Date.now()) {
-        return NextResponse.json({ error: 'Invalid or expired phone OTP' }, { status: 400 })
+        return NextResponse.json({ error: 'Invalid or expired phone OTP' }, {
+        status: 400,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'POST, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type',
+        }
+      })
       }
 
       // Remove used OTP
       delete phoneOtpStorage[phone]
 
-      return NextResponse.json({ message: 'Phone OTP verified successfully' })
+      return NextResponse.json({ message: 'Phone OTP verified successfully' }, {
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'POST, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type',
+        }
+      })
     }
 
-    return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
+    return NextResponse.json({ error: 'Invalid action' }, {
+      status: 400,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+      }
+    })
   } catch (error: any) {
     console.error('Phone OTP error:', error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ error: error.message }, {
+      status: 500,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+      }
+    })
   }
 }
