@@ -19,11 +19,20 @@ export const createCheckoutSession = async (
   cancelUrl?: string
 ) => {
   try {
-    const response = await fetch('/functions/v1/create-checkout-session', {
+    // Get auth token
+    const { supabase } = await import('@/integrations/supabase/client')
+    const { data: { session } } = await supabase.auth.getSession()
+
+    if (!session?.access_token) {
+      throw new Error('Not authenticated')
+    }
+
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000'
+    const response = await fetch(`${apiUrl}/api/create-checkout-session`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${(await import('@/integrations/supabase/client')).supabase.auth.getSession().then(({ data }) => data.session?.access_token)}`,
+        'Authorization': `Bearer ${session.access_token}`,
       },
       body: JSON.stringify({
         planId,

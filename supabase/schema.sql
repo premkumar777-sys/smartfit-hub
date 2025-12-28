@@ -20,6 +20,11 @@ CREATE TABLE IF NOT EXISTS public.profiles (
 -- Enable RLS
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies if they exist
+DROP POLICY IF EXISTS "Users can view own profile" ON public.profiles;
+DROP POLICY IF EXISTS "Users can insert own profile" ON public.profiles;
+DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
+
 -- Policies for profiles
 CREATE POLICY "Users can view own profile" ON public.profiles
   FOR SELECT USING (auth.uid() = id);
@@ -61,6 +66,12 @@ CREATE TABLE IF NOT EXISTS public.workouts (
 -- Enable RLS
 ALTER TABLE public.workouts ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies if they exist
+DROP POLICY IF EXISTS "Users can view own workouts" ON public.workouts;
+DROP POLICY IF EXISTS "Users can insert own workouts" ON public.workouts;
+DROP POLICY IF EXISTS "Users can update own workouts" ON public.workouts;
+DROP POLICY IF EXISTS "Users can delete own workouts" ON public.workouts;
+
 -- Policies for workouts
 CREATE POLICY "Users can view own workouts" ON public.workouts
   FOR SELECT USING (auth.uid() = user_id);
@@ -89,6 +100,12 @@ CREATE TABLE IF NOT EXISTS public.progress_logs (
 -- Enable RLS
 ALTER TABLE public.progress_logs ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies if they exist
+DROP POLICY IF EXISTS "Users can view own progress" ON public.progress_logs;
+DROP POLICY IF EXISTS "Users can insert own progress" ON public.progress_logs;
+DROP POLICY IF EXISTS "Users can update own progress" ON public.progress_logs;
+DROP POLICY IF EXISTS "Users can delete own progress" ON public.progress_logs;
+
 -- Policies for progress_logs
 CREATE POLICY "Users can view own progress" ON public.progress_logs
   FOR SELECT USING (auth.uid() = user_id);
@@ -116,6 +133,11 @@ CREATE TABLE IF NOT EXISTS public.nutrition_settings (
 -- Enable RLS
 ALTER TABLE public.nutrition_settings ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies if they exist
+DROP POLICY IF EXISTS "Users can view own nutrition" ON public.nutrition_settings;
+DROP POLICY IF EXISTS "Users can insert own nutrition" ON public.nutrition_settings;
+DROP POLICY IF EXISTS "Users can update own nutrition" ON public.nutrition_settings;
+
 -- Policies for nutrition_settings
 CREATE POLICY "Users can view own nutrition" ON public.nutrition_settings
   FOR SELECT USING (auth.uid() = user_id);
@@ -140,6 +162,12 @@ CREATE TABLE IF NOT EXISTS public.workout_sessions (
 
 -- Enable RLS
 ALTER TABLE public.workout_sessions ENABLE ROW LEVEL SECURITY;
+
+-- Drop existing policies if they exist
+DROP POLICY IF EXISTS "Users can view own sessions" ON public.workout_sessions;
+DROP POLICY IF EXISTS "Users can insert own sessions" ON public.workout_sessions;
+DROP POLICY IF EXISTS "Users can update own sessions" ON public.workout_sessions;
+DROP POLICY IF EXISTS "Users can delete own sessions" ON public.workout_sessions;
 
 -- Policies for workout_sessions
 CREATE POLICY "Users can view own sessions" ON public.workout_sessions
@@ -215,6 +243,13 @@ CREATE TABLE IF NOT EXISTS public.payments (
 ALTER TABLE public.plans ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.subscriptions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.payments ENABLE ROW LEVEL SECURITY;
+
+-- Drop existing policies if they exist
+DROP POLICY IF EXISTS "Anyone can view active plans" ON public.plans;
+DROP POLICY IF EXISTS "Users can view own subscriptions" ON public.subscriptions;
+DROP POLICY IF EXISTS "Users can insert own subscriptions" ON public.subscriptions;
+DROP POLICY IF EXISTS "Users can update own subscriptions" ON public.subscriptions;
+DROP POLICY IF EXISTS "Users can view own payments" ON public.payments;
 
 -- Plans policies (public read access for active plans)
 CREATE POLICY "Anyone can view active plans" ON public.plans
