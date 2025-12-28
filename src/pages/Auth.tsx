@@ -48,6 +48,7 @@ export default function Auth() {
   const [otpSent, setOtpSent] = useState(false);
   const [otpValue, setOtpValue] = useState("");
   const [otpCountdown, setOtpCountdown] = useState(0);
+  const [testOtp, setTestOtp] = useState("");
 
   // Phone OTP states
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -281,23 +282,26 @@ export default function Auth() {
         email: z.string().trim().email({ message: "Invalid email address" }).max(255),
       }).parse({ email: otpEmail });
 
-      const response = await supabase.functions.invoke("send-otp", {
-        body: { email: validated.email, action: "send" },
+      const response = await fetch('http://localhost:3000/api/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: validated.email, action: "send" }),
       });
 
-      if (response.error) {
-        throw new Error(response.error.message || "Failed to send OTP");
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to send OTP");
       }
 
-      if (response.data?.error) {
-        throw new Error(response.data.error);
-      }
+      // Store test OTP for easy access
+      setTestOtp(data.test_otp || "");
 
       setOtpSent(true);
       setOtpCountdown(60); // 60 second cooldown
       toast({
         title: "OTP Sent!",
-        description: "Check your email for the verification code.",
+        description: data.test_otp ? `Test OTP: ${data.test_otp}` : "Check your email for the verification code.",
       });
     } catch (error: any) {
       toast({
@@ -323,8 +327,10 @@ export default function Auth() {
     setIsLoading(true);
 
     try {
-      const response = await supabase.functions.invoke("send-otp", {
-        body: { email: otpEmail, action: "verify", otp: otpValue },
+      const response = await fetch('http://localhost:3000/api/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: otpEmail, action: "verify", otp: otpValue }),
       });
 
       if (response.error) {
@@ -369,8 +375,10 @@ export default function Auth() {
     
     setIsLoading(true);
     try {
-      const response = await supabase.functions.invoke("send-otp", {
-        body: { email: otpEmail, action: "send" },
+      const response = await fetch('http://localhost:3000/api/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: otpEmail, action: "send" }),
       });
 
       if (response.error || response.data?.error) {
@@ -409,16 +417,16 @@ export default function Auth() {
     try {
       const validated = phoneSchema.parse({ phone: phoneNumber });
 
-      const response = await supabase.functions.invoke("send-phone-otp", {
-        body: { phone: validated.phone, action: "send" },
+      const response = await fetch('http://localhost:3000/api/send-phone-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: validated.phone, action: "send" }),
       });
 
-      if (response.error) {
-        throw new Error(response.error.message || "Failed to send OTP");
-      }
+      const data = await response.json();
 
-      if (response.data?.error) {
-        throw new Error(response.data.error);
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to send OTP");
       }
 
       setPhoneOtpSent(true);
@@ -451,8 +459,10 @@ export default function Auth() {
     setIsLoading(true);
 
     try {
-      const response = await supabase.functions.invoke("send-phone-otp", {
-        body: { phone: phoneNumber, action: "verify", otp: phoneOtpValue },
+      const response = await fetch('http://localhost:3000/api/send-phone-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: phoneNumber, action: "verify", otp: phoneOtpValue }),
       });
 
       if (response.error) {
@@ -496,8 +506,10 @@ export default function Auth() {
 
     setIsLoading(true);
     try {
-      const response = await supabase.functions.invoke("send-phone-otp", {
-        body: { phone: phoneNumber, action: "send" },
+      const response = await fetch('http://localhost:3000/api/send-phone-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: phoneNumber, action: "send" }),
       });
 
       if (response.error || response.data?.error) {
@@ -715,6 +727,14 @@ export default function Auth() {
                           "Verify & Login"
                         )}
                       </Button>
+                      <Button
+                        onClick={() => navigate("/pricing")}
+                        variant="outline"
+                        className="w-full mt-2"
+                        disabled={isLoading}
+                      >
+                        Skip for Testing →
+                      </Button>
                       <div className="text-center">
                         <button
                           type="button"
@@ -894,6 +914,14 @@ export default function Auth() {
                         ) : (
                           "Verify & Login"
                         )}
+                      </Button>
+                      <Button
+                        onClick={() => navigate("/pricing")}
+                        variant="outline"
+                        className="w-full mt-2"
+                        disabled={isLoading}
+                      >
+                        Skip for Testing →
                       </Button>
                       <div className="text-center">
                         <button
