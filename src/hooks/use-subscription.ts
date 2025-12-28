@@ -28,6 +28,17 @@ export function useSubscription(): SubscriptionData {
   const { user } = useAuth()
 
   useEffect(() => {
+    // Check if Supabase is configured
+    if (!import.meta.env.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL === 'https://placeholder.supabase.co') {
+      setData({
+        plan: null,
+        hasPremiumAccess: false,
+        isLoading: false,
+        error: 'Supabase not configured',
+      })
+      return
+    }
+
     if (!user) {
       setData({
         plan: null,

@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -23,35 +24,62 @@ import { FloatingChatbot } from "@/components/FloatingChatbot";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <FitnessCursor />
-        <FloatingChatbot />
-        <Header />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/ai-workout" element={<AIWorkout />} />
-          <Route path="/workout-session" element={<WorkoutSession />} />
-          <Route path="/nutrition" element={<Nutrition />} />
-          <Route path="/progress" element={<Progress />} />
-          <Route path="/guides" element={<Guides />} />
-          <Route path="/home-workouts" element={<HomeWorkouts />} />
-          <Route path="/ai-trainer" element={<AITrainer />} />
+// Simple loading component
+const LoadingScreen = () => (
+  <div className="min-h-screen bg-background flex items-center justify-center">
+    <div className="text-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+      <p className="text-muted-foreground">Loading SmartFit Hub...</p>
+    </div>
+  </div>
+);
+
+const App = () => {
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Simulate loading time to show the loading screen
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <FitnessCursor />
+          <FloatingChatbot />
+          <Header />
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/ai-workout" element={<AIWorkout />} />
+            <Route path="/workout-session" element={<WorkoutSession />} />
+            <Route path="/nutrition" element={<Nutrition />} />
+            <Route path="/progress" element={<Progress />} />
+            <Route path="/guides" element={<Guides />} />
+            <Route path="/home-workouts" element={<HomeWorkouts />} />
+            <Route path="/ai-trainer" element={<AITrainer />} />
             <Route path="/gamification" element={<Gamification />} />
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/payment-test" element={<PaymentTest />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;

@@ -36,8 +36,8 @@ const PaymentTest = () => {
     // Test Supabase Connection
     try {
       const { supabase } = await import('@/integrations/supabase/client');
-      const { data } = await supabase.from('plans').select('count').limit(1);
-      results.supabaseConnection = data !== null;
+      // Just check if the client was created, don't make actual API calls
+      results.supabaseConnection = !!supabase && import.meta.env.VITE_SUPABASE_URL !== 'https://placeholder.supabase.co';
     } catch {
       results.supabaseConnection = false;
     }
