@@ -48,7 +48,6 @@ export default function Auth() {
   const [otpSent, setOtpSent] = useState(false);
   const [otpValue, setOtpValue] = useState("");
   const [otpCountdown, setOtpCountdown] = useState(0);
-  const [testOtp, setTestOtp] = useState("");
 
   // Phone OTP states
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -282,26 +281,17 @@ export default function Auth() {
         email: z.string().trim().email({ message: "Invalid email address" }).max(255),
       }).parse({ email: otpEmail });
 
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-      console.log('Sending email OTP request to:', `${apiUrl}/api/send-otp`);
-
-      const response = await fetch(`${apiUrl}/api/send-otp`, {
+      const response = await fetch('http://localhost:3000/api/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: validated.email, action: "send" }),
       });
 
-      console.log('Email OTP response status:', response.status);
-
       const data = await response.json();
-      console.log('Email OTP response data:', data);
 
       if (!response.ok) {
         throw new Error(data.error || "Failed to send OTP");
       }
-
-      // Store test OTP for easy access
-      setTestOtp(data.test_otp || "");
 
       setOtpSent(true);
       setOtpCountdown(60); // 60 second cooldown
@@ -427,16 +417,13 @@ export default function Auth() {
       const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
       console.log('Sending phone OTP request to:', `${apiUrl}/api/send-phone-otp`);
 
-      const response = await fetch(`${apiUrl}/api/send-phone-otp`, {
+      const response = await fetch('http://localhost:3000/api/send-phone-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone: validated.phone, action: "send" }),
       });
 
-      console.log('Phone OTP response status:', response.status);
-
       const data = await response.json();
-      console.log('Phone OTP response data:', data);
 
       if (!response.ok) {
         throw new Error(data.error || "Failed to send OTP");
@@ -472,17 +459,13 @@ export default function Auth() {
     setIsLoading(true);
 
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-      const response = await fetch(`${apiUrl}/api/send-phone-otp`, {
+      const response = await fetch('http://localhost:3000/api/send-phone-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone: phoneNumber, action: "verify", otp: phoneOtpValue }),
       });
 
-      console.log('Phone OTP verify response status:', response.status);
-
       const data = await response.json();
-      console.log('Phone OTP verify response data:', data);
 
       if (!response.ok) {
         throw new Error(data.error || "Verification failed");
@@ -569,21 +552,9 @@ export default function Auth() {
         <Card>
           <CardHeader>
             <CardTitle className="text-2xl text-center">Welcome to FitAI</CardTitle>
-            <CardDescription className="text-center mb-4">
+            <CardDescription className="text-center">
               Sign in or create an account to get started
             </CardDescription>
-            <div className="space-y-2">
-              <Button
-                onClick={() => navigate("/pricing")}
-                variant="outline"
-                className="w-full"
-              >
-                Skip Login for Testing →
-              </Button>
-              <p className="text-xs text-muted-foreground text-center">
-                ⚡ Quick access to test payments
-              </p>
-            </div>
           </CardHeader>
           <CardContent>
             {isResettingPassword ? (
@@ -753,14 +724,6 @@ export default function Auth() {
                         ) : (
                           "Verify & Login"
                         )}
-                      </Button>
-                      <Button
-                        onClick={() => navigate("/pricing")}
-                        variant="outline"
-                        className="w-full mt-2"
-                        disabled={isLoading}
-                      >
-                        Skip for Testing →
                       </Button>
                       <div className="text-center">
                         <button
@@ -941,14 +904,6 @@ export default function Auth() {
                         ) : (
                           "Verify & Login"
                         )}
-                      </Button>
-                      <Button
-                        onClick={() => navigate("/pricing")}
-                        variant="outline"
-                        className="w-full mt-2"
-                        disabled={isLoading}
-                      >
-                        Skip for Testing →
                       </Button>
                       <div className="text-center">
                         <button

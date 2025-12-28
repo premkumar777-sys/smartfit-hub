@@ -48,7 +48,7 @@ const menuStructure = [
     href: "/ai-workout"
   },
   {
-    label: "💳 Pricing",
+    label: "Pricing",
     href: "/pricing"
   }
 ];

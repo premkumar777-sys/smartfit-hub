@@ -34,7 +34,7 @@ export function useSubscription(): SubscriptionData {
         plan: null,
         hasPremiumAccess: false,
         isLoading: false,
-        error: null, // Remove error for testing
+        error: 'Supabase not configured',
       })
       return
     }

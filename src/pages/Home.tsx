@@ -202,22 +202,14 @@ const Home = () => {
             <p className="text-lg md:text-xl leading-relaxed text-gray-300 mb-8 max-w-prose mx-auto">
               Join thousands of members who have already achieved their fitness goals with our AI-powered platform
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button asChild variant="hero" size="xl">
-                <Link to="/auth">
-                  Continue to Dashboard <ArrowRight className="ml-2" />
-                </Link>
-              </Button>
-              <Button asChild variant="outline" size="xl" className="border-primary/50 text-primary hover:bg-primary/10">
-                <Link to="/pricing">
-                  💳 Test Payments
-                </Link>
-              </Button>
-            </div>
+            <Button asChild variant="hero" size="xl">
+              <Link to="/auth">
+                Continue to Dashboard <ArrowRight className="ml-2" />
+              </Link>
+            </Button>
             <div className="mt-6 space-y-2">
               <p className="text-sm text-muted-foreground">🔒 Your data is securely stored.</p>
               <p className="text-sm text-muted-foreground">✓ Protected login recommended for all users.</p>
-              <p className="text-sm text-muted-foreground">⚡ Test payments without login.</p>
             </div>
           </div>
         </div>
