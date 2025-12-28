@@ -1,11 +1,14 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Check, Sparkles, Building2, Zap, Crown } from "lucide-react";
+import { Check, Sparkles, Building2, Zap, Crown, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useAuth } from "@/hooks/use-auth";
+import { useSubscription, useUpgradePlan } from "@/hooks/use-subscription";
+import { useToast } from "@/hooks/use-toast";
 
 interface PricingPlan {
   name: string;
@@ -22,6 +25,7 @@ interface PricingPlan {
 
 const plans: PricingPlan[] = [
   {
+    id: "free",
     name: "Free",
     icon: <Zap className="h-6 w-6" />,
     monthlyPrice: "₹0",
@@ -35,9 +39,10 @@ const plans: PricingPlan[] = [
       "Community access",
     ],
     cta: "Start Free",
-    ctaLink: "/auth",
+    requiresAuth: true,
   },
   {
+    id: "premium",
     name: "Premium",
     icon: <Crown className="h-6 w-6" />,
     monthlyPrice: "₹199",
@@ -53,10 +58,11 @@ const plans: PricingPlan[] = [
       "Priority support",
     ],
     cta: "Upgrade to Premium",
-    ctaLink: "/auth",
+    requiresAuth: true,
     popular: true,
   },
   {
+    id: "gym_partner",
     name: "Gym Partner",
     icon: <Building2 className="h-6 w-6" />,
     monthlyPrice: "Custom",
@@ -70,13 +76,105 @@ const plans: PricingPlan[] = [
       "Business analytics",
     ],
     cta: "Contact Sales",
-    ctaLink: "/auth",
+    requiresAuth: false,
     comingSoon: true,
   },
 ];
 
 export default function Pricing() {
   const [isYearly, setIsYearly] = useState(false);
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { user, isLoading: authLoading } = useAuth();
+  const { plan: currentPlan, hasPremiumAccess } = useSubscription();
+  const { upgradePlan, isLoading: upgradeLoading, error: upgradeError } = useUpgradePlan();
+  const { toast } = useToast();
+
+  // Check for success/cancel query params
+  const success = searchParams.get('success');
+  const canceled = searchParams.get('canceled');
+
+  // Show success toast if redirected back from successful payment
+  React.useEffect(() => {
+    if (success) {
+      toast({
+        title: "Payment Successful!",
+        description: "Welcome to premium! Your subscription is now active.",
+      });
+      navigate('/dashboard', { replace: true });
+    }
+    if (canceled) {
+      toast({
+        title: "Payment Canceled",
+        description: "No worries! You can upgrade anytime.",
+        variant: "destructive",
+      });
+    }
+  }, [success, canceled, toast, navigate]);
+
+  const handlePlanSelect = async (plan: PricingPlan) => {
+    // Handle free plan
+    if (plan.id === 'free') {
+      if (!user) {
+        navigate('/auth');
+      } else {
+        // User is already on free plan by default
+        toast({
+          title: "Already on Free Plan",
+          description: "You're already enjoying our free features!",
+        });
+      }
+      return;
+    }
+
+    // Handle gym partner (contact sales)
+    if (plan.id === 'gym_partner') {
+      // For now, redirect to auth - in future could open contact form
+      navigate('/auth');
+      return;
+    }
+
+    // Handle premium plan
+    if (!user) {
+      // Not logged in - redirect to auth with plan info
+      navigate('/auth');
+      return;
+    }
+
+    // Check if user already has premium
+    if (currentPlan?.plan_id === 'premium' && currentPlan.status === 'active') {
+      toast({
+        title: "Already Premium!",
+        description: "You're already enjoying premium features.",
+      });
+      return;
+    }
+
+    // Proceed with payment
+    try {
+      await upgradePlan(plan.id, isYearly ? 'yearly' : 'monthly');
+    } catch (error) {
+      toast({
+        title: "Payment Error",
+        description: error instanceof Error ? error.message : "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const getPlanStatus = (plan: PricingPlan) => {
+    if (!user) return null;
+
+    if (plan.id === currentPlan?.plan_id && currentPlan.status === 'active') {
+      return 'Current Plan';
+    }
+
+    if (plan.id === 'premium' && hasPremiumAccess) {
+      return 'Active';
+    }
+
+    return null;
+  };
 
   return (
     <main className="min-h-screen bg-background pt-24 pb-16">
@@ -189,18 +287,23 @@ export default function Pricing() {
 
                 {/* CTA Button */}
                 <Button
-                  asChild
+                  onClick={() => handlePlanSelect(plan)}
                   className={`w-full ${
                     plan.popular
                       ? "bg-primary hover:bg-primary/90 text-primary-foreground"
                       : "bg-secondary hover:bg-secondary/80 text-secondary-foreground"
                   }`}
                   size="lg"
-                  disabled={plan.comingSoon}
+                  disabled={plan.comingSoon || (plan.id === currentPlan?.plan_id && currentPlan.status === 'active') || upgradeLoading}
                 >
-                  <Link to={plan.ctaLink}>
-                    {plan.cta}
-                  </Link>
+                  {upgradeLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    getPlanStatus(plan) || plan.cta
+                  )}
                 </Button>
               </Card>
             </motion.div>

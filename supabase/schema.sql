@@ -161,3 +161,121 @@ CREATE INDEX IF NOT EXISTS idx_workouts_user_id ON public.workouts(user_id);
 CREATE INDEX IF NOT EXISTS idx_progress_logs_user_id ON public.progress_logs(user_id);
 CREATE INDEX IF NOT EXISTS idx_progress_logs_date ON public.progress_logs(user_id, date DESC);
 CREATE INDEX IF NOT EXISTS idx_workout_sessions_user_id ON public.workout_sessions(user_id);
+
+-- ============================================
+-- SUBSCRIPTION & PAYMENT TABLES
+-- ============================================
+
+-- Plans table
+CREATE TABLE IF NOT EXISTS public.plans (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  description TEXT,
+  price_monthly INTEGER NOT NULL, -- Price in cents
+  price_yearly INTEGER NOT NULL, -- Price in cents
+  currency TEXT DEFAULT 'inr',
+  features JSONB DEFAULT '[]'::jsonb,
+  stripe_price_id_monthly TEXT,
+  stripe_price_id_yearly TEXT,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Subscriptions table
+CREATE TABLE IF NOT EXISTS public.subscriptions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  plan_id TEXT REFERENCES public.plans(id),
+  stripe_subscription_id TEXT UNIQUE,
+  stripe_customer_id TEXT,
+  status TEXT CHECK (status IN ('active', 'canceled', 'past_due', 'incomplete', 'trialing')),
+  billing_cycle TEXT CHECK (billing_cycle IN ('monthly', 'yearly')),
+  current_period_start TIMESTAMPTZ,
+  current_period_end TIMESTAMPTZ,
+  cancel_at_period_end BOOLEAN DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Payment history table
+CREATE TABLE IF NOT EXISTS public.payments (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  subscription_id UUID REFERENCES public.subscriptions(id),
+  stripe_payment_intent_id TEXT,
+  amount INTEGER NOT NULL, -- Amount in cents
+  currency TEXT DEFAULT 'inr',
+  status TEXT CHECK (status IN ('succeeded', 'failed', 'pending', 'canceled')),
+  description TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Enable RLS on new tables
+ALTER TABLE public.plans ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.subscriptions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.payments ENABLE ROW LEVEL SECURITY;
+
+-- Plans policies (public read access for active plans)
+CREATE POLICY "Anyone can view active plans" ON public.plans
+  FOR SELECT USING (is_active = true);
+
+-- Subscriptions policies (users can only see their own)
+CREATE POLICY "Users can view own subscriptions" ON public.subscriptions
+  FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own subscriptions" ON public.subscriptions
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own subscriptions" ON public.subscriptions
+  FOR UPDATE USING (auth.uid() = user_id);
+
+-- Payments policies (users can only see their own)
+CREATE POLICY "Users can view own payments" ON public.payments
+  FOR SELECT USING (auth.uid() = user_id);
+
+-- Insert default plans
+INSERT INTO public.plans (id, name, description, price_monthly, price_yearly, features, stripe_price_id_monthly, stripe_price_id_yearly) VALUES
+('free', 'Free', 'Get started with essential fitness tools', 0, 0, '["AI chatbot (limited)", "Training guides access", "Basic workouts", "Email OTP login", "Community access"]'::jsonb, NULL, NULL),
+('premium', 'Premium', 'Unlock your full fitness potential', 19900, 199900, '["AI Personal Trainer", "Personalized workouts", "Nutrition calculator", "Progress dashboard", "Unlimited AI chatbot", "Gamification & streaks", "Priority support"]'::jsonb, 'price_1SjCJHCn98QGMABleFu4j9lW', 'price_1SjCJHCn98QGMABleFu4j9lW'),
+('gym_partner', 'Gym Partner', 'Complete solution for fitness businesses', 0, 0, '["Member management", "Trainer dashboard", "QR smart attendance", "Class booking system", "Business analytics"]'::jsonb, NULL, NULL)
+ON CONFLICT (id) DO NOTHING;
+
+-- Function to get user's current plan
+CREATE OR REPLACE FUNCTION public.get_user_plan(user_id UUID)
+RETURNS TABLE (
+  plan_id TEXT,
+  plan_name TEXT,
+  status TEXT,
+  billing_cycle TEXT,
+  current_period_end TIMESTAMPTZ
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT
+    p.id as plan_id,
+    p.name as plan_name,
+    s.status,
+    s.billing_cycle,
+    s.current_period_end
+  FROM public.subscriptions s
+  JOIN public.plans p ON s.plan_id = p.id
+  WHERE s.user_id = $1
+  AND s.status = 'active'
+  ORDER BY s.created_at DESC
+  LIMIT 1;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Function to check if user has premium access
+CREATE OR REPLACE FUNCTION public.has_premium_access(user_id UUID)
+RETURNS BOOLEAN AS $$
+DECLARE
+  user_plan TEXT;
+BEGIN
+  SELECT plan_id INTO user_plan
+  FROM get_user_plan($1);
+
+  RETURN user_plan IN ('premium', 'gym_partner');
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;

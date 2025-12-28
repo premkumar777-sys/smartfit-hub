@@ -50,6 +50,10 @@ const menuStructure = [
   {
     label: "Pricing",
     href: "/pricing"
+  },
+  {
+    label: "Test Payment",
+    href: "/payment-test"
   }
 ];
 

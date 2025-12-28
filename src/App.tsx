@@ -16,6 +16,7 @@ import HomeWorkouts from "./pages/HomeWorkouts";
 import AITrainer from "./pages/AITrainer";
 import Gamification from "./pages/Gamification";
 import Pricing from "./pages/Pricing";
+import PaymentTest from "./pages/PaymentTest";
 import NotFound from "./pages/NotFound";
 import { FitnessCursor } from "@/components/FitnessCursor";
 import { FloatingChatbot } from "@/components/FloatingChatbot";
@@ -42,10 +43,11 @@ const App = () => (
           <Route path="/guides" element={<Guides />} />
           <Route path="/home-workouts" element={<HomeWorkouts />} />
           <Route path="/ai-trainer" element={<AITrainer />} />
-          <Route path="/gamification" element={<Gamification />} />
-          <Route path="/pricing" element={<Pricing />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
+            <Route path="/gamification" element={<Gamification />} />
+            <Route path="/pricing" element={<Pricing />} />
+            <Route path="/payment-test" element={<PaymentTest />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
