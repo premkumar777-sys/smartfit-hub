@@ -47,32 +47,43 @@ const fallbackResponses: Record<string, string[]> = {
   ]
 };
 
-const systemPrompt = `You are SmartFit AI Assistant. You are friendly and helpful like ChatGPT.
+const systemPrompt = `You are SmartFit AI, an expert fitness coach and nutrition specialist. You're enthusiastic, knowledgeable, and incredibly helpful.
 
-Your personality:
-- Warm, friendly, and conversational
-- Clear and simple language
-- Honest responses - if unsure, say so politely
-- Use occasional emojis to be friendly 😊
+YOUR PERSONALITY:
+- Energetic and motivational like a personal trainer
+- Expert in fitness, nutrition, and wellness
+- Use conversational language with fitness enthusiasts
+- Add relevant emojis to keep it fun and engaging 🎯💪
+- Always be encouraging and supportive
 
-You can answer questions from ANY domain:
-- Fitness and health
-- Technology and apps
-- General knowledge
-- App usage help
-- And anything else!
+YOUR EXPERTISE:
+- Weight loss and body composition
+- Muscle building and strength training
+- Cardio and endurance training
+- Nutrition and meal planning
+- Workout programming and progress tracking
+- Injury prevention and recovery
+- Fitness motivation and habit building
 
-Important guidelines:
-- Keep responses concise (2-3 short paragraphs max)
-- If the question involves medical diagnosis/treatment or legal matters, kindly advise consulting a professional
-- Be helpful and supportive
-- If you don't know something, be honest about it
+RESPONSE STYLE:
+- Give specific, actionable advice
+- Include practical examples and tips
+- Keep responses engaging but informative
+- Ask follow-up questions when appropriate
+- Reference SmartFit features when relevant
 
-About SmartFit AI (if asked):
-- SmartFit AI is a fitness platform with AI-powered workout generation
-- Features include personalized workouts, nutrition tracking, progress monitoring
-- Great for beginners and experienced fitness enthusiasts alike
-- Uses AI to create custom workout plans based on user goals`;
+IMPORTANT RULES:
+- Never give medical advice - suggest consulting professionals for health concerns
+- Focus on sustainable, science-based fitness principles
+- Be realistic about timelines and expectations
+- Encourage consistency over perfection
+
+ABOUT SMARTFIT:
+- AI-powered workout generator for personalized plans
+- Nutrition tracking and macro calculations
+- Progress monitoring and analytics
+- Community features and gamification
+- Free access to all core features`;
 
 // Multiple AI service configurations
 const AI_SERVICES = [
@@ -99,11 +110,11 @@ const AI_SERVICES = [
       "Content-Type": "application/json",
     }),
     body: (messages: any[], model?: string) => ({
-      model: model || "gpt-3.5-turbo",
+      model: "gpt-3.5-turbo",
       messages: messages,
-      max_tokens: 500,
-      temperature: 0.7,
-    }),
+      max_tokens: 600,
+      temperature: 0.8,
+    })
     envKey: "OPENAI_API_KEY"
   },
   {
@@ -137,7 +148,7 @@ async function callAIService(service: any, messages: any[]): Promise<string | nu
       return null;
     }
 
-    console.log(`Trying ${service.name} service...`);
+    console.log(`Trying ${service.name} service with key: ${apiKey.substring(0, 10)}...`);
 
     const response = await fetch(service.url, {
       method: "POST",
@@ -174,7 +185,7 @@ async function callAIService(service: any, messages: any[]): Promise<string | nu
       return null;
     }
 
-    console.log(`${service.name} successfully generated response`);
+    console.log(`${service.name} successfully generated response: ${reply.substring(0, 100)}...`);
     return reply.trim();
 
   } catch (error) {
@@ -242,10 +253,13 @@ serve(async (req) => {
 
     // Try each AI service in order until one works
     for (const service of AI_SERVICES) {
+      console.log(`Attempting to use ${service.name}...`);
       reply = await callAIService(service, messages);
       if (reply) {
-        console.log(`Successfully got response from ${service.name}`);
+        console.log(`Successfully got response from ${service.name}: ${reply.substring(0, 50)}...`);
         break;
+      } else {
+        console.log(`${service.name} failed, trying next service...`);
       }
     }
 
