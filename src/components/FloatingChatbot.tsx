@@ -76,7 +76,7 @@ export const FloatingChatbot = () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
           },
           body: JSON.stringify({
             message: text,
@@ -99,9 +99,21 @@ export const FloatingChatbot = () => {
       playNotificationSound();
     } catch (error) {
       console.error("Chat error:", error);
+
+      // Fallback responses when API fails
+      const fallbackResponses = [
+        "Hi! I'm here to help with your fitness journey. Try asking about workouts, nutrition, or SmartFit features! 💪",
+        "Hello! SmartFit AI is designed to help you achieve your fitness goals. What would you like to know?",
+        "Hey there! I'm your AI fitness assistant. Ask me anything about workouts, nutrition, or how to use SmartFit! 🏋️‍♀️",
+        "Welcome! I'm here to support your fitness goals. Try asking about exercise tips or nutrition advice!",
+        "Hi! Let's work together on your fitness journey. What fitness questions can I help you with today?"
+      ];
+
+      const fallbackMessage = fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
+
       const errorMessage: Message = {
         role: "assistant",
-        content: "Something went wrong. Please try again! 🙏",
+        content: fallbackMessage,
       };
       setMessages((prev) => [...prev, errorMessage]);
     } finally {

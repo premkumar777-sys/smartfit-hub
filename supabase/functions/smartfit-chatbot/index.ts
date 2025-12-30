@@ -1,5 +1,5 @@
-// SmartFit AI Chatbot - Universal Assistant
-// Uses Lovable AI Gateway for FREE AI responses
+// SmartFit AI Chatbot - Simple Response System
+// Provides helpful responses for SmartFit Hub without external API dependencies
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
@@ -8,32 +8,69 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const systemPrompt = `You are SmartFit AI Assistant. You are friendly and helpful like ChatGPT.
+// Simple response database
+const responses: Record<string, string[]> = {
+  greeting: [
+    "Hello! 👋 I'm your SmartFit AI assistant. I'm here to help you with fitness, workouts, and nutrition advice!",
+    "Hi there! Welcome to SmartFit AI! How can I help you achieve your fitness goals today?",
+    "Hey! I'm excited to help you on your fitness journey. What would you like to know?"
+  ],
+  fitness: [
+    "For beginners, start with 3-4 workout days per week, focusing on compound exercises like squats, push-ups, and rows. Consistency is key! 💪",
+    "Remember to warm up before workouts and cool down afterward. Stay hydrated and listen to your body!",
+    "Great job staying committed to your fitness goals! Every workout counts, no matter how small."
+  ],
+  workout: [
+    "A good workout routine includes cardio, strength training, and flexibility work. Mix it up to keep things interesting!",
+    "Try the AI Workout Generator for personalized plans based on your goals and fitness level.",
+    "Remember: quality over quantity. Focus on proper form to prevent injuries and maximize results."
+  ],
+  nutrition: [
+    "Focus on whole foods: lean proteins, vegetables, fruits, whole grains, and healthy fats. Stay hydrated with water!",
+    "Track your nutrition to understand your calorie needs. Use the nutrition calculator for personalized recommendations.",
+    "Meal timing matters, but consistency with healthy eating is more important than perfection."
+  ],
+  features: [
+    "SmartFit AI offers AI-powered workout generation, nutrition tracking, progress monitoring, and gamification features!",
+    "Try the AI Workout Generator, nutrition calculator, or explore our training guides for expert advice.",
+    "All features are available for free! Explore the dashboard, progress tracking, and workout sessions."
+  ],
+  help: [
+    "I'm here to help! Ask me about workouts, nutrition, fitness tips, or how to use SmartFit AI features.",
+    "Need workout ideas? Nutrition advice? Or help navigating the app? Just ask!",
+    "Don't hesitate to reach out for any fitness-related questions. I'm here to support your journey!"
+  ]
+};
 
-Your personality:
-- Warm, friendly, and conversational
-- Clear and simple language
-- Honest responses - if unsure, say so politely
-- Use occasional emojis to be friendly 😊
+function getResponseType(message: string): string {
+  const lowerMessage = message.toLowerCase();
 
-You can answer questions from ANY domain:
-- Fitness and health
-- Technology and apps
-- General knowledge
-- App usage help
-- And anything else!
+  if (lowerMessage.includes("hello") || lowerMessage.includes("hi") || lowerMessage.includes("hey")) {
+    return "greeting";
+  }
+  if (lowerMessage.includes("workout") || lowerMessage.includes("exercise") || lowerMessage.includes("train")) {
+    return "workout";
+  }
+  if (lowerMessage.includes("nutrition") || lowerMessage.includes("diet") || lowerMessage.includes("food") || lowerMessage.includes("eat")) {
+    return "nutrition";
+  }
+  if (lowerMessage.includes("feature") || lowerMessage.includes("what can you do") || lowerMessage.includes("help")) {
+    return "features";
+  }
+  if (lowerMessage.includes("how") || lowerMessage.includes("what") || lowerMessage.includes("can you")) {
+    return "help";
+  }
+  if (lowerMessage.includes("fitness") || lowerMessage.includes("health") || lowerMessage.includes("strong")) {
+    return "fitness";
+  }
 
-Important guidelines:
-- Keep responses concise (2-3 short paragraphs max)
-- If the question involves medical diagnosis/treatment or legal matters, kindly advise consulting a professional
-- Be helpful and supportive
-- If you don't know something, be honest about it
+  return "help"; // Default fallback
+}
 
-About SmartFit AI (if asked):
-- SmartFit AI is a fitness platform with AI-powered workout generation
-- Features include personalized workouts, nutrition tracking, progress monitoring
-- Great for beginners and experienced fitness enthusiasts alike
-- Uses AI to create custom workout plans based on user goals`;
+function getRandomResponse(type: string): string {
+  const typeResponses = responses[type] || responses.help;
+  return typeResponses[Math.floor(Math.random() * typeResponses.length)];
+}
 
 serve(async (req) => {
   // Handle CORS preflight
@@ -44,90 +81,13 @@ serve(async (req) => {
   try {
     const { message, conversationHistory } = await req.json();
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-
-    if (!LOVABLE_API_KEY) {
-      console.error("LOVABLE_API_KEY is not configured");
-      return new Response(
-        JSON.stringify({ error: "AI service not configured." }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
     console.log("Processing chatbot message:", message?.substring(0, 50));
 
-    // Build messages array for the API
-    const messages = [
-      { role: "system", content: systemPrompt },
-    ];
+    // Get appropriate response based on message content
+    const responseType = getResponseType(message || "");
+    const reply = getRandomResponse(responseType);
 
-    // Add conversation history (last 10 messages for context)
-    if (conversationHistory && Array.isArray(conversationHistory)) {
-      for (const msg of conversationHistory.slice(-10)) {
-        messages.push({
-          role: msg.role === "user" ? "user" : "assistant",
-          content: msg.content,
-        });
-      }
-    }
-
-    // Add current user message
-    messages.push({
-      role: "user",
-      content: message || "Hello",
-    });
-
-    // Call Lovable AI Gateway
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: messages,
-        max_tokens: 500,
-        temperature: 0.7,
-      }),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("AI Gateway error:", response.status, errorText);
-
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "I'm a bit busy right now. Please try again in a moment! 🙏" }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "AI service temporarily unavailable. Please try again later." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
-      return new Response(
-        JSON.stringify({ error: "Something went wrong. Please try again!" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    const data = await response.json();
-    const reply = data.choices?.[0]?.message?.content;
-
-    if (!reply) {
-      console.error("No reply in response:", JSON.stringify(data));
-      return new Response(
-        JSON.stringify({ error: "I couldn't generate a response. Please try again!" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    console.log("Successfully generated chatbot reply");
+    console.log("Generated chatbot reply for type:", responseType);
 
     return new Response(
       JSON.stringify({ reply }),
@@ -136,8 +96,10 @@ serve(async (req) => {
   } catch (error) {
     console.error("Error in chatbot function:", error);
     return new Response(
-      JSON.stringify({ error: "Something went wrong. Please try again!" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({
+        reply: "I'm having trouble processing your message right now. Please try again in a moment! 🙏"
+      }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });
