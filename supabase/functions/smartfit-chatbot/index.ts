@@ -30,6 +30,13 @@ const responses: Record<string, string[]> = {
     "Track your nutrition to understand your calorie needs. Use the nutrition calculator for personalized recommendations.",
     "Meal timing matters, but consistency with healthy eating is more important than perfection."
   ],
+  weight_loss: [
+    "To lose belly fat, focus on overall body fat reduction through cardio, strength training, and clean eating. Spot reduction isn't possible, but consistency works! 🎯",
+    "For fat loss, create a 500-calorie daily deficit through diet and exercise. Combine cardio (30-45 mins) with strength training 3x/week. Stay consistent! 🏃‍♂️",
+    "Weight loss success: 80% nutrition, 20% exercise. Track calories, eat protein-rich meals with veggies, and stay active. Use our nutrition calculator! 📊",
+    "Belly fat responds well to HIIT workouts, core exercises, and reducing processed foods. Aim for sustainable changes - quick fixes don't last! 💪",
+    "Healthy fat loss: 0.5-1kg per week. Focus on whole foods, adequate protein, and regular cardio. Track progress in our dashboard! 📈"
+  ],
   features: [
     "SmartFit AI offers AI-powered workout generation, nutrition tracking, progress monitoring, and gamification features!",
     "Try the AI Workout Generator, nutrition calculator, or explore our training guides for expert advice.",
@@ -45,26 +52,57 @@ const responses: Record<string, string[]> = {
 function getResponseType(message: string): string {
   const lowerMessage = message.toLowerCase();
 
-  if (lowerMessage.includes("hello") || lowerMessage.includes("hi") || lowerMessage.includes("hey")) {
+  // Check for greetings first
+  if (lowerMessage.includes("hello") || lowerMessage.includes("hi") || lowerMessage.includes("hey") ||
+      (lowerMessage.trim().length < 10 && !lowerMessage.includes(" "))) {
     return "greeting";
   }
-  if (lowerMessage.includes("workout") || lowerMessage.includes("exercise") || lowerMessage.includes("train")) {
+
+  // Check for weight loss/fat loss queries
+  if (lowerMessage.includes("lose") || lowerMessage.includes("weight") || lowerMessage.includes("fat") ||
+      lowerMessage.includes("belly") || lowerMessage.includes("slim") || lowerMessage.includes("burn") ||
+      lowerMessage.includes("reduce")) {
+    return "weight_loss";
+  }
+
+  // Check for workout/exercise queries
+  if (lowerMessage.includes("workout") || lowerMessage.includes("exercise") || lowerMessage.includes("train") ||
+      lowerMessage.includes("gym") || lowerMessage.includes("lift") || lowerMessage.includes("cardio") ||
+      lowerMessage.includes("strength") || lowerMessage.includes("muscle")) {
     return "workout";
   }
-  if (lowerMessage.includes("nutrition") || lowerMessage.includes("diet") || lowerMessage.includes("food") || lowerMessage.includes("eat")) {
+
+  // Check for nutrition/diet queries
+  if (lowerMessage.includes("nutrition") || lowerMessage.includes("diet") || lowerMessage.includes("food") ||
+      lowerMessage.includes("eat") || lowerMessage.includes("meal") || lowerMessage.includes("calorie") ||
+      lowerMessage.includes("protein") || lowerMessage.includes("carb")) {
     return "nutrition";
   }
-  if (lowerMessage.includes("feature") || lowerMessage.includes("what can you do") || lowerMessage.includes("help")) {
+
+  // Check for feature/app queries
+  if (lowerMessage.includes("feature") || lowerMessage.includes("app") || lowerMessage.includes("smartfit") ||
+      lowerMessage.includes("how to") || lowerMessage.includes("tutorial")) {
     return "features";
   }
-  if (lowerMessage.includes("how") || lowerMessage.includes("what") || lowerMessage.includes("can you")) {
-    return "help";
-  }
-  if (lowerMessage.includes("fitness") || lowerMessage.includes("health") || lowerMessage.includes("strong")) {
+
+  // Check for general fitness/health queries
+  if (lowerMessage.includes("fitness") || lowerMessage.includes("health") || lowerMessage.includes("strong") ||
+      lowerMessage.includes("fit") || lowerMessage.includes("body") || lowerMessage.includes("build")) {
     return "fitness";
   }
 
-  return "help"; // Default fallback
+  // Questions starting with how/what/can
+  if (lowerMessage.startsWith("how") || lowerMessage.startsWith("what") || lowerMessage.startsWith("can") ||
+      lowerMessage.includes("help")) {
+    return "help";
+  }
+
+  // Default to fitness for general queries
+  if (lowerMessage.length > 5) {
+    return "fitness";
+  }
+
+  return "help"; // Final fallback
 }
 
 function getRandomResponse(type: string): string {
