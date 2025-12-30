@@ -1,5 +1,5 @@
-// SmartFit AI Chatbot - Simple Response System
-// Provides helpful responses for SmartFit Hub without external API dependencies
+// SmartFit AI Chatbot - AI-Powered Responses with Fallback
+// Uses multiple AI services with intelligent fallback system
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
@@ -8,8 +8,8 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Simple response database
-const responses: Record<string, string[]> = {
+// Fallback responses for when AI services are unavailable
+const fallbackResponses: Record<string, string[]> = {
   greeting: [
     "Hello! 👋 I'm your SmartFit AI assistant. I'm here to help you with fitness, workouts, and nutrition advice!",
     "Hi there! Welcome to SmartFit AI! How can I help you achieve your fitness goals today?",
@@ -33,9 +33,7 @@ const responses: Record<string, string[]> = {
   weight_loss: [
     "To lose belly fat, focus on overall body fat reduction through cardio, strength training, and clean eating. Spot reduction isn't possible, but consistency works! 🎯",
     "For fat loss, create a 500-calorie daily deficit through diet and exercise. Combine cardio (30-45 mins) with strength training 3x/week. Stay consistent! 🏃‍♂️",
-    "Weight loss success: 80% nutrition, 20% exercise. Track calories, eat protein-rich meals with veggies, and stay active. Use our nutrition calculator! 📊",
-    "Belly fat responds well to HIIT workouts, core exercises, and reducing processed foods. Aim for sustainable changes - quick fixes don't last! 💪",
-    "Healthy fat loss: 0.5-1kg per week. Focus on whole foods, adequate protein, and regular cardio. Track progress in our dashboard! 📈"
+    "Weight loss success: 80% nutrition, 20% exercise. Track calories, eat protein-rich meals with veggies, and stay active. Use our nutrition calculator! 📊"
   ],
   features: [
     "SmartFit AI offers AI-powered workout generation, nutrition tracking, progress monitoring, and gamification features!",
@@ -49,65 +47,163 @@ const responses: Record<string, string[]> = {
   ]
 };
 
-function getResponseType(message: string): string {
-  const lowerMessage = message.toLowerCase();
+const systemPrompt = `You are SmartFit AI Assistant. You are friendly and helpful like ChatGPT.
 
-  // Check for greetings first
-  if (lowerMessage.includes("hello") || lowerMessage.includes("hi") || lowerMessage.includes("hey") ||
-      (lowerMessage.trim().length < 10 && !lowerMessage.includes(" "))) {
-    return "greeting";
+Your personality:
+- Warm, friendly, and conversational
+- Clear and simple language
+- Honest responses - if unsure, say so politely
+- Use occasional emojis to be friendly 😊
+
+You can answer questions from ANY domain:
+- Fitness and health
+- Technology and apps
+- General knowledge
+- App usage help
+- And anything else!
+
+Important guidelines:
+- Keep responses concise (2-3 short paragraphs max)
+- If the question involves medical diagnosis/treatment or legal matters, kindly advise consulting a professional
+- Be helpful and supportive
+- If you don't know something, be honest about it
+
+About SmartFit AI (if asked):
+- SmartFit AI is a fitness platform with AI-powered workout generation
+- Features include personalized workouts, nutrition tracking, progress monitoring
+- Great for beginners and experienced fitness enthusiasts alike
+- Uses AI to create custom workout plans based on user goals`;
+
+// Multiple AI service configurations
+const AI_SERVICES = [
+  {
+    name: "Lovable AI",
+    url: "https://ai.gateway.lovable.dev/v1/chat/completions",
+    headers: (apiKey: string) => ({
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    }),
+    body: (messages: any[], model?: string) => ({
+      model: model || "google/gemini-2.5-flash",
+      messages: messages,
+      max_tokens: 500,
+      temperature: 0.7,
+    }),
+    envKey: "LOVABLE_API_KEY"
+  },
+  {
+    name: "OpenAI",
+    url: "https://api.openai.com/v1/chat/completions",
+    headers: (apiKey: string) => ({
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    }),
+    body: (messages: any[], model?: string) => ({
+      model: model || "gpt-3.5-turbo",
+      messages: messages,
+      max_tokens: 500,
+      temperature: 0.7,
+    }),
+    envKey: "OPENAI_API_KEY"
+  },
+  {
+    name: "HuggingFace",
+    url: "https://api-inference.huggingface.co/models/microsoft/DialoGPT-medium",
+    headers: (apiKey: string) => ({
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    }),
+    body: (messages: any[]) => ({
+      inputs: {
+        past_user_inputs: messages.slice(0, -1).map(m => m.content),
+        generated_responses: [],
+        text: messages[messages.length - 1]?.content || ""
+      },
+      parameters: {
+        max_length: 500,
+        temperature: 0.7
+      }
+    }),
+    envKey: "HUGGINGFACE_API_KEY"
   }
+];
 
-  // Check for weight loss/fat loss queries
-  if (lowerMessage.includes("lose") || lowerMessage.includes("weight") || lowerMessage.includes("fat") ||
-      lowerMessage.includes("belly") || lowerMessage.includes("slim") || lowerMessage.includes("burn") ||
-      lowerMessage.includes("reduce")) {
-    return "weight_loss";
+async function callAIService(service: any, messages: any[]): Promise<string | null> {
+  try {
+    const apiKey = Deno.env.get(service.envKey);
+
+    if (!apiKey) {
+      console.log(`${service.name} API key not configured`);
+      return null;
+    }
+
+    console.log(`Trying ${service.name} service...`);
+
+    const response = await fetch(service.url, {
+      method: "POST",
+      headers: service.headers(apiKey),
+      body: JSON.stringify(service.body(messages)),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`${service.name} error:`, response.status, errorText);
+      return null;
+    }
+
+    const data = await response.json();
+
+    // Handle different response formats
+    let reply: string;
+    if (data.choices?.[0]?.message?.content) {
+      // OpenAI/Lovable format
+      reply = data.choices[0].message.content;
+    } else if (data.generated_text) {
+      // HuggingFace format
+      reply = data.generated_text;
+    } else if (Array.isArray(data) && data[0]?.generated_text) {
+      // Alternative HuggingFace format
+      reply = data[0].generated_text;
+    } else {
+      console.error(`${service.name} unexpected response format:`, JSON.stringify(data));
+      return null;
+    }
+
+    if (!reply || reply.trim().length === 0) {
+      console.error(`${service.name} returned empty response`);
+      return null;
+    }
+
+    console.log(`${service.name} successfully generated response`);
+    return reply.trim();
+
+  } catch (error) {
+    console.error(`${service.name} service error:`, error);
+    return null;
   }
-
-  // Check for workout/exercise queries
-  if (lowerMessage.includes("workout") || lowerMessage.includes("exercise") || lowerMessage.includes("train") ||
-      lowerMessage.includes("gym") || lowerMessage.includes("lift") || lowerMessage.includes("cardio") ||
-      lowerMessage.includes("strength") || lowerMessage.includes("muscle")) {
-    return "workout";
-  }
-
-  // Check for nutrition/diet queries
-  if (lowerMessage.includes("nutrition") || lowerMessage.includes("diet") || lowerMessage.includes("food") ||
-      lowerMessage.includes("eat") || lowerMessage.includes("meal") || lowerMessage.includes("calorie") ||
-      lowerMessage.includes("protein") || lowerMessage.includes("carb")) {
-    return "nutrition";
-  }
-
-  // Check for feature/app queries
-  if (lowerMessage.includes("feature") || lowerMessage.includes("app") || lowerMessage.includes("smartfit") ||
-      lowerMessage.includes("how to") || lowerMessage.includes("tutorial")) {
-    return "features";
-  }
-
-  // Check for general fitness/health queries
-  if (lowerMessage.includes("fitness") || lowerMessage.includes("health") || lowerMessage.includes("strong") ||
-      lowerMessage.includes("fit") || lowerMessage.includes("body") || lowerMessage.includes("build")) {
-    return "fitness";
-  }
-
-  // Questions starting with how/what/can
-  if (lowerMessage.startsWith("how") || lowerMessage.startsWith("what") || lowerMessage.startsWith("can") ||
-      lowerMessage.includes("help")) {
-    return "help";
-  }
-
-  // Default to fitness for general queries
-  if (lowerMessage.length > 5) {
-    return "fitness";
-  }
-
-  return "help"; // Final fallback
 }
 
-function getRandomResponse(type: string): string {
-  const typeResponses = responses[type] || responses.help;
-  return typeResponses[Math.floor(Math.random() * typeResponses.length)];
+function getFallbackResponse(message: string): string {
+  const lowerMessage = message.toLowerCase();
+
+  // Simple keyword matching for fallback
+  if (lowerMessage.includes("hello") || lowerMessage.includes("hi") || lowerMessage.includes("hey")) {
+    return fallbackResponses.greeting[Math.floor(Math.random() * fallbackResponses.greeting.length)];
+  }
+
+  if (lowerMessage.includes("lose") || lowerMessage.includes("weight") || lowerMessage.includes("fat")) {
+    return fallbackResponses.weight_loss[Math.floor(Math.random() * fallbackResponses.weight_loss.length)];
+  }
+
+  if (lowerMessage.includes("workout") || lowerMessage.includes("exercise")) {
+    return fallbackResponses.workout[Math.floor(Math.random() * fallbackResponses.workout.length)];
+  }
+
+  if (lowerMessage.includes("food") || lowerMessage.includes("diet") || lowerMessage.includes("eat")) {
+    return fallbackResponses.nutrition[Math.floor(Math.random() * fallbackResponses.nutrition.length)];
+  }
+
+  return fallbackResponses.help[Math.floor(Math.random() * fallbackResponses.help.length)];
 }
 
 serve(async (req) => {
@@ -121,11 +217,45 @@ serve(async (req) => {
 
     console.log("Processing chatbot message:", message?.substring(0, 50));
 
-    // Get appropriate response based on message content
-    const responseType = getResponseType(message || "");
-    const reply = getRandomResponse(responseType);
+    // Build messages array for AI services
+    const messages = [
+      { role: "system", content: systemPrompt },
+    ];
 
-    console.log("Generated chatbot reply for type:", responseType);
+    // Add conversation history (last 10 messages for context)
+    if (conversationHistory && Array.isArray(conversationHistory)) {
+      for (const msg of conversationHistory.slice(-10)) {
+        messages.push({
+          role: msg.role === "user" ? "user" : "assistant",
+          content: msg.content,
+        });
+      }
+    }
+
+    // Add current user message
+    messages.push({
+      role: "user",
+      content: message || "Hello",
+    });
+
+    let reply: string | null = null;
+
+    // Try each AI service in order until one works
+    for (const service of AI_SERVICES) {
+      reply = await callAIService(service, messages);
+      if (reply) {
+        console.log(`Successfully got response from ${service.name}`);
+        break;
+      }
+    }
+
+    // If all AI services failed, use fallback
+    if (!reply) {
+      console.log("All AI services failed, using fallback response");
+      reply = getFallbackResponse(message || "");
+    }
+
+    console.log("Final chatbot reply generated");
 
     return new Response(
       JSON.stringify({ reply }),

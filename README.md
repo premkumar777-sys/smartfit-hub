@@ -62,6 +62,38 @@ This project is built with:
 - Supabase (Database & Auth)
 - Stripe (Payment Processing)
 
+## AI Chatbot Setup (Optional)
+
+The chatbot works with fallback responses, but for better AI-powered responses, you can configure API keys:
+
+### Option 1: Lovable AI (Free)
+1. Visit [Lovable.dev](https://lovable.dev)
+2. Get your API key from your dashboard
+3. Set the environment variable: `LOVABLE_API_KEY=your_key_here`
+
+### Option 2: OpenAI (Paid but reliable)
+1. Go to [OpenAI Platform](https://platform.openai.com/)
+2. Create an account and get an API key
+3. Set the environment variable: `OPENAI_API_KEY=your_key_here`
+4. The free tier provides $5 credit for starters
+
+### Option 3: HuggingFace (Free tier available)
+1. Go to [HuggingFace](https://huggingface.co/)
+2. Create an account and get an API token
+3. Set the environment variable: `HUGGINGFACE_API_KEY=your_token_here`
+
+The chatbot will automatically try each service in order and fall back to smart hardcoded responses if none are configured.
+
+### Environment Variables
+Create a `.env` file in your project root with your API keys:
+
+```env
+# AI Services (Optional)
+LOVABLE_API_KEY=your_lovable_api_key_here
+OPENAI_API_KEY=your_openai_api_key_here
+HUGGINGFACE_API_KEY=your_huggingface_token_here
+```
+
 ## Payment Setup
 
 This project includes Stripe integration for subscription payments. To enable payments:
