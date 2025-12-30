@@ -46,10 +46,6 @@ const menuStructure = [
   {
     label: "AI Workout",
     href: "/ai-workout"
-  },
-  {
-    label: "Pricing",
-    href: "/pricing"
   }
 ];
 
@@ -413,7 +409,6 @@ export function Header() {
                     <div className="space-y-1">
                       <NavItem href="/contact" className="block py-4">Get in Touch</NavItem>
                       <NavItem href="/support" className="block py-4">Support</NavItem>
-                      <NavItem href="#pricing" className="block py-4">Pricing</NavItem>
                     </div>
                   </div>
                 </div>

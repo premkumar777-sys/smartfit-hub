@@ -19,77 +19,35 @@ export interface SubscriptionData {
 
 export function useSubscription(): SubscriptionData {
   const [data, setData] = useState<SubscriptionData>({
-    plan: null,
-    hasPremiumAccess: false,
-    isLoading: true,
+    plan: {
+      plan_id: 'free',
+      plan_name: 'Free',
+      status: 'active',
+      billing_cycle: 'free',
+      current_period_end: null
+    },
+    hasPremiumAccess: true, // Always give premium access for now
+    isLoading: false,
     error: null,
   })
 
   const { user } = useAuth()
 
   useEffect(() => {
-    // Check if Supabase is configured
-    if (!import.meta.env.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL === 'https://placeholder.supabase.co') {
-      setData({
-        plan: null,
-        hasPremiumAccess: false,
-        isLoading: false,
-        error: 'Supabase not configured',
-      })
-      return
-    }
-
-    if (!user) {
-      setData({
-        plan: null,
-        hasPremiumAccess: false,
-        isLoading: false,
-        error: null,
-      })
-      return
-    }
-
-    const fetchSubscription = async () => {
-      try {
-        // Get user's current plan
-        const { data: planData, error: planError } = await supabase
-          .rpc('get_user_plan', { user_id: user.id })
-
-        if (planError) throw planError
-
-        const plan = planData?.[0] || null
-
-        // Check premium access
-        const { data: premiumAccess, error: premiumError } = await supabase
-          .rpc('has_premium_access', { user_id: user.id })
-
-        if (premiumError) throw premiumError
-
-        setData({
-          plan,
-          hasPremiumAccess: premiumAccess || false,
-          isLoading: false,
-          error: null,
-        })
-      } catch (error) {
-        console.error('Error fetching subscription:', error)
-        setData({
-          plan: null,
-          hasPremiumAccess: false,
-          isLoading: false,
-          error: error instanceof Error ? error.message : 'Unknown error',
-        })
-      }
-    }
-
-    fetchSubscription()
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
-      fetchSubscription()
+    // For now, always provide free tier with premium access
+    // This allows all features to be available while showing "coming soon" for new features
+    setData({
+      plan: {
+        plan_id: 'free',
+        plan_name: 'Free',
+        status: 'active',
+        billing_cycle: 'free',
+        current_period_end: null
+      },
+      hasPremiumAccess: true,
+      isLoading: false,
+      error: null,
     })
-
-    return () => subscription.unsubscribe()
   }, [user])
 
   return data
@@ -103,20 +61,15 @@ export function useUpgradePlan() {
     planId: string,
     billingCycle: 'monthly' | 'yearly'
   ) => {
+    // Payment functionality removed - all features are now free
     setIsLoading(true)
     setError(null)
 
-    try {
-      // Import dynamically to avoid issues with SSR
-      const { redirectToCheckout } = await import('@/lib/stripe')
-
-      await redirectToCheckout(planId, billingCycle)
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to upgrade plan'
-      setError(errorMessage)
+    // Simulate a delay then return success
+    setTimeout(() => {
       setIsLoading(false)
-      throw new Error(errorMessage)
-    }
+      // All features are now available for free
+    }, 1000)
   }
 
   return {

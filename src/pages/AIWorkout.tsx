@@ -10,7 +10,7 @@ import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useGamification, XP_REWARDS } from "@/hooks/useGamification";
-import { PremiumGate } from "@/components/PremiumGate";
+import { ComingSoon } from "@/components/ComingSoon";
 
 const AIWorkout = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -126,7 +126,7 @@ const AIWorkout = () => {
       <div className="absolute inset-0 gradient-hero opacity-20"></div>
 
       <Container className="relative z-10">
-        <PremiumGate
+        <ComingSoon
           feature="AI Workout Generator"
           description="Get personalized workout plans powered by AI to achieve your fitness goals faster"
         >
@@ -289,7 +289,7 @@ const AIWorkout = () => {
             </CardContent>
           </Card>
         </div>
-        </PremiumGate>
+        </ComingSoon>
       </Container>
     </div>
   );
