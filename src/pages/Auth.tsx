@@ -341,12 +341,17 @@ export default function Auth() {
         throw new Error(data.error || "Verification failed");
       }
 
-      // OTP verified successfully - now sign in with Supabase magic link
-      const { error } = await supabase.auth.signInWithOtp({
-        email: otpEmail,
-        options: {
-          shouldCreateUser: true,
-        }
+      // OTP verified successfully - create a session from the returned magiclink token
+      const tokenHash = data.token as string | undefined;
+      const otpType = (data.type as any) ?? "magiclink";
+
+      if (!tokenHash) {
+        throw new Error("Missing token from server. Please resend OTP.");
+      }
+
+      const { error } = await supabase.auth.verifyOtp({
+        token_hash: tokenHash,
+        type: otpType,
       });
 
       if (error) {
@@ -355,12 +360,13 @@ export default function Auth() {
 
       toast({
         title: "OTP verified!",
-        description: "Check your email for the magic link to complete login.",
+        description: "You're now logged in.",
       });
 
       // Reset the OTP flow
       resetOtpFlow();
 
+      navigate("/dashboard");
     } catch (error: any) {
       toast({
         title: "Verification failed",
@@ -488,10 +494,26 @@ export default function Auth() {
         throw new Error(data.error || "Verification failed");
       }
 
-      // Phone OTP verified successfully
+      // Phone OTP verified successfully - create a session from the returned magiclink token
+      const tokenHash = data.token as string | undefined;
+      const otpType = (data.type as any) ?? "magiclink";
+
+      if (!tokenHash) {
+        throw new Error("Missing token from server. Please request a new code.");
+      }
+
+      const { error } = await supabase.auth.verifyOtp({
+        token_hash: tokenHash,
+        type: otpType,
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
       toast({
         title: "Phone verified!",
-        description: "You've successfully logged in.",
+        description: "You're now logged in.",
       });
       navigate("/dashboard");
 
