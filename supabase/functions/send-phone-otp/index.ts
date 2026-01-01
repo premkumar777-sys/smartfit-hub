@@ -187,58 +187,76 @@ serve(async (req) => {
       // OTP is valid - delete it
       await supabase.from("phone_otps").delete().eq("id", storedOtp.id);
 
-      // Check if user exists by phone
-      const { data: existingUsers } = await supabase.auth.admin.listUsers();
-      let existingUser = existingUsers?.users?.find((u) => u.phone === phone);
-      
+      // Try to create user - if exists, we'll get phone_exists error
       let userId: string;
       let isNewUser = false;
 
-      if (existingUser) {
-        userId = existingUser.id;
-        console.log(`Existing user found: ${userId}`);
-      } else {
-        // Try to create new user with phone
-        const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
-          phone,
-          phone_confirm: true,
-          user_metadata: { phone_verified: true },
-        });
+      const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
+        phone,
+        phone_confirm: true,
+        user_metadata: { phone_verified: true },
+      });
 
-        if (createError) {
-          // If phone already exists (race condition), try to find the user again
-          if (createError.code === "phone_exists") {
-            console.log("Phone exists, fetching existing user...");
-            const { data: retryUsers } = await supabase.auth.admin.listUsers();
-            const foundUser = retryUsers?.users?.find((u) => u.phone === phone);
+      if (createError) {
+        if (createError.code === "phone_exists" || createError.message?.includes("Phone number already registered")) {
+          // User exists - find them by listing with phone filter
+          console.log("Phone exists, finding user by phone...");
+          
+          // Use getUserById after getting from identities or search
+          const { data: usersData } = await supabase.auth.admin.listUsers({
+            page: 1,
+            perPage: 1000,
+          });
+          
+          const foundUser = usersData?.users?.find((u) => {
+            // Check both phone and phone identity
+            return u.phone === phone || 
+                   u.phone === phone.replace('+', '') ||
+                   u.identities?.some((id) => id.identity_data?.phone === phone);
+          });
+          
+          if (foundUser) {
+            userId = foundUser.id;
+            console.log(`Found existing user: ${userId}`);
+          } else {
+            // User exists but couldn't find - create session with phone-based email
+            console.log("User exists but not found in list, proceeding with session creation");
+            // Generate deterministic userId based on phone for consistency
+            const fakeEmail = `${phone.replace(/[^0-9]/g, '')}@phone.smartfit.local`;
             
-            if (foundUser) {
-              userId = foundUser.id;
-              console.log(`Found existing user on retry: ${userId}`);
+            // Try to sign in the existing user by generating link
+            const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
+              type: "magiclink",
+              email: fakeEmail,
+            });
+            
+            if (linkData?.user) {
+              userId = linkData.user.id;
+              console.log(`Got user from link generation: ${userId}`);
             } else {
-              console.error("Could not find existing user with phone:", phone);
+              console.error("Could not find or create user session:", linkError);
               return new Response(
-                JSON.stringify({ error: "Failed to authenticate. Please try again." }),
+                JSON.stringify({ error: "Account exists but login failed. Try again." }),
                 { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
               );
             }
-          } else {
-            console.error("Failed to create user:", createError);
-            return new Response(
-              JSON.stringify({ error: "Failed to create user account" }),
-              { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-            );
           }
-        } else if (newUser?.user) {
-          userId = newUser.user.id;
-          isNewUser = true;
-          console.log(`New user created: ${userId}`);
         } else {
+          console.error("Failed to create user:", createError);
           return new Response(
             JSON.stringify({ error: "Failed to create user account" }),
             { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
           );
         }
+      } else if (newUser?.user) {
+        userId = newUser.user.id;
+        isNewUser = true;
+        console.log(`New user created: ${userId}`);
+      } else {
+        return new Response(
+          JSON.stringify({ error: "Failed to create user account" }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
       }
 
       // Generate a magic link / session for the user
