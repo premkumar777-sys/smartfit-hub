@@ -2,13 +2,62 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Zap, Target, TrendingUp, Users, Brain, Eye, BarChart3, Utensils, Calendar, QrCode, Trophy, Wrench, PieChart, ShoppingBag } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useEffect, useState } from "react";
 import { FeatureCard } from "@/components/FeatureCard";
+import { useCounter, formatAnimatedNumber } from "@/hooks/useCounter";
 import "@/styles/feature-card.css";
 
 const HeroDumbbellScene = lazy(() => import("@/components/Hero3DScene"));
 
 const Home = () => {
+  const [activeMembersCount, setActiveMembersCount] = useState(0);
+  const [workoutsCount, setWorkoutsCount] = useState(0);
+  const [successRateCount, setSuccessRateCount] = useState(0);
+
+  useEffect(() => {
+    // Counter animations for stats
+    const animateCounter = (
+      setter: (value: number) => void,
+      end: number,
+      duration: number,
+      delay: number
+    ) => {
+      setTimeout(() => {
+        const startTime = Date.now();
+        const startValue = 0;
+
+        const animate = () => {
+          const now = Date.now();
+          const elapsed = now - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+
+          // Easing function for smooth animation
+          const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+          const currentValue = Math.floor(startValue + (end - startValue) * easeOutQuart);
+
+          setter(currentValue);
+
+          if (progress < 1) {
+            requestAnimationFrame(animate);
+          } else {
+            setter(end);
+          }
+        };
+
+        requestAnimationFrame(animate);
+      }, delay);
+    };
+
+    animateCounter(setActiveMembersCount, 10000, 2500, 1000);
+    animateCounter(setWorkoutsCount, 500, 2000, 1200);
+    animateCounter(setSuccessRateCount, 98, 1800, 1400);
+  }, []);
+
+  const activeMembers = formatAnimatedNumber(activeMembersCount, "10K+");
+  const workouts = formatAnimatedNumber(workoutsCount, "500+");
+  const successRate = formatAnimatedNumber(successRateCount, "98%");
+  const aiSupport = "24/7";
+
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
@@ -75,10 +124,10 @@ const Home = () => {
               transition={{ duration: 0.8, delay: 0.8 }}
             >
               {[
-                { number: "10K+", label: "Active Members" },
-                { number: "500+", label: "Workouts" },
-                { number: "98%", label: "Success Rate" },
-                { number: "24/7", label: "AI Support" },
+                { number: activeMembers, label: "Active Members" },
+                { number: workouts, label: "Workouts" },
+                { number: successRate, label: "Success Rate" },
+                { number: aiSupport, label: "AI Support" },
               ].map((stat, index) => (
                 <motion.div
                   key={stat.label}

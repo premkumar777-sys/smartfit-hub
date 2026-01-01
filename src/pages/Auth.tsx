@@ -281,9 +281,12 @@ export default function Auth() {
         email: z.string().trim().email({ message: "Invalid email address" }).max(255),
       }).parse({ email: otpEmail });
 
-      const response = await fetch('http://localhost:3000/api/send-otp', {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-otp`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
+        },
         body: JSON.stringify({ email: validated.email, action: "send" }),
       });
 
@@ -323,38 +326,41 @@ export default function Auth() {
     setIsLoading(true);
 
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-      const response = await fetch(`${apiUrl}/api/send-otp`, {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-otp`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
+        },
         body: JSON.stringify({ email: otpEmail, action: "verify", otp: otpValue }),
       });
 
-      if (response.error) {
-        throw new Error(response.error.message || "Verification failed");
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Verification failed");
       }
 
-      if (response.data?.error) {
-        throw new Error(response.data.error);
-      }
-
-      if (response.data?.verified && response.data?.token) {
-        // Use the magic link token to sign in
-        const { error } = await supabase.auth.verifyOtp({
-          token_hash: response.data.token,
-          type: "magiclink",
-        });
-
-        if (error) {
-          throw new Error(error.message);
+      // OTP verified successfully - now sign in with Supabase magic link
+      const { error } = await supabase.auth.signInWithOtp({
+        email: otpEmail,
+        options: {
+          shouldCreateUser: true,
         }
+      });
 
-        toast({
-          title: response.data.isNewUser ? "Account created!" : "Welcome back!",
-          description: "You've successfully logged in.",
-        });
-        navigate("/dashboard");
+      if (error) {
+        throw new Error(error.message);
       }
+
+      toast({
+        title: "OTP verified!",
+        description: "Check your email for the magic link to complete login.",
+      });
+
+      // Reset the OTP flow
+      resetOtpFlow();
+
     } catch (error: any) {
       toast({
         title: "Verification failed",
@@ -369,24 +375,29 @@ export default function Auth() {
 
   const handleResendOTP = async () => {
     if (otpCountdown > 0) return;
-    
+
     setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:3000/api/send-otp', {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-otp`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
+        },
         body: JSON.stringify({ email: otpEmail, action: "send" }),
       });
 
-      if (response.error || response.data?.error) {
-        throw new Error(response.data?.error || "Failed to resend OTP");
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to resend OTP");
       }
 
       setOtpCountdown(60);
       setOtpValue("");
       toast({
         title: "OTP Resent!",
-        description: "Check your email for the new code.",
+        description: data.test_otp ? `Test OTP: ${data.test_otp}` : "Check your email for the new code.",
       });
     } catch (error: any) {
       toast({
@@ -417,9 +428,12 @@ export default function Auth() {
       const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
       console.log('Sending phone OTP request to:', `${apiUrl}/api/send-phone-otp`);
 
-      const response = await fetch('http://localhost:3000/api/send-phone-otp', {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-phone-otp`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
+        },
         body: JSON.stringify({ phone: validated.phone, action: "send" }),
       });
 
@@ -459,9 +473,12 @@ export default function Auth() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:3000/api/send-phone-otp', {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-phone-otp`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
+        },
         body: JSON.stringify({ phone: phoneNumber, action: "verify", otp: phoneOtpValue }),
       });
 
@@ -471,22 +488,13 @@ export default function Auth() {
         throw new Error(data.error || "Verification failed");
       }
 
-      if (response.data?.verified && response.data?.token) {
-        const { error } = await supabase.auth.verifyOtp({
-          token_hash: response.data.token,
-          type: "magiclink",
-        });
+      // Phone OTP verified successfully
+      toast({
+        title: "Phone verified!",
+        description: "You've successfully logged in.",
+      });
+      navigate("/dashboard");
 
-        if (error) {
-          throw new Error(error.message);
-        }
-
-        toast({
-          title: response.data.isNewUser ? "Account created!" : "Welcome back!",
-          description: "You've successfully logged in.",
-        });
-        navigate("/dashboard");
-      }
     } catch (error: any) {
       toast({
         title: "Verification failed",
@@ -504,14 +512,19 @@ export default function Auth() {
 
     setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:3000/api/send-phone-otp', {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-phone-otp`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
+        },
         body: JSON.stringify({ phone: phoneNumber, action: "send" }),
       });
 
-      if (response.error || response.data?.error) {
-        throw new Error(response.data?.error || "Failed to resend OTP");
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to resend OTP");
       }
 
       setPhoneOtpCountdown(60);
