@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, ReactNode, Suspense } from "react";
+import { useState, useRef, useEffect, ReactNode, Suspense, ElementType } from "react";
 import { ChevronDown, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -7,9 +7,11 @@ interface MegaDropdownProps {
   children: ReactNode;
   className?: string;
   isMega?: boolean;
+  highlight?: boolean;
+  icon?: ElementType;
 }
 
-export function MegaDropdown({ trigger, children, className, isMega = false }: MegaDropdownProps) {
+export function MegaDropdown({ trigger, children, className, isMega = false, highlight = false, icon: Icon }: MegaDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -105,15 +107,27 @@ export function MegaDropdown({ trigger, children, className, isMega = false }: M
         onKeyDown={handleKeyDown}
         type="button"
         className={cn(
-          "flex items-center space-x-1 px-4 py-2 text-sm font-medium text-gray-300 hover:text-white transition-colors rounded-lg",
+          "flex items-center space-x-1 px-4 py-2 text-sm font-medium transition-colors rounded-lg",
           "focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4CC9F0]",
-          (isOpen || isHovered) && "text-[#00FF9C] bg-white/10"
+          highlight ? [
+            "text-[#00FF9C] font-semibold",
+            "bg-gradient-to-r from-[#00FF9C]/10 to-[#4CC9F0]/10",
+            "border border-[#00FF9C]/20",
+            "hover:from-[#00FF9C]/20 hover:to-[#4CC9F0]/20",
+            (isOpen || isHovered) && "text-white bg-gradient-to-r from-[#00FF9C]/20 to-[#4CC9F0]/20 shadow-[0_0_15px_rgba(0,255,156,0.3)]"
+          ] : [
+            "text-gray-300 hover:text-white",
+            (isOpen || isHovered) && "text-[#00FF9C] bg-white/10"
+          ]
         )}
         aria-haspopup="true"
         aria-expanded={isOpen}
         aria-label={`Toggle ${trigger} menu`}
       >
-        {trigger}
+        {Icon && (
+          <Icon className="w-4 h-4" />
+        )}
+        <span className={Icon ? "ml-1" : ""}>{trigger}</span>
         <ChevronDown
           className={cn(
             "w-4 h-4 transition-transform duration-200",

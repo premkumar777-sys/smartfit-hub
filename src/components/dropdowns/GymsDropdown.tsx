@@ -5,8 +5,8 @@ import { Link } from "react-router-dom";
 const discoveryFeatures = [
   {
     icon: MapPin,
-    title: "Find Nearby Gyms",
-    description: "Discover fitness centers in your area with real-time availability",
+    title: "Find Gyms Near You",
+    description: "Discover fitness centers in your area with real-time availability and location-based search",
     href: "/gyms",
     badge: "Popular"
   },

@@ -7,7 +7,7 @@ import { MobileMenu } from "./MobileMenu";
 import { AuthMenu } from "./AuthMenu";
 import { Button } from "@/components/ui/button";
 import NeonButton from "@/components/NeonButton";
-import { Menu, X } from "lucide-react";
+import { Menu, X, MapPin } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 
@@ -26,11 +26,13 @@ const menuStructure = [
     isMega: true
   },
   {
-    label: "Find Gyms",
+    label: "Find Gyms Near You",
     hasDropdown: true,
     dropdown: "gyms",
     isMega: true,
-    badge: "New"
+    badge: "New",
+    highlight: true,
+    icon: "MapPin"
   },
   {
     label: "Marketplace",
@@ -247,6 +249,8 @@ export function Header() {
                           <MegaDropdown
                             trigger={item.label}
                             isMega={item.isMega}
+                            highlight={item.highlight}
+                            icon={item.icon ? (item.icon === "MapPin" ? MapPin : null) : null}
                           >
                             {renderDropdown(item.dropdown!)}
                           </MegaDropdown>
@@ -348,7 +352,7 @@ export function Header() {
                       For Gyms
                     </h3>
                     <div className="space-y-1">
-                      <NavItem href="/gyms" className="block py-4">Find Nearby Gyms</NavItem>
+                      <NavItem href="/gyms" className="block py-4">Find Gyms Near You</NavItem>
                       <NavItem href="/gyms/map" className="block py-4">View Map</NavItem>
                       <NavItem href="/gyms/list" className="block py-4">Browse All</NavItem>
                     </div>
