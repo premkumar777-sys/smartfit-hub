@@ -5,57 +5,36 @@ import { motion } from "framer-motion";
 import { Suspense, lazy, useEffect, useState } from "react";
 import { FeatureCard } from "@/components/FeatureCard";
 import { useCounter, formatAnimatedNumber } from "@/hooks/useCounter";
+import { useStats } from "@/hooks/useStats";
 import "@/styles/feature-card.css";
 
 const HeroDumbbellScene = lazy(() => import("@/components/Hero3DScene"));
 
 const Home = () => {
-  const [activeMembersCount, setActiveMembersCount] = useState(0);
-  const [workoutsCount, setWorkoutsCount] = useState(0);
-  const [successRateCount, setSuccessRateCount] = useState(0);
+  const stats = useStats();
 
-  useEffect(() => {
-    // Counter animations for stats
-    const animateCounter = (
-      setter: (value: number) => void,
-      end: number,
-      duration: number,
-      delay: number
-    ) => {
-      setTimeout(() => {
-        const startTime = Date.now();
-        const startValue = 0;
+  // Animated counters for display
+  const activeMembers = useCounter({
+    end: stats.totalUsers || 1250,
+    duration: 2500,
+    delay: 1000,
+    suffix: '+'
+  });
 
-        const animate = () => {
-          const now = Date.now();
-          const elapsed = now - startTime;
-          const progress = Math.min(elapsed / duration, 1);
+  const workouts = useCounter({
+    end: stats.totalWorkouts || 890,
+    duration: 2000,
+    delay: 1200,
+    suffix: '+'
+  });
 
-          // Easing function for smooth animation
-          const easeOutQuart = 1 - Math.pow(1 - progress, 4);
-          const currentValue = Math.floor(startValue + (end - startValue) * easeOutQuart);
+  const successRate = useCounter({
+    end: Math.round(stats.successRate) || 88,
+    duration: 1800,
+    delay: 1400,
+    suffix: '%'
+  });
 
-          setter(currentValue);
-
-          if (progress < 1) {
-            requestAnimationFrame(animate);
-          } else {
-            setter(end);
-          }
-        };
-
-        requestAnimationFrame(animate);
-      }, delay);
-    };
-
-    animateCounter(setActiveMembersCount, 10000, 2500, 1000);
-    animateCounter(setWorkoutsCount, 500, 2000, 1200);
-    animateCounter(setSuccessRateCount, 98, 1800, 1400);
-  }, []);
-
-  const activeMembers = formatAnimatedNumber(activeMembersCount, "10K+");
-  const workouts = formatAnimatedNumber(workoutsCount, "500+");
-  const successRate = formatAnimatedNumber(successRateCount, "98%");
   const aiSupport = "24/7";
 
   return (
@@ -124,9 +103,21 @@ const Home = () => {
               transition={{ duration: 0.8, delay: 0.8 }}
             >
               {[
-                { number: activeMembers, label: "Active Members" },
-                { number: workouts, label: "Workouts" },
-                { number: successRate, label: "Success Rate" },
+                {
+                  number: stats.isLoading ? "..." : activeMembers,
+                  label: "Active Members",
+                  realValue: stats.totalUsers
+                },
+                {
+                  number: stats.isLoading ? "..." : workouts,
+                  label: "Workouts",
+                  realValue: stats.totalWorkouts
+                },
+                {
+                  number: stats.isLoading ? "..." : successRate,
+                  label: "Success Rate",
+                  realValue: stats.successRate
+                },
                 { number: aiSupport, label: "AI Support" },
               ].map((stat, index) => (
                 <motion.div
