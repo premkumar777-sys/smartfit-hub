@@ -40,11 +40,11 @@ serve(async (req) => {
     try {
         const { message, conversationHistory } = await req.json();
 
-        // Get Gemini API key
-        const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+        // Use Lovable AI Gateway
+        const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
-        if (!GEMINI_API_KEY) {
-            console.error("GEMINI_API_KEY is not configured");
+        if (!LOVABLE_API_KEY) {
+            console.error("LOVABLE_API_KEY is not configured");
             return new Response(
                 JSON.stringify({ error: "AI service not configured." }),
                 { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -53,54 +53,57 @@ serve(async (req) => {
 
         console.log("Processing chat message:", message?.substring(0, 50));
 
-        // Build conversation parts for Gemini
-        const contents = [];
+        // Build messages array for OpenAI-compatible API
+        const messages = [
+            { role: "system", content: systemMessage }
+        ];
 
         // Add conversation history if provided
         if (conversationHistory && Array.isArray(conversationHistory)) {
             for (const msg of conversationHistory.slice(-6)) {
-                contents.push({
-                    role: msg.role === "user" ? "user" : "model",
-                    parts: [{ text: msg.content }]
+                messages.push({
+                    role: msg.role === "user" ? "user" : "assistant",
+                    content: msg.content
                 });
             }
         }
 
         // Add current user message
-        contents.push({
+        messages.push({
             role: "user",
-            parts: [{ text: message || "Hi" }]
+            content: message || "Hi"
         });
 
-        // Call Gemini API
-        const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    contents: contents,
-                    systemInstruction: {
-                        parts: [{ text: systemMessage }]
-                    },
-                    generationConfig: {
-                        temperature: 0.8,
-                        maxOutputTokens: 500,
-                    }
-                }),
-            }
-        );
+        console.log("Calling Lovable AI Gateway...");
+
+        // Call Lovable AI Gateway
+        const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${LOVABLE_API_KEY}`,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                model: "google/gemini-2.5-flash",
+                messages: messages,
+            }),
+        });
 
         if (!response.ok) {
             const errorText = await response.text();
-            console.error("Gemini API error:", response.status, errorText);
+            console.error("Lovable AI Gateway error:", response.status, errorText);
 
             if (response.status === 429) {
                 return new Response(
                     JSON.stringify({ error: "Taking a quick breather! Try again in a moment. 💪" }),
                     { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+                );
+            }
+
+            if (response.status === 402) {
+                return new Response(
+                    JSON.stringify({ error: "AI credits needed. Please add funds." }),
+                    { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
                 );
             }
 
@@ -111,8 +114,7 @@ serve(async (req) => {
         }
 
         const data = await response.json();
-        // Gemini response format: data.candidates[0].content.parts[0].text
-        const reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        const reply = data.choices?.[0]?.message?.content;
 
         if (!reply) {
             console.error("No reply in response:", JSON.stringify(data));
