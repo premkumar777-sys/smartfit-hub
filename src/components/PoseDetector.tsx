@@ -396,8 +396,10 @@ export default function PoseDetector() {
 
         videoRef.current.onloadedmetadata = () => {
           if (canvasRef.current && videoRef.current) {
+            console.log("Video dimensions:", videoRef.current.videoWidth, "x", videoRef.current.videoHeight);
             canvasRef.current.width = videoRef.current.videoWidth;
             canvasRef.current.height = videoRef.current.videoHeight;
+            console.log("Canvas dimensions set to:", canvasRef.current.width, "x", canvasRef.current.height);
             detectPose();
           }
         };
@@ -482,19 +484,32 @@ export default function PoseDetector() {
       let poses: poseDetection.Pose[] = [];
       if (detector) {
         try {
-          poses = await detector.estimatePoses(video, {
-            maxPoses: 1,
-            flipHorizontal: false,
-          });
+          // Debug: Check if video is ready
+          if (video.readyState >= 2) { // HAVE_CURRENT_DATA or better
+            poses = await detector.estimatePoses(video, {
+              maxPoses: 1,
+              flipHorizontal: false,
+              scoreThreshold: 0.3, // Lower threshold for keypoint detection
+            });
+            console.log("Poses detected:", poses.length, poses[0]?.keypoints?.length || 0);
+          } else {
+            console.log("Video not ready, readyState:", video.readyState);
+          }
         } catch (error) {
           console.warn("Pose detection error:", error);
           // Continue with empty poses if detection fails
         }
+      } else {
+        console.log("Detector not available");
       }
 
       if (poses.length > 0) {
         const pose = poses[0];
         const avgScore = calculateAverageScore(pose.keypoints);
+        const validKeypoints = pose.keypoints.filter(kp => kp.score && kp.score > 0.1).length;
+
+        console.log("Pose detected with", validKeypoints, "valid keypoints, avg score:", avgScore);
+
         updateFormQuality(avgScore);
 
         // Update debug angles
@@ -511,7 +526,10 @@ export default function PoseDetector() {
           drawRepCelebration(ctx, canvas);
         }
 
-        countReps(pose.keypoints);
+        // Only count reps if we have enough valid keypoints for the exercise
+        if (validKeypoints >= 8) { // Require at least 8 keypoints for basic pose detection
+          countReps(pose.keypoints);
+        }
       } else {
         // Draw "No pose detected" indicator
         drawNoPoseIndicator(ctx, canvas);
@@ -573,23 +591,26 @@ export default function PoseDetector() {
 
     // Background
     ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
-    ctx.fillRect(centerX - 120, centerY - 60, 240, 120);
+    ctx.fillRect(centerX - 140, centerY - 80, 280, 160);
 
     // Border
     ctx.strokeStyle = "#FF4444";
     ctx.lineWidth = 2;
-    ctx.strokeRect(centerX - 120, centerY - 60, 240, 120);
+    ctx.strokeRect(centerX - 140, centerY - 80, 280, 160);
 
-    // Text
+    // Title
     ctx.fillStyle = "#FFFFFF";
-    ctx.font = "bold 18px Arial";
+    ctx.font = "bold 20px Arial";
     ctx.textAlign = "center";
-    ctx.fillText("⚠️ No Pose Detected", centerX, centerY - 10);
+    ctx.fillText("👤 No Person Detected", centerX, centerY - 30);
 
+    // Instructions
     ctx.fillStyle = "#CCCCCC";
     ctx.font = "14px Arial";
-    ctx.fillText("Make sure you're in frame", centerX, centerY + 15);
-    ctx.fillText("and well lit", centerX, centerY + 35);
+    ctx.fillText("• Stand in front of the camera", centerX, centerY - 5);
+    ctx.fillText("• Make sure you're well lit", centerX, centerY + 15);
+    ctx.fillText("• Keep your full body in frame", centerX, centerY + 35);
+    ctx.fillText("• Try moving closer to the camera", centerX, centerY + 55);
   };
 
   const drawRepCelebration = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {
@@ -649,14 +670,14 @@ export default function PoseDetector() {
 
   const drawKeypoints = (keypoints: poseDetection.Keypoint[], ctx: CanvasRenderingContext2D) => {
     keypoints.forEach((keypoint, index) => {
-      if (keypoint.score && keypoint.score > 0.2) { // Lower threshold for visibility
+      if (keypoint.score && keypoint.score > 0.1) { // Even lower threshold for debugging
         const confidence = keypoint.score;
-        const radius = Math.max(4, Math.min(12, confidence * 10)); // Size based on confidence
+        const radius = Math.max(3, Math.min(15, confidence * 12)); // Size based on confidence
 
         // Outer glow ring
         ctx.beginPath();
-        ctx.arc(keypoint.x, keypoint.y, radius + 3, 0, 2 * Math.PI);
-        ctx.fillStyle = `rgba(0, 255, 156, ${confidence * 0.3})`;
+        ctx.arc(keypoint.x, keypoint.y, radius + 4, 0, 2 * Math.PI);
+        ctx.fillStyle = `rgba(0, 255, 156, ${confidence * 0.4})`;
         ctx.fill();
 
         // Main keypoint
@@ -664,11 +685,11 @@ export default function PoseDetector() {
         ctx.arc(keypoint.x, keypoint.y, radius, 0, 2 * Math.PI);
 
         // Color based on confidence and form quality
-        let color = "#FF4444"; // Low confidence default
-        if (confidence > 0.8) {
+        let color = "#FF6B6B"; // Low confidence default
+        if (confidence > 0.7) {
           color = formQuality === "good" ? "#00FF9C" : formQuality === "fair" ? "#4CC9F0" : "#FFB800";
-        } else if (confidence > 0.5) {
-          color = formQuality === "good" ? "#4CC9F0" : "#FFB800";
+        } else if (confidence > 0.4) {
+          color = "#FFD93D"; // Medium confidence
         }
 
         ctx.fillStyle = color;
@@ -677,16 +698,25 @@ export default function PoseDetector() {
         // Inner confidence ring
         ctx.beginPath();
         ctx.arc(keypoint.x, keypoint.y, radius - 2, 0, 2 * Math.PI * confidence);
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.9)";
         ctx.lineWidth = 2;
         ctx.stroke();
 
         // White border
         ctx.beginPath();
         ctx.arc(keypoint.x, keypoint.y, radius, 0, 2 * Math.PI);
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.7)";
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
         ctx.lineWidth = 1;
         ctx.stroke();
+
+        // Debug: Show keypoint names in debug mode
+        if (debugMode && confidence > 0.3) {
+          ctx.fillStyle = "#FFFFFF";
+          ctx.font = "10px Arial";
+          ctx.textAlign = "center";
+          const keypointNames = ["nose", "left_eye", "right_eye", "left_ear", "right_ear", "left_shoulder", "right_shoulder", "left_elbow", "right_elbow", "left_wrist", "right_wrist", "left_hip", "right_hip", "left_knee", "right_knee", "left_ankle", "right_ankle"];
+          ctx.fillText(`${keypointNames[index] || index}`, keypoint.x, keypoint.y - radius - 8);
+        }
       }
     });
   };
@@ -913,20 +943,31 @@ export default function PoseDetector() {
             autoPlay
             playsInline
             muted
-            className="absolute inset-0 w-full h-full object-cover opacity-0"
+            className={`absolute inset-0 w-full h-full object-cover ${debugMode ? 'opacity-50' : 'opacity-0'}`}
           />
           <canvas
             ref={canvasRef}
             className="absolute inset-0 w-full h-full"
           />
 
-          {/* Exercise indicator overlay */}
+          {/* Exercise and status indicator overlay */}
           {isDetecting && (
-            <div className="absolute top-4 left-4 bg-black/70 text-white px-4 py-2 rounded-lg border border-white/20">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
-                <span className="font-semibold text-sm">Tracking: {EXERCISES[selectedExercise].name}</span>
+            <div className="absolute top-4 left-4 space-y-2">
+              <div className="bg-black/70 text-white px-4 py-2 rounded-lg border border-white/20">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+                  <span className="font-semibold text-sm">Tracking: {EXERCISES[selectedExercise].name}</span>
+                </div>
               </div>
+
+              {/* Debug status */}
+              {debugMode && (
+                <div className="bg-black/70 text-white px-4 py-2 rounded-lg border border-white/20 text-xs">
+                  <div>Detector: {detector ? '✅' : '❌'}</div>
+                  <div>Video Ready: {videoRef.current?.readyState >= 2 ? '✅' : '❌'}</div>
+                  <div>Canvas: {canvasRef.current?.width}x{canvasRef.current?.height}</div>
+                </div>
+              )}
             </div>
           )}
 
