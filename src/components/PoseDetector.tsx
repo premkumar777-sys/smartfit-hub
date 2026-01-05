@@ -263,6 +263,7 @@ export default function PoseDetector() {
   const [formQuality, setFormQuality] = useState<"good" | "fair" | "poor" | null>(null);
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [debugMode, setDebugMode] = useState(false);
+  const [hasRequestedPermission, setHasRequestedPermission] = useState(false);
   const [debugAngles, setDebugAngles] = useState<{
     leftKnee: number | null;
     rightKnee: number | null;
@@ -332,15 +333,34 @@ export default function PoseDetector() {
   };
 
   const startCamera = async () => {
+    setHasRequestedPermission(true);
+
     try {
+      // Check if camera is supported
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        toast({
+          title: "Camera Not Supported",
+          description: "Your browser doesn't support camera access. Please use a modern browser like Chrome or Firefox.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Request camera permission with better constraints
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { width: 640, height: 480 },
+        video: {
+          width: { ideal: 640 },
+          height: { ideal: 480 },
+          facingMode: "user" // Use front camera
+        },
+        audio: false
       });
+
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         isDetectingRef.current = true;
         setIsDetecting(true);
-        
+
         videoRef.current.onloadedmetadata = () => {
           if (canvasRef.current && videoRef.current) {
             canvasRef.current.width = videoRef.current.videoWidth;
@@ -349,11 +369,41 @@ export default function PoseDetector() {
           }
         };
       }
-    } catch (error) {
-      console.error("Error accessing camera:", error);
+
       toast({
-        title: "Camera Error",
-        description: "Unable to access camera. Please check permissions.",
+        title: "Camera Access Granted",
+        description: "Your camera is now active for pose detection.",
+      });
+
+    } catch (error: any) {
+      console.error("Error accessing camera:", error);
+
+      // Provide specific error messages based on error type
+      let errorMessage = "Unable to access camera. ";
+      let errorTitle = "Camera Error";
+
+      if (error.name === 'NotAllowedError') {
+        errorMessage += "Please allow camera access in your browser settings and try again.";
+        errorTitle = "Camera Permission Denied";
+      } else if (error.name === 'NotFoundError') {
+        errorMessage += "No camera found on this device.";
+        errorTitle = "No Camera Detected";
+      } else if (error.name === 'NotReadableError') {
+        errorMessage += "Camera is being used by another application.";
+        errorTitle = "Camera In Use";
+      } else if (error.name === 'OverconstrainedError') {
+        errorMessage += "Camera doesn't support the required video quality.";
+        errorTitle = "Camera Not Compatible";
+      } else if (error.name === 'SecurityError') {
+        errorMessage += "Camera access is restricted. Please check your browser security settings.";
+        errorTitle = "Security Restriction";
+      } else {
+        errorMessage += "Please check your browser permissions and try again.";
+      }
+
+      toast({
+        title: errorTitle,
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -704,6 +754,30 @@ export default function PoseDetector() {
             </div>
           )}
         </div>
+
+        {/* Camera Permission Notice */}
+        {!isDetecting && !hasRequestedPermission && (
+          <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 mb-4">
+            <div className="flex items-start gap-3">
+              <Camera className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
+              <div className="space-y-2">
+                <h4 className="text-sm font-medium text-blue-400">Camera Permission Required</h4>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  SmartFit AI needs camera access to track your exercises in real-time.
+                  When you click "Start Camera", your browser will ask for permission to access your camera.
+                </p>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <span>•</span>
+                  <span>Your video feed stays private and is only used for pose detection</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <span>•</span>
+                  <span>You can revoke permission anytime in your browser settings</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="flex gap-4">
           {!isDetecting ? (
