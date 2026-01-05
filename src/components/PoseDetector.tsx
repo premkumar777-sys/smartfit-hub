@@ -264,6 +264,7 @@ export default function PoseDetector() {
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [debugMode, setDebugMode] = useState(false);
   const [hasRequestedPermission, setHasRequestedPermission] = useState(false);
+  const [repCelebration, setRepCelebration] = useState(false);
   const [debugAngles, setDebugAngles] = useState<{
     leftKnee: number | null;
     rightKnee: number | null;
@@ -503,7 +504,17 @@ export default function PoseDetector() {
 
         drawKeypoints(pose.keypoints, ctx);
         drawSkeleton(pose.keypoints, ctx);
+        drawAccuracyIndicator(avgScore, ctx, canvas);
+
+        // Draw celebration effect if active
+        if (repCelebration) {
+          drawRepCelebration(ctx, canvas);
+        }
+
         countReps(pose.keypoints);
+      } else {
+        // Draw "No pose detected" indicator
+        drawNoPoseIndicator(ctx, canvas);
       }
 
       requestAnimationFrame(detect);
@@ -515,6 +526,95 @@ export default function PoseDetector() {
   const calculateAverageScore = (keypoints: poseDetection.Keypoint[]): number => {
     const scores = keypoints.filter(kp => kp.score !== undefined).map(kp => kp.score!);
     return scores.reduce((a, b) => a + b, 0) / scores.length;
+  };
+
+  const drawAccuracyIndicator = (accuracy: number, ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {
+    const percentage = Math.round(accuracy * 100);
+    const centerX = canvas.width - 80;
+    const centerY = 80;
+    const radius = 35;
+
+    // Background circle
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+    ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+    ctx.fill();
+
+    // Accuracy arc
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius - 5, -Math.PI / 2, -Math.PI / 2 + (percentage / 100) * 2 * Math.PI);
+    ctx.lineWidth = 6;
+
+    // Color based on accuracy
+    if (percentage >= 80) {
+      ctx.strokeStyle = "#00FF9C";
+    } else if (percentage >= 60) {
+      ctx.strokeStyle = "#FFB800";
+    } else {
+      ctx.strokeStyle = "#FF4444";
+    }
+    ctx.stroke();
+
+    // Percentage text
+    ctx.fillStyle = "#FFFFFF";
+    ctx.font = "bold 16px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText(`${percentage}%`, centerX, centerY + 2);
+
+    // Label
+    ctx.fillStyle = "#FFFFFF";
+    ctx.font = "12px Arial";
+    ctx.fillText("Accuracy", centerX, centerY + 20);
+  };
+
+  const drawNoPoseIndicator = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+
+    // Background
+    ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
+    ctx.fillRect(centerX - 120, centerY - 60, 240, 120);
+
+    // Border
+    ctx.strokeStyle = "#FF4444";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(centerX - 120, centerY - 60, 240, 120);
+
+    // Text
+    ctx.fillStyle = "#FFFFFF";
+    ctx.font = "bold 18px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("⚠️ No Pose Detected", centerX, centerY - 10);
+
+    ctx.fillStyle = "#CCCCCC";
+    ctx.font = "14px Arial";
+    ctx.fillText("Make sure you're in frame", centerX, centerY + 15);
+    ctx.fillText("and well lit", centerX, centerY + 35);
+  };
+
+  const drawRepCelebration = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+
+    // Pulsing background effect
+    const time = Date.now() * 0.005;
+    const pulse = Math.sin(time) * 0.5 + 0.5;
+    const radius = 100 + pulse * 50;
+
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+    ctx.fillStyle = `rgba(0, 255, 156, ${0.2 - pulse * 0.1})`;
+    ctx.fill();
+
+    // Celebration text
+    ctx.fillStyle = "#00FF9C";
+    ctx.font = "bold 32px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("🎉 PERFECT!", centerX, centerY - 10);
+
+    ctx.fillStyle = "#FFFFFF";
+    ctx.font = "16px Arial";
+    ctx.fillText("Rep counted!", centerX, centerY + 20);
   };
 
   const updateFormQuality = useCallback((avgScore: number) => {
@@ -548,14 +648,44 @@ export default function PoseDetector() {
   }, [voiceEnabled]);
 
   const drawKeypoints = (keypoints: poseDetection.Keypoint[], ctx: CanvasRenderingContext2D) => {
-    keypoints.forEach((keypoint) => {
-      if (keypoint.score && keypoint.score > 0.3) {
+    keypoints.forEach((keypoint, index) => {
+      if (keypoint.score && keypoint.score > 0.2) { // Lower threshold for visibility
+        const confidence = keypoint.score;
+        const radius = Math.max(4, Math.min(12, confidence * 10)); // Size based on confidence
+
+        // Outer glow ring
         ctx.beginPath();
-        ctx.arc(keypoint.x, keypoint.y, 6, 0, 2 * Math.PI);
-        ctx.fillStyle = formQuality === "good" ? "#00FF9C" : formQuality === "fair" ? "#FFB800" : "#FF4444";
+        ctx.arc(keypoint.x, keypoint.y, radius + 3, 0, 2 * Math.PI);
+        ctx.fillStyle = `rgba(0, 255, 156, ${confidence * 0.3})`;
         ctx.fill();
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
+
+        // Main keypoint
+        ctx.beginPath();
+        ctx.arc(keypoint.x, keypoint.y, radius, 0, 2 * Math.PI);
+
+        // Color based on confidence and form quality
+        let color = "#FF4444"; // Low confidence default
+        if (confidence > 0.8) {
+          color = formQuality === "good" ? "#00FF9C" : formQuality === "fair" ? "#4CC9F0" : "#FFB800";
+        } else if (confidence > 0.5) {
+          color = formQuality === "good" ? "#4CC9F0" : "#FFB800";
+        }
+
+        ctx.fillStyle = color;
+        ctx.fill();
+
+        // Inner confidence ring
+        ctx.beginPath();
+        ctx.arc(keypoint.x, keypoint.y, radius - 2, 0, 2 * Math.PI * confidence);
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
         ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // White border
+        ctx.beginPath();
+        ctx.arc(keypoint.x, keypoint.y, radius, 0, 2 * Math.PI);
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.7)";
+        ctx.lineWidth = 1;
         ctx.stroke();
       }
     });
@@ -571,12 +701,24 @@ export default function PoseDetector() {
     adjacentKeyPoints.forEach(([i, j]) => {
       const kp1 = keypoints[i];
       const kp2 = keypoints[j];
-      if (kp1.score && kp2.score && kp1.score > 0.3 && kp2.score > 0.3) {
+      if (kp1.score && kp2.score && kp1.score > 0.2 && kp2.score > 0.2) {
+        const avgConfidence = (kp1.score + kp2.score) / 2;
+        const lineWidth = Math.max(2, Math.min(5, avgConfidence * 4));
+
+        // Draw glow effect
+        ctx.beginPath();
+        ctx.moveTo(kp1.x, kp1.y);
+        ctx.lineTo(kp2.x, kp2.y);
+        ctx.strokeStyle = formQuality === "good" ? "rgba(76, 201, 240, 0.5)" : formQuality === "fair" ? "rgba(255, 184, 0, 0.5)" : "rgba(255, 68, 68, 0.5)";
+        ctx.lineWidth = lineWidth + 3;
+        ctx.stroke();
+
+        // Draw main skeleton line
         ctx.beginPath();
         ctx.moveTo(kp1.x, kp1.y);
         ctx.lineTo(kp2.x, kp2.y);
         ctx.strokeStyle = formQuality === "good" ? "#4CC9F0" : formQuality === "fair" ? "#FFB800" : "#FF4444";
-        ctx.lineWidth = 3;
+        ctx.lineWidth = lineWidth;
         ctx.stroke();
       }
     });
@@ -664,6 +806,11 @@ export default function PoseDetector() {
           title: "Perfect Rep! 💪",
           description: `${exercise.name}: Rep ${newCount} completed`,
         });
+
+        // Trigger celebration effect
+        setRepCelebration(true);
+        setTimeout(() => setRepCelebration(false), 1500);
+
         return newCount;
       });
     }
@@ -737,20 +884,26 @@ export default function PoseDetector() {
           </div>
         </div>
 
-        {/* Form Quality Indicator */}
+        {/* Enhanced Form Quality Indicator */}
         {isDetecting && formQuality && (
-          <div className={`flex items-center gap-2 px-4 py-2 rounded-lg ${
-            formQuality === "good" ? "bg-green-500/20 text-green-400" :
-            formQuality === "fair" ? "bg-yellow-500/20 text-yellow-400" :
-            "bg-red-500/20 text-red-400"
+          <div className={`flex items-center gap-3 px-6 py-3 rounded-xl border-2 transition-all duration-300 ${
+            formQuality === "good" ? "bg-green-500/20 border-green-400/50 text-green-400 shadow-lg shadow-green-400/20" :
+            formQuality === "fair" ? "bg-yellow-500/20 border-yellow-400/50 text-yellow-400 shadow-lg shadow-yellow-400/20" :
+            "bg-red-500/20 border-red-400/50 text-red-400 shadow-lg shadow-red-400/20"
           }`}>
-            <div className={`w-3 h-3 rounded-full ${
+            <div className={`w-4 h-4 rounded-full animate-pulse ${
               formQuality === "good" ? "bg-green-400" :
               formQuality === "fair" ? "bg-yellow-400" :
               "bg-red-400"
             }`} />
-            <span className="font-medium capitalize">Form Quality: {formQuality}</span>
-            {formQuality === "poor" && <span className="text-sm ml-2">- Move closer to camera</span>}
+            <div className="flex flex-col">
+              <span className="font-bold text-lg capitalize">Form: {formQuality}</span>
+              <span className="text-sm opacity-80">
+                {formQuality === "good" && "Excellent! Keep it up! 💪"}
+                {formQuality === "fair" && "Good form, minor adjustments needed"}
+                {formQuality === "poor" && "Move closer to camera for better detection"}
+              </span>
+            </div>
           </div>
         )}
 
@@ -766,6 +919,17 @@ export default function PoseDetector() {
             ref={canvasRef}
             className="absolute inset-0 w-full h-full"
           />
+
+          {/* Exercise indicator overlay */}
+          {isDetecting && (
+            <div className="absolute top-4 left-4 bg-black/70 text-white px-4 py-2 rounded-lg border border-white/20">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+                <span className="font-semibold text-sm">Tracking: {EXERCISES[selectedExercise].name}</span>
+              </div>
+            </div>
+          )}
+
           {!isDetecting && (
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="text-center space-y-4">
