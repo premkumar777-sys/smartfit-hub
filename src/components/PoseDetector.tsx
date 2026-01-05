@@ -4,7 +4,7 @@ import * as poseDetection from "@tensorflow-models/pose-detection";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Camera, StopCircle, RotateCcw, ChevronDown, Volume2, VolumeX } from "lucide-react";
+import { Camera, StopCircle, RotateCcw, ChevronDown, Volume2, VolumeX, Bug } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -262,6 +262,26 @@ export default function PoseDetector() {
   const isDownRef = useRef(false);
   const [formQuality, setFormQuality] = useState<"good" | "fair" | "poor" | null>(null);
   const [voiceEnabled, setVoiceEnabled] = useState(true);
+  const [debugMode, setDebugMode] = useState(false);
+  const [debugAngles, setDebugAngles] = useState<{
+    leftKnee: number | null;
+    rightKnee: number | null;
+    leftElbow: number | null;
+    rightElbow: number | null;
+    leftHip: number | null;
+    rightHip: number | null;
+    ankleSpread: number | null;
+    armsUp: boolean;
+  }>({
+    leftKnee: null,
+    rightKnee: null,
+    leftElbow: null,
+    rightElbow: null,
+    leftHip: null,
+    rightHip: null,
+    ankleSpread: null,
+    armsUp: false,
+  });
   const lastFormFeedbackRef = useRef<string | null>(null);
   const formFeedbackTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
@@ -375,6 +395,11 @@ export default function PoseDetector() {
         const avgScore = calculateAverageScore(pose.keypoints);
         updateFormQuality(avgScore);
         
+        // Update debug angles
+        if (debugMode) {
+          updateDebugAngles(pose.keypoints);
+        }
+        
         drawKeypoints(pose.keypoints, ctx);
         drawSkeleton(pose.keypoints, ctx);
         countReps(pose.keypoints);
@@ -455,6 +480,70 @@ export default function PoseDetector() {
       }
     });
   };
+
+  const updateDebugAngles = useCallback((keypoints: poseDetection.Keypoint[]) => {
+    const leftHip = keypoints[11];
+    const leftKnee = keypoints[13];
+    const leftAnkle = keypoints[15];
+    const rightHip = keypoints[12];
+    const rightKnee = keypoints[14];
+    const rightAnkle = keypoints[16];
+    const leftShoulder = keypoints[5];
+    const leftElbow = keypoints[7];
+    const leftWrist = keypoints[9];
+    const rightShoulder = keypoints[6];
+    const rightElbow = keypoints[8];
+    const rightWrist = keypoints[10];
+
+    const angles: typeof debugAngles = {
+      leftKnee: null,
+      rightKnee: null,
+      leftElbow: null,
+      rightElbow: null,
+      leftHip: null,
+      rightHip: null,
+      ankleSpread: null,
+      armsUp: false,
+    };
+
+    // Calculate knee angles
+    if (isValidKeypoint(leftHip) && isValidKeypoint(leftKnee) && isValidKeypoint(leftAnkle)) {
+      angles.leftKnee = Math.round(calculateAngle(leftHip, leftKnee, leftAnkle));
+    }
+    if (isValidKeypoint(rightHip) && isValidKeypoint(rightKnee) && isValidKeypoint(rightAnkle)) {
+      angles.rightKnee = Math.round(calculateAngle(rightHip, rightKnee, rightAnkle));
+    }
+
+    // Calculate elbow angles
+    if (isValidKeypoint(leftShoulder) && isValidKeypoint(leftElbow) && isValidKeypoint(leftWrist)) {
+      angles.leftElbow = Math.round(calculateAngle(leftShoulder, leftElbow, leftWrist));
+    }
+    if (isValidKeypoint(rightShoulder) && isValidKeypoint(rightElbow) && isValidKeypoint(rightWrist)) {
+      angles.rightElbow = Math.round(calculateAngle(rightShoulder, rightElbow, rightWrist));
+    }
+
+    // Calculate hip angles (for lunges/squats)
+    if (isValidKeypoint(leftShoulder) && isValidKeypoint(leftHip) && isValidKeypoint(leftKnee)) {
+      angles.leftHip = Math.round(calculateAngle(leftShoulder, leftHip, leftKnee));
+    }
+    if (isValidKeypoint(rightShoulder) && isValidKeypoint(rightHip) && isValidKeypoint(rightKnee)) {
+      angles.rightHip = Math.round(calculateAngle(rightShoulder, rightHip, rightKnee));
+    }
+
+    // Calculate ankle spread ratio (for jumping jacks)
+    if (isValidKeypoint(leftHip) && isValidKeypoint(rightHip) && isValidKeypoint(leftAnkle) && isValidKeypoint(rightAnkle)) {
+      const hipWidth = Math.abs(leftHip.x - rightHip.x);
+      const ankleWidth = Math.abs(leftAnkle.x - rightAnkle.x);
+      angles.ankleSpread = Math.round((ankleWidth / hipWidth) * 100) / 100;
+    }
+
+    // Check arms up
+    if (isValidKeypoint(leftShoulder) && isValidKeypoint(leftWrist) && isValidKeypoint(rightShoulder) && isValidKeypoint(rightWrist)) {
+      angles.armsUp = leftWrist.y < leftShoulder.y && rightWrist.y < rightShoulder.y;
+    }
+
+    setDebugAngles(angles);
+  }, []);
 
   const countReps = useCallback((keypoints: poseDetection.Keypoint[]) => {
     const exercise = EXERCISES[selectedExercise];
@@ -584,6 +673,36 @@ export default function PoseDetector() {
               </div>
             </div>
           )}
+          
+          {/* Debug Overlay */}
+          {isDetecting && debugMode && (
+            <div className="absolute top-4 left-4 bg-black/80 text-white p-4 rounded-lg text-sm font-mono space-y-1 max-w-[200px]">
+              <div className="text-primary font-bold mb-2">🔧 Debug Angles</div>
+              <div className="border-b border-white/20 pb-2 mb-2">
+                <div className="text-muted-foreground text-xs uppercase">Knees</div>
+                <div>L: {debugAngles.leftKnee ?? '—'}°</div>
+                <div>R: {debugAngles.rightKnee ?? '—'}°</div>
+              </div>
+              <div className="border-b border-white/20 pb-2 mb-2">
+                <div className="text-muted-foreground text-xs uppercase">Elbows</div>
+                <div>L: {debugAngles.leftElbow ?? '—'}°</div>
+                <div>R: {debugAngles.rightElbow ?? '—'}°</div>
+              </div>
+              <div className="border-b border-white/20 pb-2 mb-2">
+                <div className="text-muted-foreground text-xs uppercase">Hips</div>
+                <div>L: {debugAngles.leftHip ?? '—'}°</div>
+                <div>R: {debugAngles.rightHip ?? '—'}°</div>
+              </div>
+              <div>
+                <div className="text-muted-foreground text-xs uppercase">Other</div>
+                <div>Spread: {debugAngles.ankleSpread ?? '—'}x</div>
+                <div>Arms Up: {debugAngles.armsUp ? '✓' : '✗'}</div>
+              </div>
+              <div className="border-t border-white/20 pt-2 mt-2 text-xs text-muted-foreground">
+                <div>State: {isDown ? 'DOWN' : 'UP'}</div>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="flex gap-4">
@@ -611,6 +730,13 @@ export default function PoseDetector() {
             title={voiceEnabled ? "Disable voice feedback" : "Enable voice feedback"}
           >
             {voiceEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+          </Button>
+          <Button
+            onClick={() => setDebugMode(prev => !prev)}
+            variant={debugMode ? "secondary" : "outline"}
+            title={debugMode ? "Hide debug overlay" : "Show debug overlay"}
+          >
+            <Bug className="h-4 w-4" />
           </Button>
         </div>
 
