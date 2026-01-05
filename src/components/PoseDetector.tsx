@@ -336,37 +336,56 @@ export default function PoseDetector() {
     setHasRequestedPermission(true);
 
     try {
-      // Check if camera is supported
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      // Check HTTPS requirement for camera access
+      if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
         toast({
-          title: "Camera Not Supported",
-          description: "Your browser doesn't support camera access. Please use a modern browser like Chrome or Firefox.",
+          title: "HTTPS Required",
+          description: "Camera access requires HTTPS. Please access this site using https:// or use localhost for development.",
           variant: "destructive",
         });
         return;
       }
 
-      // Request camera permission with flexible constraints
+      // Check if camera is supported
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        toast({
+          title: "Browser Not Supported",
+          description: `Your browser (${navigator.userAgent.split(' ')[0]}) doesn't support camera access. Please use Chrome, Firefox, Edge, or Safari.`,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Request camera permission with very flexible constraints
       let stream: MediaStream;
       try {
         stream = await navigator.mediaDevices.getUserMedia({
           video: {
-            width: { ideal: 640, min: 320 },
-            height: { ideal: 480, min: 240 },
+            width: { ideal: 640 },
+            height: { ideal: 480 },
             facingMode: "user" // Use front camera
           },
           audio: false
         });
       } catch (frontCameraError) {
-        // Fallback: try without front camera constraint
         console.log("Front camera not available, trying default camera:", frontCameraError);
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            width: { ideal: 640, min: 320 },
-            height: { ideal: 480, min: 240 }
-          },
-          audio: false
-        });
+        try {
+          // More flexible fallback
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              width: { ideal: 640 },
+              height: { ideal: 480 }
+            },
+            audio: false
+          });
+        } catch (defaultCameraError) {
+          console.log("Default camera failed, trying minimal constraints:", defaultCameraError);
+          // Last resort: minimal constraints
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: false
+          });
+        }
       }
 
       if (videoRef.current) {
@@ -442,27 +461,46 @@ export default function PoseDetector() {
 
     if (!ctx) return;
 
-    const detect = async () => {
+    let lastFrameTime = 0;
+    const targetFPS = 15; // Limit to 15 FPS for better performance
+    const frameInterval = 1000 / targetFPS;
+
+    const detect = async (currentTime: number) => {
       if (!isDetectingRef.current) return;
+
+      // Limit frame rate for better performance
+      if (currentTime - lastFrameTime < frameInterval) {
+        requestAnimationFrame(detect);
+        return;
+      }
+      lastFrameTime = currentTime;
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
       let poses: poseDetection.Pose[] = [];
       if (detector) {
-        poses = await detector.estimatePoses(video);
+        try {
+          poses = await detector.estimatePoses(video, {
+            maxPoses: 1,
+            flipHorizontal: false,
+          });
+        } catch (error) {
+          console.warn("Pose detection error:", error);
+          // Continue with empty poses if detection fails
+        }
       }
 
       if (poses.length > 0) {
         const pose = poses[0];
         const avgScore = calculateAverageScore(pose.keypoints);
         updateFormQuality(avgScore);
-        
+
         // Update debug angles
         if (debugMode) {
           updateDebugAngles(pose.keypoints);
         }
-        
+
         drawKeypoints(pose.keypoints, ctx);
         drawSkeleton(pose.keypoints, ctx);
         countReps(pose.keypoints);
@@ -471,7 +509,7 @@ export default function PoseDetector() {
       requestAnimationFrame(detect);
     };
 
-    detect();
+    requestAnimationFrame(detect);
   };
 
   const calculateAverageScore = (keypoints: poseDetection.Keypoint[]): number => {
