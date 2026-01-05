@@ -32,29 +32,59 @@ interface ExerciseConfig {
   detectRep: (keypoints: poseDetection.Keypoint[], isDown: boolean) => { isDown: boolean; repCompleted: boolean };
 }
 
+// Calculate angle between three points (in degrees)
+const calculateAngle = (
+  a: { x: number; y: number },
+  b: { x: number; y: number },
+  c: { x: number; y: number }
+): number => {
+  const radians = Math.atan2(c.y - b.y, c.x - b.x) - Math.atan2(a.y - b.y, a.x - b.x);
+  let angle = Math.abs((radians * 180) / Math.PI);
+  if (angle > 180) angle = 360 - angle;
+  return angle;
+};
+
+// Check if keypoint is valid (exists and has good confidence)
+const isValidKeypoint = (kp: poseDetection.Keypoint | undefined, minScore = 0.25): kp is poseDetection.Keypoint => {
+  return kp !== undefined && kp.score !== undefined && kp.score > minScore;
+};
+
 const EXERCISES: Record<ExerciseType, ExerciseConfig> = {
   squat: {
     name: "Squats",
     description: "Stand with feet shoulder-width apart, lower your hips until thighs are parallel to ground",
     detectRep: (keypoints, isDown) => {
+      // Use angle-based detection for squats (knee angle)
       const leftHip = keypoints[11];
-      const rightHip = keypoints[12];
       const leftKnee = keypoints[13];
+      const leftAnkle = keypoints[15];
+      const rightHip = keypoints[12];
       const rightKnee = keypoints[14];
+      const rightAnkle = keypoints[16];
 
-      if (leftHip.score && rightHip.score && leftKnee.score && rightKnee.score &&
-          leftHip.score > 0.3 && rightHip.score > 0.3 && 
-          leftKnee.score > 0.3 && rightKnee.score > 0.3) {
-        const hipY = (leftHip.y + rightHip.y) / 2;
-        const kneeY = (leftKnee.y + rightKnee.y) / 2;
-        const threshold = 50;
+      // Check left side
+      const leftValid = isValidKeypoint(leftHip) && isValidKeypoint(leftKnee) && isValidKeypoint(leftAnkle);
+      // Check right side
+      const rightValid = isValidKeypoint(rightHip) && isValidKeypoint(rightKnee) && isValidKeypoint(rightAnkle);
 
-        if (hipY > kneeY - threshold && !isDown) {
-          return { isDown: true, repCompleted: false };
-        } else if (hipY < kneeY - threshold * 2 && isDown) {
-          return { isDown: false, repCompleted: true };
-        }
+      if (!leftValid && !rightValid) return { isDown, repCompleted: false };
+
+      let kneeAngle = 180;
+      
+      if (leftValid) {
+        kneeAngle = calculateAngle(leftHip, leftKnee, leftAnkle);
+      } else if (rightValid) {
+        kneeAngle = calculateAngle(rightHip, rightKnee, rightAnkle);
       }
+
+      // Down position: knee bent past 120 degrees (lower = more bent)
+      // Standing: knee extended past 150 degrees
+      if (kneeAngle < 120 && !isDown) {
+        return { isDown: true, repCompleted: false };
+      } else if (kneeAngle > 150 && isDown) {
+        return { isDown: false, repCompleted: true };
+      }
+      
       return { isDown, repCompleted: false };
     }
   },
@@ -62,26 +92,35 @@ const EXERCISES: Record<ExerciseType, ExerciseConfig> = {
     name: "Push-ups",
     description: "Start in plank position, lower chest to ground, then push back up",
     detectRep: (keypoints, isDown) => {
+      // Use elbow angle for push-up detection
       const leftShoulder = keypoints[5];
-      const rightShoulder = keypoints[6];
       const leftElbow = keypoints[7];
-      const rightElbow = keypoints[8];
       const leftWrist = keypoints[9];
+      const rightShoulder = keypoints[6];
+      const rightElbow = keypoints[8];
       const rightWrist = keypoints[10];
 
-      if (leftShoulder.score && rightShoulder.score && leftElbow.score && rightElbow.score &&
-          leftShoulder.score > 0.3 && rightShoulder.score > 0.3 &&
-          leftElbow.score > 0.3 && rightElbow.score > 0.3) {
-        const shoulderY = (leftShoulder.y + rightShoulder.y) / 2;
-        const elbowY = (leftElbow.y + rightElbow.y) / 2;
-        
-        // Down position: shoulders close to or below elbows
-        if (shoulderY >= elbowY - 20 && !isDown) {
-          return { isDown: true, repCompleted: false };
-        } else if (shoulderY < elbowY - 60 && isDown) {
-          return { isDown: false, repCompleted: true };
-        }
+      const leftValid = isValidKeypoint(leftShoulder) && isValidKeypoint(leftElbow) && isValidKeypoint(leftWrist);
+      const rightValid = isValidKeypoint(rightShoulder) && isValidKeypoint(rightElbow) && isValidKeypoint(rightWrist);
+
+      if (!leftValid && !rightValid) return { isDown, repCompleted: false };
+
+      let elbowAngle = 180;
+      
+      if (leftValid) {
+        elbowAngle = calculateAngle(leftShoulder, leftElbow, leftWrist);
+      } else if (rightValid) {
+        elbowAngle = calculateAngle(rightShoulder, rightElbow, rightWrist);
       }
+
+      // Down position: elbow bent past 100 degrees
+      // Up position: elbow extended past 150 degrees
+      if (elbowAngle < 100 && !isDown) {
+        return { isDown: true, repCompleted: false };
+      } else if (elbowAngle > 150 && isDown) {
+        return { isDown: false, repCompleted: true };
+      }
+      
       return { isDown, repCompleted: false };
     }
   },
@@ -89,30 +128,41 @@ const EXERCISES: Record<ExerciseType, ExerciseConfig> = {
     name: "Lunges",
     description: "Step forward and lower your body until both knees are bent at 90 degrees",
     detectRep: (keypoints, isDown) => {
+      // Use front knee angle for lunge detection
       const leftHip = keypoints[11];
-      const rightHip = keypoints[12];
       const leftKnee = keypoints[13];
-      const rightKnee = keypoints[14];
       const leftAnkle = keypoints[15];
+      const rightHip = keypoints[12];
+      const rightKnee = keypoints[14];
       const rightAnkle = keypoints[16];
 
-      if (leftHip.score && rightHip.score && leftKnee.score && rightKnee.score &&
-          leftAnkle.score && rightAnkle.score &&
-          leftHip.score > 0.3 && rightHip.score > 0.3 && 
-          leftKnee.score > 0.3 && rightKnee.score > 0.3 &&
-          leftAnkle.score > 0.3 && rightAnkle.score > 0.3) {
-        
-        const hipY = (leftHip.y + rightHip.y) / 2;
-        const kneeY = Math.min(leftKnee.y, rightKnee.y);
-        const ankleSpread = Math.abs(leftAnkle.x - rightAnkle.x);
-        
-        // Lunge detected when legs are spread and hips are low
-        if (ankleSpread > 100 && hipY > kneeY - 30 && !isDown) {
-          return { isDown: true, repCompleted: false };
-        } else if ((ankleSpread < 80 || hipY < kneeY - 80) && isDown) {
-          return { isDown: false, repCompleted: true };
-        }
+      const leftValid = isValidKeypoint(leftHip) && isValidKeypoint(leftKnee) && isValidKeypoint(leftAnkle);
+      const rightValid = isValidKeypoint(rightHip) && isValidKeypoint(rightKnee) && isValidKeypoint(rightAnkle);
+
+      if (!leftValid && !rightValid) return { isDown, repCompleted: false };
+
+      // Check which leg is forward (lower ankle y = more forward in camera view typically inverted)
+      let kneeAngle = 180;
+      
+      if (leftValid && rightValid) {
+        // Use the leg with the smaller knee angle (more bent = front leg in lunge)
+        const leftAngle = calculateAngle(leftHip, leftKnee, leftAnkle);
+        const rightAngle = calculateAngle(rightHip, rightKnee, rightAnkle);
+        kneeAngle = Math.min(leftAngle, rightAngle);
+      } else if (leftValid) {
+        kneeAngle = calculateAngle(leftHip, leftKnee, leftAnkle);
+      } else {
+        kneeAngle = calculateAngle(rightHip, rightKnee, rightAnkle);
       }
+
+      // Down position: front knee bent past 110 degrees
+      // Standing: knee extended past 155 degrees
+      if (kneeAngle < 110 && !isDown) {
+        return { isDown: true, repCompleted: false };
+      } else if (kneeAngle > 155 && isDown) {
+        return { isDown: false, repCompleted: true };
+      }
+      
       return { isDown, repCompleted: false };
     }
   },
@@ -120,30 +170,40 @@ const EXERCISES: Record<ExerciseType, ExerciseConfig> = {
     name: "Jumping Jacks",
     description: "Jump while spreading legs and raising arms overhead, then return",
     detectRep: (keypoints, isDown) => {
-      const leftWrist = keypoints[9];
-      const rightWrist = keypoints[10];
-      const leftAnkle = keypoints[15];
-      const rightAnkle = keypoints[16];
+      // Use arm angle relative to body and leg spread
       const leftShoulder = keypoints[5];
       const rightShoulder = keypoints[6];
+      const leftWrist = keypoints[9];
+      const rightWrist = keypoints[10];
+      const leftHip = keypoints[11];
+      const rightHip = keypoints[12];
+      const leftAnkle = keypoints[15];
+      const rightAnkle = keypoints[16];
 
-      if (leftWrist.score && rightWrist.score && leftAnkle.score && rightAnkle.score &&
-          leftShoulder.score && rightShoulder.score &&
-          leftWrist.score > 0.3 && rightWrist.score > 0.3 &&
-          leftAnkle.score > 0.3 && rightAnkle.score > 0.3 &&
-          leftShoulder.score > 0.3 && rightShoulder.score > 0.3) {
-        
-        const shoulderY = (leftShoulder.y + rightShoulder.y) / 2;
-        const wristY = (leftWrist.y + rightWrist.y) / 2;
-        const ankleSpread = Math.abs(leftAnkle.x - rightAnkle.x);
-        
-        // Arms up and legs spread = "up" position
-        if (wristY < shoulderY && ankleSpread > 150 && !isDown) {
-          return { isDown: true, repCompleted: false };
-        } else if (wristY > shoulderY + 50 && ankleSpread < 100 && isDown) {
-          return { isDown: false, repCompleted: true };
-        }
+      const armsValid = isValidKeypoint(leftShoulder) && isValidKeypoint(rightShoulder) && 
+                        isValidKeypoint(leftWrist) && isValidKeypoint(rightWrist);
+      const legsValid = isValidKeypoint(leftHip) && isValidKeypoint(rightHip) &&
+                        isValidKeypoint(leftAnkle) && isValidKeypoint(rightAnkle);
+
+      if (!armsValid || !legsValid) return { isDown, repCompleted: false };
+
+      // Calculate arm angles (angle from shoulder to wrist relative to vertical)
+      const leftArmUp = leftWrist.y < leftShoulder.y;
+      const rightArmUp = rightWrist.y < rightShoulder.y;
+      const armsUp = leftArmUp && rightArmUp;
+
+      // Calculate leg spread using hip width as reference
+      const hipWidth = Math.abs(leftHip.x - rightHip.x);
+      const ankleWidth = Math.abs(leftAnkle.x - rightAnkle.x);
+      const legsSpread = ankleWidth > hipWidth * 1.5;
+
+      // Arms up and legs spread = "up" position
+      if (armsUp && legsSpread && !isDown) {
+        return { isDown: true, repCompleted: false };
+      } else if (!armsUp && !legsSpread && isDown) {
+        return { isDown: false, repCompleted: true };
       }
+      
       return { isDown, repCompleted: false };
     }
   },
@@ -151,31 +211,40 @@ const EXERCISES: Record<ExerciseType, ExerciseConfig> = {
     name: "Bicep Curls",
     description: "Keep elbows at sides, curl weights up toward shoulders",
     detectRep: (keypoints, isDown) => {
+      // Use elbow angle for bicep curl detection
       const leftShoulder = keypoints[5];
-      const rightShoulder = keypoints[6];
       const leftElbow = keypoints[7];
-      const rightElbow = keypoints[8];
       const leftWrist = keypoints[9];
+      const rightShoulder = keypoints[6];
+      const rightElbow = keypoints[8];
       const rightWrist = keypoints[10];
 
-      if (leftShoulder.score && rightShoulder.score && 
-          leftElbow.score && rightElbow.score &&
-          leftWrist.score && rightWrist.score &&
-          leftShoulder.score > 0.3 && rightShoulder.score > 0.3 &&
-          leftElbow.score > 0.3 && rightElbow.score > 0.3 &&
-          leftWrist.score > 0.3 && rightWrist.score > 0.3) {
-        
-        const shoulderY = (leftShoulder.y + rightShoulder.y) / 2;
-        const elbowY = (leftElbow.y + rightElbow.y) / 2;
-        const wristY = (leftWrist.y + rightWrist.y) / 2;
-        
-        // Curled position: wrists near shoulders
-        if (wristY < elbowY && !isDown) {
-          return { isDown: true, repCompleted: false };
-        } else if (wristY > elbowY + 50 && isDown) {
-          return { isDown: false, repCompleted: true };
-        }
+      const leftValid = isValidKeypoint(leftShoulder) && isValidKeypoint(leftElbow) && isValidKeypoint(leftWrist);
+      const rightValid = isValidKeypoint(rightShoulder) && isValidKeypoint(rightElbow) && isValidKeypoint(rightWrist);
+
+      if (!leftValid && !rightValid) return { isDown, repCompleted: false };
+
+      let elbowAngle = 180;
+      
+      if (leftValid && rightValid) {
+        // Average both arms
+        const leftAngle = calculateAngle(leftShoulder, leftElbow, leftWrist);
+        const rightAngle = calculateAngle(rightShoulder, rightElbow, rightWrist);
+        elbowAngle = (leftAngle + rightAngle) / 2;
+      } else if (leftValid) {
+        elbowAngle = calculateAngle(leftShoulder, leftElbow, leftWrist);
+      } else {
+        elbowAngle = calculateAngle(rightShoulder, rightElbow, rightWrist);
       }
+
+      // Curled position: elbow bent past 60 degrees (small angle = fully curled)
+      // Extended: elbow extended past 140 degrees
+      if (elbowAngle < 60 && !isDown) {
+        return { isDown: true, repCompleted: false };
+      } else if (elbowAngle > 140 && isDown) {
+        return { isDown: false, repCompleted: true };
+      }
+      
       return { isDown, repCompleted: false };
     }
   }
