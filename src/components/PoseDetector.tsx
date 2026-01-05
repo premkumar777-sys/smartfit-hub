@@ -587,15 +587,18 @@ export default function PoseDetector() {
       }
 
       // Always update debug angles and draw keypoints/skeleton
-      if (debugMode) {
-        updateDebugAngles(keypointsToDraw);
-      }
+      updateDebugAngles(keypointsToDraw);
 
-      drawKeypoints(keypointsToDraw, ctx);
-      // Only draw skeleton if we have actual detected poses
+      // Draw skeleton first (so keypoints appear on top)
       if (poses.length > 0) {
         drawSkeleton(keypointsToDraw, ctx);
       }
+
+      // Draw keypoints
+      drawKeypoints(keypointsToDraw, ctx);
+
+      // Draw angles dynamically on canvas near joints
+      drawAnglesOnCanvas(keypointsToDraw, ctx);
 
       // Show accuracy indicator or low confidence message
       if (poses.length > 0 && avgScore > 0) {
@@ -708,6 +711,75 @@ export default function PoseDetector() {
     ctx.fillText("Rep counted!", centerX, centerY + 20);
   };
 
+  const drawAnglesOnCanvas = (keypoints: poseDetection.Keypoint[], ctx: CanvasRenderingContext2D) => {
+    const minScore = 0.1;
+
+    // Draw angles near joints dynamically
+    const drawAngle = (angle: number | null, centerX: number, centerY: number, offsetX: number = 0, offsetY: number = 0) => {
+      if (angle !== null) {
+        const x = centerX + offsetX;
+        const y = centerY + offsetY;
+
+        // Background for angle text
+        const text = `${Math.round(angle)}°`;
+        ctx.font = "bold 14px Arial";
+        const textWidth = ctx.measureText(text).width;
+        const padding = 4;
+
+        ctx.fillStyle = "rgba(138, 43, 226, 0.85)"; // Purple background like reference
+        ctx.fillRect(x - textWidth/2 - padding, y - 12, textWidth + padding * 2, 20);
+
+        // Angle text
+        ctx.fillStyle = "#FFFFFF";
+        ctx.textAlign = "center";
+        ctx.fillText(text, x, y + 4);
+      }
+    };
+
+    // Calculate and draw knee angles
+    const leftHip = keypoints[11];
+    const leftKnee = keypoints[13];
+    const leftAnkle = keypoints[15];
+    const rightHip = keypoints[12];
+    const rightKnee = keypoints[14];
+    const rightAnkle = keypoints[16];
+
+    if (isValidKeypoint(leftHip, minScore) && isValidKeypoint(leftKnee, minScore) && isValidKeypoint(leftAnkle, minScore)) {
+      const angle = calculateAngle(leftHip, leftKnee, leftAnkle);
+      drawAngle(angle, leftKnee.x, leftKnee.y, 25, -20);
+    }
+
+    if (isValidKeypoint(rightHip, minScore) && isValidKeypoint(rightKnee, minScore) && isValidKeypoint(rightAnkle, minScore)) {
+      const angle = calculateAngle(rightHip, rightKnee, rightAnkle);
+      drawAngle(angle, rightKnee.x, rightKnee.y, 25, -20);
+    }
+
+    // Calculate and draw hip angles
+    const leftShoulder = keypoints[5];
+    const rightShoulder = keypoints[6];
+
+    if (isValidKeypoint(leftShoulder, minScore) && isValidKeypoint(leftHip, minScore) && isValidKeypoint(leftKnee, minScore)) {
+      const angle = calculateAngle(leftShoulder, leftHip, leftKnee);
+      drawAngle(angle, leftHip.x, leftHip.y, 25, 10);
+    }
+
+    if (isValidKeypoint(rightShoulder, minScore) && isValidKeypoint(rightHip, minScore) && isValidKeypoint(rightKnee, minScore)) {
+      const angle = calculateAngle(rightShoulder, rightHip, rightKnee);
+      drawAngle(angle, rightHip.x, rightHip.y, -25, 10);
+    }
+
+    // Calculate and draw ankle angles (for reference)
+    if (isValidKeypoint(leftKnee, minScore) && isValidKeypoint(leftAnkle, minScore)) {
+      const angle = calculateAngle(leftHip, leftKnee, leftAnkle);
+      drawAngle(angle, leftAnkle.x, leftAnkle.y, 0, 25);
+    }
+
+    if (isValidKeypoint(rightKnee, minScore) && isValidKeypoint(rightAnkle, minScore)) {
+      const angle = calculateAngle(rightHip, rightKnee, rightAnkle);
+      drawAngle(angle, rightAnkle.x, rightAnkle.y, 0, 25);
+    }
+  };
+
   const updateFormQuality = useCallback((avgScore: number) => {
     let quality: "good" | "fair" | "poor";
     if (avgScore > 0.7) {
@@ -739,86 +811,49 @@ export default function PoseDetector() {
   }, [voiceEnabled]);
 
   const drawKeypoints = (keypoints: poseDetection.Keypoint[], ctx: CanvasRenderingContext2D) => {
+    const keypointLabels: { [key: number]: string } = {
+      5: "Shoulder", 6: "Shoulder",
+      7: "Elbow", 8: "Elbow",
+      9: "Wrist", 10: "Wrist",
+      11: "Hip", 12: "Hip",
+      13: "Knee", 14: "Knee",
+      15: "Ankle", 16: "Ankle"
+    };
+
     keypoints.forEach((keypoint, index) => {
-      // Always show keypoints in debug mode, or show detected ones normally
-      const shouldShow = debugMode ? true : (keypoint.score && keypoint.score > 0.05);
+      // Always show keypoints if they have any detection
+      const shouldShow = keypoint.score && keypoint.score > 0.1;
       const confidence = keypoint.score || 0;
 
       if (shouldShow) {
-        const radius = debugMode ?
-          (confidence > 0 ? Math.max(4, Math.min(12, confidence * 8)) : 3) : // Smaller default in debug
-          Math.max(4, Math.min(15, confidence * 12));
+        const radius = Math.max(5, Math.min(10, confidence * 8));
 
-        // Different styling for debug vs normal mode
-        if (debugMode) {
-          // In debug mode, show all keypoints with different styles
-          if (confidence > 0.1) {
-            // Detected keypoint - green glow
-            ctx.beginPath();
-            ctx.arc(keypoint.x, keypoint.y, radius + 3, 0, 2 * Math.PI);
-            ctx.fillStyle = `rgba(0, 255, 156, ${confidence * 0.5})`;
-            ctx.fill();
+        // Draw keypoint - yellow circle like reference image
+        ctx.beginPath();
+        ctx.arc(keypoint.x, keypoint.y, radius, 0, 2 * Math.PI);
+        ctx.fillStyle = "#FFD700"; // Yellow/Gold color
+        ctx.fill();
 
-            ctx.beginPath();
-            ctx.arc(keypoint.x, keypoint.y, radius, 0, 2 * Math.PI);
-            ctx.fillStyle = "#00FF9C";
-            ctx.fill();
+        // White border
+        ctx.beginPath();
+        ctx.arc(keypoint.x, keypoint.y, radius, 0, 2 * Math.PI);
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.9)";
+        ctx.lineWidth = 2;
+        ctx.stroke();
 
-            ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
-            ctx.lineWidth = 2;
-            ctx.stroke();
-          } else {
-            // Placeholder keypoint - gray outline only
-            ctx.beginPath();
-            ctx.arc(keypoint.x || canvas.width/2, keypoint.y || canvas.height/2, 3, 0, 2 * Math.PI);
-            ctx.strokeStyle = "rgba(128, 128, 128, 0.5)";
-            ctx.lineWidth = 1;
-            ctx.stroke();
-          }
-
-          // Always show keypoint names in debug mode
+        // Draw label for major joints (like reference image)
+        if (keypointLabels[index]) {
           ctx.fillStyle = "#FFFFFF";
-          ctx.font = "9px Arial";
+          ctx.font = "bold 12px Arial";
           ctx.textAlign = "center";
-          const keypointNames = ["nose", "left_eye", "right_eye", "left_ear", "right_ear", "left_shoulder", "right_shoulder", "left_elbow", "right_elbow", "left_wrist", "right_wrist", "left_hip", "right_hip", "left_knee", "right_knee", "left_ankle", "right_ankle"];
-          const labelY = (keypoint.y || canvas.height/2) - (confidence > 0.1 ? radius + 8 : 15);
-          ctx.fillText(`${keypointNames[index] || index}`, keypoint.x || canvas.width/2, labelY);
-        } else {
-          // Normal mode - only show detected keypoints
-          // Outer glow ring
-          ctx.beginPath();
-          ctx.arc(keypoint.x, keypoint.y, radius + 4, 0, 2 * Math.PI);
-          ctx.fillStyle = `rgba(0, 255, 156, ${confidence * 0.4})`;
-          ctx.fill();
-
-          // Main keypoint
-          ctx.beginPath();
-          ctx.arc(keypoint.x, keypoint.y, radius, 0, 2 * Math.PI);
-
-          // Color based on confidence and form quality
-          let color = "#FF6B6B"; // Low confidence default
-          if (confidence > 0.7) {
-            color = formQuality === "good" ? "#00FF9C" : formQuality === "fair" ? "#4CC9F0" : "#FFB800";
-          } else if (confidence > 0.4) {
-            color = "#FFD93D"; // Medium confidence
-          }
-
-          ctx.fillStyle = color;
-          ctx.fill();
-
-          // Inner confidence ring
-          ctx.beginPath();
-          ctx.arc(keypoint.x, keypoint.y, radius - 2, 0, 2 * Math.PI * confidence);
-          ctx.strokeStyle = "rgba(255, 255, 255, 0.9)";
-          ctx.lineWidth = 2;
-          ctx.stroke();
-
-          // White border
-          ctx.beginPath();
-          ctx.arc(keypoint.x, keypoint.y, radius, 0, 2 * Math.PI);
-          ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
-          ctx.lineWidth = 1;
-          ctx.stroke();
+          ctx.strokeStyle = "rgba(0, 0, 0, 0.8)";
+          ctx.lineWidth = 3;
+          ctx.lineJoin = "round";
+          ctx.miterLimit = 2;
+          
+          const labelY = keypoint.y - radius - 10;
+          ctx.strokeText(keypointLabels[index], keypoint.x, labelY);
+          ctx.fillText(keypointLabels[index], keypoint.x, labelY);
         }
       }
     });
@@ -831,26 +866,32 @@ export default function PoseDetector() {
       [13, 15], [12, 14], [14, 16]
     ];
 
+    // Color-coded skeleton lines (like the reference image)
+    const getLineColor = (kp1Index: number, kp2Index: number) => {
+      // Arms and torso - light blue
+      if ([5, 6, 7, 8, 9, 10, 11, 12].includes(kp1Index) && [5, 6, 7, 8, 9, 10, 11, 12].includes(kp2Index)) {
+        return "#4A90E2"; // Light blue
+      }
+      // Legs - light green
+      if ([11, 12, 13, 14, 15, 16].includes(kp1Index) && [11, 12, 13, 14, 15, 16].includes(kp2Index)) {
+        return "#7ED321"; // Light green
+      }
+      return "#4CC9F0"; // Default blue
+    };
+
     adjacentKeyPoints.forEach(([i, j]) => {
       const kp1 = keypoints[i];
       const kp2 = keypoints[j];
-      if (kp1.score && kp2.score && kp1.score > 0.2 && kp2.score > 0.2) {
+      if (kp1.score && kp2.score && kp1.score > 0.15 && kp2.score > 0.15) {
         const avgConfidence = (kp1.score + kp2.score) / 2;
-        const lineWidth = Math.max(2, Math.min(5, avgConfidence * 4));
+        const lineWidth = Math.max(3, Math.min(6, avgConfidence * 5));
+        const lineColor = getLineColor(i, j);
 
-        // Draw glow effect
+        // Draw main skeleton line with color coding
         ctx.beginPath();
         ctx.moveTo(kp1.x, kp1.y);
         ctx.lineTo(kp2.x, kp2.y);
-        ctx.strokeStyle = formQuality === "good" ? "rgba(76, 201, 240, 0.5)" : formQuality === "fair" ? "rgba(255, 184, 0, 0.5)" : "rgba(255, 68, 68, 0.5)";
-        ctx.lineWidth = lineWidth + 3;
-        ctx.stroke();
-
-        // Draw main skeleton line
-        ctx.beginPath();
-        ctx.moveTo(kp1.x, kp1.y);
-        ctx.lineTo(kp2.x, kp2.y);
-        ctx.strokeStyle = formQuality === "good" ? "#4CC9F0" : formQuality === "fair" ? "#FFB800" : "#FF4444";
+        ctx.strokeStyle = lineColor;
         ctx.lineWidth = lineWidth;
         ctx.stroke();
       }
