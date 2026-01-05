@@ -305,29 +305,64 @@ export default function PoseDetector() {
 
   const loadModel = async () => {
     try {
-      await tf.setBackend('webgl');
-      await tf.ready();
-      console.log("TensorFlow.js ready with backend:", tf.getBackend());
-      
-      const detectorConfig: poseDetection.MoveNetModelConfig = {
-        modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING,
-        enableSmoothing: true,
-      };
-      const poseDetector = await poseDetection.createDetector(
-        poseDetection.SupportedModels.MoveNet,
-        detectorConfig
-      );
+      console.log("Loading TensorFlow.js...");
+
+      // Try WebGL first, fallback to CPU
+      try {
+        await tf.setBackend('webgl');
+        await tf.ready();
+        console.log("TensorFlow.js ready with WebGL backend");
+      } catch (webglError) {
+        console.warn("WebGL backend failed, trying CPU:", webglError);
+        await tf.setBackend('cpu');
+        await tf.ready();
+        console.log("TensorFlow.js ready with CPU backend");
+      }
+
+      console.log("Creating pose detector...");
+      let poseDetector;
+
+      try {
+        // Try lightning model first (faster)
+        const detectorConfig: poseDetection.MoveNetModelConfig = {
+          modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING,
+          enableSmoothing: true,
+        };
+
+        poseDetector = await poseDetection.createDetector(
+          poseDetection.SupportedModels.MoveNet,
+          detectorConfig
+        );
+        console.log("Lightning model loaded successfully");
+      } catch (lightningError) {
+        console.warn("Lightning model failed, trying Thunder model:", lightningError);
+
+        // Fallback to Thunder model (more accurate but slower)
+        const thunderConfig: poseDetection.MoveNetModelConfig = {
+          modelType: poseDetection.movenet.modelType.SINGLEPOSE_THUNDER,
+          enableSmoothing: true,
+        };
+
+        poseDetector = await poseDetection.createDetector(
+          poseDetection.SupportedModels.MoveNet,
+          thunderConfig
+        );
+        console.log("Thunder model loaded successfully");
+      }
+
       setDetector(poseDetector);
-      console.log("Pose detector loaded successfully");
+      console.log("Pose detector loaded successfully:", poseDetector);
       toast({
         title: "Ready",
         description: "AI Pose Detector loaded successfully",
       });
     } catch (error) {
       console.error("Error loading model:", error);
+      console.error("Error details:", error.message, error.stack);
+
       toast({
         title: "Error",
-        description: "Failed to load pose detection model. Please refresh the page.",
+        description: `Failed to load pose detection model: ${error.message}. Please refresh the page.`,
         variant: "destructive",
       });
     }
@@ -400,7 +435,15 @@ export default function PoseDetector() {
             canvasRef.current.width = videoRef.current.videoWidth;
             canvasRef.current.height = videoRef.current.videoHeight;
             console.log("Canvas dimensions set to:", canvasRef.current.width, "x", canvasRef.current.height);
-            detectPose();
+
+            // Ensure video is playing
+            videoRef.current.play().then(() => {
+              console.log("Video started playing");
+              detectPose();
+            }).catch((playError) => {
+              console.error("Video play failed:", playError);
+              detectPose(); // Try anyway
+            });
           }
         };
       }
@@ -485,22 +528,30 @@ export default function PoseDetector() {
       if (detector) {
         try {
           // Debug: Check if video is ready
-          if (video.readyState >= 2) { // HAVE_CURRENT_DATA or better
+          console.log("Video state - readyState:", video.readyState, "networkState:", video.networkState, "dimensions:", video.videoWidth, "x", video.videoHeight);
+
+          if (video.readyState >= 2 && video.videoWidth > 0 && video.videoHeight > 0) { // HAVE_CURRENT_DATA or better
+            console.log("Attempting pose detection...");
             poses = await detector.estimatePoses(video, {
               maxPoses: 1,
               flipHorizontal: false,
-              scoreThreshold: 0.3, // Lower threshold for keypoint detection
+              scoreThreshold: 0.1, // Even lower threshold
             });
-            console.log("Poses detected:", poses.length, poses[0]?.keypoints?.length || 0);
+            console.log("Poses detected:", poses.length);
+            if (poses.length > 0) {
+              console.log("First pose keypoints:", poses[0].keypoints.length);
+              console.log("Keypoint scores:", poses[0].keypoints.map(kp => kp.score));
+            }
           } else {
-            console.log("Video not ready, readyState:", video.readyState);
+            console.log("Video not ready for pose detection");
           }
         } catch (error) {
-          console.warn("Pose detection error:", error);
+          console.error("Pose detection error:", error);
+          console.error("Error stack:", error.stack);
           // Continue with empty poses if detection fails
         }
       } else {
-        console.log("Detector not available");
+        console.log("Detector not available - model not loaded yet");
       }
 
       if (poses.length > 0) {
@@ -531,8 +582,17 @@ export default function PoseDetector() {
           countReps(pose.keypoints);
         }
       } else {
-        // Draw "No pose detected" indicator
-        drawNoPoseIndicator(ctx, canvas);
+        // Draw "No pose detected" indicator only when not in debug mode
+        if (!debugMode) {
+          drawNoPoseIndicator(ctx, canvas);
+        } else {
+          // In debug mode, show debug info instead
+          ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+          ctx.font = "16px Arial";
+          ctx.textAlign = "center";
+          ctx.fillText("Debug Mode - Waiting for pose detection...", canvas.width / 2, canvas.height / 2);
+          ctx.fillText("Check console for details", canvas.width / 2, canvas.height / 2 + 25);
+        }
       }
 
       requestAnimationFrame(detect);
@@ -962,10 +1022,12 @@ export default function PoseDetector() {
 
               {/* Debug status */}
               {debugMode && (
-                <div className="bg-black/70 text-white px-4 py-2 rounded-lg border border-white/20 text-xs">
-                  <div>Detector: {detector ? '✅' : '❌'}</div>
-                  <div>Video Ready: {videoRef.current?.readyState >= 2 ? '✅' : '❌'}</div>
+                <div className="bg-black/70 text-white px-4 py-2 rounded-lg border border-white/20 text-xs space-y-1">
+                  <div>Detector: {detector ? '✅ Loaded' : '❌ Not loaded'}</div>
+                  <div>Video Ready: {videoRef.current?.readyState >= 2 ? '✅ Ready' : '❌ Not ready'}</div>
+                  <div>Video Size: {videoRef.current?.videoWidth}x{videoRef.current?.videoHeight}</div>
                   <div>Canvas: {canvasRef.current?.width}x{canvasRef.current?.height}</div>
+                  <div>Backend: {tf.getBackend()}</div>
                 </div>
               )}
             </div>
@@ -1068,6 +1130,38 @@ export default function PoseDetector() {
           >
             <Bug className="h-4 w-4" />
           </Button>
+          {debugMode && (
+            <Button
+              onClick={async () => {
+                if (detector && videoRef.current && videoRef.current.readyState >= 2) {
+                  try {
+                    const testPoses = await detector.estimatePoses(videoRef.current, {
+                      maxPoses: 1,
+                      flipHorizontal: false,
+                      scoreThreshold: 0.1,
+                    });
+                    console.log("Manual test - Poses detected:", testPoses.length);
+                    if (testPoses.length > 0) {
+                      console.log("Manual test - Keypoints:", testPoses[0].keypoints.length);
+                      alert(`Test successful! Detected ${testPoses[0].keypoints.length} keypoints`);
+                    } else {
+                      alert("Test failed - No poses detected");
+                    }
+                  } catch (error) {
+                    console.error("Manual test error:", error);
+                    alert(`Test error: ${error.message}`);
+                  }
+                } else {
+                  alert("Detector not ready or video not loaded");
+                }
+              }}
+              variant="outline"
+              size="sm"
+              title="Test pose detection manually"
+            >
+              Test
+            </Button>
+          )}
         </div>
 
         <div className="text-sm text-muted-foreground space-y-2">
