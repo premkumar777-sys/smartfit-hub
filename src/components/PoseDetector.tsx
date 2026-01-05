@@ -554,45 +554,59 @@ export default function PoseDetector() {
         console.log("Detector not available - model not loaded yet");
       }
 
+      // Always try to process keypoints, even if no full pose detected
+      let keypointsToDraw: poseDetection.Keypoint[] = [];
+      let avgScore = 0;
+
       if (poses.length > 0) {
         const pose = poses[0];
-        const avgScore = calculateAverageScore(pose.keypoints);
+        keypointsToDraw = pose.keypoints;
+        avgScore = calculateAverageScore(pose.keypoints);
         const validKeypoints = pose.keypoints.filter(kp => kp.score && kp.score > 0.1).length;
 
         console.log("Pose detected with", validKeypoints, "valid keypoints, avg score:", avgScore);
 
         updateFormQuality(avgScore);
 
-        // Update debug angles
-        if (debugMode) {
-          updateDebugAngles(pose.keypoints);
-        }
-
-        drawKeypoints(pose.keypoints, ctx);
-        drawSkeleton(pose.keypoints, ctx);
-        drawAccuracyIndicator(avgScore, ctx, canvas);
-
-        // Draw celebration effect if active
-        if (repCelebration) {
-          drawRepCelebration(ctx, canvas);
-        }
-
         // Only count reps if we have enough valid keypoints for the exercise
         if (validKeypoints >= 8) { // Require at least 8 keypoints for basic pose detection
           countReps(pose.keypoints);
         }
       } else {
-        // Draw "No pose detected" indicator only when not in debug mode
-        if (!debugMode) {
-          drawNoPoseIndicator(ctx, canvas);
-        } else {
-          // In debug mode, show debug info instead
-          ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
-          ctx.font = "16px Arial";
-          ctx.textAlign = "center";
-          ctx.fillText("Debug Mode - Waiting for pose detection...", canvas.width / 2, canvas.height / 2);
-          ctx.fillText("Check console for details", canvas.width / 2, canvas.height / 2 + 25);
-        }
+        // Create empty keypoints array to show we're trying to detect
+        keypointsToDraw = Array.from({ length: 17 }, (_, i) => ({
+          x: 0,
+          y: 0,
+          score: 0,
+          name: ['nose', 'left_eye', 'right_eye', 'left_ear', 'right_ear', 'left_shoulder', 'right_shoulder',
+                 'left_elbow', 'right_elbow', 'left_wrist', 'right_wrist', 'left_hip', 'right_hip',
+                 'left_knee', 'right_knee', 'left_ankle', 'right_ankle'][i] as any
+        }));
+
+        console.log("No pose detected - showing empty keypoints for reference");
+      }
+
+      // Always update debug angles and draw keypoints/skeleton
+      if (debugMode) {
+        updateDebugAngles(keypointsToDraw);
+      }
+
+      drawKeypoints(keypointsToDraw, ctx);
+      // Only draw skeleton if we have actual detected poses
+      if (poses.length > 0) {
+        drawSkeleton(keypointsToDraw, ctx);
+      }
+
+      // Show accuracy indicator or low confidence message
+      if (poses.length > 0 && avgScore > 0) {
+        drawAccuracyIndicator(avgScore, ctx, canvas);
+      } else {
+        drawLowConfidenceIndicator(ctx, canvas);
+      }
+
+      // Draw celebration effect if active
+      if (repCelebration) {
+        drawRepCelebration(ctx, canvas);
       }
 
       requestAnimationFrame(detect);
@@ -645,32 +659,28 @@ export default function PoseDetector() {
     ctx.fillText("Accuracy", centerX, centerY + 20);
   };
 
-  const drawNoPoseIndicator = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {
-    const centerX = canvas.width / 2;
-    const centerY = canvas.height / 2;
+  const drawLowConfidenceIndicator = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {
+    const centerX = canvas.width - 100;
+    const centerY = 120;
 
-    // Background
-    ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
-    ctx.fillRect(centerX - 140, centerY - 80, 280, 160);
+    // Small indicator background
+    ctx.fillStyle = "rgba(255, 152, 0, 0.9)";
+    ctx.fillRect(centerX - 80, centerY - 25, 160, 50);
 
     // Border
-    ctx.strokeStyle = "#FF4444";
+    ctx.strokeStyle = "#FF6B35";
     ctx.lineWidth = 2;
-    ctx.strokeRect(centerX - 140, centerY - 80, 280, 160);
+    ctx.strokeRect(centerX - 80, centerY - 25, 160, 50);
 
-    // Title
+    // Text
     ctx.fillStyle = "#FFFFFF";
-    ctx.font = "bold 20px Arial";
+    ctx.font = "bold 14px Arial";
     ctx.textAlign = "center";
-    ctx.fillText("👤 No Person Detected", centerX, centerY - 30);
+    ctx.fillText("🔍 Detecting...", centerX, centerY - 5);
 
-    // Instructions
-    ctx.fillStyle = "#CCCCCC";
-    ctx.font = "14px Arial";
-    ctx.fillText("• Stand in front of the camera", centerX, centerY - 5);
-    ctx.fillText("• Make sure you're well lit", centerX, centerY + 15);
-    ctx.fillText("• Keep your full body in frame", centerX, centerY + 35);
-    ctx.fillText("• Try moving closer to the camera", centerX, centerY + 55);
+    ctx.fillStyle = "#FFFFFF";
+    ctx.font = "12px Arial";
+    ctx.fillText("Low confidence", centerX, centerY + 15);
   };
 
   const drawRepCelebration = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {
@@ -730,52 +740,85 @@ export default function PoseDetector() {
 
   const drawKeypoints = (keypoints: poseDetection.Keypoint[], ctx: CanvasRenderingContext2D) => {
     keypoints.forEach((keypoint, index) => {
-      if (keypoint.score && keypoint.score > 0.1) { // Even lower threshold for debugging
-        const confidence = keypoint.score;
-        const radius = Math.max(3, Math.min(15, confidence * 12)); // Size based on confidence
+      // Always show keypoints in debug mode, or show detected ones normally
+      const shouldShow = debugMode ? true : (keypoint.score && keypoint.score > 0.05);
+      const confidence = keypoint.score || 0;
 
-        // Outer glow ring
-        ctx.beginPath();
-        ctx.arc(keypoint.x, keypoint.y, radius + 4, 0, 2 * Math.PI);
-        ctx.fillStyle = `rgba(0, 255, 156, ${confidence * 0.4})`;
-        ctx.fill();
+      if (shouldShow) {
+        const radius = debugMode ?
+          (confidence > 0 ? Math.max(4, Math.min(12, confidence * 8)) : 3) : // Smaller default in debug
+          Math.max(4, Math.min(15, confidence * 12));
 
-        // Main keypoint
-        ctx.beginPath();
-        ctx.arc(keypoint.x, keypoint.y, radius, 0, 2 * Math.PI);
+        // Different styling for debug vs normal mode
+        if (debugMode) {
+          // In debug mode, show all keypoints with different styles
+          if (confidence > 0.1) {
+            // Detected keypoint - green glow
+            ctx.beginPath();
+            ctx.arc(keypoint.x, keypoint.y, radius + 3, 0, 2 * Math.PI);
+            ctx.fillStyle = `rgba(0, 255, 156, ${confidence * 0.5})`;
+            ctx.fill();
 
-        // Color based on confidence and form quality
-        let color = "#FF6B6B"; // Low confidence default
-        if (confidence > 0.7) {
-          color = formQuality === "good" ? "#00FF9C" : formQuality === "fair" ? "#4CC9F0" : "#FFB800";
-        } else if (confidence > 0.4) {
-          color = "#FFD93D"; // Medium confidence
-        }
+            ctx.beginPath();
+            ctx.arc(keypoint.x, keypoint.y, radius, 0, 2 * Math.PI);
+            ctx.fillStyle = "#00FF9C";
+            ctx.fill();
 
-        ctx.fillStyle = color;
-        ctx.fill();
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+          } else {
+            // Placeholder keypoint - gray outline only
+            ctx.beginPath();
+            ctx.arc(keypoint.x || canvas.width/2, keypoint.y || canvas.height/2, 3, 0, 2 * Math.PI);
+            ctx.strokeStyle = "rgba(128, 128, 128, 0.5)";
+            ctx.lineWidth = 1;
+            ctx.stroke();
+          }
 
-        // Inner confidence ring
-        ctx.beginPath();
-        ctx.arc(keypoint.x, keypoint.y, radius - 2, 0, 2 * Math.PI * confidence);
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.9)";
-        ctx.lineWidth = 2;
-        ctx.stroke();
-
-        // White border
-        ctx.beginPath();
-        ctx.arc(keypoint.x, keypoint.y, radius, 0, 2 * Math.PI);
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
-        ctx.lineWidth = 1;
-        ctx.stroke();
-
-        // Debug: Show keypoint names in debug mode
-        if (debugMode && confidence > 0.3) {
+          // Always show keypoint names in debug mode
           ctx.fillStyle = "#FFFFFF";
-          ctx.font = "10px Arial";
+          ctx.font = "9px Arial";
           ctx.textAlign = "center";
           const keypointNames = ["nose", "left_eye", "right_eye", "left_ear", "right_ear", "left_shoulder", "right_shoulder", "left_elbow", "right_elbow", "left_wrist", "right_wrist", "left_hip", "right_hip", "left_knee", "right_knee", "left_ankle", "right_ankle"];
-          ctx.fillText(`${keypointNames[index] || index}`, keypoint.x, keypoint.y - radius - 8);
+          const labelY = (keypoint.y || canvas.height/2) - (confidence > 0.1 ? radius + 8 : 15);
+          ctx.fillText(`${keypointNames[index] || index}`, keypoint.x || canvas.width/2, labelY);
+        } else {
+          // Normal mode - only show detected keypoints
+          // Outer glow ring
+          ctx.beginPath();
+          ctx.arc(keypoint.x, keypoint.y, radius + 4, 0, 2 * Math.PI);
+          ctx.fillStyle = `rgba(0, 255, 156, ${confidence * 0.4})`;
+          ctx.fill();
+
+          // Main keypoint
+          ctx.beginPath();
+          ctx.arc(keypoint.x, keypoint.y, radius, 0, 2 * Math.PI);
+
+          // Color based on confidence and form quality
+          let color = "#FF6B6B"; // Low confidence default
+          if (confidence > 0.7) {
+            color = formQuality === "good" ? "#00FF9C" : formQuality === "fair" ? "#4CC9F0" : "#FFB800";
+          } else if (confidence > 0.4) {
+            color = "#FFD93D"; // Medium confidence
+          }
+
+          ctx.fillStyle = color;
+          ctx.fill();
+
+          // Inner confidence ring
+          ctx.beginPath();
+          ctx.arc(keypoint.x, keypoint.y, radius - 2, 0, 2 * Math.PI * confidence);
+          ctx.strokeStyle = "rgba(255, 255, 255, 0.9)";
+          ctx.lineWidth = 2;
+          ctx.stroke();
+
+          // White border
+          ctx.beginPath();
+          ctx.arc(keypoint.x, keypoint.y, radius, 0, 2 * Math.PI);
+          ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
+          ctx.lineWidth = 1;
+          ctx.stroke();
         }
       }
     });
@@ -815,6 +858,7 @@ export default function PoseDetector() {
   };
 
   const updateDebugAngles = useCallback((keypoints: poseDetection.Keypoint[]) => {
+    // Always calculate angles, even with low-confidence keypoints
     const leftHip = keypoints[11];
     const leftKnee = keypoints[13];
     const leftAnkle = keypoints[15];
@@ -839,44 +883,47 @@ export default function PoseDetector() {
       armsUp: false,
     };
 
+    // Calculate angles with lower confidence threshold for debug
+    const debugMinScore = debugMode ? 0.05 : 0.25;
+
     // Calculate knee angles
-    if (isValidKeypoint(leftHip) && isValidKeypoint(leftKnee) && isValidKeypoint(leftAnkle)) {
+    if (isValidKeypoint(leftHip, debugMinScore) && isValidKeypoint(leftKnee, debugMinScore) && isValidKeypoint(leftAnkle, debugMinScore)) {
       angles.leftKnee = Math.round(calculateAngle(leftHip, leftKnee, leftAnkle));
     }
-    if (isValidKeypoint(rightHip) && isValidKeypoint(rightKnee) && isValidKeypoint(rightAnkle)) {
+    if (isValidKeypoint(rightHip, debugMinScore) && isValidKeypoint(rightKnee, debugMinScore) && isValidKeypoint(rightAnkle, debugMinScore)) {
       angles.rightKnee = Math.round(calculateAngle(rightHip, rightKnee, rightAnkle));
     }
 
     // Calculate elbow angles
-    if (isValidKeypoint(leftShoulder) && isValidKeypoint(leftElbow) && isValidKeypoint(leftWrist)) {
+    if (isValidKeypoint(leftShoulder, debugMinScore) && isValidKeypoint(leftElbow, debugMinScore) && isValidKeypoint(leftWrist, debugMinScore)) {
       angles.leftElbow = Math.round(calculateAngle(leftShoulder, leftElbow, leftWrist));
     }
-    if (isValidKeypoint(rightShoulder) && isValidKeypoint(rightElbow) && isValidKeypoint(rightWrist)) {
+    if (isValidKeypoint(rightShoulder, debugMinScore) && isValidKeypoint(rightElbow, debugMinScore) && isValidKeypoint(rightWrist, debugMinScore)) {
       angles.rightElbow = Math.round(calculateAngle(rightShoulder, rightElbow, rightWrist));
     }
 
     // Calculate hip angles (for lunges/squats)
-    if (isValidKeypoint(leftShoulder) && isValidKeypoint(leftHip) && isValidKeypoint(leftKnee)) {
+    if (isValidKeypoint(leftShoulder, debugMinScore) && isValidKeypoint(leftHip, debugMinScore) && isValidKeypoint(leftKnee, debugMinScore)) {
       angles.leftHip = Math.round(calculateAngle(leftShoulder, leftHip, leftKnee));
     }
-    if (isValidKeypoint(rightShoulder) && isValidKeypoint(rightHip) && isValidKeypoint(rightKnee)) {
+    if (isValidKeypoint(rightShoulder, debugMinScore) && isValidKeypoint(rightHip, debugMinScore) && isValidKeypoint(rightKnee, debugMinScore)) {
       angles.rightHip = Math.round(calculateAngle(rightShoulder, rightHip, rightKnee));
     }
 
     // Calculate ankle spread ratio (for jumping jacks)
-    if (isValidKeypoint(leftHip) && isValidKeypoint(rightHip) && isValidKeypoint(leftAnkle) && isValidKeypoint(rightAnkle)) {
+    if (isValidKeypoint(leftHip, debugMinScore) && isValidKeypoint(rightHip, debugMinScore) && isValidKeypoint(leftAnkle, debugMinScore) && isValidKeypoint(rightAnkle, debugMinScore)) {
       const hipWidth = Math.abs(leftHip.x - rightHip.x);
       const ankleWidth = Math.abs(leftAnkle.x - rightAnkle.x);
       angles.ankleSpread = Math.round((ankleWidth / hipWidth) * 100) / 100;
     }
 
     // Check arms up
-    if (isValidKeypoint(leftShoulder) && isValidKeypoint(leftWrist) && isValidKeypoint(rightShoulder) && isValidKeypoint(rightWrist)) {
+    if (isValidKeypoint(leftShoulder, debugMinScore) && isValidKeypoint(leftWrist, debugMinScore) && isValidKeypoint(rightShoulder, debugMinScore) && isValidKeypoint(rightWrist, debugMinScore)) {
       angles.armsUp = leftWrist.y < leftShoulder.y && rightWrist.y < rightShoulder.y;
     }
 
     setDebugAngles(angles);
-  }, []);
+  }, [debugMode]);
 
   const countReps = useCallback((keypoints: poseDetection.Keypoint[]) => {
     const exercise = EXERCISES[selectedExercise];
@@ -1048,22 +1095,22 @@ export default function PoseDetector() {
               <div className="text-primary font-bold mb-2">🔧 Debug Angles</div>
               <div className="border-b border-white/20 pb-2 mb-2">
                 <div className="text-muted-foreground text-xs uppercase">Knees</div>
-                <div>L: {debugAngles.leftKnee ?? '—'}°</div>
-                <div>R: {debugAngles.rightKnee ?? '—'}°</div>
+                <div>L: {debugAngles.leftKnee !== null ? `${debugAngles.leftKnee}°` : '—'}</div>
+                <div>R: {debugAngles.rightKnee !== null ? `${debugAngles.rightKnee}°` : '—'}</div>
               </div>
               <div className="border-b border-white/20 pb-2 mb-2">
                 <div className="text-muted-foreground text-xs uppercase">Elbows</div>
-                <div>L: {debugAngles.leftElbow ?? '—'}°</div>
-                <div>R: {debugAngles.rightElbow ?? '—'}°</div>
+                <div>L: {debugAngles.leftElbow !== null ? `${debugAngles.leftElbow}°` : '—'}</div>
+                <div>R: {debugAngles.rightElbow !== null ? `${debugAngles.rightElbow}°` : '—'}</div>
               </div>
               <div className="border-b border-white/20 pb-2 mb-2">
                 <div className="text-muted-foreground text-xs uppercase">Hips</div>
-                <div>L: {debugAngles.leftHip ?? '—'}°</div>
-                <div>R: {debugAngles.rightHip ?? '—'}°</div>
+                <div>L: {debugAngles.leftHip !== null ? `${debugAngles.leftHip}°` : '—'}</div>
+                <div>R: {debugAngles.rightHip !== null ? `${debugAngles.rightHip}°` : '—'}</div>
               </div>
               <div>
                 <div className="text-muted-foreground text-xs uppercase">Other</div>
-                <div>Spread: {debugAngles.ankleSpread ?? '—'}x</div>
+                <div>Spread: {debugAngles.ankleSpread !== null ? `${debugAngles.ankleSpread}x` : '—'}</div>
                 <div>Arms Up: {debugAngles.armsUp ? '✓' : '✗'}</div>
               </div>
               <div className="border-t border-white/20 pt-2 mt-2 text-xs text-muted-foreground">
