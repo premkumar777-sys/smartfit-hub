@@ -346,15 +346,28 @@ export default function PoseDetector() {
         return;
       }
 
-      // Request camera permission with better constraints
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          width: { ideal: 640 },
-          height: { ideal: 480 },
-          facingMode: "user" // Use front camera
-        },
-        audio: false
-      });
+      // Request camera permission with flexible constraints
+      let stream: MediaStream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            width: { ideal: 640, min: 320 },
+            height: { ideal: 480, min: 240 },
+            facingMode: "user" // Use front camera
+          },
+          audio: false
+        });
+      } catch (frontCameraError) {
+        // Fallback: try without front camera constraint
+        console.log("Front camera not available, trying default camera:", frontCameraError);
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            width: { ideal: 640, min: 320 },
+            height: { ideal: 480, min: 240 }
+          },
+          audio: false
+        });
+      }
 
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
