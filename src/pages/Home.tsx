@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Zap, Target, TrendingUp, Users, Brain, Eye, BarChart3, Utensils, Calendar, QrCode, Trophy, Wrench, PieChart, ShoppingBag } from "lucide-react";
+import { ArrowRight, Zap, Target, TrendingUp, Users, Brain, Eye, BarChart3, Utensils, Calendar, QrCode, Trophy, Wrench, PieChart, ShoppingBag, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Suspense, lazy, useEffect, useState } from "react";
@@ -172,6 +172,12 @@ const Home = () => {
                 title: "Real-Time Form Detection",
                 description: "Computer vision technology analyzes your form and provides instant feedback",
                 link: "/workout-session"
+              },
+              {
+                icon: Sparkles,
+                title: "3D Trainer Mode",
+                description: "Follow animated 3D demonstrations with voice coaching – no camera required",
+                link: "/3d-trainer"
               },
               {
                 icon: BarChart3,
