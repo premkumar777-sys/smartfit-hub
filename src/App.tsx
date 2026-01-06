@@ -16,6 +16,7 @@ import Guides from "./pages/Guides";
 import HomeWorkouts from "./pages/HomeWorkouts";
 import AITrainer from "./pages/AITrainer";
 import Gamification from "./pages/Gamification";
+import CameraOffWorkout from "./pages/CameraOffWorkout";
 import NotFound from "./pages/NotFound";
 import { FitnessCursor } from "@/components/FitnessCursor";
 import { FloatingChatbot } from "@/components/FloatingChatbot";
@@ -69,6 +70,7 @@ const App = () => {
             <Route path="/home-workouts" element={<HomeWorkouts />} />
             <Route path="/ai-trainer" element={<AITrainer />} />
             <Route path="/gamification" element={<Gamification />} />
+            <Route path="/3d-trainer" element={<CameraOffWorkout />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
