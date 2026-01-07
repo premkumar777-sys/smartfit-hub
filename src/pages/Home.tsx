@@ -221,7 +221,8 @@ const Home = () => {
               {
                 icon: ShoppingBag,
                 title: "Supplement Marketplace",
-                description: "Curated selection of premium supplements with AI recommendations"
+                description: "Curated selection of premium supplements with AI recommendations",
+                link: "/marketplace"
               },
             ].map((feature, index) => (
               <FeatureCard
