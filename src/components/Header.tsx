@@ -5,6 +5,7 @@ import { NavItem } from "./NavItem";
 import { MegaDropdown } from "./MegaDropdown";
 import { MobileMenu } from "./MobileMenu";
 import { AuthMenu } from "./AuthMenu";
+import { ThemeToggle } from "./ThemeToggle";
 import { Button } from "@/components/ui/button";
 import NeonButton from "@/components/NeonButton";
 import { Menu, X } from "lucide-react";
@@ -305,7 +306,10 @@ export function Header() {
             </div>
 
             {/* Desktop Right Side */}
-            <div className="hidden lg:flex items-center space-x-6">
+            <div className="hidden lg:flex items-center space-x-4">
+              {/* Theme Toggle */}
+              <ThemeToggle />
+
               {/* Get Started Button */}
               <NeonButton href="/auth">Get Started</NeonButton>
 
@@ -413,8 +417,12 @@ export function Header() {
                   </div>
                 </div>
 
-                {/* Mobile Auth Menu */}
-                <div className="px-4 py-4 border-t border-gray-800">
+                {/* Mobile Theme Toggle & Auth Menu */}
+                <div className="px-4 py-4 border-t border-gray-800 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">Theme</span>
+                    <ThemeToggle />
+                  </div>
                   <AuthMenu />
                 </div>
               </MobileMenu>

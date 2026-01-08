@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Header } from "@/components/Header";
+import { ThemeProvider } from "@/components/ThemeProvider";
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
@@ -52,35 +53,37 @@ const App = () => {
   }
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <FitnessCursor />
-          <FloatingChatbot />
-          <Header />
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/ai-workout" element={<AIWorkout />} />
-            <Route path="/workout-session" element={<WorkoutSession />} />
-            <Route path="/nutrition" element={<Nutrition />} />
-            <Route path="/progress" element={<Progress />} />
-            <Route path="/guides" element={<Guides />} />
-            <Route path="/home-workouts" element={<HomeWorkouts />} />
-            <Route path="/ai-trainer" element={<AITrainer />} />
-            <Route path="/gamification" element={<Gamification />} />
-            <Route path="/3d-trainer" element={<CameraOffWorkout />} />
-            <Route path="/marketplace" element={<Marketplace />} />
-            <Route path="/product/:handle" element={<ProductDetail />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
+    <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <FitnessCursor />
+            <FloatingChatbot />
+            <Header />
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/ai-workout" element={<AIWorkout />} />
+              <Route path="/workout-session" element={<WorkoutSession />} />
+              <Route path="/nutrition" element={<Nutrition />} />
+              <Route path="/progress" element={<Progress />} />
+              <Route path="/guides" element={<Guides />} />
+              <Route path="/home-workouts" element={<HomeWorkouts />} />
+              <Route path="/ai-trainer" element={<AITrainer />} />
+              <Route path="/gamification" element={<Gamification />} />
+              <Route path="/3d-trainer" element={<CameraOffWorkout />} />
+              <Route path="/marketplace" element={<Marketplace />} />
+              <Route path="/product/:handle" element={<ProductDetail />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 };
 
