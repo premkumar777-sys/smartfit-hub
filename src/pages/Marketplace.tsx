@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { ShoppingBag, Loader2 } from "lucide-react";
+import { ShoppingBag, Loader2, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { CartDrawer } from "@/components/CartDrawer";
@@ -13,6 +13,13 @@ const SHOPIFY_STORE_PERMANENT_DOMAIN = 'lovable-project-9pk19.myshopify.com';
 const SHOPIFY_STOREFRONT_URL = `https://${SHOPIFY_STORE_PERMANENT_DOMAIN}/api/${SHOPIFY_API_VERSION}/graphql.json`;
 const SHOPIFY_STOREFRONT_TOKEN = '977474804201bb734ab75b0144c4d779';
 
+const CATEGORIES = [
+  { id: 'all', label: 'All Products' },
+  { id: 'Protein', label: 'Protein' },
+  { id: 'Pre-Workout', label: 'Pre-Workout' },
+  { id: 'Post-Workout', label: 'Post-Workout' },
+];
+
 const STOREFRONT_QUERY = `
   query GetProducts($first: Int!) {
     products(first: $first) {
@@ -22,6 +29,7 @@ const STOREFRONT_QUERY = `
           title
           description
           handle
+          productType
           priceRange {
             minVariantPrice {
               amount
@@ -166,10 +174,17 @@ const ProductCard = ({ product }: { product: ShopifyProduct }) => {
   );
 };
 
+interface ExtendedShopifyProduct extends ShopifyProduct {
+  node: ShopifyProduct['node'] & {
+    productType?: string;
+  };
+}
+
 const Marketplace = () => {
-  const [products, setProducts] = useState<ShopifyProduct[]>([]);
+  const [products, setProducts] = useState<ExtendedShopifyProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeCategory, setActiveCategory] = useState('all');
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -188,6 +203,10 @@ const Marketplace = () => {
 
     fetchProducts();
   }, []);
+
+  const filteredProducts = activeCategory === 'all' 
+    ? products 
+    : products.filter(p => p.node.productType === activeCategory);
 
   return (
     <div className="min-h-screen py-12">
@@ -215,6 +234,27 @@ const Marketplace = () => {
           <CartDrawer />
         </div>
 
+        {/* Category Filters */}
+        <motion.div 
+          className="flex flex-wrap gap-3 mb-8"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <Filter className="w-5 h-5 text-muted-foreground self-center mr-2" />
+          {CATEGORIES.map((category) => (
+            <Button
+              key={category.id}
+              variant={activeCategory === category.id ? "default" : "outline"}
+              size="sm"
+              onClick={() => setActiveCategory(category.id)}
+              className="transition-all"
+            >
+              {category.label}
+            </Button>
+          ))}
+        </motion.div>
+
         {/* Products Grid */}
         {loading ? (
           <div className="flex items-center justify-center py-20">
@@ -225,17 +265,19 @@ const Marketplace = () => {
             <p className="text-destructive mb-4">{error}</p>
             <Button onClick={() => window.location.reload()}>Try Again</Button>
           </div>
-        ) : products.length === 0 ? (
+        ) : filteredProducts.length === 0 ? (
           <div className="text-center py-20">
             <ShoppingBag className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
             <h2 className="text-2xl font-semibold mb-2">No products found</h2>
             <p className="text-muted-foreground">
-              Check back soon for new products!
+              {activeCategory === 'all' 
+                ? 'Check back soon for new products!' 
+                : `No ${activeCategory} products available.`}
             </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {products.map((product) => (
+            {filteredProducts.map((product) => (
               <ProductCard key={product.node.id} product={product} />
             ))}
           </div>
