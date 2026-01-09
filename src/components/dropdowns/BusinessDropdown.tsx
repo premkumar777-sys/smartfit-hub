@@ -1,8 +1,15 @@
 import { DropdownItem } from "../DropdownItem";
-import { Building2, Users, BarChart3, Settings, Shield, CreditCard } from "lucide-react";
+import { Building2, Users, BarChart3, Settings, Shield, CreditCard, Brain } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const businessSolutions = [
+  {
+    icon: Brain,
+    title: "AI Analytics Dashboard",
+    description: "Revolutionary business intelligence with churn prediction & revenue optimization",
+    href: "/gym-analytics",
+    isNew: true
+  },
   {
     icon: Building2,
     title: "Gym Management",
@@ -45,12 +52,14 @@ export default function BusinessDropdown() {
 
       <div className="grid gap-2">
         {businessSolutions.map((solution) => (
-          <DropdownItem
-            key={solution.title}
-            icon={solution.icon}
-            title={solution.title}
-            description={solution.description}
-          />
+          <Link key={solution.title} to={solution.href || "#"} className="block">
+            <DropdownItem
+              icon={solution.icon}
+              title={solution.title}
+              description={solution.description}
+              badge={solution.isNew ? "New" : undefined}
+            />
+          </Link>
         ))}
       </div>
 

@@ -41,6 +41,259 @@ export type Database = {
         }
         Relationships: []
       }
+      gym_check_ins: {
+        Row: {
+          check_in_time: string | null
+          check_out_time: string | null
+          duration_minutes: number | null
+          equipment_used: string[] | null
+          gym_id: string
+          id: string
+          member_id: string | null
+          workout_type: string | null
+        }
+        Insert: {
+          check_in_time?: string | null
+          check_out_time?: string | null
+          duration_minutes?: number | null
+          equipment_used?: string[] | null
+          gym_id: string
+          id?: string
+          member_id?: string | null
+          workout_type?: string | null
+        }
+        Update: {
+          check_in_time?: string | null
+          check_out_time?: string | null
+          duration_minutes?: number | null
+          equipment_used?: string[] | null
+          gym_id?: string
+          id?: string
+          member_id?: string | null
+          workout_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gym_check_ins_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "gym_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gym_classes: {
+        Row: {
+          capacity: number | null
+          class_name: string
+          enrolled: number | null
+          gym_id: string
+          id: string
+          instructor: string | null
+          popularity_score: number | null
+          revenue_generated: number | null
+          schedule: Json | null
+        }
+        Insert: {
+          capacity?: number | null
+          class_name: string
+          enrolled?: number | null
+          gym_id: string
+          id?: string
+          instructor?: string | null
+          popularity_score?: number | null
+          revenue_generated?: number | null
+          schedule?: Json | null
+        }
+        Update: {
+          capacity?: number | null
+          class_name?: string
+          enrolled?: number | null
+          gym_id?: string
+          id?: string
+          instructor?: string | null
+          popularity_score?: number | null
+          revenue_generated?: number | null
+          schedule?: Json | null
+        }
+        Relationships: []
+      }
+      gym_equipment: {
+        Row: {
+          category: string
+          gym_id: string
+          id: string
+          last_maintenance: string | null
+          name: string
+          purchase_date: string | null
+          status: string | null
+          usage_count: number | null
+          utilization_rate: number | null
+        }
+        Insert: {
+          category: string
+          gym_id: string
+          id?: string
+          last_maintenance?: string | null
+          name: string
+          purchase_date?: string | null
+          status?: string | null
+          usage_count?: number | null
+          utilization_rate?: number | null
+        }
+        Update: {
+          category?: string
+          gym_id?: string
+          id?: string
+          last_maintenance?: string | null
+          name?: string
+          purchase_date?: string | null
+          status?: string | null
+          usage_count?: number | null
+          utilization_rate?: number | null
+        }
+        Relationships: []
+      }
+      gym_insights: {
+        Row: {
+          action_items: Json | null
+          created_at: string | null
+          description: string
+          gym_id: string
+          id: string
+          insight_type: string
+          is_read: boolean | null
+          potential_impact: number | null
+          priority: string | null
+          title: string
+        }
+        Insert: {
+          action_items?: Json | null
+          created_at?: string | null
+          description: string
+          gym_id: string
+          id?: string
+          insight_type: string
+          is_read?: boolean | null
+          potential_impact?: number | null
+          priority?: string | null
+          title: string
+        }
+        Update: {
+          action_items?: Json | null
+          created_at?: string | null
+          description?: string
+          gym_id?: string
+          id?: string
+          insight_type?: string
+          is_read?: boolean | null
+          potential_impact?: number | null
+          priority?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
+      gym_members: {
+        Row: {
+          check_ins: number | null
+          churn_risk_score: number | null
+          created_at: string | null
+          email: string | null
+          expiry_date: string | null
+          full_name: string
+          gym_id: string
+          id: string
+          join_date: string
+          last_check_in: string | null
+          lifetime_value: number | null
+          membership_status: string
+          membership_type: string
+          monthly_fee: number | null
+          phone: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          check_ins?: number | null
+          churn_risk_score?: number | null
+          created_at?: string | null
+          email?: string | null
+          expiry_date?: string | null
+          full_name: string
+          gym_id: string
+          id?: string
+          join_date?: string
+          last_check_in?: string | null
+          lifetime_value?: number | null
+          membership_status?: string
+          membership_type?: string
+          monthly_fee?: number | null
+          phone?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          check_ins?: number | null
+          churn_risk_score?: number | null
+          created_at?: string | null
+          email?: string | null
+          expiry_date?: string | null
+          full_name?: string
+          gym_id?: string
+          id?: string
+          join_date?: string
+          last_check_in?: string | null
+          lifetime_value?: number | null
+          membership_status?: string
+          membership_type?: string
+          monthly_fee?: number | null
+          phone?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      gym_revenue: {
+        Row: {
+          amount: number
+          created_at: string | null
+          description: string | null
+          gym_id: string
+          id: string
+          member_id: string | null
+          revenue_type: string
+          transaction_date: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          description?: string | null
+          gym_id: string
+          id?: string
+          member_id?: string | null
+          revenue_type: string
+          transaction_date?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          description?: string | null
+          gym_id?: string
+          id?: string
+          member_id?: string | null
+          revenue_type?: string
+          transaction_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gym_revenue_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "gym_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       phone_otps: {
         Row: {
           attempts: number
@@ -141,6 +394,21 @@ export type Database = {
     Functions: {
       cleanup_expired_otps: { Args: never; Returns: undefined }
       cleanup_expired_phone_otps: { Args: never; Returns: undefined }
+      get_member_retention_rate: { Args: { p_gym_id: string }; Returns: number }
+      get_monthly_revenue_trend: {
+        Args: { p_gym_id: string }
+        Returns: {
+          month: string
+          total_revenue: number
+        }[]
+      }
+      get_peak_hours: {
+        Args: { p_gym_id: string }
+        Returns: {
+          check_in_count: number
+          hour: number
+        }[]
+      }
       send_welcome_email: {
         Args: { user_email: string; user_name?: string }
         Returns: undefined

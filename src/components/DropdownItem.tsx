@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { LucideIcon } from "lucide-react";
 
-interface DropdownItemProps {
+export interface DropdownItemProps {
   href?: string;
   icon?: LucideIcon;
   title: string;
@@ -11,6 +11,7 @@ interface DropdownItemProps {
   children?: ReactNode;
   onClick?: () => void;
   className?: string;
+  badge?: string;
 }
 
 export function DropdownItem({
@@ -20,7 +21,8 @@ export function DropdownItem({
   description,
   children,
   onClick,
-  className
+  className,
+  badge
 }: DropdownItemProps) {
   const content = (
     <div className={cn(
@@ -34,8 +36,13 @@ export function DropdownItem({
         </div>
       )}
       <div className="flex-1 min-w-0">
-        <div className="text-sm font-medium text-white group-hover:text-[#00FF9C] transition-colors">
+        <div className="text-sm font-medium text-white group-hover:text-[#00FF9C] transition-colors flex items-center gap-2">
           {title}
+          {badge && (
+            <span className="px-1.5 py-0.5 text-[10px] font-semibold bg-[#00FF9C] text-black rounded">
+              {badge}
+            </span>
+          )}
         </div>
         {description && (
           <div className="text-xs text-gray-400 mt-1">
