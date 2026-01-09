@@ -20,6 +20,7 @@ import Gamification from "./pages/Gamification";
 import CameraOffWorkout from "./pages/CameraOffWorkout";
 import Marketplace from "./pages/Marketplace";
 import ProductDetail from "./pages/ProductDetail";
+import GymAnalytics from "./pages/GymAnalytics";
 import NotFound from "./pages/NotFound";
 import { FitnessCursor } from "@/components/FitnessCursor";
 import { FloatingChatbot } from "@/components/FloatingChatbot";
@@ -77,6 +78,7 @@ const App = () => {
               <Route path="/3d-trainer" element={<CameraOffWorkout />} />
               <Route path="/marketplace" element={<Marketplace />} />
               <Route path="/product/:handle" element={<ProductDetail />} />
+              <Route path="/gym-analytics" element={<GymAnalytics />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
