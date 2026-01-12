@@ -12,6 +12,8 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
+import { AddClientDialog } from "@/components/trainer/AddClientDialog";
+
 // Types for database tables
 interface Trainer {
     id: string;
@@ -31,6 +33,26 @@ interface Client {
     status: string;
     progress: number;
     last_session: string | null;
+
+    // New fields
+    age?: number;
+    city?: string;
+    country?: string;
+    height_feet?: number;
+    current_weight_kg?: number;
+    target_weight_kg?: number;
+    occupation?: string;
+    whatsapp_number?: string;
+    primary_goal?: string;
+    prior_experience?: string;
+    training_type?: string;
+    plan_duration?: string;
+    diet_preference?: string;
+    habits?: string;
+    medical_conditions?: string;
+    medications?: string;
+    injuries?: string;
+    is_enrolled?: boolean;
 }
 
 interface Session {
@@ -76,6 +98,7 @@ export default function TrainerTools() {
     const [activeTab, setActiveTab] = useState("clients");
     const [isLoading, setIsLoading] = useState(true);
     const [trainer, setTrainer] = useState<Trainer | null>(null);
+    const [isAddClientOpen, setIsAddClientOpen] = useState(false);
 
     // Data states
     const [clients, setClients] = useState<Client[]>([]);
@@ -112,9 +135,18 @@ export default function TrainerTools() {
                 };
 
                 const demoClients: Client[] = [
-                    { id: "1", trainer_id: "demo", full_name: "Sarah Johnson", email: "sarah@test.com", phone: "123", status: "active", progress: 75, last_session: new Date(Date.now() - 86400000 * 2).toISOString() },
-                    { id: "2", trainer_id: "demo", full_name: "Mike Chen", email: "mike@test.com", phone: "123", status: "active", progress: 45, last_session: new Date(Date.now() - 86400000 * 5).toISOString() },
-                    { id: "3", trainer_id: "demo", full_name: "Emma Davis", email: "emma@test.com", phone: "123", status: "inactive", progress: 20, last_session: new Date(Date.now() - 86400000 * 14).toISOString() },
+                    {
+                        id: "1", trainer_id: "demo", full_name: "Sarah Johnson", email: "sarah@test.com", phone: "123", status: "active", progress: 75, last_session: new Date(Date.now() - 86400000 * 2).toISOString(),
+                        primary_goal: "Weight Loss", age: 28, city: "New York"
+                    },
+                    {
+                        id: "2", trainer_id: "demo", full_name: "Mike Chen", email: "mike@test.com", phone: "123", status: "active", progress: 45, last_session: new Date(Date.now() - 86400000 * 5).toISOString(),
+                        primary_goal: "Muscle Gain", age: 32, city: "San Francisco"
+                    },
+                    {
+                        id: "3", trainer_id: "demo", full_name: "Emma Davis", email: "emma@test.com", phone: "123", status: "inactive", progress: 20, last_session: new Date(Date.now() - 86400000 * 14).toISOString(),
+                        primary_goal: "Endurance", age: 25, city: "Chicago"
+                    },
                 ];
 
                 const demoSessions: Session[] = [
@@ -183,6 +215,93 @@ export default function TrainerTools() {
 
         initializeDashboard();
     }, [toast]);
+
+    const handleAddClient = async (formData: any) => {
+        if (!trainer) return;
+
+        // DEMO MODE CHECK
+        if (trainer.id === "demo-trainer") {
+            const newClient: Client = {
+                id: Math.random().toString(36).substr(2, 9),
+                trainer_id: "demo-trainer",
+                full_name: formData.full_name,
+                email: formData.email,
+                phone: formData.phone,
+                status: "active",
+                progress: 0,
+                last_session: null,
+                ...formData // Spread other fields like age, city, etc.
+            };
+
+            setClients(prev => [newClient, ...prev]);
+            setStats(prev => ({
+                ...prev,
+                totalClients: prev.totalClients + 1,
+                activeClients: prev.activeClients + 1
+            }));
+
+            toast({
+                title: "Client Added (Demo)",
+                description: `${formData.full_name} has been added to the list. Note: Data will persist only until refresh.`,
+            });
+            setIsAddClientOpen(false);
+            return;
+        }
+
+        // REAL MODE - Supabase Insert
+        try {
+            const { error } = await supabase
+                .from("trainer_clients")
+                .insert({
+                    trainer_id: trainer.id,
+                    full_name: formData.full_name,
+                    email: formData.email || null,
+                    phone: formData.phone || null,
+                    whatsapp_number: formData.whatsapp_number || null,
+                    status: "active",
+                    progress: 0,
+                    // Additional fields
+                    age: formData.age ? parseInt(formData.age) : null,
+                    city: formData.city || null,
+                    country: formData.country || null,
+                    occupation: formData.occupation || null,
+                    height_feet: formData.height_feet ? parseFloat(formData.height_feet) : null,
+                    current_weight_kg: formData.current_weight_kg ? parseFloat(formData.current_weight_kg) : null,
+                    target_weight_kg: formData.target_weight_kg ? parseFloat(formData.target_weight_kg) : null,
+                    primary_goal: formData.primary_goal || null,
+                    prior_experience: formData.prior_experience || null,
+                    training_type: formData.training_type || null,
+                    plan_duration: formData.plan_duration || null,
+                    diet_preference: formData.diet_preference || null,
+                    habits: formData.habits || null,
+                    medical_conditions: formData.medical_conditions || null,
+                    medications: formData.medications || null,
+                    injuries: formData.injuries || null,
+                    is_enrolled: formData.is_enrolled || false
+                });
+
+            if (error) throw error;
+
+            toast({
+                title: "Client Added Successfully",
+                description: `${formData.full_name} has been added to your client list.`,
+                className: "bg-[#00FF9C] text-black border-none"
+            });
+
+            // Reload data
+            await loadAllData(trainer.id);
+            setIsAddClientOpen(false);
+
+        } catch (error: any) {
+            console.error("Error adding client:", error);
+            toast({
+                title: "Error Adding Client",
+                description: error.message || "Something went wrong. Please check your database schema if new columns are missing.",
+                variant: "destructive"
+            });
+        }
+    };
+
 
     const loadAllData = async (trainerId: string) => {
         // Load clients
@@ -386,7 +505,10 @@ export default function TrainerTools() {
                                     <Filter className="w-4 h-4" />
                                 </Button>
                             </div>
-                            <Button className="bg-[#00FF9C] text-black hover:bg-[#00FF9C]/90">
+                            <Button
+                                className="bg-[#00FF9C] text-black hover:bg-[#00FF9C]/90"
+                                onClick={() => setIsAddClientOpen(true)}
+                            >
                                 <Plus className="w-4 h-4 mr-2" /> Add Client
                             </Button>
                         </div>
@@ -685,6 +807,12 @@ export default function TrainerTools() {
                         </Card>
                     </TabsContent>
                 </Tabs>
+                {/* Add Client Dialog */}
+                <AddClientDialog
+                    open={isAddClientOpen}
+                    onOpenChange={setIsAddClientOpen}
+                    onSubmit={handleAddClient}
+                />
             </Container>
         </div>
     );
