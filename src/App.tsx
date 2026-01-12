@@ -27,12 +27,17 @@ import { FloatingChatbot } from "@/components/FloatingChatbot";
 
 const queryClient = new QueryClient();
 
-// Simple loading component
+// Simple loading component with favicon
 const LoadingScreen = () => (
   <div className="min-h-screen bg-background flex items-center justify-center">
     <div className="text-center">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-      <p className="text-muted-foreground">Loading SmartFit Hub...</p>
+      <img
+        src="/favicon.png"
+        alt="SmartFit"
+        className="w-20 h-20 mx-auto mb-4 animate-pulse"
+        style={{ filter: 'drop-shadow(0 0 15px rgba(0, 255, 156, 0.5))' }}
+      />
+      <p className="text-muted-foreground">Loading SmartFit...</p>
     </div>
   </div>
 );
