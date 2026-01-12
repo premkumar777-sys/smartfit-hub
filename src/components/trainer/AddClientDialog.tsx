@@ -22,6 +22,7 @@ export function AddClientDialog({ open, onOpenChange, onSubmit }: AddClientDialo
         email: "",
         phone: "",
         whatsapp_number: "",
+        whatsapp_group_link: "https://chat.whatsapp.com/EiRKjJBISlW2HmtYwpnbxh",
         age: "",
         city: "",
         country: "",
@@ -56,6 +57,7 @@ export function AddClientDialog({ open, onOpenChange, onSubmit }: AddClientDialo
                 email: "",
                 phone: "",
                 whatsapp_number: "",
+                whatsapp_group_link: "https://chat.whatsapp.com/EiRKjJBISlW2HmtYwpnbxh",
                 age: "",
                 city: "",
                 country: "",
@@ -167,6 +169,16 @@ export function AddClientDialog({ open, onOpenChange, onSubmit }: AddClientDialo
                                         id="whatsapp_number"
                                         value={formData.whatsapp_number}
                                         onChange={(e) => handleChange("whatsapp_number", e.target.value)}
+                                        className="bg-gray-900 border-gray-800 focus:border-[#00FF9C]"
+                                    />
+                                </div>
+                                <div className="space-y-2 md:col-span-2">
+                                    <Label htmlFor="whatsapp_group_link">WhatsApp Group Link</Label>
+                                    <Input
+                                        id="whatsapp_group_link"
+                                        placeholder="https://chat.whatsapp.com/..."
+                                        value={formData.whatsapp_group_link}
+                                        onChange={(e) => handleChange("whatsapp_group_link", e.target.value)}
                                         className="bg-gray-900 border-gray-800 focus:border-[#00FF9C]"
                                     />
                                 </div>

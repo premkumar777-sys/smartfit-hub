@@ -43,6 +43,7 @@ interface Client {
     target_weight_kg?: number;
     occupation?: string;
     whatsapp_number?: string;
+    whatsapp_group_link?: string;
     primary_goal?: string;
     prior_experience?: string;
     training_type?: string;
@@ -258,6 +259,7 @@ export default function TrainerTools() {
                     email: formData.email || null,
                     phone: formData.phone || null,
                     whatsapp_number: formData.whatsapp_number || null,
+                    whatsapp_group_link: formData.whatsapp_group_link || null,
                     status: "active",
                     progress: 0,
                     // Additional fields
