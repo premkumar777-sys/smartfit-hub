@@ -120,12 +120,8 @@ export default function TrainerTools() {
                 .single();
 
             if (error || !trainerData) {
-                toast({
-                    title: "Access Denied",
-                    description: "You are not registered as a trainer. Please contact support.",
-                    variant: "destructive"
-                });
-                navigate("/");
+                // Instead of redirecting, just stop loading and let the UI handle the "no trainer" state
+                setIsLoading(false);
                 return;
             }
 
@@ -256,6 +252,35 @@ export default function TrainerTools() {
                     <Loader2 className="w-12 h-12 animate-spin text-[#00FF9C] mx-auto mb-4" />
                     <p className="text-gray-400">Loading trainer dashboard...</p>
                 </div>
+            </div>
+        );
+    }
+
+    if (!trainer) {
+        return (
+            <div className="min-h-screen bg-background flex items-center justify-center pt-20">
+                <Container>
+                    <Card className="max-w-md mx-auto bg-card/50 border-gray-800">
+                        <CardHeader>
+                            <CardTitle className="text-white text-center">Trainer Access Required</CardTitle>
+                        </CardHeader>
+                        <CardContent className="text-center space-y-4">
+                            <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <Users className="w-8 h-8 text-[#00FF9C]" />
+                            </div>
+                            <p className="text-gray-400">
+                                This dashboard is restricted to registered trainers only.
+                                Please contact an administrator to upgrade your account.
+                            </p>
+                            <Button
+                                className="w-full bg-[#00FF9C] text-black hover:bg-[#00FF9C]/90"
+                                onClick={() => navigate("/")}
+                            >
+                                Return Home
+                            </Button>
+                        </CardContent>
+                    </Card>
+                </Container>
             </div>
         );
     }
