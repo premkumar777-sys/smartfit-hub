@@ -27,58 +27,52 @@ import { FloatingChatbot } from "@/components/FloatingChatbot";
 
 const queryClient = new QueryClient();
 
-// Loading component with running animation
+// Loading component with Supabase-style circular spinner
 const LoadingScreen = () => (
   <div className="min-h-screen bg-background flex items-center justify-center overflow-hidden">
     <div className="text-center relative">
-      {/* Glowing trail effect behind the runner */}
-      <div className="absolute inset-0 flex items-center justify-center">
+      {/* Supabase-style circular spinner ring */}
+      <div className="relative w-28 h-28 mx-auto mb-4">
+        {/* Rotating border ring */}
         <div
-          className="w-24 h-24 rounded-full opacity-30"
+          className="absolute inset-0 rounded-full"
           style={{
-            background: 'radial-gradient(circle, rgba(0,255,156,0.4) 0%, transparent 70%)',
-            animation: 'pulse 1.5s ease-in-out infinite'
+            border: '3px solid transparent',
+            borderTopColor: '#00FF9C',
+            borderRightColor: '#00FF9C',
+            animation: 'spin 1s linear infinite',
+            filter: 'drop-shadow(0 0 8px rgba(0, 255, 156, 0.5))'
           }}
         />
-      </div>
-
-      {/* Runner icon with running animation */}
-      <img
-        src="/favicon.png"
-        alt="SmartFit"
-        className="w-24 h-24 mx-auto mb-4 relative z-10"
-        style={{
-          filter: 'drop-shadow(0 0 20px rgba(0, 255, 156, 0.6))',
-          animation: 'runBounce 0.6s ease-in-out infinite'
-        }}
-      />
-
-      {/* Running track line */}
-      <div className="w-32 h-1 mx-auto mb-4 rounded-full overflow-hidden bg-muted">
+        {/* Second ring with delay for effect */}
         <div
-          className="h-full bg-primary rounded-full"
+          className="absolute inset-1 rounded-full"
           style={{
-            animation: 'runTrack 1s ease-in-out infinite'
+            border: '2px solid transparent',
+            borderTopColor: 'rgba(0, 255, 156, 0.3)',
+            animation: 'spin 1.5s linear infinite reverse'
           }}
         />
+        {/* Runner icon in center */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <img
+            src="/favicon.png"
+            alt="SmartFit"
+            className="w-16 h-16"
+            style={{
+              filter: 'drop-shadow(0 0 15px rgba(0, 255, 156, 0.4))'
+            }}
+          />
+        </div>
       </div>
 
       <p className="text-muted-foreground">Loading SmartFit...</p>
 
       {/* Custom keyframes */}
       <style>{`
-        @keyframes runBounce {
-          0%, 100% { transform: translateY(0) translateX(-3px); }
-          50% { transform: translateY(-8px) translateX(3px); }
-        }
-        @keyframes runTrack {
-          0% { width: 0%; margin-left: 0; }
-          50% { width: 60%; margin-left: 20%; }
-          100% { width: 0%; margin-left: 100%; }
-        }
-        @keyframes pulse {
-          0%, 100% { transform: scale(1); opacity: 0.3; }
-          50% { transform: scale(1.3); opacity: 0.5; }
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
         }
       `}</style>
     </div>
