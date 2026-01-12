@@ -65,13 +65,13 @@ export function MobileMenu({ children, className, onMenuToggle }: MobileMenuProp
           <div
             ref={menuRef}
             className={cn(
-              "fixed top-16 left-0 right-0 bottom-0 z-[10001]",
-              "bg-gray-900 backdrop-blur-md border-t border-gray-800",
-              "animate-in slide-in-from-top-2 duration-300 overflow-y-auto",
+              "fixed inset-0 pt-20 z-[10001]",
+              "bg-gray-900/95 backdrop-blur-md",
+              "animate-in fade-in duration-200 overflow-y-auto",
               className
             )}
           >
-            <nav className="p-6 space-y-4" role="navigation" aria-label="Mobile Navigation">
+            <nav className="p-4 space-y-4" role="navigation" aria-label="Mobile Navigation">
               {children}
             </nav>
           </div>
