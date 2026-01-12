@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Zap, Target, TrendingUp, Users, Brain, Eye, BarChart3, Utensils, Calendar, QrCode, Trophy, Wrench, PieChart, ShoppingBag, Sparkles } from "lucide-react";
+import { ArrowRight, Zap, Target, TrendingUp, Users, Brain, Eye, BarChart3, Utensils, Calendar, QrCode, Trophy, Wrench, PieChart, ShoppingBag, Sparkles, LineChart } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Suspense, lazy, useEffect, useState } from "react";
@@ -226,6 +226,12 @@ const Home = () => {
                 title: "Supplement Marketplace",
                 description: "Curated selection of premium supplements with AI recommendations",
                 link: "/marketplace"
+              },
+              {
+                icon: LineChart,
+                title: "AI Analytics Dashboard",
+                description: "Deep learning insights into your workout performance and predictive trend analysis",
+                link: "/analytics"
               },
             ].map((feature, index) => (
               <FeatureCard
