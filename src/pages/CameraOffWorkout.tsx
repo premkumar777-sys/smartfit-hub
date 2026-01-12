@@ -93,7 +93,7 @@ const WORKOUT_VIDEOS = [
     title: "Squats",
     duration: "0:27",
     thumbnail: "/videos/thumbnails/squat.jpg",
-    videoUrl: "/videos/squat.mp4",
+    videoUrl: "/SFsquat.mp4",
     category: "Squats",
   },
   {
