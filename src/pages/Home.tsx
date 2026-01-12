@@ -151,7 +151,7 @@ const Home = () => {
       <section id="features" className="py-16">
         <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4">
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4 text-white">
               Why Choose <span className="text-gradient">SmartFit Hub</span>
             </h2>
             <p className="text-lg md:text-xl leading-relaxed text-gray-300 max-w-prose mx-auto">
