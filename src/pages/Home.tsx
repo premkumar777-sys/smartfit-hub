@@ -231,7 +231,7 @@ const Home = () => {
                 icon: LineChart,
                 title: "AI Analytics Dashboard",
                 description: "Deep learning insights into your workout performance and predictive trend analysis",
-                link: "/analytics"
+                link: "/gym-analytics"
               },
             ].map((feature, index) => (
               <FeatureCard
