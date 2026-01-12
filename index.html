@@ -24,8 +24,38 @@
   <meta name="twitter:image" content="/favicon.png" />
 </head>
 
-<body>
-  <div id="root"></div>
+<body style="margin: 0; background: #0a0a0a;">
+  <div id="root">
+    <!-- Initial loading shown while React loads -->
+    <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #0a0a0a;">
+      <div style="text-align: center;">
+        <div style="position: relative; width: 112px; height: 112px; margin: 0 auto 16px;">
+          <div
+            style="position: absolute; inset: 0; border-radius: 50%; border: 3px solid transparent; border-top-color: #00FF9C; border-right-color: #00FF9C; animation: spin 1s linear infinite; filter: drop-shadow(0 0 8px rgba(0,255,156,0.5));">
+          </div>
+          <div
+            style="position: absolute; inset: 4px; border-radius: 50%; border: 2px solid transparent; border-top-color: rgba(0,255,156,0.3); animation: spin 1.5s linear infinite reverse;">
+          </div>
+          <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;">
+            <img src="/favicon.png" alt="SmartFit"
+              style="width: 64px; height: 64px; filter: drop-shadow(0 0 15px rgba(0,255,156,0.4));" />
+          </div>
+        </div>
+        <p style="color: #888; font-family: system-ui, sans-serif; margin: 0;">Loading SmartFit...</p>
+      </div>
+    </div>
+    <style>
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </div>
   <script type="module" src="/src/main.tsx"></script>
 </body>
 
