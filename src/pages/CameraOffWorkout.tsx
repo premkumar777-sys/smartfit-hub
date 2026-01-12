@@ -403,7 +403,17 @@ export default function CameraOffWorkout() {
               >
                 {/* Video Thumbnail */}
                 <div className="relative aspect-video bg-gradient-to-br from-primary/20 via-primary/10 to-muted overflow-hidden">
-                  {/* Placeholder gradient when no thumbnail */}
+                  {/* Thumbnail image */}
+                  <img
+                    src={video.thumbnail}
+                    alt={video.title}
+                    className="absolute inset-0 w-full h-full object-cover"
+                    onError={(e) => {
+                      // Hide broken image and show fallback
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                  {/* Fallback icon when no thumbnail */}
                   <div className="absolute inset-0 flex items-center justify-center">
                     <Dumbbell className="w-16 h-16 text-primary/30" />
                   </div>
