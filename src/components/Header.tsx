@@ -307,8 +307,6 @@ export function Header() {
 
             {/* Desktop Right Side */}
             <div className="hidden lg:flex items-center space-x-4">
-              {/* Theme Toggle */}
-              <ThemeToggle />
 
               {/* Get Started Button */}
               <NeonButton href="/auth">Get Started</NeonButton>
@@ -417,12 +415,8 @@ export function Header() {
                   </div>
                 </div>
 
-                {/* Mobile Theme Toggle & Auth Menu */}
-                <div className="px-4 py-4 border-t border-gray-800 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">Theme</span>
-                    <ThemeToggle />
-                  </div>
+                {/* Mobile Auth Menu */}
+                <div className="px-4 py-4 border-t border-gray-800 flex items-center justify-end">
                   <AuthMenu />
                 </div>
               </MobileMenu>
