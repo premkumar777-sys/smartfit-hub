@@ -10,6 +10,8 @@ import {
   Dumbbell,
   Trophy,
   Sparkles,
+  Video,
+  PlayCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Container } from '@/components/Container';
@@ -84,6 +86,58 @@ const EXERCISES: ExerciseConfig[] = [
  * Provides a 3D exercise demonstration system with voice coaching
  * Users follow along with the animated trainer - no camera required
  */
+// Video data for the workout videos section
+const WORKOUT_VIDEOS = [
+  {
+    id: 1,
+    title: "Full Body Warm-Up",
+    duration: "5:30",
+    thumbnail: "/videos/thumbnails/warmup.jpg",
+    videoUrl: "/videos/warmup.mp4",
+    category: "Warm Up",
+  },
+  {
+    id: 2,
+    title: "Perfect Squat Form",
+    duration: "8:15",
+    thumbnail: "/videos/thumbnails/squat.jpg",
+    videoUrl: "/videos/squat.mp4",
+    category: "Lower Body",
+  },
+  {
+    id: 3,
+    title: "Push-Up Variations",
+    duration: "10:45",
+    thumbnail: "/videos/thumbnails/pushup.jpg",
+    videoUrl: "/videos/pushup.mp4",
+    category: "Upper Body",
+  },
+  {
+    id: 4,
+    title: "Core Strengthening",
+    duration: "12:00",
+    thumbnail: "/videos/thumbnails/core.jpg",
+    videoUrl: "/videos/core.mp4",
+    category: "Core",
+  },
+  {
+    id: 5,
+    title: "Bicep & Tricep Workout",
+    duration: "9:30",
+    thumbnail: "/videos/thumbnails/arms.jpg",
+    videoUrl: "/videos/arms.mp4",
+    category: "Arms",
+  },
+  {
+    id: 6,
+    title: "Cool Down & Stretching",
+    duration: "7:00",
+    thumbnail: "/videos/thumbnails/cooldown.jpg",
+    videoUrl: "/videos/cooldown.mp4",
+    category: "Recovery",
+  },
+];
+
 export default function CameraOffWorkout() {
   const [selectedExercise, setSelectedExercise] = useState<Exercise>('idle');
   const [isWorkoutActive, setIsWorkoutActive] = useState(false);
@@ -91,6 +145,7 @@ export default function CameraOffWorkout() {
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [animationPhase, setAnimationPhase] = useState<'down' | 'up' | 'hold'>('hold');
   const [currentCueIndex, setCurrentCueIndex] = useState(0);
+  const [activeVideo, setActiveVideo] = useState<typeof WORKOUT_VIDEOS[0] | null>(null);
 
   const { speak, stop } = useVoiceCoach({ rate: 0.95, pitch: 1.1 });
 
@@ -106,7 +161,7 @@ export default function CameraOffWorkout() {
   // Start workout
   const handleStartWorkout = useCallback(() => {
     if (selectedExercise === 'idle') return;
-    
+
     setIsWorkoutActive(true);
     setIsComplete(false);
     setCurrentCueIndex(0);
@@ -132,7 +187,7 @@ export default function CameraOffWorkout() {
     if (voiceEnabled && currentExerciseConfig) {
       const cues = currentExerciseConfig.voiceMidCues;
       const interval = Math.floor(currentExerciseConfig.duration / (cues.length + 1));
-      
+
       const cueIndex = Math.floor((currentExerciseConfig.duration - remaining) / interval);
       if (cueIndex > currentCueIndex && cueIndex <= cues.length) {
         speak(cues[cueIndex - 1], true);
@@ -151,7 +206,7 @@ export default function CameraOffWorkout() {
   const handleTimerComplete = useCallback(() => {
     setIsWorkoutActive(false);
     setIsComplete(true);
-    
+
     if (voiceEnabled && currentExerciseConfig) {
       speak(currentExerciseConfig.voiceComplete, true);
     }
@@ -226,11 +281,10 @@ export default function CameraOffWorkout() {
                     whileTap={{ scale: 0.98 }}
                     onClick={() => handleExerciseSelect(exercise.id)}
                     disabled={isWorkoutActive}
-                    className={`p-4 rounded-xl border transition-all ${
-                      selectedExercise === exercise.id
-                        ? 'bg-primary text-primary-foreground border-primary'
-                        : 'bg-muted/50 border-border hover:border-primary/50'
-                    } ${isWorkoutActive ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    className={`p-4 rounded-xl border transition-all ${selectedExercise === exercise.id
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'bg-muted/50 border-border hover:border-primary/50'
+                      } ${isWorkoutActive ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <div className="flex flex-col items-center gap-2">
                       {exercise.icon}
@@ -325,7 +379,149 @@ export default function CameraOffWorkout() {
             The angle guidance shows you the target positions to aim for during each exercise.
           </p>
         </div>
+
+        {/* Workout Videos Section */}
+        <div className="mt-12">
+          <div className="mb-6">
+            <h2 className="text-3xl md:text-4xl font-bold leading-tight mb-2 flex items-center gap-3">
+              <Video className="w-8 h-8 text-primary" />
+              Workout Videos
+            </h2>
+            <p className="text-lg text-muted-foreground">
+              Watch these guided workout videos to perfect your form and technique
+            </p>
+          </div>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {WORKOUT_VIDEOS.map((video) => (
+              <motion.div
+                key={video.id}
+                whileHover={{ scale: 1.02, y: -5 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setActiveVideo(video)}
+                className="group relative bg-card/80 backdrop-blur-sm rounded-2xl overflow-hidden border border-border hover:border-primary/50 transition-all duration-300 cursor-pointer"
+              >
+                {/* Video Thumbnail */}
+                <div className="relative aspect-video bg-gradient-to-br from-primary/20 via-primary/10 to-muted overflow-hidden">
+                  {/* Placeholder gradient when no thumbnail */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Dumbbell className="w-16 h-16 text-primary/30" />
+                  </div>
+
+                  {/* Play button overlay */}
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <motion.div
+                      whileHover={{ scale: 1.1 }}
+                      className="w-16 h-16 rounded-full bg-primary/90 flex items-center justify-center shadow-lg shadow-primary/30"
+                    >
+                      <PlayCircle className="w-10 h-10 text-primary-foreground" />
+                    </motion.div>
+                  </div>
+
+                  {/* Duration badge */}
+                  <div className="absolute bottom-2 right-2 px-2 py-1 rounded-md bg-black/70 text-xs font-medium text-white">
+                    {video.duration}
+                  </div>
+
+                  {/* Category badge */}
+                  <div className="absolute top-2 left-2 px-2 py-1 rounded-md bg-primary/90 text-xs font-semibold text-primary-foreground">
+                    {video.category}
+                  </div>
+                </div>
+
+                {/* Video info */}
+                <div className="p-4">
+                  <h4 className="font-semibold text-lg group-hover:text-primary transition-colors">
+                    {video.title}
+                  </h4>
+                  <p className="text-sm text-muted-foreground mt-1 flex items-center gap-2">
+                    <Video className="w-4 h-4" />
+                    Click to watch
+                  </p>
+                </div>
+
+                {/* Glow effect on hover */}
+                <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+                  style={{
+                    boxShadow: 'inset 0 0 20px rgba(0, 255, 156, 0.1), 0 0 30px rgba(0, 255, 156, 0.15)'
+                  }}
+                />
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Add more videos hint */}
+          <div className="mt-8 text-center">
+            <p className="text-muted-foreground text-sm">
+              💡 <strong>Tip:</strong> You can add your own workout videos by placing them in the <code className="bg-muted px-2 py-1 rounded text-xs">/public/videos</code> folder
+            </p>
+          </div>
+        </div>
       </Container>
+
+      {/* Video Player Modal */}
+      <AnimatePresence>
+        {activeVideo && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4"
+            onClick={() => setActiveVideo(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: "spring", damping: 20 }}
+              className="relative w-full max-w-4xl bg-card rounded-2xl overflow-hidden border border-border shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Modal Header */}
+              <div className="flex items-center justify-between p-4 border-b border-border">
+                <div>
+                  <h3 className="text-xl font-bold">{activeVideo.title}</h3>
+                  <p className="text-sm text-muted-foreground flex items-center gap-2">
+                    <span className="px-2 py-0.5 rounded bg-primary/20 text-primary text-xs font-medium">
+                      {activeVideo.category}
+                    </span>
+                    <span>{activeVideo.duration}</span>
+                  </p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setActiveVideo(null)}
+                  className="hover:bg-destructive/20 hover:text-destructive"
+                >
+                  ✕ Close
+                </Button>
+              </div>
+
+              {/* Video Player */}
+              <div className="relative aspect-video bg-black">
+                <video
+                  src={activeVideo.videoUrl}
+                  controls
+                  autoPlay
+                  className="w-full h-full"
+                  poster={activeVideo.thumbnail}
+                >
+                  Your browser does not support the video tag.
+                </video>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="p-4 bg-muted/30 border-t border-border">
+                <p className="text-sm text-muted-foreground">
+                  <strong>Pro tip:</strong> Follow along with the video and practice proper form.
+                  Use the 3D trainer above to see the exercise from different angles.
+                </p>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
