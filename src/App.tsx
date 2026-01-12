@@ -29,7 +29,7 @@ const queryClient = new QueryClient();
 
 // Loading component with Supabase-style circular spinner
 const LoadingScreen = () => (
-  <div className="min-h-screen bg-background flex items-center justify-center overflow-hidden">
+  <div className="min-h-screen flex items-center justify-center overflow-hidden" style={{ background: '#0a0a0a' }}>
     <div className="text-center relative">
       {/* Supabase-style circular spinner ring */}
       <div className="relative w-28 h-28 mx-auto mb-4">
