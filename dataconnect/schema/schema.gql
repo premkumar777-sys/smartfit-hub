@@ -1,0 +1,53 @@
+type User @table {
+  displayName: String!
+  email: String!
+  role: String!
+  createdAt: Timestamp!
+  department: Department
+}
+
+type Department @table {
+  name: String!
+  createdAt: Timestamp!
+  description: String
+  contactEmail: String
+}
+
+type TechnologyAsset @table {
+  name: String!
+  type: String!
+  location: String!
+  status: String!
+  createdAt: Timestamp!
+  serialNumber: String
+  purchaseDate: Date
+  warrantyEndDate: Date
+  description: String
+  department: Department
+}
+
+type TechnologyRequest @table {
+  title: String!
+  description: String!
+  status: String!
+  createdAt: Timestamp!
+  justification: String
+  estimatedCost: Float
+  approvalDate: Timestamp
+  requester: User!
+  requestingDepartment: Department!
+  approvedBy: User
+}
+
+type SupportTicket @table {
+  title: String!
+  description: String!
+  status: String!
+  createdAt: Timestamp!
+  priority: String
+  resolvedDate: Timestamp
+  resolutionNotes: String
+  reporter: User!
+  technologyAsset: TechnologyAsset
+  assignedTo: User
+}
