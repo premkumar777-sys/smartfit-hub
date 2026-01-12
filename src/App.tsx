@@ -21,6 +21,7 @@ import CameraOffWorkout from "./pages/CameraOffWorkout";
 import Marketplace from "./pages/Marketplace";
 import ProductDetail from "./pages/ProductDetail";
 import GymAnalytics from "./pages/GymAnalytics";
+import TrainerTools from "./pages/TrainerTools";
 import NotFound from "./pages/NotFound";
 import { FitnessCursor } from "@/components/FitnessCursor";
 import { FloatingChatbot } from "@/components/FloatingChatbot";
@@ -121,6 +122,7 @@ const App = () => {
               <Route path="/marketplace" element={<Marketplace />} />
               <Route path="/product/:handle" element={<ProductDetail />} />
               <Route path="/gym-analytics" element={<GymAnalytics />} />
+              <Route path="/trainer-tools" element={<TrainerTools />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

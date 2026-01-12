@@ -165,64 +165,67 @@ const Home = () => {
                 icon: Brain,
                 title: "AI Personal Trainer",
                 description: "Intelligent workout recommendations powered by advanced AI algorithms",
-                link: "/ai-trainer"
+                link: "/auth"
               },
               {
                 icon: Eye,
                 title: "Real-Time Form Detection",
                 description: "Computer vision technology analyzes your form and provides instant feedback",
-                link: "/workout-session"
+                link: "/auth"
               },
               {
                 icon: Sparkles,
                 title: "3D Trainer Mode",
                 description: "Follow animated 3D demonstrations with voice coaching – no camera required",
-                link: "/3d-trainer"
+                link: "/auth"
               },
               {
                 icon: BarChart3,
                 title: "Smart Progress Dashboard",
                 description: "Comprehensive analytics tracking your fitness journey and achievements",
-                link: "/progress"
+                link: "/auth"
               },
               {
                 icon: Utensils,
                 title: "Nutrition & Macro AI",
                 description: "AI-powered meal planning with precise macro calculations",
-                link: "/nutrition"
+                link: "/auth"
               },
               {
                 icon: Calendar,
                 title: "Home Workouts",
                 description: "Complete 6-day workout plan you can do anywhere – no equipment needed",
-                link: "/home-workouts"
+                link: "/auth"
               },
               {
                 icon: QrCode,
                 title: "QR Smart Attendance",
-                description: "Contactless entry system with automated check-in and attendance tracking"
+                description: "Contactless entry system with automated check-in and attendance tracking",
+                link: "/auth"
               },
               {
                 icon: Trophy,
                 title: "Gamified Training System",
                 description: "Earn rewards, unlock achievements, and compete with friends",
-                link: "/gamification"
+                link: "/auth"
               },
               {
                 icon: Wrench,
                 title: "Trainer Performance Tools",
-                description: "Advanced tools for trainers to optimize client results and track progress"
+                description: "Advanced tools for trainers to optimize client results and track progress",
+                link: "/trainer-tools"
               },
               {
                 icon: PieChart,
                 title: "Gym Owner Analytics",
-                description: "Business intelligence dashboard for gym management and growth"
+                description: "Business intelligence dashboard for gym management and growth",
+                link: "/auth"
               },
               {
                 icon: ShoppingBag,
                 title: "Supplement Marketplace",
                 description: "Curated selection of premium supplements with AI recommendations",
-                link: "/marketplace"
+                link: "/auth"
               },
             ].map((feature, index) => (
               <FeatureCard
@@ -230,7 +233,7 @@ const Home = () => {
                 icon={feature.icon}
                 title={feature.title}
                 description={feature.description}
-                link={'link' in feature ? feature.link : undefined}
+                link={feature.link}
                 index={index}
               />
             ))}
