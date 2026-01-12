@@ -90,11 +90,11 @@ const EXERCISES: ExerciseConfig[] = [
 const WORKOUT_VIDEOS = [
   {
     id: 1,
-    title: "Full Body Warm-Up",
-    duration: "5:30",
-    thumbnail: "/videos/thumbnails/warmup.jpg",
-    videoUrl: "/videos/warmup.mp4",
-    category: "Warm Up",
+    title: "Squats",
+    duration: "0:27",
+    thumbnail: "/videos/thumbnails/squat.jpg",
+    videoUrl: "/videos/squat.mp4",
+    category: "Squats",
   },
   {
     id: 2,
