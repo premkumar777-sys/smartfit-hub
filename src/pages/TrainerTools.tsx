@@ -184,6 +184,129 @@ export default function TrainerTools() {
         initializeDashboard();
     }, [toast]);
 
+    const loadAllData = async (trainerId: string) => {
+        // Load clients
+        const { data: clientsData } = await supabase
+            .from("trainer_clients")
+            .select("*")
+            .eq("trainer_id", trainerId)
+            .order("created_at", { ascending: false });
+
+        if (clientsData) {
+            setClients(clientsData);
+            setStats(prev => ({
+                ...prev,
+                totalClients: clientsData.length,
+                activeClients: clientsData.filter(c => c.status === "active").length
+            }));
+        }
+
+        // Load today's sessions
+        const today = new Date().toISOString().split("T")[0];
+        const { data: sessionsData } = await supabase
+            .from("trainer_sessions")
+            .select("*, trainer_clients(full_name)")
+            .eq("trainer_id", trainerId)
+            .eq("session_date", today)
+            .order("session_time", { ascending: true });
+
+        if (sessionsData) {
+            setSessions(sessionsData);
+            setStats(prev => ({ ...prev, todaySessions: sessionsData.length }));
+        }
+
+        // Load messages
+        const { data: messagesData } = await supabase
+            .from("trainer_messages")
+            .select("*, trainer_clients(full_name)")
+            .eq("trainer_id", trainerId)
+            .order("created_at", { ascending: false })
+            .limit(10);
+
+        if (messagesData) setMessages(messagesData);
+
+        // Load payments for this month
+        const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split("T")[0];
+        const { data: paymentsData } = await supabase
+            .from("trainer_payments")
+            .select("*, trainer_clients(full_name)")
+            .eq("trainer_id", trainerId)
+            .gte("payment_date", startOfMonth)
+            .order("payment_date", { ascending: false });
+
+        if (paymentsData) {
+            setPayments(paymentsData);
+            const totalRevenue = paymentsData.reduce((sum, p) => sum + Number(p.amount), 0);
+            setStats(prev => ({ ...prev, monthlyRevenue: totalRevenue }));
+        }
+
+        // Load workout templates
+        const { data: templatesData } = await supabase
+            .from("trainer_workout_templates")
+            .select("*")
+            .eq("trainer_id", trainerId)
+            .order("created_at", { ascending: false });
+
+        if (templatesData) setTemplates(templatesData);
+
+        // Load attendance stats for current month
+        const { data: allSessionsData } = await supabase
+            .from("trainer_sessions")
+            .select("*")
+            .eq("trainer_id", trainerId)
+            .gte("session_date", startOfMonth);
+
+        if (allSessionsData) {
+            const attended = allSessionsData.filter(s => s.attended === true).length;
+            const noShows = allSessionsData.filter(s => s.attended === false).length;
+            setStats(prev => ({
+                ...prev,
+                totalSessions: allSessionsData.length,
+                attendedSessions: attended,
+                noShows: noShows
+            }));
+        }
+    };
+
+    // Helper function to get initials
+    const getInitials = (name: string) => {
+        return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
+    };
+
+    // Format time for display
+    const formatTime = (time: string) => {
+        const [hours, minutes] = time.split(":");
+        const hour = parseInt(hours);
+        const ampm = hour >= 12 ? "PM" : "AM";
+        const hour12 = hour % 12 || 12;
+        return `${hour12}:${minutes} ${ampm}`;
+    };
+
+    // Format relative time
+    const getRelativeTime = (dateStr: string) => {
+        const date = new Date(dateStr);
+        const now = new Date();
+        const diffMs = now.getTime() - date.getTime();
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMs / 3600000);
+        const diffDays = Math.floor(diffMs / 86400000);
+
+        if (diffMins < 60) return `${diffMins} min ago`;
+        if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
+        return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
+    };
+
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-background flex items-center justify-center">
+                <div className="text-center">
+                    <Loader2 className="w-12 h-12 animate-spin text-[#00FF9C] mx-auto mb-4" />
+                    <p className="text-gray-400">Loading trainer dashboard...</p>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-background pt-20 pb-12">
             <Container>
