@@ -84,14 +84,14 @@ export function AddClientDialog({ open, onOpenChange, onSubmit }: AddClientDialo
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0 gap-0 bg-gray-950 border-gray-800 text-white">
-                <DialogHeader className="p-6 pb-2">
+                <DialogHeader className="p-6 pb-2 shrink-0">
                     <DialogTitle className="text-2xl font-bold text-[#00FF9C]">Add New Client</DialogTitle>
                     <DialogDescription className="text-gray-400">
                         Enter the client's comprehensive details for their fitness journey.
                     </DialogDescription>
                 </DialogHeader>
 
-                <ScrollArea className="flex-1 px-6 py-4">
+                <div className="flex-1 overflow-y-auto px-6 py-4">
                     <form id="add-client-form" onSubmit={handleSubmit} className="space-y-6">
 
                         {/* Section 1: Personal Info */}
@@ -386,9 +386,9 @@ export function AddClientDialog({ open, onOpenChange, onSubmit }: AddClientDialo
                         </div>
 
                     </form>
-                </ScrollArea>
+                </div>
 
-                <DialogFooter className="p-6 pt-2 border-t border-gray-800">
+                <DialogFooter className="p-6 pt-2 border-t border-gray-800 shrink-0">
                     <Button variant="outline" onClick={() => onOpenChange(false)} className="border-gray-700 hover:bg-gray-800">
                         Cancel
                     </Button>
