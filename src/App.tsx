@@ -86,7 +86,7 @@ const App = () => {
     // Simulate loading time to show the loading screen
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 1000);
+    }, 500);
 
     return () => clearTimeout(timer);
   }, []);
