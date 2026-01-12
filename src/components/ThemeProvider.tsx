@@ -12,14 +12,14 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const [theme, setThemeState] = useState<Theme>(() => {
-        // Check localStorage first, default to light
+        // Check localStorage first, default to dark
         if (typeof window !== "undefined") {
             const stored = localStorage.getItem("smartfit-theme") as Theme;
             if (stored === "light" || stored === "dark") {
                 return stored;
             }
         }
-        return "light"; // Default to bright/light mode
+        return "dark"; // Default to dark mode
     });
 
     useEffect(() => {
