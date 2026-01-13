@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useGamification, XP_REWARDS } from "@/hooks/useGamification";
 import { ComingSoon } from "@/components/ComingSoon";
+import { PremiumLock } from "@/components/PremiumLock";
 
 const AIWorkout = () => {
   const [isLoading, setIsLoading] = useState(false);
