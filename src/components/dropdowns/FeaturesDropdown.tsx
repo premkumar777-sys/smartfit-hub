@@ -1,8 +1,15 @@
 import { DropdownItem } from "../DropdownItem";
-import { Dumbbell, Target, Zap, Apple, Activity, Home } from "lucide-react";
+import { Dumbbell, Target, Zap, Apple, Bot, Video, Laptop, Activity } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const features = [
+  {
+    icon: Bot,
+    title: "AI Personal Trainer",
+    description: "24/7 AI Chat expert for workout plans, form tips, and nutrition advice",
+    href: "/ai-trainer",
+    badge: "Hot"
+  },
   {
     icon: Dumbbell,
     title: "AI Workout Generator",
@@ -11,11 +18,10 @@ const features = [
     badge: "Popular"
   },
   {
-    icon: Home,
-    title: "Home Workouts",
-    description: "Complete 6-day workout plan – no equipment needed",
-    href: "/home-workouts",
-    badge: "New"
+    icon: Video,
+    title: "3D Trainer Mode",
+    description: "Follow animated 3D demonstrations with voice coaching",
+    href: "/3d-trainer"
   },
   {
     icon: Apple,
@@ -24,21 +30,16 @@ const features = [
     href: "/nutrition"
   },
   {
-    icon: Target,
-    title: "Smart Progress Dashboard",
-    description: "Track your weight, progress logs, and fitness journey",
-    href: "/progress"
-  },
-  {
-    icon: Activity,
-    title: "Performance Analytics",
-    description: "Detailed insights into your fitness journey and improvements",
-    href: "/dashboard"
+    icon: Laptop,
+    title: "Online Coaching",
+    description: "1-on-1 remote video coaching with expert trainers",
+    href: "/online-coaching",
+    badge: "New"
   },
   {
     icon: Zap,
-    title: "Real-time Coaching",
-    description: "Get instant feedback on your form and technique during workouts",
+    title: "Real-time Form AI",
+    description: "Get instant feedback on your form using computer vision",
     href: "/workout-session"
   }
 ];
