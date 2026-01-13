@@ -176,7 +176,7 @@ export default function AITrainer() {
                             name: "Monthly",
                             price: "₹299",
                             period: "per month",
-                            link: "https://buy.stripe.com/test_6oUeVd6JhfQh2rTa6X8ww00",
+                            priceId: "price_1QazMnSJWeMrHvFrVl1VXNHP",
                             badge: "Popular"
                         },
                         {
@@ -184,7 +184,7 @@ export default function AITrainer() {
                             name: "Yearly",
                             price: "₹2999",
                             period: "per year",
-                            link: "https://buy.stripe.com/test_pro_year"
+                            priceId: "price_1QazMnSJWeMrHvFryearly"
                         }
                     ]}
                 >
