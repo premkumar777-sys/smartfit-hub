@@ -74,6 +74,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_gym_check_ins_gym"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "gyms"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "gym_check_ins_member_id_fkey"
             columns: ["member_id"]
             isOneToOne: false
@@ -116,7 +123,15 @@ export type Database = {
           revenue_generated?: number | null
           schedule?: Json | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_gym_classes_gym"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "gyms"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       gym_equipment: {
         Row: {
@@ -152,7 +167,15 @@ export type Database = {
           usage_count?: number | null
           utilization_rate?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_gym_equipment_gym"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "gyms"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       gym_insights: {
         Row: {
@@ -191,7 +214,15 @@ export type Database = {
           priority?: string | null
           title?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_gym_insights_gym"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "gyms"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       gym_members: {
         Row: {
@@ -251,7 +282,15 @@ export type Database = {
           updated_at?: string | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_gym_members_gym"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "gyms"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       gym_revenue: {
         Row: {
@@ -286,6 +325,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_gym_revenue_gym"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "gyms"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "gym_revenue_member_id_fkey"
             columns: ["member_id"]
             isOneToOne: false
@@ -293,6 +339,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      gyms: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+          owner_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+          owner_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+          owner_id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       phone_otps: {
         Row: {
@@ -409,6 +479,7 @@ export type Database = {
           hour: number
         }[]
       }
+      is_gym_owner: { Args: { _gym_id: string }; Returns: boolean }
       send_welcome_email: {
         Args: { user_email: string; user_name?: string }
         Returns: undefined

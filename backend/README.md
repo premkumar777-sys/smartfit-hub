@@ -10,11 +10,11 @@ Create a `.env.local` file in the backend directory:
 
 ```env
 # Stripe Configuration
-STRIPE_SECRET_KEY=sk_test_51ShZs2Cn98QGMABlFOjvAs5yq9DwN2fzZq2wDOhfFudgldeF9ybsmzYEzY4ao8c4f3wgJxMEWv7Gyt4kGLJ5g0wP00BFTshfC2
+STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key_here
 STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret_here
 
 # Supabase Configuration
-NEXT_PUBLIC_SUPABASE_URL=https://qziimtjhbnpwwbjmjlcf.supabase.co
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here
 
 # Site Configuration
