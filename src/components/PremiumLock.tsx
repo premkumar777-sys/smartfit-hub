@@ -5,14 +5,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { ENABLE_PAYMENTS } from "@/config";
-import { useSubscription } from "@/hooks/useSubscription";
+import { useSubscription, useUpgradePlan, STRIPE_PRICES } from "@/hooks/use-subscription";
 
 export interface Plan {
     id: string;
     name: string;
     price: string;
     period: string;
-    link: string; // Stripe payment link URL
+    priceId: string; // Stripe price ID
     badge?: string;
 }
 
@@ -26,26 +26,19 @@ interface PremiumLockProps {
 
 const DEFAULT_PLANS: Plan[] = [
     {
-        id: "intro",
-        name: "Intro Offer",
-        price: "₹99",
-        period: "1st month",
-        link: "https://buy.stripe.com/test_6oUeVd6JhfQh2rTa6X8ww00",
-        badge: "Best Value"
+        id: "monthly",
+        name: "Monthly",
+        price: "₹299",
+        period: "per month",
+        priceId: STRIPE_PRICES.PREMIUM_MONTHLY,
+        badge: "Popular"
     },
     {
-        id: "semiannual",
-        name: "6 Months",
-        price: "₹399",
-        period: "every 6 months",
-        link: "https://buy.stripe.com/test_6oUeVd6JhfQh2rTa6X8ww00"
-    },
-    {
-        id: "annual",
+        id: "yearly",
         name: "Yearly",
-        price: "₹699",
+        price: "₹2,999",
         period: "per year",
-        link: "https://buy.stripe.com/test_6oUeVd6JhfQh2rTa6X8ww00"
+        priceId: STRIPE_PRICES.PREMIUM_YEARLY
     }
 ];
 
@@ -56,9 +49,14 @@ export function PremiumLock({
     features = [],
     plans = DEFAULT_PLANS
 }: PremiumLockProps) {
-    const { hasAccess, isLoading } = useSubscription();
-    // Keep local state for plan selection
+    const { hasPremiumAccess, isLoading } = useSubscription();
+    const { upgradePlan, isLoading: isUpgrading } = useUpgradePlan();
     const [selectedPlan, setSelectedPlan] = useState(plans[0]);
+
+    // If payments are disabled, show content directly
+    if (!ENABLE_PAYMENTS) {
+        return <>{children}</>;
+    }
 
     if (isLoading) {
         return (
@@ -73,10 +71,17 @@ export function PremiumLock({
         );
     }
 
-    // Grant access if user has subscription OR if payments are disabled (handled inside hook)
-    if (hasAccess) {
+    // Grant access if user has active subscription
+    if (hasPremiumAccess) {
         return <>{children}</>;
     }
+
+    const handleUpgrade = async () => {
+        toast.success(`Processing ${selectedPlan.name} Plan...`, {
+            description: "Redirecting to secure payment..."
+        });
+        await upgradePlan(selectedPlan.priceId);
+    };
 
     return (
         <div className="relative w-full h-full">
@@ -112,7 +117,7 @@ export function PremiumLock({
                         )}
 
                         {/* Plan Selection */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 w-full">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full">
                             {plans.map((plan) => (
                                 <div
                                     key={plan.id}
@@ -143,19 +148,18 @@ export function PremiumLock({
 
                         <div className="w-full space-y-3">
                             <Button
-                                onClick={() => {
-                                    toast.success(`Processing ${selectedPlan.name} Plan...`, {
-                                        description: "Redirecting to secure payment..."
-                                    });
-
-                                    // Redirect to the specific link for the selected plan
-                                    setTimeout(() => {
-                                        window.open(selectedPlan.link, '_blank');
-                                    }, 1500);
-                                }}
-                                className="w-full bg-[#00FF9C] hover:bg-[#00FF9C]/90 text-black font-bold h-12 text-lg shadow-[0_0_20px_rgba(0,255,156,0.4)] transition-all hover:scale-[1.02]"
+                                onClick={handleUpgrade}
+                                disabled={isUpgrading}
+                                className="w-full bg-[#00FF9C] hover:bg-[#00FF9C]/90 text-black font-bold h-12 text-lg shadow-[0_0_20px_rgba(0,255,156,0.4)] transition-all hover:scale-[1.02] disabled:opacity-50"
                             >
-                                Upgrade Now - {selectedPlan.price}
+                                {isUpgrading ? (
+                                    <>
+                                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                                        Processing...
+                                    </>
+                                ) : (
+                                    `Upgrade Now - ${selectedPlan.price}`
+                                )}
                             </Button>
 
                             <p className="text-xs text-gray-500">

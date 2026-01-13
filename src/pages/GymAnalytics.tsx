@@ -599,7 +599,7 @@ export default function GymAnalytics() {
                   name: "Business Monthly",
                   price: "₹1,499",
                   period: "per month",
-                  link: "https://buy.stripe.com/test_biz_monthly",
+                  priceId: "price_1QazMnSJWeMrHvFrVl1VXNHP",
                   badge: "Flexible"
                 },
                 {
@@ -607,7 +607,7 @@ export default function GymAnalytics() {
                   name: "Business Annual",
                   price: "₹14,999",
                   period: "per year",
-                  link: "https://buy.stripe.com/test_biz_yearly",
+                  priceId: "price_1QazMnSJWeMrHvFryearly",
                   badge: "Best Value"
                 }
               ]}
