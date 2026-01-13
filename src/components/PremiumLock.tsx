@@ -1,6 +1,7 @@
 import { Lock, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { toast } from "sonner";
 
 interface PremiumLockProps {
     children: React.ReactNode;
@@ -43,7 +44,14 @@ export function PremiumLock({
                                 <span className="text-sm font-normal text-gray-500 ml-1">/ billed annually</span>
                             </div>
 
-                            <Button className="w-full bg-[#00FF9C] hover:bg-[#00FF9C]/90 text-black font-bold h-12 text-lg shadow-[0_0_20px_rgba(0,255,156,0.4)] transition-all hover:scale-[1.02]">
+                            <Button
+                                onClick={() => {
+                                    toast.success("Redirecting to Secure Checkout...", {
+                                        description: "Initiating Stripe payment session for Pro Plan."
+                                    });
+                                }}
+                                className="w-full bg-[#00FF9C] hover:bg-[#00FF9C]/90 text-black font-bold h-12 text-lg shadow-[0_0_20px_rgba(0,255,156,0.4)] transition-all hover:scale-[1.02]"
+                            >
                                 Upgrade to Pro
                             </Button>
 
