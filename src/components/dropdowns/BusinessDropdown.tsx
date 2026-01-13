@@ -20,11 +20,7 @@ const businessSolutions = [
     title: "Trainer Dashboard",
     description: "Powerful tools for fitness professionals to manage clients and sessions"
   },
-  {
-    icon: BarChart3,
-    title: "Analytics & Reporting",
-    description: "Comprehensive insights into gym performance and member engagement"
-  },
+
   {
     icon: Settings,
     title: "Equipment Integration",

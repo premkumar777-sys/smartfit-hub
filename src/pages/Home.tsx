@@ -215,12 +215,7 @@ const Home = () => {
                 description: "Advanced tools for trainers to optimize client results and track progress",
                 link: "/trainer-tools"
               },
-              {
-                icon: PieChart,
-                title: "Gym Owner Analytics",
-                description: "Business intelligence dashboard for gym management and growth",
-                link: "/gym-analytics"
-              },
+
               {
                 icon: ShoppingBag,
                 title: "Supplement Marketplace",
