@@ -7,7 +7,7 @@ const businessSolutions = [
     icon: Brain,
     title: "AI Analytics Dashboard",
     description: "Revolutionary business intelligence with churn prediction & revenue optimization",
-    href: "/gym-analytics",
+    href: "/gym-analytics/ai",
     isNew: true
   },
   {

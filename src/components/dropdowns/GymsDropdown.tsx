@@ -41,10 +41,10 @@ const bookingFeatures = [
 ];
 
 const popularCities = [
-  { name: "New York", count: "250+ gyms" },
-  { name: "Los Angeles", count: "180+ gyms" },
-  { name: "Chicago", count: "120+ gyms" },
-  { name: "Miami", count: "90+ gyms" }
+  { name: "Hyderabad", count: "150+ gyms" },
+  { name: "Mumbai", count: "250+ gyms" },
+  { name: "Bangalore", count: "200+ gyms" },
+  { name: "Delhi", count: "180+ gyms" }
 ];
 
 export default function GymsDropdown() {

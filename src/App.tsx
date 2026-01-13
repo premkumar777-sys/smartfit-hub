@@ -122,6 +122,7 @@ const App = () => {
               <Route path="/marketplace" element={<Marketplace />} />
               <Route path="/product/:handle" element={<ProductDetail />} />
               <Route path="/gym-analytics" element={<GymAnalytics />} />
+              <Route path="/gym-analytics/ai" element={<GymAnalytics />} />
               <Route path="/trainer-tools" element={<TrainerTools />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

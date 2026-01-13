@@ -1,18 +1,19 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { PremiumLock } from "@/components/PremiumLock";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { 
-  Users, TrendingUp, DollarSign, Activity, Target, 
+import {
+  Users, TrendingUp, DollarSign, Activity, Target,
   AlertTriangle, Zap, Clock, BarChart3, PieChart,
   Brain, Lightbulb, ArrowUpRight, ArrowDownRight,
   Dumbbell, Calendar, Trophy, Heart, Flame
 } from "lucide-react";
-import { 
+import {
   AreaChart, Area, BarChart, Bar, LineChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart as RechartsPie, Pie, Cell, RadarChart, Radar,
@@ -128,7 +129,8 @@ const competitorBenchmark = [
 
 export default function GymAnalytics() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("overview");
+  const location = useLocation();
+  const [activeTab, setActiveTab] = useState(location.pathname.includes("/ai") ? "predictions" : "overview");
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -218,35 +220,35 @@ export default function GymAnalytics() {
 
         {/* Key Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <StatCard 
-            title="Total Members" 
-            value="1,247" 
-            change={12.5} 
-            icon={Users} 
+          <StatCard
+            title="Total Members"
+            value="1,247"
+            change={12.5}
+            icon={Users}
             trend="up"
             subtitle="87% retention rate"
           />
-          <StatCard 
-            title="Monthly Revenue" 
-            value="$67,450" 
-            change={8.3} 
-            icon={DollarSign} 
+          <StatCard
+            title="Monthly Revenue"
+            value="$67,450"
+            change={8.3}
+            icon={DollarSign}
             trend="up"
             subtitle="$54 avg per member"
           />
-          <StatCard 
-            title="Active Today" 
-            value="342" 
-            change={-3.2} 
-            icon={Activity} 
+          <StatCard
+            title="Active Today"
+            value="342"
+            change={-3.2}
+            icon={Activity}
             trend="down"
             subtitle="27% of members"
           />
-          <StatCard 
-            title="Churn Risk" 
-            value="23" 
-            change={-15} 
-            icon={AlertTriangle} 
+          <StatCard
+            title="Churn Risk"
+            value="23"
+            change={-15}
+            icon={AlertTriangle}
             trend="up"
             subtitle="Members need attention"
           />
@@ -295,12 +297,12 @@ export default function GymAnalytics() {
                       <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                       <XAxis dataKey="month" className="text-xs" />
                       <YAxis className="text-xs" />
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: 'hsl(var(--card))', 
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: 'hsl(var(--card))',
                           border: '1px solid hsl(var(--border))',
                           borderRadius: '8px'
-                        }} 
+                        }}
                       />
                       <Area type="monotone" dataKey="memberships" stackId="1" stroke="#10b981" fill="#10b981" fillOpacity={0.6} />
                       <Area type="monotone" dataKey="classes" stackId="1" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.6} />
@@ -325,12 +327,12 @@ export default function GymAnalytics() {
                       <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                       <XAxis dataKey="hour" className="text-xs" />
                       <YAxis className="text-xs" />
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: 'hsl(var(--card))', 
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: 'hsl(var(--card))',
                           border: '1px solid hsl(var(--border))',
                           borderRadius: '8px'
-                        }} 
+                        }}
                       />
                       <Bar dataKey="members" fill="#10b981" radius={[4, 4, 0, 0]} />
                       <Line type="monotone" dataKey="capacity" stroke="#f59e0b" strokeWidth={2} strokeDasharray="5 5" />
@@ -343,20 +345,17 @@ export default function GymAnalytics() {
             {/* AI Insights Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {aiInsights.map((insight, index) => (
-                <Card key={index} className={`border-l-4 ${
-                  insight.priority === 'critical' ? 'border-l-red-500' :
+                <Card key={index} className={`border-l-4 ${insight.priority === 'critical' ? 'border-l-red-500' :
                   insight.priority === 'high' ? 'border-l-amber-500' : 'border-l-blue-500'
-                }`}>
+                  }`}>
                   <CardContent className="p-5">
                     <div className="flex items-start gap-4">
-                      <div className={`p-2.5 rounded-lg ${
-                        insight.priority === 'critical' ? 'bg-red-500/10' :
+                      <div className={`p-2.5 rounded-lg ${insight.priority === 'critical' ? 'bg-red-500/10' :
                         insight.priority === 'high' ? 'bg-amber-500/10' : 'bg-blue-500/10'
-                      }`}>
-                        <insight.icon className={`w-5 h-5 ${
-                          insight.priority === 'critical' ? 'text-red-500' :
+                        }`}>
+                        <insight.icon className={`w-5 h-5 ${insight.priority === 'critical' ? 'text-red-500' :
                           insight.priority === 'high' ? 'text-amber-500' : 'text-blue-500'
-                        }`} />
+                          }`} />
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
@@ -540,17 +539,16 @@ export default function GymAnalytics() {
                         <div className="flex items-center justify-between mb-2">
                           <span className="font-medium">{equipment.name}</span>
                           <div className="flex items-center gap-2">
-                            <Badge variant="outline" className={`text-xs ${
-                              equipment.maintenance === 'Excellent' ? 'border-green-500 text-green-500' :
+                            <Badge variant="outline" className={`text-xs ${equipment.maintenance === 'Excellent' ? 'border-green-500 text-green-500' :
                               equipment.maintenance === 'Good' ? 'border-blue-500 text-blue-500' : 'border-amber-500 text-amber-500'
-                            }`}>
+                              }`}>
                               {equipment.maintenance}
                             </Badge>
                             <span className="text-sm font-semibold">{equipment.utilization}%</span>
                           </div>
                         </div>
-                        <Progress 
-                          value={equipment.utilization} 
+                        <Progress
+                          value={equipment.utilization}
                           className={`h-2 ${equipment.utilization > 85 ? '[&>div]:bg-red-500' : equipment.utilization > 60 ? '[&>div]:bg-amber-500' : ''}`}
                         />
                       </div>
@@ -586,84 +584,86 @@ export default function GymAnalytics() {
 
           {/* AI Predictions Tab */}
           <TabsContent value="predictions" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Competitor Benchmark */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Trophy className="w-5 h-5 text-primary" />
-                    Industry Benchmark
-                  </CardTitle>
-                  <CardDescription>How you compare to industry averages</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-6">
-                    {competitorBenchmark.map((item, index) => (
-                      <div key={index}>
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="font-medium">{item.metric}</span>
-                          <div className="flex items-center gap-3">
-                            <span className="text-sm text-muted-foreground">Industry: {item.industry}%</span>
-                            <span className={`font-semibold ${item.yours > item.industry ? 'text-green-500' : 'text-red-500'}`}>
-                              You: {item.yours}%
-                            </span>
+            <PremiumLock>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Competitor Benchmark */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Trophy className="w-5 h-5 text-primary" />
+                      Industry Benchmark
+                    </CardTitle>
+                    <CardDescription>How you compare to industry averages</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-6">
+                      {competitorBenchmark.map((item, index) => (
+                        <div key={index}>
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="font-medium">{item.metric}</span>
+                            <div className="flex items-center gap-3">
+                              <span className="text-sm text-muted-foreground">Industry: {item.industry}%</span>
+                              <span className={`font-semibold ${item.yours > item.industry ? 'text-green-500' : 'text-red-500'}`}>
+                                You: {item.yours}%
+                              </span>
+                            </div>
+                          </div>
+                          <div className="relative h-3 bg-muted rounded-full overflow-hidden">
+                            <div
+                              className="absolute h-full bg-muted-foreground/30 rounded-full"
+                              style={{ width: `${item.industry}%` }}
+                            />
+                            <div
+                              className={`absolute h-full rounded-full ${item.yours > item.industry ? 'bg-green-500' : 'bg-red-500'}`}
+                              style={{ width: `${item.yours}%` }}
+                            />
                           </div>
                         </div>
-                        <div className="relative h-3 bg-muted rounded-full overflow-hidden">
-                          <div 
-                            className="absolute h-full bg-muted-foreground/30 rounded-full"
-                            style={{ width: `${item.industry}%` }}
-                          />
-                          <div 
-                            className={`absolute h-full rounded-full ${item.yours > item.industry ? 'bg-green-500' : 'bg-red-500'}`}
-                            style={{ width: `${item.yours}%` }}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
 
-              {/* Predictive Insights */}
-              <Card className="border-primary/20">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Brain className="w-5 h-5 text-primary" />
-                    AI Predictions
-                  </CardTitle>
-                  <CardDescription>Machine learning-powered forecasts</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="p-4 rounded-lg bg-gradient-to-r from-green-500/10 to-green-500/5 border border-green-500/20">
-                    <div className="flex items-center gap-2 mb-2">
-                      <TrendingUp className="w-5 h-5 text-green-500" />
-                      <span className="font-semibold">Revenue Forecast</span>
+                {/* Predictive Insights */}
+                <Card className="border-primary/20">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Brain className="w-5 h-5 text-primary" />
+                      AI Predictions
+                    </CardTitle>
+                    <CardDescription>Machine learning-powered forecasts</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="p-4 rounded-lg bg-gradient-to-r from-green-500/10 to-green-500/5 border border-green-500/20">
+                      <div className="flex items-center gap-2 mb-2">
+                        <TrendingUp className="w-5 h-5 text-green-500" />
+                        <span className="font-semibold">Revenue Forecast</span>
+                      </div>
+                      <p className="text-2xl font-bold text-green-500">$72,800</p>
+                      <p className="text-sm text-muted-foreground">Predicted next month revenue (+8%)</p>
                     </div>
-                    <p className="text-2xl font-bold text-green-500">$72,800</p>
-                    <p className="text-sm text-muted-foreground">Predicted next month revenue (+8%)</p>
-                  </div>
-                  
-                  <div className="p-4 rounded-lg bg-gradient-to-r from-blue-500/10 to-blue-500/5 border border-blue-500/20">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Users className="w-5 h-5 text-blue-500" />
-                      <span className="font-semibold">Member Growth</span>
+
+                    <div className="p-4 rounded-lg bg-gradient-to-r from-blue-500/10 to-blue-500/5 border border-blue-500/20">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Users className="w-5 h-5 text-blue-500" />
+                        <span className="font-semibold">Member Growth</span>
+                      </div>
+                      <p className="text-2xl font-bold text-blue-500">+47 members</p>
+                      <p className="text-sm text-muted-foreground">Expected new sign-ups this month</p>
                     </div>
-                    <p className="text-2xl font-bold text-blue-500">+47 members</p>
-                    <p className="text-sm text-muted-foreground">Expected new sign-ups this month</p>
-                  </div>
-                  
-                  <div className="p-4 rounded-lg bg-gradient-to-r from-amber-500/10 to-amber-500/5 border border-amber-500/20">
-                    <div className="flex items-center gap-2 mb-2">
-                      <AlertTriangle className="w-5 h-5 text-amber-500" />
-                      <span className="font-semibold">Churn Prediction</span>
+
+                    <div className="p-4 rounded-lg bg-gradient-to-r from-amber-500/10 to-amber-500/5 border border-amber-500/20">
+                      <div className="flex items-center gap-2 mb-2">
+                        <AlertTriangle className="w-5 h-5 text-amber-500" />
+                        <span className="font-semibold">Churn Prediction</span>
+                      </div>
+                      <p className="text-2xl font-bold text-amber-500">12 members</p>
+                      <p className="text-sm text-muted-foreground">At risk of cancellation next 30 days</p>
                     </div>
-                    <p className="text-2xl font-bold text-amber-500">12 members</p>
-                    <p className="text-sm text-muted-foreground">At risk of cancellation next 30 days</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </PremiumLock>
           </TabsContent>
         </Tabs>
       </div>
