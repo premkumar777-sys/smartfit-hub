@@ -211,7 +211,7 @@ export default function HomeWorkouts() {
                                     name: "Monthly",
                                     price: "₹299",
                                     period: "per month",
-                                    priceId: "price_1QazMnSJWeMrHvFrVl1VXNHP",
+                                    priceId: "price_1SpGzZCn98QGMABluEiI28C8",
                                     badge: "Popular"
                                 },
                                 {
@@ -219,7 +219,7 @@ export default function HomeWorkouts() {
                                     name: "Yearly",
                                     price: "₹2999",
                                     period: "per year",
-                                    priceId: "price_1QazMnSJWeMrHvFryearly"
+                                    priceId: "price_1SpH0cCn98QGMABlV6mQUbFO"
                                 }
                             ]}
                         >

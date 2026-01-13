@@ -599,7 +599,7 @@ export default function GymAnalytics() {
                   name: "Business Monthly",
                   price: "₹1,499",
                   period: "per month",
-                  priceId: "price_1QazMnSJWeMrHvFrVl1VXNHP",
+                  priceId: "price_1SpGzZCn98QGMABluEiI28C8",
                   badge: "Flexible"
                 },
                 {
@@ -607,7 +607,7 @@ export default function GymAnalytics() {
                   name: "Business Annual",
                   price: "₹14,999",
                   period: "per year",
-                  priceId: "price_1QazMnSJWeMrHvFryearly",
+                  priceId: "price_1SpH0cCn98QGMABlV6mQUbFO",
                   badge: "Best Value"
                 }
               ]}
