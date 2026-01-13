@@ -4,8 +4,8 @@ import { useAuth } from '@/hooks/use-auth'
 
 // Stripe Price IDs - these should match your Stripe products
 export const STRIPE_PRICES = {
-  PREMIUM_MONTHLY: 'price_1QazMnSJWeMrHvFrVl1VXNHP', // ₹299/month
-  PREMIUM_YEARLY: 'price_1QazMnSJWeMrHvFryearly', // ₹2999/year (placeholder)
+  PREMIUM_MONTHLY: 'price_1SpGzZCn98QGMABluEiI28C8', // ₹299/month
+  PREMIUM_YEARLY: 'price_1SpH0cCn98QGMABlV6mQUbFO', // ₹2999/year
 } as const
 
 export interface UserPlan {
