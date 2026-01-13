@@ -150,7 +150,7 @@ export function PremiumLock({
 
                                     // Redirect to the specific link for the selected plan
                                     setTimeout(() => {
-                                        window.location.href = selectedPlan.link;
+                                        window.open(selectedPlan.link, '_blank');
                                     }, 1500);
                                 }}
                                 className="w-full bg-[#00FF9C] hover:bg-[#00FF9C]/90 text-black font-bold h-12 text-lg shadow-[0_0_20px_rgba(0,255,156,0.4)] transition-all hover:scale-[1.02]"
