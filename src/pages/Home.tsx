@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Zap, Target, TrendingUp, Users, Brain, Eye, BarChart3, Utensils, Calendar, QrCode, Trophy, Wrench, PieChart, ShoppingBag, Sparkles, LineChart } from "lucide-react";
+import { ArrowRight, Zap, Target, TrendingUp, Users, Brain, Eye, BarChart3, Utensils, Calendar, QrCode, Trophy, Wrench, PieChart, ShoppingBag, Sparkles, LineChart, Laptop } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Suspense, lazy, useEffect, useState } from "react";
@@ -227,6 +227,12 @@ const Home = () => {
                 title: "AI Analytics Dashboard",
                 description: "Deep learning insights into your workout performance and predictive trend analysis",
                 link: "/gym-analytics/ai"
+              },
+              {
+                icon: Laptop,
+                title: "Online Coaching",
+                description: "Connect with expert trainers for 1-on-1 remote video coaching sessions",
+                link: "/online-coaching"
               },
             ].map((feature, index) => (
               <FeatureCard
