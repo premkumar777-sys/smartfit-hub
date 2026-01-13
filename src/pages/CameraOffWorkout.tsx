@@ -278,7 +278,7 @@ export default function CameraOffWorkout() {
               name: "Monthly",
               price: "₹299",
               period: "per month",
-              link: "https://buy.stripe.com/test_pro_299",
+              link: "https://buy.stripe.com/test_6oUeVd6JhfQh2rTa6X8ww00",
               badge: "Popular"
             },
             {
