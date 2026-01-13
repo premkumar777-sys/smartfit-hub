@@ -584,7 +584,34 @@ export default function GymAnalytics() {
 
           {/* AI Predictions Tab */}
           <TabsContent value="predictions" className="space-y-6">
-            <PremiumLock>
+            <PremiumLock
+              title="Unlock Business Intelligence"
+              description="Get AI-powered revenue forecasts, churn prediction, and competitor benchmarking."
+              features={[
+                "Revenue Forecasting",
+                "Churn Risk Prediction",
+                "Competitor Benchmarking",
+                "Member Lifetime Value Analysis"
+              ]}
+              plans={[
+                {
+                  id: "monthly_biz",
+                  name: "Business Monthly",
+                  price: "₹1,499",
+                  period: "per month",
+                  link: "https://buy.stripe.com/test_biz_monthly",
+                  badge: "Flexible"
+                },
+                {
+                  id: "yearly_biz",
+                  name: "Business Annual",
+                  price: "₹14,999",
+                  period: "per year",
+                  link: "https://buy.stripe.com/test_biz_yearly",
+                  badge: "Best Value"
+                }
+              ]}
+            >
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Competitor Benchmark */}
                 <Card>

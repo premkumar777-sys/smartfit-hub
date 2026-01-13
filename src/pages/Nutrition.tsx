@@ -93,153 +93,181 @@ export default function Nutrition() {
             </p>
           </div>
 
-          <div className="grid lg:grid-cols-3 gap-8">
-            <Card className="lg:col-span-2 glass border-primary/20">
-              <CardHeader>
-                <CardTitle>Inputs</CardTitle>
-                <CardDescription>All local—no data leaves your browser.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid sm:grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="age">Age</Label>
-                    <Input id="age" value={age} onChange={(e) => setAge(e.target.value)} type="number" min={14} max={90} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="weight">Weight (kg)</Label>
-                    <Input id="weight" value={weight} onChange={(e) => setWeight(e.target.value)} type="number" min={30} max={200} step="0.1" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="height">Height (cm)</Label>
-                    <Input id="height" value={height} onChange={(e) => setHeight(e.target.value)} type="number" min={120} max={220} />
-                  </div>
-                </div>
-
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Activity</Label>
-                    <Select value={activity} onValueChange={(v) => setActivity(v as Activity)}>
-                      <SelectTrigger><SelectValue placeholder="Activity level" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="sedentary">Sedentary</SelectItem>
-                        <SelectItem value="light">Light (1–2x/week)</SelectItem>
-                        <SelectItem value="moderate">Moderate (3–4x/week)</SelectItem>
-                        <SelectItem value="active">Active (5–6x/week)</SelectItem>
-                        <SelectItem value="athlete">Athlete (daily)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Goal</Label>
-                    <Select value={goal} onValueChange={(v) => setGoal(v as Goal)}>
-                      <SelectTrigger><SelectValue placeholder="Goal" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="cut">Cut</SelectItem>
-                        <SelectItem value="recomp">Recomp</SelectItem>
-                        <SelectItem value="bulk">Lean Bulk</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="flex gap-3">
-                  <Button variant="hero" type="button" onClick={() => { /* values auto-calc via memo */ }}>
-                    Update Plan
-                  </Button>
-                  <Button variant="outline" type="button" onClick={() => {
-                    setAge("28"); setWeight("70"); setHeight("175"); setActivity("moderate"); setGoal("recomp");
-                  }}>
-                    Reset
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="glass border-primary/20">
-              <CardHeader>
-                <CardTitle>Your Targets</CardTitle>
-                <CardDescription>Auto-updates as you tweak inputs.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {result ? (
-                  <div className="space-y-3">
-                    <div className="grid grid-cols-2 gap-3">
-                      <Tile label="BMR" value={`${result.bmr} kcal`} />
-                      <Tile label="TDEE" value={`${result.tdee} kcal`} />
-                      <Tile label="Target Calories" value={`${result.calories} kcal`} accent />
-                      <Tile label="Protein" value={`${result.protein} g`} />
-                      <Tile label="Carbs" value={`${result.carbs} g`} />
-                      <Tile label="Fats" value={`${result.fats} g`} />
+          <PremiumLock
+            title="Unlock AI Nutrition"
+            description="Get personalized meal plans and real-time macro tracking with SmartFit Pro."
+            features={[
+              "Custom Meal Plan Generation",
+              "Smart Macro Tracking",
+              "Grocery List Automation",
+              "Dietary Restriction Support"
+            ]}
+            plans={[
+              {
+                id: "monthly",
+                name: "Monthly",
+                price: "₹299",
+                period: "per month",
+                link: "https://buy.stripe.com/test_pro_299",
+                badge: "Popular"
+              },
+              {
+                id: "yearly",
+                name: "Yearly",
+                price: "₹2999",
+                period: "per year",
+                link: "https://buy.stripe.com/test_pro_year"
+              }
+            ]}
+          >
+            <div className="grid lg:grid-cols-3 gap-8">
+              <Card className="lg:col-span-2 glass border-primary/20">
+                <CardHeader>
+                  <CardTitle>Inputs</CardTitle>
+                  <CardDescription>All local—no data leaves your browser.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid sm:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="age">Age</Label>
+                      <Input id="age" value={age} onChange={(e) => setAge(e.target.value)} type="number" min={14} max={90} />
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      Protein/Fats scaled per kg. Carbs fill the remaining calories.
-                    </p>
+                    <div className="space-y-2">
+                      <Label htmlFor="weight">Weight (kg)</Label>
+                      <Input id="weight" value={weight} onChange={(e) => setWeight(e.target.value)} type="number" min={30} max={200} step="0.1" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="height">Height (cm)</Label>
+                      <Input id="height" value={height} onChange={(e) => setHeight(e.target.value)} type="number" min={120} max={220} />
+                    </div>
                   </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground">Enter your details to see targets.</p>
-                )}
-              </CardContent>
-            </Card>
-          </div>
 
-          <div className="grid lg:grid-cols-3 gap-6">
-            <Card className="glass border-primary/20">
-              <CardHeader><CardTitle>Quick Macro Splits</CardTitle></CardHeader>
-              <CardContent className="space-y-3 text-sm text-muted-foreground">
-                <p className="text-foreground font-semibold">
-                  {goalMap[goal].label} ({goal})
-                </p>
-                <p>Protein: ~{goalMap[goal].protein} g/kg</p>
-                <p>Fats: ~{goalMap[goal].fats} g/kg</p>
-                <p>Carbs: Fill the rest (aim higher for training volume).</p>
-                {result && (
-                  <div className="rounded-lg border border-primary/20 bg-primary/5 p-2 text-xs text-foreground">
-                    Target: {result.calories} kcal · P {result.protein}g · C {result.carbs}g · F {result.fats}g
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Activity</Label>
+                      <Select value={activity} onValueChange={(v) => setActivity(v as Activity)}>
+                        <SelectTrigger><SelectValue placeholder="Activity level" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="sedentary">Sedentary</SelectItem>
+                          <SelectItem value="light">Light (1–2x/week)</SelectItem>
+                          <SelectItem value="moderate">Moderate (3–4x/week)</SelectItem>
+                          <SelectItem value="active">Active (5–6x/week)</SelectItem>
+                          <SelectItem value="athlete">Athlete (daily)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Goal</Label>
+                      <Select value={goal} onValueChange={(v) => setGoal(v as Goal)}>
+                        <SelectTrigger><SelectValue placeholder="Goal" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="cut">Cut</SelectItem>
+                          <SelectItem value="recomp">Recomp</SelectItem>
+                          <SelectItem value="bulk">Lean Bulk</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
-                )}
-              </CardContent>
-            </Card>
-            <Card className="glass border-primary/20">
-              <CardHeader><CardTitle>Meal Ideas</CardTitle></CardHeader>
-              <CardContent className="space-y-2 text-sm text-muted-foreground">
-                {goal === "cut" && (
-                  <>
-                    <p>Breakfast: Egg whites + oats + berries.</p>
-                    <p>Lunch: Chicken, greens, olive oil, quinoa (measured).</p>
-                    <p>Dinner: White fish, potatoes, broccoli.</p>
-                    <p>Snacks: Greek yogurt, fruit; limit nuts.</p>
-                  </>
-                )}
-                {goal === "recomp" && (
-                  <>
-                    <p>Breakfast: Greek yogurt, oats, whey, banana.</p>
-                    <p>Lunch: Chicken, rice, veggies, avocado.</p>
-                    <p>Dinner: Salmon, sweet potato, greens.</p>
-                    <p>Snacks: Cottage cheese, fruit, light nuts.</p>
-                  </>
-                )}
-                {goal === "bulk" && (
-                  <>
-                    <p>Breakfast: Oats, whey, nut butter, berries.</p>
-                    <p>Lunch: Beef or chicken, rice/pasta, veggies, olive oil.</p>
-                    <p>Dinner: Salmon or beef, potatoes, veggies.</p>
-                    <p>Snacks: Greek yogurt + granola; smoothies.</p>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-            <Card className="glass border-primary/20">
-              <CardHeader><CardTitle>Hydration & Recovery</CardTitle></CardHeader>
-              <CardContent className="space-y-2 text-sm text-muted-foreground">
-                <p>Hydrate: 30–40 ml/kg daily.</p>
-                <p>Electrolytes on high-sweat days.</p>
-                <p>Sleep: 7–9 hours; light mobility on rest days.</p>
-                {activity === "athlete" && (
-                  <p className="text-foreground font-semibold">Athlete tip: add 300–500 ml/hour of training.</p>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+
+                  <div className="flex gap-3">
+                    <Button variant="hero" type="button" onClick={() => { /* values auto-calc via memo */ }}>
+                      Update Plan
+                    </Button>
+                    <Button variant="outline" type="button" onClick={() => {
+                      setAge("28"); setWeight("70"); setHeight("175"); setActivity("moderate"); setGoal("recomp");
+                    }}>
+                      Reset
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="glass border-primary/20">
+                <CardHeader>
+                  <CardTitle>Your Targets</CardTitle>
+                  <CardDescription>Auto-updates as you tweak inputs.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {result ? (
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-2 gap-3">
+                        <Tile label="BMR" value={`${result.bmr} kcal`} />
+                        <Tile label="TDEE" value={`${result.tdee} kcal`} />
+                        <Tile label="Target Calories" value={`${result.calories} kcal`} accent />
+                        <Tile label="Protein" value={`${result.protein} g`} />
+                        <Tile label="Carbs" value={`${result.carbs} g`} />
+                        <Tile label="Fats" value={`${result.fats} g`} />
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Protein/Fats scaled per kg. Carbs fill the remaining calories.
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Enter your details to see targets.</p>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="grid lg:grid-cols-3 gap-6">
+              <Card className="glass border-primary/20">
+                <CardHeader><CardTitle>Quick Macro Splits</CardTitle></CardHeader>
+                <CardContent className="space-y-3 text-sm text-muted-foreground">
+                  <p className="text-foreground font-semibold">
+                    {goalMap[goal].label} ({goal})
+                  </p>
+                  <p>Protein: ~{goalMap[goal].protein} g/kg</p>
+                  <p>Fats: ~{goalMap[goal].fats} g/kg</p>
+                  <p>Carbs: Fill the rest (aim higher for training volume).</p>
+                  {result && (
+                    <div className="rounded-lg border border-primary/20 bg-primary/5 p-2 text-xs text-foreground">
+                      Target: {result.calories} kcal · P {result.protein}g · C {result.carbs}g · F {result.fats}g
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+              <Card className="glass border-primary/20">
+                <CardHeader><CardTitle>Meal Ideas</CardTitle></CardHeader>
+                <CardContent className="space-y-2 text-sm text-muted-foreground">
+                  {goal === "cut" && (
+                    <>
+                      <p>Breakfast: Egg whites + oats + berries.</p>
+                      <p>Lunch: Chicken, greens, olive oil, quinoa (measured).</p>
+                      <p>Dinner: White fish, potatoes, broccoli.</p>
+                      <p>Snacks: Greek yogurt, fruit; limit nuts.</p>
+                    </>
+                  )}
+                  {goal === "recomp" && (
+                    <>
+                      <p>Breakfast: Greek yogurt, oats, whey, banana.</p>
+                      <p>Lunch: Chicken, rice, veggies, avocado.</p>
+                      <p>Dinner: Salmon, sweet potato, greens.</p>
+                      <p>Snacks: Cottage cheese, fruit, light nuts.</p>
+                    </>
+                  )}
+                  {goal === "bulk" && (
+                    <>
+                      <p>Breakfast: Oats, whey, nut butter, berries.</p>
+                      <p>Lunch: Beef or chicken, rice/pasta, veggies, olive oil.</p>
+                      <p>Dinner: Salmon or beef, potatoes, veggies.</p>
+                      <p>Snacks: Greek yogurt + granola; smoothies.</p>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+              <Card className="glass border-primary/20">
+                <CardHeader><CardTitle>Hydration & Recovery</CardTitle></CardHeader>
+                <CardContent className="space-y-2 text-sm text-muted-foreground">
+                  <p>Hydrate: 30–40 ml/kg daily.</p>
+                  <p>Electrolytes on high-sweat days.</p>
+                  <p>Sleep: 7–9 hours; light mobility on rest days.</p>
+                  {activity === "athlete" && (
+                    <p className="text-foreground font-semibold">Athlete tip: add 300–500 ml/hour of training.</p>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </PremiumLock>
         </div>
       </Container>
     </div>

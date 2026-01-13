@@ -19,6 +19,7 @@ import { TrainerScene } from '@/components/TrainerScene';
 import { AngleGuidance } from '@/components/AngleGuidance';
 import { WorkoutTimer } from '@/components/WorkoutTimer';
 import { useVoiceCoach } from '@/hooks/useVoiceCoach';
+import { PremiumLock } from '@/components/PremiumLock';
 
 type Exercise = 'squat' | 'pushup' | 'bicepCurl' | 'idle';
 
@@ -262,110 +263,138 @@ export default function CameraOffWorkout() {
         </div>
 
         {/* Main content grid */}
-        <div className="grid lg:grid-cols-3 gap-6">
-          {/* Left: 3D Trainer */}
-          <div className="lg:col-span-2 space-y-4">
-            <TrainerScene
-              exercise={isWorkoutActive ? selectedExercise : 'idle'}
-              isAnimating={isWorkoutActive || selectedExercise !== 'idle'}
-            />
+        <PremiumLock
+          title="Unlock 3D Personal Trainer"
+          description="Get access to interactive 3D workout demonstrations and real-time voice coaching."
+          features={[
+            "Interactive 3D Models",
+            "Real-time Voice Coaching",
+            "Angle Guidance System",
+            "Unlimited Workout Sessions"
+          ]}
+          plans={[
+            {
+              id: "monthly",
+              name: "Monthly",
+              price: "₹299",
+              period: "per month",
+              link: "https://buy.stripe.com/test_pro_299",
+              badge: "Popular"
+            },
+            {
+              id: "yearly",
+              name: "Yearly",
+              price: "₹2999",
+              period: "per year",
+              link: "https://buy.stripe.com/test_pro_year"
+            }
+          ]}
+        >
+          <div className="grid lg:grid-cols-3 gap-6">
+            {/* Left: 3D Trainer */}
+            <div className="lg:col-span-2 space-y-4">
+              <TrainerScene
+                exercise={isWorkoutActive ? selectedExercise : 'idle'}
+                isAnimating={isWorkoutActive || selectedExercise !== 'idle'}
+              />
 
-            {/* Exercise selector */}
-            <div className="bg-card/80 backdrop-blur-sm rounded-xl p-4 border border-border">
-              <p className="text-sm font-semibold mb-3">Select Exercise:</p>
-              <div className="grid grid-cols-3 gap-3">
-                {EXERCISES.map((exercise) => (
-                  <motion.button
-                    key={exercise.id}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => handleExerciseSelect(exercise.id)}
-                    disabled={isWorkoutActive}
-                    className={`p-4 rounded-xl border transition-all ${selectedExercise === exercise.id
-                      ? 'bg-primary text-primary-foreground border-primary'
-                      : 'bg-muted/50 border-border hover:border-primary/50'
-                      } ${isWorkoutActive ? 'opacity-50 cursor-not-allowed' : ''}`}
+              {/* Exercise selector */}
+              <div className="bg-card/80 backdrop-blur-sm rounded-xl p-4 border border-border">
+                <p className="text-sm font-semibold mb-3">Select Exercise:</p>
+                <div className="grid grid-cols-3 gap-3">
+                  {EXERCISES.map((exercise) => (
+                    <motion.button
+                      key={exercise.id}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => handleExerciseSelect(exercise.id)}
+                      disabled={isWorkoutActive}
+                      className={`p-4 rounded-xl border transition-all ${selectedExercise === exercise.id
+                        ? 'bg-primary text-primary-foreground border-primary'
+                        : 'bg-muted/50 border-border hover:border-primary/50'
+                        } ${isWorkoutActive ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                      <div className="flex flex-col items-center gap-2">
+                        {exercise.icon}
+                        <span className="text-sm font-medium">{exercise.name}</span>
+                      </div>
+                    </motion.button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Start/Stop button */}
+              <div className="flex justify-center">
+                {!isWorkoutActive ? (
+                  <Button
+                    size="lg"
+                    onClick={handleStartWorkout}
+                    disabled={selectedExercise === 'idle'}
+                    className="px-8 py-6 text-lg"
                   >
-                    <div className="flex flex-col items-center gap-2">
-                      {exercise.icon}
-                      <span className="text-sm font-medium">{exercise.name}</span>
-                    </div>
-                  </motion.button>
-                ))}
+                    <Play className="w-6 h-6 mr-2" />
+                    Start Workout
+                  </Button>
+                ) : (
+                  <Button
+                    size="lg"
+                    variant="destructive"
+                    onClick={handleStopWorkout}
+                    className="px-8 py-6 text-lg"
+                  >
+                    <Square className="w-6 h-6 mr-2" />
+                    Stop Workout
+                  </Button>
+                )}
               </div>
             </div>
 
-            {/* Start/Stop button */}
-            <div className="flex justify-center">
-              {!isWorkoutActive ? (
-                <Button
-                  size="lg"
-                  onClick={handleStartWorkout}
-                  disabled={selectedExercise === 'idle'}
-                  className="px-8 py-6 text-lg"
-                >
-                  <Play className="w-6 h-6 mr-2" />
-                  Start Workout
-                </Button>
-              ) : (
-                <Button
-                  size="lg"
-                  variant="destructive"
-                  onClick={handleStopWorkout}
-                  className="px-8 py-6 text-lg"
-                >
-                  <Square className="w-6 h-6 mr-2" />
-                  Stop Workout
-                </Button>
-              )}
+            {/* Right: Guidance & Timer */}
+            <div className="space-y-4">
+              {/* Timer */}
+              <WorkoutTimer
+                duration={currentExerciseConfig?.duration || 30}
+                isRunning={isWorkoutActive}
+                onComplete={handleTimerComplete}
+                onTick={handleTimerTick}
+              />
+
+              {/* Angle guidance */}
+              <AngleGuidance
+                exercise={selectedExercise}
+                phase={animationPhase}
+              />
+
+              {/* Completion message */}
+              <AnimatePresence>
+                {isComplete && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    className="bg-gradient-to-br from-primary/20 to-primary/5 rounded-xl p-6 border border-primary/30 text-center"
+                  >
+                    <Trophy className="w-12 h-12 text-primary mx-auto mb-3" />
+                    <h3 className="text-xl font-bold mb-2">Workout Complete! 🎉</h3>
+                    <p className="text-muted-foreground">
+                      Great job following along with the trainer!
+                    </p>
+                    <Button
+                      variant="outline"
+                      className="mt-4"
+                      onClick={() => {
+                        setIsComplete(false);
+                        setSelectedExercise('idle');
+                      }}
+                    >
+                      Choose Another Exercise
+                    </Button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
-
-          {/* Right: Guidance & Timer */}
-          <div className="space-y-4">
-            {/* Timer */}
-            <WorkoutTimer
-              duration={currentExerciseConfig?.duration || 30}
-              isRunning={isWorkoutActive}
-              onComplete={handleTimerComplete}
-              onTick={handleTimerTick}
-            />
-
-            {/* Angle guidance */}
-            <AngleGuidance
-              exercise={selectedExercise}
-              phase={animationPhase}
-            />
-
-            {/* Completion message */}
-            <AnimatePresence>
-              {isComplete && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  className="bg-gradient-to-br from-primary/20 to-primary/5 rounded-xl p-6 border border-primary/30 text-center"
-                >
-                  <Trophy className="w-12 h-12 text-primary mx-auto mb-3" />
-                  <h3 className="text-xl font-bold mb-2">Workout Complete! 🎉</h3>
-                  <p className="text-muted-foreground">
-                    Great job following along with the trainer!
-                  </p>
-                  <Button
-                    variant="outline"
-                    className="mt-4"
-                    onClick={() => {
-                      setIsComplete(false);
-                      setSelectedExercise('idle');
-                    }}
-                  >
-                    Choose Another Exercise
-                  </Button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </div>
+        </PremiumLock>
 
         {/* Info banner */}
         <div className="mt-8 bg-muted/50 rounded-xl p-6 border border-border">

@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Container } from "@/components/Container";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Home, Calendar, Dumbbell, Heart, Flame, Clock, ChevronDown, ChevronUp } from "lucide-react";
+import { PremiumLock } from "@/components/PremiumLock";
 
 type DayWorkout = {
     day: string;
@@ -135,7 +136,7 @@ export default function HomeWorkouts() {
                             Weekly Schedule
                         </h2>
 
-                        {workoutPlan.map((day, index) => (
+                        {workoutPlan.slice(0, 1).map((day, index) => (
                             <Card key={day.day} className="glass border-primary/20 overflow-hidden">
                                 <button
                                     onClick={() => toggleDay(index)}
@@ -153,6 +154,7 @@ export default function HomeWorkouts() {
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-2">
+                                                <Badge variant="secondary" className="bg-primary/20 text-primary hover:bg-primary/30">Free</Badge>
                                                 <Badge variant="outline">{day.exercises.length} exercises</Badge>
                                                 {expandedDay === index ? (
                                                     <ChevronUp className="w-5 h-5 text-muted-foreground" />
@@ -193,6 +195,67 @@ export default function HomeWorkouts() {
                                 )}
                             </Card>
                         ))}
+
+                        <PremiumLock
+                            title="Unlock Full 6-Day Program"
+                            description="Get the complete weekly schedule including Pull, Legs, and Recovery routines."
+                            features={[
+                                "Full 6-Day Split",
+                                "Targeted Muscle Groups",
+                                "Recovery Protocols",
+                                "Progressive Overload Tips"
+                            ]}
+                            plans={[
+                                {
+                                    id: "monthly",
+                                    name: "Monthly",
+                                    price: "₹299",
+                                    period: "per month",
+                                    link: "https://buy.stripe.com/test_pro_299",
+                                    badge: "Popular"
+                                },
+                                {
+                                    id: "yearly",
+                                    name: "Yearly",
+                                    price: "₹2999",
+                                    period: "per year",
+                                    link: "https://buy.stripe.com/test_pro_year"
+                                }
+                            ]}
+                        >
+                            <div className="space-y-4">
+                                {workoutPlan.slice(1).map((day, index) => {
+                                    // Adjust index since we sliced
+                                    const realIndex = index + 1;
+                                    return (
+                                        <Card key={day.day} className="glass border-primary/20 overflow-hidden opacity-75">
+                                            <button
+                                                className="w-full text-left cursor-not-allowed"
+                                                disabled
+                                            >
+                                                <CardHeader className="pb-2">
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className={`w-3 h-12 rounded-full bg-gradient-to-b ${day.color}`} />
+                                                            <div>
+                                                                <CardTitle className="text-lg">{day.day}</CardTitle>
+                                                                <CardDescription className="text-sm font-medium text-primary">
+                                                                    {day.focus}
+                                                                </CardDescription>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <Badge variant="outline" className="opacity-50">{day.exercises.length} exercises</Badge>
+                                                            <ChevronDown className="w-5 h-5 text-muted-foreground" />
+                                                        </div>
+                                                    </div>
+                                                </CardHeader>
+                                            </button>
+                                        </Card>
+                                    );
+                                })}
+                            </div>
+                        </PremiumLock>
                     </div>
 
                     {/* Tips Section */}

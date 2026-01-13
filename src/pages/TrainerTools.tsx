@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
     Users, Dumbbell, TrendingUp, Calendar, BarChart3,
     MessageSquare, ClipboardCheck, DollarSign, Plus,
-    ChevronRight, Bell, Search, Filter, Loader2
+    ChevronRight, Bell, Search, Filter, Loader2, Lock
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -217,8 +217,27 @@ export default function TrainerTools() {
         initializeDashboard();
     }, [toast]);
 
+    // Logic to check limits
+    const CLIENT_LIMIT = 3;
+    const isLimitReached = clients.length >= CLIENT_LIMIT;
+
     const handleAddClient = async (formData: any) => {
         if (!trainer) return;
+
+        // LIMIT CHECK
+        if (isLimitReached) {
+            toast({
+                title: "Free Plan Limit Reached",
+                description: "You have reached the limit of 3 clients on the Free plan. Upgrade to Business Pro to add unlimited clients.",
+                variant: "destructive",
+                action: (
+                    <Button variant="outline" size="sm" className="ml-auto" onClick={() => window.open("https://buy.stripe.com/test_biz_monthly", "_blank")}>
+                        Upgrade
+                    </Button>
+                ),
+            });
+            return;
+        }
 
         // DEMO MODE CHECK
         if (trainer.id === "demo-trainer") {
@@ -507,12 +526,35 @@ export default function TrainerTools() {
                                     <Filter className="w-4 h-4" />
                                 </Button>
                             </div>
-                            <Button
-                                className="bg-[#00FF9C] text-black hover:bg-[#00FF9C]/90"
-                                onClick={() => setIsAddClientOpen(true)}
-                            >
-                                <Plus className="w-4 h-4 mr-2" /> Add Client
-                            </Button>
+                            <div className="flex items-center gap-3">
+                                <div className="text-sm text-gray-400 hidden sm:block">
+                                    <span className={`${isLimitReached ? 'text-amber-500 font-bold' : 'text-[#00FF9C]'}`}>{clients.length}</span>
+                                    <span className="text-gray-600">/</span>
+                                    <span>{CLIENT_LIMIT} Free Clients</span>
+                                </div>
+                                <Button
+                                    className={`text-black ${isLimitReached ? 'bg-gray-600 hover:bg-gray-500' : 'bg-[#00FF9C] hover:bg-[#00FF9C]/90'}`}
+                                    onClick={() => {
+                                        if (isLimitReached) {
+                                            toast({
+                                                title: "Free Plan Limit Reached",
+                                                description: "You have reached the limit of 3 clients on the Free plan. Upgrade to Business Pro to add unlimited clients.",
+                                                variant: "destructive",
+                                                action: (
+                                                    <Button variant="outline" size="sm" className="ml-auto" onClick={() => window.open("https://buy.stripe.com/test_biz_monthly", "_blank")}>
+                                                        Upgrade
+                                                    </Button>
+                                                ),
+                                            });
+                                        } else {
+                                            setIsAddClientOpen(true);
+                                        }
+                                    }}
+                                >
+                                    {isLimitReached ? <Lock className="w-4 h-4 mr-2" /> : <Plus className="w-4 h-4 mr-2" />}
+                                    {isLimitReached ? "Limit Reached" : "Add Client"}
+                                </Button>
+                            </div>
                         </div>
 
                         {clients.length === 0 ? (

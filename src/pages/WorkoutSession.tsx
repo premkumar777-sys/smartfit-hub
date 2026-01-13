@@ -3,6 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/Container";
 import PoseDetector from "@/components/PoseDetector";
+import { PremiumLock } from "@/components/PremiumLock";
 
 export default function WorkoutSession() {
   return (
@@ -25,7 +26,35 @@ export default function WorkoutSession() {
             </p>
           </div>
 
-          <PoseDetector />
+          <PremiumLock
+            title="Unlock Real-Time Form Correction"
+            description="Get instant AI feedback on your form to prevent injury and maximize results."
+            features={[
+              "Live Camera Form Detection",
+              "Rep Counting & Analysis",
+              "Imbalance Detection",
+              "Post-Workout Stats"
+            ]}
+            plans={[
+              {
+                id: "monthly",
+                name: "Monthly",
+                price: "₹299",
+                period: "per month",
+                link: "https://buy.stripe.com/test_pro_299",
+                badge: "Popular"
+              },
+              {
+                id: "yearly",
+                name: "Yearly",
+                price: "₹2999",
+                period: "per year",
+                link: "https://buy.stripe.com/test_pro_year"
+              }
+            ]}
+          >
+            <PoseDetector />
+          </PremiumLock>
         </div>
       </Container>
     </div>
