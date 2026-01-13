@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Lock, Sparkles, Check, Star } from "lucide-react";
+import { Lock, Sparkles, Check, Star, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { ENABLE_PAYMENTS } from "@/config";
+import { useSubscription } from "@/hooks/useSubscription";
 
 export interface Plan {
     id: string;
@@ -29,7 +30,7 @@ const DEFAULT_PLANS: Plan[] = [
         name: "Intro Offer",
         price: "₹99",
         period: "1st month",
-        link: "https://buy.stripe.com/test_intro",
+        link: "https://buy.stripe.com/test_6oUeVd6JhfQh2rTa6X8ww00",
         badge: "Best Value"
     },
     {
@@ -37,14 +38,14 @@ const DEFAULT_PLANS: Plan[] = [
         name: "6 Months",
         price: "₹399",
         period: "every 6 months",
-        link: "https://buy.stripe.com/test_6mo"
+        link: "https://buy.stripe.com/test_6oUeVd6JhfQh2rTa6X8ww00"
     },
     {
         id: "annual",
         name: "Yearly",
         price: "₹699",
         period: "per year",
-        link: "https://buy.stripe.com/test_yr"
+        link: "https://buy.stripe.com/test_6oUeVd6JhfQh2rTa6X8ww00"
     }
 ];
 
@@ -55,12 +56,27 @@ export function PremiumLock({
     features = [],
     plans = DEFAULT_PLANS
 }: PremiumLockProps) {
-    // Quick Bypass for Beta / Dev Mode
-    if (!ENABLE_PAYMENTS) {
-        return <>{children}</>;
+    const { hasAccess, isLoading } = useSubscription();
+    // Keep local state for plan selection
+    const [selectedPlan, setSelectedPlan] = useState(plans[0]);
+
+    if (isLoading) {
+        return (
+            <div className="relative w-full h-full min-h-[300px] flex items-center justify-center">
+                <div className="filter blur-sm select-none pointer-events-none opacity-20">
+                    {children}
+                </div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                </div>
+            </div>
+        );
     }
 
-    const [selectedPlan, setSelectedPlan] = useState(plans[0]);
+    // Grant access if user has subscription OR if payments are disabled (handled inside hook)
+    if (hasAccess) {
+        return <>{children}</>;
+    }
 
     return (
         <div className="relative w-full h-full">
