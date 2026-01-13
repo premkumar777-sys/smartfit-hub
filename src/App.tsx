@@ -23,6 +23,7 @@ import ProductDetail from "./pages/ProductDetail";
 import GymAnalytics from "./pages/GymAnalytics";
 import TrainerTools from "./pages/TrainerTools";
 import OnlineCoaching from "./pages/OnlineCoaching";
+import GymFinder from "./pages/GymFinder";
 import NotFound from "./pages/NotFound";
 import { FitnessCursor } from "@/components/FitnessCursor";
 import { FloatingChatbot } from "@/components/FloatingChatbot";
@@ -126,6 +127,7 @@ const App = () => {
               <Route path="/gym-analytics/ai" element={<GymAnalytics />} />
               <Route path="/trainer-tools" element={<TrainerTools />} />
               <Route path="/online-coaching" element={<OnlineCoaching />} />
+              <Route path="/gyms/*" element={<GymFinder />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
