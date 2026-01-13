@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { ENABLE_PAYMENTS } from "@/config";
 
 export interface Plan {
     id: string;
@@ -54,6 +55,11 @@ export function PremiumLock({
     features = [],
     plans = DEFAULT_PLANS
 }: PremiumLockProps) {
+    // Quick Bypass for Beta / Dev Mode
+    if (!ENABLE_PAYMENTS) {
+        return <>{children}</>;
+    }
+
     const [selectedPlan, setSelectedPlan] = useState(plans[0]);
 
     return (
@@ -96,8 +102,8 @@ export function PremiumLock({
                                     key={plan.id}
                                     onClick={() => setSelectedPlan(plan)}
                                     className={`cursor-pointer rounded-xl p-3 border-2 transition-all relative ${selectedPlan.id === plan.id
-                                            ? "border-[#00FF9C] bg-[#00FF9C]/10 scale-105 shadow-lg shadow-[#00FF9C]/10"
-                                            : "border-white/10 hover:border-white/20 hover:bg-white/5"
+                                        ? "border-[#00FF9C] bg-[#00FF9C]/10 scale-105 shadow-lg shadow-[#00FF9C]/10"
+                                        : "border-white/10 hover:border-white/20 hover:bg-white/5"
                                         }`}
                                 >
                                     {plan.badge && (

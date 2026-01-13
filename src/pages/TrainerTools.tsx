@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { ENABLE_PAYMENTS } from "@/config";
 
 import { AddClientDialog } from "@/components/trainer/AddClientDialog";
 
@@ -219,7 +220,7 @@ export default function TrainerTools() {
 
     // Logic to check limits
     const CLIENT_LIMIT = 3;
-    const isLimitReached = clients.length >= CLIENT_LIMIT;
+    const isLimitReached = ENABLE_PAYMENTS && clients.length >= CLIENT_LIMIT;
 
     const handleAddClient = async (formData: any) => {
         if (!trainer) return;
