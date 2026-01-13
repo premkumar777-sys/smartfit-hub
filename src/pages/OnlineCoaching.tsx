@@ -149,7 +149,10 @@ export default function OnlineCoaching() {
                                     </li>
                                 ))}
                             </ul>
-                            <Button className="w-full max-w-sm bg-[#00FF9C] text-black hover:bg-[#00FF9C]/90 h-14 text-lg font-bold shadow-[0_0_20px_rgba(0,255,156,0.3)]">
+                            <Button
+                                onClick={() => window.open("https://buy.stripe.com/test_coaching", "_blank")}
+                                className="w-full max-w-sm bg-[#00FF9C] text-black hover:bg-[#00FF9C]/90 h-14 text-lg font-bold shadow-[0_0_20px_rgba(0,255,156,0.3)]"
+                            >
                                 Apply Now
                             </Button>
                             <p className="text-xs text-gray-500">Only 2 spots left for this month.</p>
