@@ -30,8 +30,9 @@ serve(async (req) => {
             cryptoProvider
         );
     } catch (err) {
-        console.error(`Webhook signature verification failed.`, err.message);
-        return new Response(err.message, { status: 400 });
+        const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+        console.error(`Webhook signature verification failed.`, errorMessage);
+        return new Response(errorMessage, { status: 400 });
     }
 
     const supabase = createClient(
@@ -134,8 +135,9 @@ serve(async (req) => {
             }
         }
     } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         console.error("Error processing event:", error);
-        return new Response(JSON.stringify({ error: error.message }), { status: 400 });
+        return new Response(JSON.stringify({ error: errorMessage }), { status: 400 });
     }
 
     return new Response(JSON.stringify({ received: true }), {

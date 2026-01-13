@@ -12,7 +12,7 @@ export interface Plan {
     name: string;
     price: string;
     period: string;
-    link: string;
+    link: string; // Stripe payment link URL
     badge?: string;
 }
 
