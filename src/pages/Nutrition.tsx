@@ -6,6 +6,7 @@ import { Container } from "@/components/Container";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { PremiumLock } from "@/components/PremiumLock";
 
 type Activity = "sedentary" | "light" | "moderate" | "active" | "athlete";
 type Goal = "cut" | "recomp" | "bulk";

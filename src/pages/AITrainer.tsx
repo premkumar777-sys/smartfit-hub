@@ -8,6 +8,7 @@ import { ArrowLeft, Send, Bot, User, Dumbbell, Heart, Flame, Apple, Target, Load
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useGamification, XP_REWARDS } from "@/hooks/useGamification";
+import { PremiumLock } from "@/components/PremiumLock";
 
 type Message = {
     id: string;
