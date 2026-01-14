@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/hooks/use-auth'
+import { toast } from 'sonner'
 
 // Stripe Price IDs - these should match your Stripe products
 export const STRIPE_PRICES = {
@@ -140,6 +141,7 @@ export function useSubscription(): SubscriptionData {
 export function useUpgradePlan() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  
 
   const upgradePlan = async (priceId: string) => {
     setIsLoading(true)
@@ -148,6 +150,9 @@ export function useUpgradePlan() {
     try {
       const { data: sessionData } = await supabase.auth.getSession()
       if (!sessionData.session) {
+        toast.error('Please sign in to upgrade', {
+          description: 'You need to be logged in to subscribe to a plan'
+        })
         throw new Error('Please sign in to upgrade')
       }
 
@@ -164,10 +169,16 @@ export function useUpgradePlan() {
       // Redirect to Stripe checkout
       if (data.url) {
         window.location.href = data.url
+      } else {
+        throw new Error('No checkout URL returned')
       }
     } catch (err) {
       console.error('Error creating checkout:', err)
-      setError(err instanceof Error ? err.message : 'Failed to start checkout')
+      const errorMessage = err instanceof Error ? err.message : 'Failed to start checkout'
+      setError(errorMessage)
+      toast.error('Checkout failed', {
+        description: errorMessage
+      })
     } finally {
       setIsLoading(false)
     }
