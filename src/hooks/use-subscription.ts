@@ -166,9 +166,9 @@ export function useUpgradePlan() {
       if (fnError) throw fnError
       if (data.error) throw new Error(data.error)
 
-      // Redirect to Stripe checkout
+      // Redirect to Stripe checkout in new tab (works better in preview environments)
       if (data.url) {
-        window.location.href = data.url
+        window.open(data.url, '_blank')
       } else {
         throw new Error('No checkout URL returned')
       }
