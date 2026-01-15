@@ -308,8 +308,21 @@ export function Header() {
             {/* Desktop Right Side */}
             <div className="hidden lg:flex items-center space-x-4">
 
-              {/* Get Started Button */}
-              <NeonButton href="/auth">Get Started</NeonButton>
+              {/* My Dashboard Button - Only for logged-in users */}
+              {isAuthenticated && !isLoading && (
+                <Button
+                  variant="outline"
+                  onClick={() => navigate("/dashboard")}
+                  className="border-primary/50 text-primary hover:bg-primary/10 hover:border-primary"
+                >
+                  My Dashboard
+                </Button>
+              )}
+
+              {/* Get Started Button - Only for non-authenticated users */}
+              {!isAuthenticated && !isLoading && (
+                <NeonButton href="/auth">Get Started</NeonButton>
+              )}
 
               {/* Auth Menu */}
               <AuthMenu />
