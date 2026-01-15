@@ -59,13 +59,13 @@ export default function Auth() {
     // Check if user is already logged in
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        navigate("/dashboard");
+        navigate("/");
       }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
-        navigate("/dashboard");
+        navigate("/");
       }
     });
 
@@ -117,7 +117,7 @@ export default function Auth() {
         title: "Welcome back!",
         description: "You've successfully logged in.",
       });
-      navigate("/dashboard");
+      navigate("/");
     } catch (error) {
       if (error instanceof z.ZodError) {
         toast({
@@ -169,7 +169,7 @@ export default function Auth() {
         title: "Account created!",
         description: "You've successfully signed up.",
       });
-      navigate("/dashboard");
+      navigate("/");
     } catch (error) {
       if (error instanceof z.ZodError) {
         toast({
@@ -257,7 +257,7 @@ export default function Auth() {
       });
       
       window.history.replaceState({}, '', '/auth');
-      navigate("/dashboard");
+      navigate("/");
     } catch (error) {
       if (error instanceof z.ZodError) {
         toast({
@@ -366,7 +366,7 @@ export default function Auth() {
       // Reset the OTP flow
       resetOtpFlow();
 
-      navigate("/dashboard");
+      navigate("/");
     } catch (error: any) {
       toast({
         title: "Verification failed",
@@ -515,7 +515,7 @@ export default function Auth() {
         title: "Phone verified!",
         description: "You're now logged in.",
       });
-      navigate("/dashboard");
+      navigate("/");
 
     } catch (error: any) {
       toast({
