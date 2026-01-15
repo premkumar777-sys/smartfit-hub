@@ -6,11 +6,13 @@ import { Suspense, lazy, useEffect, useState } from "react";
 import { FeatureCard } from "@/components/FeatureCard";
 import { useCounter, formatAnimatedNumber } from "@/hooks/useCounter";
 import { useStats } from "@/hooks/useStats";
+import { useAuth } from "@/hooks/use-auth";
 import "@/styles/feature-card.css";
 
 const HeroDumbbellScene = lazy(() => import("@/components/Hero3DScene"));
 
 const Home = () => {
+  const { user, isAuthenticated } = useAuth();
   const stats = useStats();
 
   // Animated counters for display
@@ -53,14 +55,27 @@ const Home = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
+            {isAuthenticated && user && (
+              <motion.p
+                className="text-lg md:text-xl text-primary font-medium"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+              >
+                Welcome back, {user.username || user.email?.split('@')[0]}! 👋
+              </motion.p>
+            )}
+            
             <motion.h1
               className="text-4xl md:text-5xl lg:text-6xl font-bold leading-normal pb-2"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
-              Transform Your Body with
-              <span className="text-gradient block mt-2 pb-1">AI-Powered Training</span>
+              {isAuthenticated ? "Continue Your" : "Transform Your Body with"}
+              <span className="text-gradient block mt-2 pb-1">
+                {isAuthenticated ? "Fitness Journey" : "AI-Powered Training"}
+              </span>
             </motion.h1>
 
             <motion.p
