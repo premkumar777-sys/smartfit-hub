@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Check, Calendar, Video, Star, Users, Trophy } from "lucide-react";
 import { motion } from "framer-motion";
+import { openPaymentLink, COACHING_PLAN } from "@/config/payments";
 
 export default function OnlineCoaching() {
     return (
@@ -150,7 +151,7 @@ export default function OnlineCoaching() {
                                 ))}
                             </ul>
                             <Button
-                                onClick={() => window.open("https://buy.stripe.com/test_coaching", "_blank")}
+                                onClick={() => openPaymentLink(COACHING_PLAN.link)}
                                 className="w-full max-w-sm bg-[#00FF9C] text-black hover:bg-[#00FF9C]/90 h-14 text-lg font-bold shadow-[0_0_20px_rgba(0,255,156,0.3)]"
                             >
                                 Apply Now

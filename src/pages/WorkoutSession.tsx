@@ -35,23 +35,6 @@ export default function WorkoutSession() {
               "Imbalance Detection",
               "Post-Workout Stats"
             ]}
-            plans={[
-              {
-                id: "monthly",
-                name: "Monthly",
-                price: "₹299",
-                period: "per month",
-                link: "https://buy.stripe.com/test_6oUeVd6JhfQh2rTa6X8ww00",
-                badge: "Popular"
-              },
-              {
-                id: "yearly",
-                name: "Yearly",
-                price: "₹2999",
-                period: "per year",
-                link: "https://buy.stripe.com/test_pro_year"
-              }
-            ]}
           >
             <PoseDetector />
           </PremiumLock>

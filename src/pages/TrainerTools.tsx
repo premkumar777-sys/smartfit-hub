@@ -12,6 +12,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ENABLE_PAYMENTS } from "@/config";
+import { openPaymentLink, BUSINESS_PLANS } from "@/config/payments";
 
 import { AddClientDialog } from "@/components/trainer/AddClientDialog";
 
@@ -232,7 +233,7 @@ export default function TrainerTools() {
                 description: "You have reached the limit of 3 clients on the Free plan. Upgrade to Business Pro to add unlimited clients.",
                 variant: "destructive",
                 action: (
-                    <Button variant="outline" size="sm" className="ml-auto" onClick={() => window.open("https://buy.stripe.com/test_biz_monthly", "_blank")}>
+                    <Button variant="outline" size="sm" className="ml-auto" onClick={() => openPaymentLink(BUSINESS_PLANS[0].link)}>
                         Upgrade
                     </Button>
                 ),
@@ -542,7 +543,7 @@ export default function TrainerTools() {
                                                 description: "You have reached the limit of 3 clients on the Free plan. Upgrade to Business Pro to add unlimited clients.",
                                                 variant: "destructive",
                                                 action: (
-                                                    <Button variant="outline" size="sm" className="ml-auto" onClick={() => window.open("https://buy.stripe.com/test_biz_monthly", "_blank")}>
+                                                    <Button variant="outline" size="sm" className="ml-auto" onClick={() => openPaymentLink(BUSINESS_PLANS[0].link)}>
                                                         Upgrade
                                                     </Button>
                                                 ),

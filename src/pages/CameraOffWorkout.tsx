@@ -272,23 +272,6 @@ export default function CameraOffWorkout() {
             "Angle Guidance System",
             "Unlimited Workout Sessions"
           ]}
-          plans={[
-            {
-              id: "monthly",
-              name: "Monthly",
-              price: "₹299",
-              period: "per month",
-              link: "https://buy.stripe.com/test_6oUeVd6JhfQh2rTa6X8ww00",
-              badge: "Popular"
-            },
-            {
-              id: "yearly",
-              name: "Yearly",
-              price: "₹2999",
-              period: "per year",
-              link: "https://buy.stripe.com/test_pro_year"
-            }
-          ]}
         >
           <div className="grid lg:grid-cols-3 gap-6">
             {/* Left: 3D Trainer */}

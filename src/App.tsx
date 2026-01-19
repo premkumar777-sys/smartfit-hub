@@ -24,9 +24,14 @@ import GymAnalytics from "./pages/GymAnalytics";
 import TrainerTools from "./pages/TrainerTools";
 import OnlineCoaching from "./pages/OnlineCoaching";
 import GymFinder from "./pages/GymFinder";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
+import RefundPolicy from "./pages/RefundPolicy";
+import ContactUs from "./pages/ContactUs";
 import NotFound from "./pages/NotFound";
 import { FitnessCursor } from "@/components/FitnessCursor";
 import { FloatingChatbot } from "@/components/FloatingChatbot";
+import { Footer } from "@/components/Footer";
 
 const queryClient = new QueryClient();
 
@@ -128,9 +133,14 @@ const App = () => {
               <Route path="/trainer-tools" element={<TrainerTools />} />
               <Route path="/online-coaching" element={<OnlineCoaching />} />
               <Route path="/gyms/*" element={<GymFinder />} />
+              <Route path="/privacy" element={<PrivacyPolicy />} />
+              <Route path="/terms" element={<TermsOfService />} />
+              <Route path="/refund" element={<RefundPolicy />} />
+              <Route path="/contact" element={<ContactUs />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
+            <Footer />
           </BrowserRouter>
         </TooltipProvider>
       </QueryClientProvider>

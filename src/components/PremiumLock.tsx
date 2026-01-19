@@ -6,55 +6,24 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { ENABLE_PAYMENTS } from "@/config";
 import { useSubscription } from "@/hooks/useSubscription";
+import { PRO_PLANS, PaymentPlan, openPaymentLink } from "@/config/payments";
 
-export interface Plan {
-    id: string;
-    name: string;
-    price: string;
-    period: string;
-    link: string;
-    badge?: string;
-}
+export type { PaymentPlan as Plan };
 
 interface PremiumLockProps {
     children: React.ReactNode;
     title?: string;
     description?: string;
     features?: string[];
-    plans?: Plan[];
+    plans?: PaymentPlan[];
 }
-
-const DEFAULT_PLANS: Plan[] = [
-    {
-        id: "intro",
-        name: "Intro Offer",
-        price: "₹99",
-        period: "1st month",
-        link: "https://buy.stripe.com/test_6oUeVd6JhfQh2rTa6X8ww00",
-        badge: "Best Value"
-    },
-    {
-        id: "semiannual",
-        name: "6 Months",
-        price: "₹399",
-        period: "every 6 months",
-        link: "https://buy.stripe.com/test_6oUeVd6JhfQh2rTa6X8ww00"
-    },
-    {
-        id: "annual",
-        name: "Yearly",
-        price: "₹699",
-        period: "per year",
-        link: "https://buy.stripe.com/test_6oUeVd6JhfQh2rTa6X8ww00"
-    }
-];
 
 export function PremiumLock({
     children,
     title = "Unlock AI Insights",
     description = "Get deep learning predictions and churn analysis with our Pro plan.",
     features = [],
-    plans = DEFAULT_PLANS
+    plans = PRO_PLANS
 }: PremiumLockProps) {
     const { hasAccess, isLoading } = useSubscription();
     // Keep local state for plan selection
@@ -150,7 +119,7 @@ export function PremiumLock({
 
                                     // Redirect to the specific link for the selected plan
                                     setTimeout(() => {
-                                        window.open(selectedPlan.link, '_blank');
+                                        openPaymentLink(selectedPlan.link);
                                     }, 1500);
                                 }}
                                 className="w-full bg-[#00FF9C] hover:bg-[#00FF9C]/90 text-black font-bold h-12 text-lg shadow-[0_0_20px_rgba(0,255,156,0.4)] transition-all hover:scale-[1.02]"

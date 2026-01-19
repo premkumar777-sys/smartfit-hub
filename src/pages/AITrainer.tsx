@@ -170,23 +170,6 @@ export default function AITrainer() {
                         "Custom Workout Advice",
                         "Unlimited Messaging"
                     ]}
-                    plans={[
-                        {
-                            id: "monthly",
-                            name: "Monthly",
-                            price: "₹299",
-                            period: "per month",
-                            link: "https://buy.stripe.com/test_6oUeVd6JhfQh2rTa6X8ww00",
-                            badge: "Popular"
-                        },
-                        {
-                            id: "yearly",
-                            name: "Yearly",
-                            price: "₹2999",
-                            period: "per year",
-                            link: "https://buy.stripe.com/test_pro_year"
-                        }
-                    ]}
                 >
                     <Card className="flex-1 glass border-primary/20 flex flex-col overflow-hidden h-full">
                         <CardContent className="flex-1 overflow-y-auto p-4 space-y-4">

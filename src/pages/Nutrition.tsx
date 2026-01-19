@@ -103,23 +103,6 @@ export default function Nutrition() {
               "Grocery List Automation",
               "Dietary Restriction Support"
             ]}
-            plans={[
-              {
-                id: "monthly",
-                name: "Monthly",
-                price: "₹299",
-                period: "per month",
-                link: "https://buy.stripe.com/test_6oUeVd6JhfQh2rTa6X8ww00",
-                badge: "Popular"
-              },
-              {
-                id: "yearly",
-                name: "Yearly",
-                price: "₹2999",
-                period: "per year",
-                link: "https://buy.stripe.com/test_pro_year"
-              }
-            ]}
           >
             <div className="grid lg:grid-cols-3 gap-8">
               <Card className="lg:col-span-2 glass border-primary/20">

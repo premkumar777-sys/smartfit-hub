@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { PremiumLock } from "@/components/PremiumLock";
+import { BUSINESS_PLANS } from "@/config/payments";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -593,24 +594,7 @@ export default function GymAnalytics() {
                 "Competitor Benchmarking",
                 "Member Lifetime Value Analysis"
               ]}
-              plans={[
-                {
-                  id: "monthly_biz",
-                  name: "Business Monthly",
-                  price: "₹1,499",
-                  period: "per month",
-                  link: "https://buy.stripe.com/test_biz_monthly",
-                  badge: "Flexible"
-                },
-                {
-                  id: "yearly_biz",
-                  name: "Business Annual",
-                  price: "₹14,999",
-                  period: "per year",
-                  link: "https://buy.stripe.com/test_biz_yearly",
-                  badge: "Best Value"
-                }
-              ]}
+              plans={BUSINESS_PLANS}
             >
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Competitor Benchmark */}
