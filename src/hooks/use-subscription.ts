@@ -1,6 +1,13 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/hooks/use-auth'
+import { toast } from 'sonner'
+
+// Stripe Price IDs - these should match your Stripe products
+export const STRIPE_PRICES = {
+  PREMIUM_MONTHLY: 'price_1SpGzZCn98QGMABluEiI28C8', // ₹299/month
+  PREMIUM_YEARLY: 'price_1SpH0cCn98QGMABlV6mQUbFO', // ₹2999/year
+} as const
 
 export interface UserPlan {
   plan_id: string
@@ -15,61 +22,166 @@ export interface SubscriptionData {
   hasPremiumAccess: boolean
   isLoading: boolean
   error: string | null
+  refetch: () => Promise<void>
 }
 
 export function useSubscription(): SubscriptionData {
-  const [data, setData] = useState<SubscriptionData>({
-    plan: {
-      plan_id: 'free',
-      plan_name: 'Free',
-      status: 'active',
-      billing_cycle: 'free',
-      current_period_end: null
-    },
-    hasPremiumAccess: true, // Always give premium access for now
-    isLoading: false,
-    error: null,
-  })
+  const [plan, setPlan] = useState<UserPlan | null>(null)
+  const [hasPremiumAccess, setHasPremiumAccess] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   const { user } = useAuth()
 
-  useEffect(() => {
-    // For now, always provide free tier with premium access
-    // This allows all features to be available while showing "coming soon" for new features
-    setData({
-      plan: {
+  const checkSubscription = useCallback(async () => {
+    if (!user) {
+      setPlan({
         plan_id: 'free',
         plan_name: 'Free',
         status: 'active',
         billing_cycle: 'free',
         current_period_end: null
-      },
-      hasPremiumAccess: true,
-      isLoading: false,
-      error: null,
-    })
+      })
+      setHasPremiumAccess(false)
+      setIsLoading(false)
+      return
+    }
+
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      const { data: sessionData } = await supabase.auth.getSession()
+      if (!sessionData.session) {
+        throw new Error('No session')
+      }
+
+      const { data, error: fnError } = await supabase.functions.invoke('check-subscription', {
+        headers: {
+          Authorization: `Bearer ${sessionData.session.access_token}`
+        }
+      })
+
+      if (fnError) throw fnError
+
+      if (data.subscribed) {
+        setPlan({
+          plan_id: 'premium',
+          plan_name: 'Premium',
+          status: 'active',
+          billing_cycle: 'monthly',
+          current_period_end: data.subscription_end
+        })
+        setHasPremiumAccess(true)
+      } else {
+        setPlan({
+          plan_id: 'free',
+          plan_name: 'Free',
+          status: 'active',
+          billing_cycle: 'free',
+          current_period_end: null
+        })
+        setHasPremiumAccess(false)
+      }
+    } catch (err) {
+      console.error('Error checking subscription:', err)
+      setError(err instanceof Error ? err.message : 'Failed to check subscription')
+      // Default to free plan on error
+      setPlan({
+        plan_id: 'free',
+        plan_name: 'Free',
+        status: 'active',
+        billing_cycle: 'free',
+        current_period_end: null
+      })
+      setHasPremiumAccess(false)
+    } finally {
+      setIsLoading(false)
+    }
   }, [user])
 
-  return data
+  // Check subscription on mount and when user changes
+  useEffect(() => {
+    checkSubscription()
+  }, [checkSubscription])
+
+  // Check subscription when returning from checkout (URL contains checkout=success)
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    if (urlParams.get('checkout') === 'success') {
+      // Small delay to allow Stripe webhook to process
+      setTimeout(() => {
+        checkSubscription()
+      }, 2000)
+      // Clean up URL
+      window.history.replaceState({}, '', window.location.pathname)
+    }
+  }, [checkSubscription])
+
+  // Periodic refresh every 60 seconds
+  useEffect(() => {
+    if (!user) return
+    
+    const interval = setInterval(() => {
+      checkSubscription()
+    }, 60000)
+
+    return () => clearInterval(interval)
+  }, [user, checkSubscription])
+
+  return {
+    plan,
+    hasPremiumAccess,
+    isLoading,
+    error,
+    refetch: checkSubscription
+  }
 }
 
 export function useUpgradePlan() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  
 
-  const upgradePlan = async (
-    planId: string,
-    billingCycle: 'monthly' | 'yearly'
-  ) => {
-    // Payment functionality removed - all features are now free
+  const upgradePlan = async (priceId: string) => {
     setIsLoading(true)
     setError(null)
 
-    // Simulate a delay then return success
-    setTimeout(() => {
+    try {
+      const { data: sessionData } = await supabase.auth.getSession()
+      if (!sessionData.session) {
+        toast.error('Please sign in to upgrade', {
+          description: 'You need to be logged in to subscribe to a plan'
+        })
+        throw new Error('Please sign in to upgrade')
+      }
+
+      const { data, error: fnError } = await supabase.functions.invoke('create-checkout', {
+        body: { priceId },
+        headers: {
+          Authorization: `Bearer ${sessionData.session.access_token}`
+        }
+      })
+
+      if (fnError) throw fnError
+      if (data.error) throw new Error(data.error)
+
+      // Redirect to Stripe checkout in new tab (works better in preview environments)
+      if (data.url) {
+        window.open(data.url, '_blank')
+      } else {
+        throw new Error('No checkout URL returned')
+      }
+    } catch (err) {
+      console.error('Error creating checkout:', err)
+      const errorMessage = err instanceof Error ? err.message : 'Failed to start checkout'
+      setError(errorMessage)
+      toast.error('Checkout failed', {
+        description: errorMessage
+      })
+    } finally {
       setIsLoading(false)
-      // All features are now available for free
-    }, 1000)
+    }
   }
 
   return {
