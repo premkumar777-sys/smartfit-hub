@@ -18,8 +18,7 @@ import HomeWorkouts from "./pages/HomeWorkouts";
 import AITrainer from "./pages/AITrainer";
 import Gamification from "./pages/Gamification";
 import CameraOffWorkout from "./pages/CameraOffWorkout";
-import Marketplace from "./pages/Marketplace";
-import ProductDetail from "./pages/ProductDetail";
+
 import GymAnalytics from "./pages/GymAnalytics";
 import TrainerTools from "./pages/TrainerTools";
 import OnlineCoaching from "./pages/OnlineCoaching";
@@ -27,6 +26,7 @@ import GymFinder from "./pages/GymFinder";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import RefundPolicy from "./pages/RefundPolicy";
+import ShippingPolicy from "./pages/ShippingPolicy";
 import ContactUs from "./pages/ContactUs";
 import NotFound from "./pages/NotFound";
 import { FitnessCursor } from "@/components/FitnessCursor";
@@ -126,8 +126,7 @@ const App = () => {
               <Route path="/ai-trainer" element={<AITrainer />} />
               <Route path="/gamification" element={<Gamification />} />
               <Route path="/3d-trainer" element={<CameraOffWorkout />} />
-              <Route path="/marketplace" element={<Marketplace />} />
-              <Route path="/product/:handle" element={<ProductDetail />} />
+
               <Route path="/gym-analytics" element={<GymAnalytics />} />
               <Route path="/gym-analytics/ai" element={<GymAnalytics />} />
               <Route path="/trainer-tools" element={<TrainerTools />} />
@@ -136,6 +135,7 @@ const App = () => {
               <Route path="/privacy" element={<PrivacyPolicy />} />
               <Route path="/terms" element={<TermsOfService />} />
               <Route path="/refund" element={<RefundPolicy />} />
+              <Route path="/shipping" element={<ShippingPolicy />} />
               <Route path="/contact" element={<ContactUs />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

@@ -15,7 +15,6 @@ import { useReducedMotion } from "@/hooks/useReducedMotion";
 // Lazy load dropdown content
 const FeaturesDropdown = lazy(() => import("./dropdowns/FeaturesDropdown"));
 const GymsDropdown = lazy(() => import("./dropdowns/GymsDropdown"));
-const MarketplaceDropdown = lazy(() => import("./dropdowns/MarketplaceDropdown"));
 const BusinessDropdown = lazy(() => import("./dropdowns/BusinessDropdown"));
 
 
@@ -32,11 +31,6 @@ const menuStructure = [
     dropdown: "gyms",
     isMega: true,
     badge: "New"
-  },
-  {
-    label: "Marketplace",
-    hasDropdown: true,
-    dropdown: "marketplace"
   },
   {
     label: "For Business",
@@ -106,12 +100,6 @@ export function Header() {
         return (
           <Suspense fallback={<div className="p-8 text-center">Loading...</div>}>
             <GymsDropdown />
-          </Suspense>
-        );
-      case "marketplace":
-        return (
-          <Suspense fallback={<div className="p-8 text-center">Loading...</div>}>
-            <MarketplaceDropdown />
           </Suspense>
         );
       case "business":

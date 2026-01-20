@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Zap, Target, TrendingUp, Users, Brain, Eye, BarChart3, Utensils, Calendar, QrCode, Trophy, Wrench, PieChart, ShoppingBag, Sparkles, LineChart, Laptop } from "lucide-react";
+import { ArrowRight, Zap, Target, TrendingUp, Users, Brain, Eye, BarChart3, Utensils, Calendar, QrCode, Trophy, Wrench, PieChart, Sparkles, LineChart, Laptop } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Suspense, lazy, useEffect, useState } from "react";
@@ -216,12 +216,6 @@ const Home = () => {
                 link: "/trainer-tools"
               },
 
-              {
-                icon: ShoppingBag,
-                title: "Supplement Marketplace",
-                description: "Curated selection of premium supplements with AI recommendations",
-                link: "/marketplace"
-              },
               {
                 icon: LineChart,
                 title: "AI Analytics Dashboard",
