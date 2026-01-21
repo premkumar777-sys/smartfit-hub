@@ -520,12 +520,17 @@ export default function Profile() {
                             </Button>
                         </Link>
                         {!hasPremiumAccess && (
-                            <Link to="/dashboard">
-                                <Button className="bg-gradient-to-r from-yellow-500 to-orange-500 text-black">
-                                    <Crown className="w-4 h-4 mr-2" />
-                                    Upgrade to Pro
-                                </Button>
-                            </Link>
+                            <Button
+                                className="bg-gradient-to-r from-yellow-500 to-orange-500 text-black"
+                                onClick={() => {
+                                    toast.info("Upgrade Coming Soon!", {
+                                        description: "Pro subscriptions will be available once payment processing is set up. Check back soon! 🚀"
+                                    });
+                                }}
+                            >
+                                <Crown className="w-4 h-4 mr-2" />
+                                Upgrade to Pro
+                            </Button>
                         )}
                         <Button variant="destructive" onClick={handleLogout}>
                             <LogOut className="w-4 h-4 mr-2" />
