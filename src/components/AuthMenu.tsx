@@ -134,7 +134,7 @@ export function AuthMenu() {
               </Link>
 
               <Link
-                to="/dashboard"
+                to="/profile"
                 className="flex items-center space-x-3 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
                 onClick={() => setIsMenuOpen(false)}
                 role="menuitem"

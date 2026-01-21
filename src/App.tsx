@@ -18,6 +18,7 @@ import HomeWorkouts from "./pages/HomeWorkouts";
 import AITrainer from "./pages/AITrainer";
 import Gamification from "./pages/Gamification";
 import CameraOffWorkout from "./pages/CameraOffWorkout";
+import Profile from "./pages/Profile";
 
 import GymAnalytics from "./pages/GymAnalytics";
 import TrainerTools from "./pages/TrainerTools";
@@ -126,6 +127,7 @@ const App = () => {
               <Route path="/ai-trainer" element={<AITrainer />} />
               <Route path="/gamification" element={<Gamification />} />
               <Route path="/3d-trainer" element={<CameraOffWorkout />} />
+              <Route path="/profile" element={<Profile />} />
 
               <Route path="/gym-analytics" element={<GymAnalytics />} />
               <Route path="/gym-analytics/ai" element={<GymAnalytics />} />
