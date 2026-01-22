@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Lock, Sparkles, Check, Star, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -113,14 +114,9 @@ export function PremiumLock({
                         <div className="w-full space-y-3">
                             <Button
                                 onClick={() => {
-                                    toast.success(`Processing ${selectedPlan.name} Plan...`, {
-                                        description: "Redirecting to secure payment..."
-                                    });
-
-                                    // Redirect to the specific link for the selected plan
-                                    setTimeout(() => {
-                                        openPaymentLink(selectedPlan.link);
-                                    }, 1500);
+                                    toast.success(`Redirecting to upgrade page...`);
+                                    // Redirect to upgrade page
+                                    window.location.href = "/upgrade";
                                 }}
                                 className="w-full bg-[#00FF9C] hover:bg-[#00FF9C]/90 text-black font-bold h-12 text-lg shadow-[0_0_20px_rgba(0,255,156,0.4)] transition-all hover:scale-[1.02]"
                             >

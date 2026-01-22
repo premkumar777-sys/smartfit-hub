@@ -20,6 +20,7 @@ import Gamification from "./pages/Gamification";
 import CameraOffWorkout from "./pages/CameraOffWorkout";
 import Profile from "./pages/Profile";
 import PaymentSuccess from "./pages/PaymentSuccess";
+import VerifyPayment from "./pages/VerifyPayment";
 
 import GymAnalytics from "./pages/GymAnalytics";
 import TrainerTools from "./pages/TrainerTools";
@@ -141,6 +142,7 @@ const App = () => {
               <Route path="/shipping" element={<ShippingPolicy />} />
               <Route path="/contact" element={<ContactUs />} />
               <Route path="/payment-success" element={<PaymentSuccess />} />
+              <Route path="/upgrade" element={<VerifyPayment />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
