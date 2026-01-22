@@ -29,6 +29,13 @@ export default function VerifyPayment() {
             return;
         }
 
+        // Basic validation - Instamojo payment IDs start with MOJO
+        const trimmedPaymentId = paymentId.trim().toUpperCase();
+        if (!trimmedPaymentId.startsWith("MOJO") || trimmedPaymentId.length < 10) {
+            toast.error("Invalid Payment ID format. It should start with 'MOJO'");
+            return;
+        }
+
         setIsVerifying(true);
 
         try {
@@ -38,6 +45,27 @@ export default function VerifyPayment() {
             if (!user) {
                 toast.error("Please log in first");
                 navigate("/auth");
+                return;
+            }
+
+            // Check if this payment ID has already been used
+            const { data: existingPayment, error: checkError } = await supabase
+                .from("used_payments")
+                .select("id, user_id")
+                .eq("payment_id", trimmedPaymentId)
+                .maybeSingle();
+
+            if (checkError && checkError.code !== "42P01") {
+                console.error("Error checking payment:", checkError);
+            }
+
+            if (existingPayment) {
+                if (existingPayment.user_id === user.id) {
+                    toast.error("You have already used this payment ID");
+                } else {
+                    toast.error("This payment ID has already been used by another account");
+                }
+                setIsVerifying(false);
                 return;
             }
 
@@ -107,6 +135,17 @@ export default function VerifyPayment() {
                 if (error) throw error;
             }
 
+            // Save the payment ID to prevent reuse
+            await supabase
+                .from("used_payments")
+                .insert({
+                    payment_id: trimmedPaymentId,
+                    user_id: user.id,
+                    amount: parseFloat(selectedPlan.price.replace("₹", "")),
+                    plan_name: selectedPlan.name,
+                })
+                .catch(err => console.log("Could not save payment ID:", err));
+
             setIsSuccess(true);
             toast.success("🎉 Pro subscription activated!");
 
@@ -170,8 +209,8 @@ export default function VerifyPayment() {
                                         key={plan.id}
                                         onClick={() => setSelectedPlan(plan)}
                                         className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${selectedPlan.id === plan.id
-                                                ? "border-primary bg-primary/10"
-                                                : "border-border hover:border-primary/50"
+                                            ? "border-primary bg-primary/10"
+                                            : "border-border hover:border-primary/50"
                                             }`}
                                     >
                                         <div className="flex justify-between items-center">
