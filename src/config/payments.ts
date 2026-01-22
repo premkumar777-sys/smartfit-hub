@@ -31,14 +31,14 @@ export const PRO_PLANS: PaymentPlan[] = [
         name: "6 Months",
         price: "₹399",
         period: "every 6 months",
-        link: "RAZORPAY_PRO_6MONTH_LINK" // TODO: Replace with Razorpay link
+        link: "https://imjo.in/DHbKMq"
     },
     {
         id: "annual",
         name: "Yearly",
         price: "₹699",
         period: "per year",
-        link: "RAZORPAY_PRO_YEARLY_LINK" // TODO: Replace with Razorpay link
+        link: "https://imjo.in/fMMzWK"
     }
 ];
 
