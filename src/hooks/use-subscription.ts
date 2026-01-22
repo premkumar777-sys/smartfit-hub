@@ -51,26 +51,32 @@ export function useSubscription(): SubscriptionData {
     setError(null)
 
     try {
-      const { data: sessionData } = await supabase.auth.getSession()
-      if (!sessionData.session) {
-        throw new Error('No session')
+      // Check subscriptions table directly for Instamojo payments
+      const { data: subscription, error: subError } = await supabase
+        .from('subscriptions')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .gte('expires_at', new Date().toISOString())
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+
+      if (subError) {
+        console.error('Error checking subscription:', subError)
+        // If table doesn't exist yet, just default to free
+        if (subError.code === '42P01') {
+          console.log('Subscriptions table not set up yet')
+        }
       }
 
-      const { data, error: fnError } = await supabase.functions.invoke('check-subscription', {
-        headers: {
-          Authorization: `Bearer ${sessionData.session.access_token}`
-        }
-      })
-
-      if (fnError) throw fnError
-
-      if (data.subscribed) {
+      if (subscription) {
         setPlan({
           plan_id: 'premium',
-          plan_name: 'Premium',
+          plan_name: subscription.plan_name || 'Premium',
           status: 'active',
           billing_cycle: 'monthly',
-          current_period_end: data.subscription_end
+          current_period_end: subscription.expires_at
         })
         setHasPremiumAccess(true)
       } else {
@@ -121,7 +127,7 @@ export function useSubscription(): SubscriptionData {
   // Periodic refresh every 60 seconds
   useEffect(() => {
     if (!user) return
-    
+
     const interval = setInterval(() => {
       checkSubscription()
     }, 60000)
@@ -141,7 +147,7 @@ export function useSubscription(): SubscriptionData {
 export function useUpgradePlan() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  
+
 
   const upgradePlan = async (priceId: string) => {
     setIsLoading(true)
