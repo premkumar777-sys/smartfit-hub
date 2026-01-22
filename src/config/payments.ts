@@ -23,7 +23,7 @@ export const PRO_PLANS: PaymentPlan[] = [
         name: "Intro Offer",
         price: "₹99",
         period: "1st month",
-        link: "RAZORPAY_PRO_INTRO_LINK", // TODO: Replace with Razorpay link
+        link: "https://imjo.in/JhTfuQ",
         badge: "Best Value"
     },
     {

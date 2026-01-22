@@ -25,7 +25,7 @@ export function PremiumLock({
     features = [],
     plans = PRO_PLANS
 }: PremiumLockProps) {
-    const { hasAccess, isLoading } = useSubscription();
+    const { hasPremiumAccess, isLoading } = useSubscription();
     // Keep local state for plan selection
     const [selectedPlan, setSelectedPlan] = useState(plans[0]);
 
@@ -43,7 +43,7 @@ export function PremiumLock({
     }
 
     // Grant access if user has subscription OR if payments are disabled (handled inside hook)
-    if (hasAccess) {
+    if (hasPremiumAccess) {
         return <>{children}</>;
     }
 
@@ -128,7 +128,7 @@ export function PremiumLock({
                             </Button>
 
                             <p className="text-xs text-gray-500">
-                                Cancel anytime. Secure payment via Stripe.
+                                Cancel anytime. Secure payment via Instamojo.
                             </p>
                         </div>
                     </CardContent>
