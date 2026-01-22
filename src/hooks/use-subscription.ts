@@ -51,13 +51,13 @@ export function useSubscription(): SubscriptionData {
     setError(null)
 
     try {
-      // Check subscriptions table directly for Instamojo payments
+      // Check subscriptions table directly for payments
       const { data: subscription, error: subError } = await supabase
         .from('subscriptions')
         .select('*')
         .eq('user_id', user.id)
         .eq('status', 'active')
-        .gte('expires_at', new Date().toISOString())
+        .gte('current_period_end', new Date().toISOString())
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle()
@@ -72,11 +72,11 @@ export function useSubscription(): SubscriptionData {
 
       if (subscription) {
         setPlan({
-          plan_id: 'premium',
-          plan_name: subscription.plan_name || 'Premium',
+          plan_id: subscription.plan_id || 'premium',
+          plan_name: subscription.plan_id || 'Premium',
           status: 'active',
-          billing_cycle: 'monthly',
-          current_period_end: subscription.expires_at
+          billing_cycle: subscription.billing_cycle || 'monthly',
+          current_period_end: subscription.current_period_end
         })
         setHasPremiumAccess(true)
       } else {
