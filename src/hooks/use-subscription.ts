@@ -66,10 +66,16 @@ export function useSubscription(): SubscriptionData {
         console.error('Error checking subscription:', subError)
       }
 
+      console.log('Subscription data for user:', user.email, subscription);
+
       if (subscription) {
         // Check either current_period_end or expires_at
         const expiryDate = subscription.current_period_end || subscription.expires_at;
-        const hasValidExpiry = expiryDate && new Date(expiryDate) > new Date();
+        const now = new Date();
+        const expiry = new Date(expiryDate);
+        const hasValidExpiry = expiryDate && expiry > now;
+
+        console.log('Expiry details:', { expiryDate, now, expiry, hasValidExpiry });
 
         if (hasValidExpiry) {
           setPlan({
