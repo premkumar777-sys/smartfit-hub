@@ -114,6 +114,25 @@ export function useSubscription(): SubscriptionData {
       })
       setHasPremiumAccess(false)
     } finally {
+      // FORCE UPGRADE FOR ADMINS (FAIL-SAFE)
+      const adminEmails = [
+        'eslavathpremkumar17@gmail.com',
+        '24r01a66t7@cmrithyderabad.edu.in',
+        '24r01a66t7@cmrithyderbad.edu.in'
+      ];
+
+      if (user?.email && adminEmails.map(e => e.toLowerCase()).includes(user.email.toLowerCase())) {
+        console.log('Admin account detected. Forcing Pro status.');
+        setHasPremiumAccess(true);
+        // Only override if plan is currently free or null
+        setPlan(prev => (!prev || prev.plan_id === 'free') ? {
+          plan_id: 'premium',
+          plan_name: 'Pro (Admin)',
+          status: 'active',
+          billing_cycle: 'monthly',
+          current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+        } : prev);
+      }
       setIsLoading(false)
     }
   }, [user])
