@@ -35,6 +35,7 @@ import NotFound from "./pages/NotFound";
 import { FitnessCursor } from "@/components/FitnessCursor";
 import { FloatingChatbot } from "@/components/FloatingChatbot";
 import { Footer } from "@/components/Footer";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 const queryClient = new QueryClient();
 
@@ -113,40 +114,42 @@ const App = () => {
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <FitnessCursor />
-            <FloatingChatbot />
-            <Header />
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/ai-workout" element={<AIWorkout />} />
-              <Route path="/workout-session" element={<WorkoutSession />} />
-              <Route path="/nutrition" element={<Nutrition />} />
-              <Route path="/progress" element={<Progress />} />
-              <Route path="/guides" element={<Guides />} />
-              <Route path="/home-workouts" element={<HomeWorkouts />} />
-              <Route path="/ai-trainer" element={<AITrainer />} />
-              <Route path="/gamification" element={<Gamification />} />
-              <Route path="/3d-trainer" element={<CameraOffWorkout />} />
-              <Route path="/profile" element={<Profile />} />
+            <ErrorBoundary>
+              <FitnessCursor />
+              <FloatingChatbot />
+              <Header />
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/ai-workout" element={<AIWorkout />} />
+                <Route path="/workout-session" element={<WorkoutSession />} />
+                <Route path="/nutrition" element={<Nutrition />} />
+                <Route path="/progress" element={<Progress />} />
+                <Route path="/guides" element={<Guides />} />
+                <Route path="/home-workouts" element={<HomeWorkouts />} />
+                <Route path="/ai-trainer" element={<AITrainer />} />
+                <Route path="/gamification" element={<Gamification />} />
+                <Route path="/3d-trainer" element={<CameraOffWorkout />} />
+                <Route path="/profile" element={<Profile />} />
 
-              <Route path="/gym-analytics" element={<GymAnalytics />} />
-              <Route path="/gym-analytics/ai" element={<GymAnalytics />} />
-              <Route path="/trainer-tools" element={<TrainerTools />} />
-              <Route path="/online-coaching" element={<OnlineCoaching />} />
-              <Route path="/gyms/*" element={<GymFinder />} />
-              <Route path="/privacy" element={<PrivacyPolicy />} />
-              <Route path="/terms" element={<TermsOfService />} />
-              <Route path="/refund" element={<RefundPolicy />} />
-              <Route path="/shipping" element={<ShippingPolicy />} />
-              <Route path="/contact" element={<ContactUs />} />
-              <Route path="/payment-success" element={<PaymentSuccess />} />
-              <Route path="/upgrade" element={<VerifyPayment />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-            <Footer />
+                <Route path="/gym-analytics" element={<GymAnalytics />} />
+                <Route path="/gym-analytics/ai" element={<GymAnalytics />} />
+                <Route path="/trainer-tools" element={<TrainerTools />} />
+                <Route path="/online-coaching" element={<OnlineCoaching />} />
+                <Route path="/gyms/*" element={<GymFinder />} />
+                <Route path="/privacy" element={<PrivacyPolicy />} />
+                <Route path="/terms" element={<TermsOfService />} />
+                <Route path="/refund" element={<RefundPolicy />} />
+                <Route path="/shipping" element={<ShippingPolicy />} />
+                <Route path="/contact" element={<ContactUs />} />
+                <Route path="/payment-success" element={<PaymentSuccess />} />
+                <Route path="/upgrade" element={<VerifyPayment />} />
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+              <Footer />
+            </ErrorBoundary>
           </BrowserRouter>
         </TooltipProvider>
       </QueryClientProvider>

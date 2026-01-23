@@ -63,7 +63,7 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index }: Fea
     setIsHovered(false);
     setRotation({ x: 0, y: 0, z: 0 });
     setMousePosition({ x: 0, y: 0 });
-    
+
     if (mouseMoveTimeoutRef.current) {
       clearTimeout(mouseMoveTimeoutRef.current);
       mouseMoveTimeoutRef.current = null;
@@ -81,7 +81,13 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index }: Fea
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
+      // If we're inside a Link, the browser might handle it, 
+      // but since we have a custom handler, let's make sure it works.
+      if (link) {
+        // Link component will handle the regular click, 
+        // but for keyboard we might need to trigger it if not bubbling correctly.
+        // Usually, a Link wrapper handles Enter by itself.
+      }
     }
   };
 
@@ -104,7 +110,7 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index }: Fea
 
       // Minimal movement to avoid visible shake
       cardRef.current.style.transform = `translate3d(${floatX}px, ${floatY}px, 0)`;
-      
+
       rafRef.current = requestAnimationFrame(animate);
     };
 
@@ -157,7 +163,7 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index }: Fea
       aria-label={`${title}: ${description}`}
     >
       {/* Animated gradient background */}
-      <div 
+      <div
         className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
         style={{
           background: `radial-gradient(circle at ${50 + mousePosition.x * 0.1}% ${50 + mousePosition.y * 0.1}%, rgba(0, 255, 156, 0.15), transparent 70%)`
@@ -165,7 +171,7 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index }: Fea
       />
 
       {/* Glowing border effect */}
-      <div 
+      <div
         className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
         style={{
           boxShadow: isHovered ? `inset 0 0 30px rgba(0, 255, 156, 0.2), 0 0 40px rgba(0, 255, 156, 0.3)` : 'none'
@@ -191,18 +197,18 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index }: Fea
           }}
         >
           <motion.div
-            animate={isHovered ? { 
+            animate={isHovered ? {
               scale: 1.15,
               rotateY: 180,
               rotateX: 10
-            } : { 
+            } : {
               scale: 1,
               rotateY: 0,
               rotateX: 0
             }}
-            transition={{ 
-              type: "spring", 
-              stiffness: 200, 
+            transition={{
+              type: "spring",
+              stiffness: 200,
               damping: 15,
               duration: 0.6
             }}
@@ -211,8 +217,8 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index }: Fea
             <Icon
               className={cn(
                 "h-12 w-12 transition-all duration-500",
-                isHovered || isFocused 
-                  ? "text-[#00FF9C] drop-shadow-[0_0_15px_rgba(0,255,156,0.7)]" 
+                isHovered || isFocused
+                  ? "text-[#00FF9C] drop-shadow-[0_0_15px_rgba(0,255,156,0.7)]"
                   : "text-[#00FF9C]/80"
               )}
             />
@@ -226,10 +232,10 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index }: Fea
             transform: prefersReducedMotion ? undefined : `translateZ(25px)`,
             transformStyle: 'preserve-3d'
           }}
-          animate={isHovered ? { 
+          animate={isHovered ? {
             scale: 1.05,
             y: -5
-          } : { 
+          } : {
             scale: 1,
             y: 0
           }}
