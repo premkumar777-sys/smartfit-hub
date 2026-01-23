@@ -43,8 +43,11 @@ export function PremiumLock({
         );
     }
 
-    // Grant access if user has subscription OR if payments are disabled (handled inside hook)
-    if (hasPremiumAccess) {
+    // Grant access if:
+    // 1. Payments are globally disabled (Beta Mode)
+    // 2. User has active subscription
+    // 3. isLoading is handled above
+    if (!ENABLE_PAYMENTS || hasPremiumAccess) {
         return <>{children}</>;
     }
 

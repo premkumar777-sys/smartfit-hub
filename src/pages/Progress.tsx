@@ -296,355 +296,366 @@ export default function Progress() {
           </p>
         </div>
 
-        {/* Quick Stats Row */}
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8">
-          <StatCard icon={Scale} label="Current" value={stats ? `${stats.latest} kg` : "--"} accent />
-          <StatCard
-            icon={stats?.change && stats.change < 0 ? TrendingDown : TrendingUp}
-            label="Change"
-            value={stats ? `${stats.change > 0 ? "+" : ""}${stats.change} kg` : "--"}
-          />
-          <StatCard icon={Flame} label="Streak" value={stats ? `${stats.streak} days` : "--"} />
-          <StatCard icon={Calendar} label="Weekly Avg" value={stats?.weeklyAvg ? `${stats.weeklyAvg} kg` : "--"} />
-          <StatCard icon={Trophy} label="XP Earned" value={`${gamification.xp}`} />
-          <StatCard icon={Target} label="Level" value={`${gamification.level}`} />
-        </div>
+        <PremiumLock
+          title="Unlock Progress Tracking"
+          description="Get detailed analytics, body measurement tracking, and goal settings with SmartFit Pro."
+          features={[
+            "Weight Trend Analytics",
+            "Body Measurement Logs",
+            "Fitness Goal Progress",
+            "Historical Data Export"
+          ]}
+        >
+          {/* Quick Stats Row */}
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8">
+            <StatCard icon={Scale} label="Current" value={stats ? `${stats.latest} kg` : "--"} accent />
+            <StatCard
+              icon={stats?.change && stats.change < 0 ? TrendingDown : TrendingUp}
+              label="Change"
+              value={stats ? `${stats.change > 0 ? "+" : ""}${stats.change} kg` : "--"}
+            />
+            <StatCard icon={Flame} label="Streak" value={stats ? `${stats.streak} days` : "--"} />
+            <StatCard icon={Calendar} label="Weekly Avg" value={stats?.weeklyAvg ? `${stats.weeklyAvg} kg` : "--"} />
+            <StatCard icon={Trophy} label="XP Earned" value={`${gamification.xp}`} />
+            <StatCard icon={Target} label="Level" value={`${gamification.level}`} />
+          </div>
 
-        {/* Main Tabs */}
-        <Tabs defaultValue="weight" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-grid">
-            <TabsTrigger value="weight">Weight</TabsTrigger>
-            <TabsTrigger value="measurements">Measurements</TabsTrigger>
-            <TabsTrigger value="goals">Goals</TabsTrigger>
-            <TabsTrigger value="history">History</TabsTrigger>
-          </TabsList>
+          {/* Main Tabs */}
+          <Tabs defaultValue="weight" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-grid">
+              <TabsTrigger value="weight">Weight</TabsTrigger>
+              <TabsTrigger value="measurements">Measurements</TabsTrigger>
+              <TabsTrigger value="goals">Goals</TabsTrigger>
+              <TabsTrigger value="history">History</TabsTrigger>
+            </TabsList>
 
-          {/* Weight Tab */}
-          <TabsContent value="weight" className="space-y-6">
-            <div className="grid lg:grid-cols-3 gap-6">
-              {/* Log Weight Form */}
-              <Card className="glass border-primary/20">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Scale className="w-5 h-5 text-primary" />
-                    Log Weight
-                  </CardTitle>
-                  <CardDescription>
-                    Earn +{XP_REWARDS.PROGRESS_LOG} XP per entry
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <form onSubmit={addLog} className="space-y-4">
+            {/* Weight Tab */}
+            <TabsContent value="weight" className="space-y-6">
+              <div className="grid lg:grid-cols-3 gap-6">
+                {/* Log Weight Form */}
+                <Card className="glass border-primary/20">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Scale className="w-5 h-5 text-primary" />
+                      Log Weight
+                    </CardTitle>
+                    <CardDescription>
+                      Earn +{XP_REWARDS.PROGRESS_LOG} XP per entry
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <form onSubmit={addLog} className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="weight">Weight (kg)</Label>
+                        <Input
+                          id="weight"
+                          value={weight}
+                          onChange={(e) => setWeight(e.target.value)}
+                          type="number"
+                          step="0.1"
+                          min="30"
+                          max="250"
+                          placeholder="e.g., 75.5"
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="notes">Notes (optional)</Label>
+                        <Input
+                          id="notes"
+                          value={notes}
+                          onChange={(e) => setNotes(e.target.value)}
+                          placeholder="How are you feeling?"
+                        />
+                      </div>
+                      <Button type="submit" variant="hero" className="w-full" disabled={isSaving}>
+                        {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Zap className="mr-2 h-4 w-4" />}
+                        {isSaving ? "Saving..." : "Log Weight"}
+                      </Button>
+                    </form>
+                  </CardContent>
+                </Card>
+
+                {/* Weight Chart */}
+                <Card className="glass border-primary/20 lg:col-span-2">
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle>Weight Trend</CardTitle>
+                        <CardDescription>Your progress over time</CardDescription>
+                      </div>
+                      <div className="flex gap-1">
+                        {[30, 60, 90].map((days) => (
+                          <Button
+                            key={days}
+                            variant={chartPeriod === days ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setChartPeriod(days as 30 | 60 | 90)}
+                          >
+                            {days}d
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {chartData.length > 1 ? (
+                      <div className="h-64">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <AreaChart data={chartData}>
+                            <defs>
+                              <linearGradient id="weightGradient" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#22c55e" stopOpacity={0.3} />
+                                <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
+                              </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                            <XAxis dataKey="date" stroke="#888" fontSize={12} />
+                            <YAxis
+                              stroke="#888"
+                              fontSize={12}
+                              domain={['auto', 'auto']}
+                              tickFormatter={(v) => `${v}kg`}
+                            />
+                            <Tooltip
+                              contentStyle={{
+                                backgroundColor: '#1a1a1a',
+                                border: '1px solid #333',
+                                borderRadius: '8px'
+                              }}
+                              labelStyle={{ color: '#888' }}
+                            />
+                            <Area
+                              type="monotone"
+                              dataKey="weight"
+                              stroke="#22c55e"
+                              strokeWidth={2}
+                              fill="url(#weightGradient)"
+                            />
+                          </AreaChart>
+                        </ResponsiveContainer>
+                      </div>
+                    ) : (
+                      <div className="h-64 flex items-center justify-center text-muted-foreground">
+                        Add at least 2 weight entries to see your trend chart
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+
+            {/* Measurements Tab */}
+            <TabsContent value="measurements" className="space-y-6">
+              <div className="grid lg:grid-cols-2 gap-6">
+                <Card className="glass border-primary/20">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Ruler className="w-5 h-5 text-primary" />
+                      Body Measurements
+                    </CardTitle>
+                    <CardDescription>Track your body composition (cm)</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Chest</Label>
+                        <Input
+                          type="number"
+                          placeholder="cm"
+                          value={newMeasurement.chest || ""}
+                          onChange={(e) => setNewMeasurement(p => ({ ...p, chest: parseFloat(e.target.value) || undefined }))}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Waist</Label>
+                        <Input
+                          type="number"
+                          placeholder="cm"
+                          value={newMeasurement.waist || ""}
+                          onChange={(e) => setNewMeasurement(p => ({ ...p, waist: parseFloat(e.target.value) || undefined }))}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Hips</Label>
+                        <Input
+                          type="number"
+                          placeholder="cm"
+                          value={newMeasurement.hips || ""}
+                          onChange={(e) => setNewMeasurement(p => ({ ...p, hips: parseFloat(e.target.value) || undefined }))}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Arms</Label>
+                        <Input
+                          type="number"
+                          placeholder="cm"
+                          value={newMeasurement.arms || ""}
+                          onChange={(e) => setNewMeasurement(p => ({ ...p, arms: parseFloat(e.target.value) || undefined }))}
+                        />
+                      </div>
+                      <div className="space-y-2 col-span-2">
+                        <Label>Thighs</Label>
+                        <Input
+                          type="number"
+                          placeholder="cm"
+                          value={newMeasurement.thighs || ""}
+                          onChange={(e) => setNewMeasurement(p => ({ ...p, thighs: parseFloat(e.target.value) || undefined }))}
+                        />
+                      </div>
+                    </div>
+                    <Button onClick={saveMeasurement} variant="hero" className="w-full">
+                      <Zap className="mr-2 h-4 w-4" />
+                      Save Measurements
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                <Card className="glass border-primary/20">
+                  <CardHeader>
+                    <CardTitle>Measurement History</CardTitle>
+                    <CardDescription>Recent recordings</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {measurements.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">No measurements recorded yet.</p>
+                    ) : (
+                      <div className="space-y-3 max-h-80 overflow-y-auto">
+                        {measurements.slice(0, 10).map((m, i) => (
+                          <div key={i} className="p-3 rounded-lg border border-gray-800 bg-gray-900/60">
+                            <p className="text-xs text-muted-foreground mb-2">{m.date}</p>
+                            <div className="grid grid-cols-5 gap-2 text-sm">
+                              {m.chest && <div><span className="text-muted-foreground">Chest:</span> {m.chest}</div>}
+                              {m.waist && <div><span className="text-muted-foreground">Waist:</span> {m.waist}</div>}
+                              {m.hips && <div><span className="text-muted-foreground">Hips:</span> {m.hips}</div>}
+                              {m.arms && <div><span className="text-muted-foreground">Arms:</span> {m.arms}</div>}
+                              {m.thighs && <div><span className="text-muted-foreground">Thighs:</span> {m.thighs}</div>}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+
+            {/* Goals Tab */}
+            <TabsContent value="goals" className="space-y-6">
+              <div className="grid lg:grid-cols-2 gap-6">
+                <Card className="glass border-primary/20">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Target className="w-5 h-5 text-primary" />
+                      Set Your Goal
+                    </CardTitle>
+                    <CardDescription>Define your target weight</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="weight">Weight (kg)</Label>
+                      <Label>Target Weight (kg)</Label>
                       <Input
-                        id="weight"
-                        value={weight}
-                        onChange={(e) => setWeight(e.target.value)}
                         type="number"
                         step="0.1"
-                        min="30"
-                        max="250"
-                        placeholder="e.g., 75.5"
-                        required
+                        placeholder="e.g., 70"
+                        value={newGoal.targetWeight}
+                        onChange={(e) => setNewGoal(p => ({ ...p, targetWeight: e.target.value }))}
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="notes">Notes (optional)</Label>
+                      <Label>Target Date</Label>
                       <Input
-                        id="notes"
-                        value={notes}
-                        onChange={(e) => setNotes(e.target.value)}
-                        placeholder="How are you feeling?"
+                        type="date"
+                        value={newGoal.targetDate}
+                        onChange={(e) => setNewGoal(p => ({ ...p, targetDate: e.target.value }))}
+                        min={new Date().toISOString().slice(0, 10)}
                       />
                     </div>
-                    <Button type="submit" variant="hero" className="w-full" disabled={isSaving}>
-                      {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Zap className="mr-2 h-4 w-4" />}
-                      {isSaving ? "Saving..." : "Log Weight"}
+                    <Button onClick={saveGoal} variant="hero" className="w-full">
+                      Set Goal
                     </Button>
-                  </form>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
 
-              {/* Weight Chart */}
-              <Card className="glass border-primary/20 lg:col-span-2">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle>Weight Trend</CardTitle>
-                      <CardDescription>Your progress over time</CardDescription>
-                    </div>
-                    <div className="flex gap-1">
-                      {[30, 60, 90].map((days) => (
-                        <Button
-                          key={days}
-                          variant={chartPeriod === days ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setChartPeriod(days as 30 | 60 | 90)}
-                        >
-                          {days}d
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  {chartData.length > 1 ? (
-                    <div className="h-64">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={chartData}>
-                          <defs>
-                            <linearGradient id="weightGradient" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor="#22c55e" stopOpacity={0.3} />
-                              <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
-                            </linearGradient>
-                          </defs>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-                          <XAxis dataKey="date" stroke="#888" fontSize={12} />
-                          <YAxis
-                            stroke="#888"
-                            fontSize={12}
-                            domain={['auto', 'auto']}
-                            tickFormatter={(v) => `${v}kg`}
-                          />
-                          <Tooltip
-                            contentStyle={{
-                              backgroundColor: '#1a1a1a',
-                              border: '1px solid #333',
-                              borderRadius: '8px'
-                            }}
-                            labelStyle={{ color: '#888' }}
-                          />
-                          <Area
-                            type="monotone"
-                            dataKey="weight"
-                            stroke="#22c55e"
-                            strokeWidth={2}
-                            fill="url(#weightGradient)"
-                          />
-                        </AreaChart>
-                      </ResponsiveContainer>
-                    </div>
-                  ) : (
-                    <div className="h-64 flex items-center justify-center text-muted-foreground">
-                      Add at least 2 weight entries to see your trend chart
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
+                <Card className="glass border-primary/20">
+                  <CardHeader>
+                    <CardTitle>Goal Progress</CardTitle>
+                    <CardDescription>Track your journey to the target</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {goal && goalProgress ? (
+                      <div className="space-y-6">
+                        <div className="text-center">
+                          <div className="text-5xl font-bold text-primary mb-2">
+                            {goalProgress.progress.toFixed(0)}%
+                          </div>
+                          <p className="text-muted-foreground">toward your goal</p>
+                        </div>
 
-          {/* Measurements Tab */}
-          <TabsContent value="measurements" className="space-y-6">
-            <div className="grid lg:grid-cols-2 gap-6">
-              <Card className="glass border-primary/20">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Ruler className="w-5 h-5 text-primary" />
-                    Body Measurements
-                  </CardTitle>
-                  <CardDescription>Track your body composition (cm)</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Chest</Label>
-                      <Input
-                        type="number"
-                        placeholder="cm"
-                        value={newMeasurement.chest || ""}
-                        onChange={(e) => setNewMeasurement(p => ({ ...p, chest: parseFloat(e.target.value) || undefined }))}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Waist</Label>
-                      <Input
-                        type="number"
-                        placeholder="cm"
-                        value={newMeasurement.waist || ""}
-                        onChange={(e) => setNewMeasurement(p => ({ ...p, waist: parseFloat(e.target.value) || undefined }))}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Hips</Label>
-                      <Input
-                        type="number"
-                        placeholder="cm"
-                        value={newMeasurement.hips || ""}
-                        onChange={(e) => setNewMeasurement(p => ({ ...p, hips: parseFloat(e.target.value) || undefined }))}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Arms</Label>
-                      <Input
-                        type="number"
-                        placeholder="cm"
-                        value={newMeasurement.arms || ""}
-                        onChange={(e) => setNewMeasurement(p => ({ ...p, arms: parseFloat(e.target.value) || undefined }))}
-                      />
-                    </div>
-                    <div className="space-y-2 col-span-2">
-                      <Label>Thighs</Label>
-                      <Input
-                        type="number"
-                        placeholder="cm"
-                        value={newMeasurement.thighs || ""}
-                        onChange={(e) => setNewMeasurement(p => ({ ...p, thighs: parseFloat(e.target.value) || undefined }))}
-                      />
-                    </div>
-                  </div>
-                  <Button onClick={saveMeasurement} variant="hero" className="w-full">
-                    <Zap className="mr-2 h-4 w-4" />
-                    Save Measurements
-                  </Button>
-                </CardContent>
-              </Card>
+                        <ProgressBar value={goalProgress.progress} className="h-4" />
 
-              <Card className="glass border-primary/20">
-                <CardHeader>
-                  <CardTitle>Measurement History</CardTitle>
-                  <CardDescription>Recent recordings</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {measurements.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">No measurements recorded yet.</p>
-                  ) : (
-                    <div className="space-y-3 max-h-80 overflow-y-auto">
-                      {measurements.slice(0, 10).map((m, i) => (
-                        <div key={i} className="p-3 rounded-lg border border-gray-800 bg-gray-900/60">
-                          <p className="text-xs text-muted-foreground mb-2">{m.date}</p>
-                          <div className="grid grid-cols-5 gap-2 text-sm">
-                            {m.chest && <div><span className="text-muted-foreground">Chest:</span> {m.chest}</div>}
-                            {m.waist && <div><span className="text-muted-foreground">Waist:</span> {m.waist}</div>}
-                            {m.hips && <div><span className="text-muted-foreground">Hips:</span> {m.hips}</div>}
-                            {m.arms && <div><span className="text-muted-foreground">Arms:</span> {m.arms}</div>}
-                            {m.thighs && <div><span className="text-muted-foreground">Thighs:</span> {m.thighs}</div>}
+                        <div className="grid grid-cols-2 gap-4 text-center">
+                          <div className="p-3 rounded-lg border border-gray-800 bg-gray-900/60">
+                            <p className="text-2xl font-bold">{goalProgress.remaining.toFixed(1)} kg</p>
+                            <p className="text-xs text-muted-foreground">Remaining</p>
+                          </div>
+                          <div className="p-3 rounded-lg border border-gray-800 bg-gray-900/60">
+                            <p className="text-2xl font-bold">{goalProgress.daysLeft}</p>
+                            <p className="text-xs text-muted-foreground">Days Left</p>
                           </div>
                         </div>
+
+                        <div className="flex justify-between text-sm text-muted-foreground">
+                          <span>Start: {goal.startWeight} kg</span>
+                          <ChevronRight className="w-4 h-4" />
+                          <span>Target: {goal.targetWeight} kg</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <Target className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                        <p>No goal set yet.</p>
+                        <p className="text-sm">Set a goal to track your progress!</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+
+            {/* History Tab */}
+            <TabsContent value="history">
+              <Card className="glass border-primary/20">
+                <CardHeader>
+                  <CardTitle>Weight History</CardTitle>
+                  <CardDescription>All your weight entries (newest first)</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {logs.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">No entries yet.</p>
+                  ) : (
+                    <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-3 max-h-96 overflow-y-auto">
+                      {logs.map((log) => (
+                        <div key={log.id} className="p-3 rounded-lg border border-gray-800 bg-gray-900/60 relative group">
+                          <button
+                            onClick={() => deleteLog(log.id)}
+                            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity text-red-400 hover:text-red-300"
+                            aria-label="Delete entry"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                          <p className="text-xs text-muted-foreground">{log.date}</p>
+                          <p className="text-lg font-semibold">{log.weight} kg</p>
+                          {log.notes && <p className="text-sm text-muted-foreground mt-1">{log.notes}</p>}
+                        </div>
                       ))}
                     </div>
                   )}
                 </CardContent>
               </Card>
-            </div>
-          </TabsContent>
-
-          {/* Goals Tab */}
-          <TabsContent value="goals" className="space-y-6">
-            <div className="grid lg:grid-cols-2 gap-6">
-              <Card className="glass border-primary/20">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Target className="w-5 h-5 text-primary" />
-                    Set Your Goal
-                  </CardTitle>
-                  <CardDescription>Define your target weight</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Target Weight (kg)</Label>
-                    <Input
-                      type="number"
-                      step="0.1"
-                      placeholder="e.g., 70"
-                      value={newGoal.targetWeight}
-                      onChange={(e) => setNewGoal(p => ({ ...p, targetWeight: e.target.value }))}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Target Date</Label>
-                    <Input
-                      type="date"
-                      value={newGoal.targetDate}
-                      onChange={(e) => setNewGoal(p => ({ ...p, targetDate: e.target.value }))}
-                      min={new Date().toISOString().slice(0, 10)}
-                    />
-                  </div>
-                  <Button onClick={saveGoal} variant="hero" className="w-full">
-                    Set Goal
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card className="glass border-primary/20">
-                <CardHeader>
-                  <CardTitle>Goal Progress</CardTitle>
-                  <CardDescription>Track your journey to the target</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {goal && goalProgress ? (
-                    <div className="space-y-6">
-                      <div className="text-center">
-                        <div className="text-5xl font-bold text-primary mb-2">
-                          {goalProgress.progress.toFixed(0)}%
-                        </div>
-                        <p className="text-muted-foreground">toward your goal</p>
-                      </div>
-
-                      <ProgressBar value={goalProgress.progress} className="h-4" />
-
-                      <div className="grid grid-cols-2 gap-4 text-center">
-                        <div className="p-3 rounded-lg border border-gray-800 bg-gray-900/60">
-                          <p className="text-2xl font-bold">{goalProgress.remaining.toFixed(1)} kg</p>
-                          <p className="text-xs text-muted-foreground">Remaining</p>
-                        </div>
-                        <div className="p-3 rounded-lg border border-gray-800 bg-gray-900/60">
-                          <p className="text-2xl font-bold">{goalProgress.daysLeft}</p>
-                          <p className="text-xs text-muted-foreground">Days Left</p>
-                        </div>
-                      </div>
-
-                      <div className="flex justify-between text-sm text-muted-foreground">
-                        <span>Start: {goal.startWeight} kg</span>
-                        <ChevronRight className="w-4 h-4" />
-                        <span>Target: {goal.targetWeight} kg</span>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <Target className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                      <p>No goal set yet.</p>
-                      <p className="text-sm">Set a goal to track your progress!</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          {/* History Tab */}
-          <TabsContent value="history">
-            <Card className="glass border-primary/20">
-              <CardHeader>
-                <CardTitle>Weight History</CardTitle>
-                <CardDescription>All your weight entries (newest first)</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {logs.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No entries yet.</p>
-                ) : (
-                  <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-3 max-h-96 overflow-y-auto">
-                    {logs.map((log) => (
-                      <div key={log.id} className="p-3 rounded-lg border border-gray-800 bg-gray-900/60 relative group">
-                        <button
-                          onClick={() => deleteLog(log.id)}
-                          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity text-red-400 hover:text-red-300"
-                          aria-label="Delete entry"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                        <p className="text-xs text-muted-foreground">{log.date}</p>
-                        <p className="text-lg font-semibold">{log.weight} kg</p>
-                        {log.notes && <p className="text-sm text-muted-foreground mt-1">{log.notes}</p>}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+            </TabsContent>
+          </Tabs>
+        </PremiumLock>
       </Container>
     </div>
   );
