@@ -131,11 +131,11 @@ const WORKOUT_VIDEOS = [
   },
   {
     id: 6,
-    title: "Cool Down & Stretching",
-    duration: "7:00",
-    thumbnail: "/videos/thumbnails/cooldown.jpg",
-    videoUrl: "/videos/cooldown.mp4",
-    category: "Recovery",
+    title: "Lat Pulls",
+    duration: "0:32",
+    thumbnail: "/videos/thumbnails/latpulls.png",
+    videoUrl: "latpulls.mp4",
+    category: "Lats",
   },
   {
     id: 7,
@@ -144,6 +144,14 @@ const WORKOUT_VIDEOS = [
     thumbnail: "/videos/thumbnails/chestfly.png",
     videoUrl: "chestfly.mp4",
     category: "Chest",
+  },
+  {
+    id: 8,
+    title: "Shoulder Press",
+    duration: "0:26",
+    thumbnail: "/videos/thumbnails/shoulderpress.png",
+    videoUrl: "shoulderpress.mp4",
+    category: "Shoulders",
   },
 ];
 
