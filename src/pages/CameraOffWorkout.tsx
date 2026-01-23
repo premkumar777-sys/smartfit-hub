@@ -92,7 +92,7 @@ const WORKOUT_VIDEOS = [
   {
     id: 1,
     title: "Squats",
-    duration: "24",
+    duration: "0:24",
     thumbnail: "/videos/thumbnails/squat.jpg",
     videoUrl: "squat.mp4",
     category: "Squats",
@@ -116,7 +116,7 @@ const WORKOUT_VIDEOS = [
   {
     id: 4,
     title: "Core Strengthening",
-    duration: "46",
+    duration: "0:46",
     thumbnail: "/videos/thumbnails/core.jpg",
     videoUrl: "abs.mp4",
     category: "Core",
@@ -124,7 +124,7 @@ const WORKOUT_VIDEOS = [
   {
     id: 5,
     title: "Bicep Workout",
-    duration: "25",
+    duration: "0:25",
     thumbnail: "/videos/thumbnails/arms.jpg",
     videoUrl: "bicep.mp4",
     category: "Arms",
@@ -140,7 +140,7 @@ const WORKOUT_VIDEOS = [
   {
     id: 7,
     title: "ChestFly Workout",
-    duration: "23",
+    duration: "023",
     thumbnail: "/videos/thumbnails/arms.jpg",
     videoUrl: "chestfly.mp4",
     category: "Arms",
