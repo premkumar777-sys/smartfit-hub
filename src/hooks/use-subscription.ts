@@ -51,6 +51,8 @@ export function useSubscription(): SubscriptionData {
     setError(null)
 
     try {
+      console.log('Checking subscription for ID:', user.id);
+
       // Check subscriptions table directly for payments
       // We try to be resilient to different schema versions
       const { data: subscription, error: subError } = await supabase

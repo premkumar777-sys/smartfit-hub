@@ -1,7 +1,9 @@
 -- =====================================================
--- FIX SUBSCRIPTIONS SCHEMA (Version 5 - SUPER ROBUST)
--- Run this in Supabase SQL Editor
--- Go to: https://supabase.com/dashboard/project/qziimtjhbnpwwbjmjlcf/sql
+-- FIX SUBSCRIPTIONS SCHEMA (Version 6 - PROJECT CORRECTED)
+-- =====================================================
+-- IMPORTANT: Run this in your CORRECT Supabase Project!
+-- Your .env file says your project is: fgndvazoastvtpmqtvhx
+-- Go to: https://supabase.com/dashboard/project/fgndvazoastvtpmqtvhx/sql
 -- =====================================================
 
 -- 1. Ensure profiles has the email column
@@ -73,7 +75,6 @@ USING (true)
 WITH CHECK (true);
 
 -- 5. Fix specific users (Upgrading your accounts)
--- Including multiple email variations to be safe
 DO $$
 DECLARE
     target_emails TEXT[] := ARRAY[
@@ -83,10 +84,12 @@ DECLARE
     ];
     target_email TEXT;
     target_user_id UUID;
+    sub_count INTEGER;
 BEGIN
-    FOREACH target_email IN ARRAY target_emails
-    LOOP
-        -- Search for the user by email (case-insensitive)
+    FOR i IN 1..array_length(target_emails, 1) LOOP
+        target_email := target_emails[i];
+        
+        -- Search for the user by email
         SELECT id INTO target_user_id 
         FROM auth.users 
         WHERE LOWER(email) = LOWER(target_email) 
@@ -98,21 +101,26 @@ BEGIN
             VALUES (target_user_id, LOWER(target_email), split_part(target_email, '@', 1))
             ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email;
 
-            -- Ensure active subscription exists
-            IF EXISTS (SELECT 1 FROM public.subscriptions WHERE user_id = target_user_id) THEN
-                UPDATE public.subscriptions
-                SET status = 'active', 
-                    current_period_end = NOW() + INTERVAL '30 days',
-                    plan_id = 'premium'
-                WHERE user_id = target_user_id;
-            ELSE
-                INSERT INTO public.subscriptions (user_id, plan_id, status, current_period_start, current_period_end)
-                VALUES (target_user_id, 'premium', 'active', NOW(), NOW() + INTERVAL '30 days');
-            END IF;
+            -- Explicitly delete existing expired or inactive subs to avoid confusion
+            DELETE FROM public.subscriptions WHERE user_id = target_user_id;
+
+            -- Insert a fresh active sub
+            INSERT INTO public.subscriptions (user_id, plan_id, status, current_period_start, current_period_end)
+            VALUES (target_user_id, 'premium', 'active', NOW(), NOW() + INTERVAL '30 days');
             
-            RAISE NOTICE 'SUCCESS: Upgraded user %', target_email;
+            RAISE NOTICE '--- SUCCESS ---';
+            RAISE NOTICE 'User Email: %', target_email;
+            RAISE NOTICE 'User ID:    %', target_user_id;
+            RAISE NOTICE 'Status:     ACTIVATED (Pro for 30 days)';
+            RAISE NOTICE '---------------';
         ELSE
-            RAISE NOTICE 'WARNING: User not found with email %', target_email;
+            RAISE NOTICE '--- WARNING ---';
+            RAISE NOTICE 'User Email: %', target_email;
+            RAISE NOTICE 'Status:     NOT FOUND in auth.users';
+            RAISE NOTICE '---------------';
         END IF;
     END LOOP;
+    
+    SELECT COUNT(*) INTO sub_count FROM public.subscriptions WHERE status = 'active';
+    RAISE NOTICE 'Total Active Subscriptions in Project %: %', 'fgndvazoastvtpmqtvhx', sub_count;
 END $$;
