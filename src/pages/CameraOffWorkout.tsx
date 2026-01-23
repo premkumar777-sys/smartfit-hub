@@ -109,7 +109,7 @@ const WORKOUT_VIDEOS = [
     id: 3,
     title: "Push-Up Variations",
     duration: "10:45",
-    thumbnail: "/videos/thumbnails/pushup.jpg",
+    thumbnail: "/videos/thumbnails/pushup.png",
     videoUrl: "/videos/pushup.mp4",
     category: "Upper Body",
   },
