@@ -99,18 +99,18 @@ const WORKOUT_VIDEOS = [
   },
   {
     id: 2,
-    title: "Perfect Squat Form",
-    duration: "8:15",
+    title: "Triceps",
+    duration: "0:24",
     thumbnail: "/videos/thumbnails/squat.jpg",
-    videoUrl: "/videos/squat.mp4",
-    category: "Lower Body",
+    videoUrl: "overheadtriceps.mp4",
+    category: "Arms",
   },
   {
     id: 3,
-    title: "Push-Up Variations",
-    duration: "10:45",
+    title: "Push-Ups",
+    duration: "0:23",
     thumbnail: "/videos/thumbnails/pushup.png",
-    videoUrl: "/videos/pushup.mp4",
+    videoUrl: "pushup.mp4",
     category: "Upper Body",
   },
   {
@@ -152,6 +152,14 @@ const WORKOUT_VIDEOS = [
     thumbnail: "/videos/thumbnails/shoulderpress.png",
     videoUrl: "shoulderpress.mp4",
     category: "Shoulders",
+  },
+  {
+    id: 9,
+    title: "Pullups",
+    duration: "0:20",
+    thumbnail: "/videos/thumbnails/pullup.png",
+    videoUrl: "pullups.mp4",
+    category: "Upper Body",
   },
 ];
 
