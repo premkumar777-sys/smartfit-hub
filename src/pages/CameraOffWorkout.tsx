@@ -101,7 +101,7 @@ const WORKOUT_VIDEOS = [
     id: 2,
     title: "Triceps",
     duration: "0:24",
-    thumbnail: "/videos/thumbnails/squat.jpg",
+    thumbnail: "/videos/thumbnails/triceps.png",
     videoUrl: "overheadtriceps.mp4",
     category: "Arms",
   },
