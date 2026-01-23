@@ -123,10 +123,10 @@ const WORKOUT_VIDEOS = [
   },
   {
     id: 5,
-    title: "Bicep & Tricep Workout",
-    duration: "9:30",
+    title: "Bicep Workout",
+    duration: "25",
     thumbnail: "/videos/thumbnails/arms.jpg",
-    videoUrl: "/videos/arms.mp4",
+    videoUrl: "bicep.mp4",
     category: "Arms",
   },
   {
