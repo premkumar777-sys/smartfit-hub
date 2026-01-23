@@ -522,11 +522,7 @@ export default function Profile() {
                         {!hasPremiumAccess && (
                             <Button
                                 className="bg-gradient-to-r from-yellow-500 to-orange-500 text-black"
-                                onClick={() => {
-                                    toast.info("Upgrade Coming Soon!", {
-                                        description: "Pro subscriptions will be available once payment processing is set up. Check back soon! 🚀"
-                                    });
-                                }}
+                                onClick={() => navigate("/upgrade")}
                             >
                                 <Crown className="w-4 h-4 mr-2" />
                                 Upgrade to Pro

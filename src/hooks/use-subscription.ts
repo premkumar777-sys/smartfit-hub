@@ -52,33 +52,37 @@ export function useSubscription(): SubscriptionData {
 
     try {
       // Check subscriptions table directly for payments
+      // We try to be resilient to different schema versions
       const { data: subscription, error: subError } = await supabase
         .from('subscriptions')
         .select('*')
         .eq('user_id', user.id)
         .eq('status', 'active')
-        .gte('current_period_end', new Date().toISOString())
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle()
 
       if (subError) {
         console.error('Error checking subscription:', subError)
-        // If table doesn't exist yet, just default to free
-        if (subError.code === '42P01') {
-          console.log('Subscriptions table not set up yet')
-        }
       }
 
       if (subscription) {
-        setPlan({
-          plan_id: subscription.plan_id || 'premium',
-          plan_name: subscription.plan_id || 'Premium',
-          status: 'active',
-          billing_cycle: subscription.billing_cycle || 'monthly',
-          current_period_end: subscription.current_period_end
-        })
-        setHasPremiumAccess(true)
+        // Check either current_period_end or expires_at
+        const expiryDate = subscription.current_period_end || subscription.expires_at;
+        const hasValidExpiry = expiryDate && new Date(expiryDate) > new Date();
+
+        if (hasValidExpiry) {
+          setPlan({
+            plan_id: subscription.plan_id || 'premium',
+            plan_name: subscription.plan_name || 'Premium',
+            status: 'active',
+            billing_cycle: subscription.billing_cycle || 'monthly',
+            current_period_end: expiryDate
+          })
+          setHasPremiumAccess(true)
+        } else {
+          setHasPremiumAccess(false)
+        }
       } else {
         setPlan({
           plan_id: 'free',
