@@ -29,6 +29,7 @@ import GymFinder from "./pages/GymFinder";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import RefundPolicy from "./pages/RefundPolicy";
+import BMICalculator from "./pages/BMICalculator";
 import ShippingPolicy from "./pages/ShippingPolicy";
 import ContactUs from "./pages/ContactUs";
 import NotFound from "./pages/NotFound";
@@ -130,6 +131,7 @@ const App = () => {
                 <Route path="/home-workouts" element={<HomeWorkouts />} />
                 <Route path="/ai-trainer" element={<AITrainer />} />
                 <Route path="/gamification" element={<Gamification />} />
+                <Route path="/bmi-calculator" element={<BMICalculator />} />
                 <Route path="/3d-trainer" element={<CameraOffWorkout />} />
                 <Route path="/profile" element={<Profile />} />
 
