@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useGamification, XP_REWARDS } from "@/hooks/useGamification";
 import { ComingSoon } from "@/components/ComingSoon";
 import { PremiumLock } from "@/components/PremiumLock";
+import { BMIResult } from "@/components/BMIResult";
 
 const AIWorkout = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -21,6 +22,7 @@ const AIWorkout = () => {
     age: "",
     weight: "",
     height: "",
+    gender: "" as "male" | "female" | "",
     goal: "",
   });
 
@@ -206,10 +208,34 @@ const AIWorkout = () => {
                         />
                       </div>
 
-                      {calculateBMI() && (
+                      <div className="space-y-2">
+                        <Label htmlFor="gender">Gender</Label>
+                        <Select
+                          value={formData.gender}
+                          onValueChange={(value) => setFormData({ ...formData, gender: value as "male" | "female" })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select your gender" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="male">♂ Male</SelectItem>
+                            <SelectItem value="female">♀ Female</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {calculateBMI() && formData.gender && (
+                        <BMIResult
+                          bmi={parseFloat(calculateBMI()!)}
+                          gender={formData.gender as "male" | "female"}
+                        />
+                      )}
+
+                      {calculateBMI() && !formData.gender && (
                         <div className="glass p-4 rounded-lg">
                           <p className="text-sm text-muted-foreground">Your BMI</p>
                           <p className="text-2xl font-bold text-primary">{calculateBMI()}</p>
+                          <p className="text-xs text-muted-foreground mt-1">Select gender for detailed analysis</p>
                         </div>
                       )}
 
