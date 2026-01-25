@@ -95,21 +95,38 @@ const Home = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.6 }}
             >
-              <Button asChild variant="hero" size="xl" className="hover:scale-[1.03] hover:shadow-[0_0_20px_rgba(0,255,156,0.35)] transition-all duration-200 ease-out">
-                <Link to="/auth" aria-label="Generate My AI Workout">
-                  Start Transformation <ArrowRight className="ml-2" />
-                </Link>
-              </Button>
-              <Button
-                variant="glass"
-                size="xl"
-                onClick={() => {
-                  document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
-                }}
-                aria-label="Scroll to features section"
-              >
-                Explore Features
-              </Button>
+              {isAuthenticated ? (
+                <>
+                  <Button asChild variant="hero" size="xl" className="hover:scale-[1.03] hover:shadow-[0_0_20px_rgba(0,255,156,0.35)] transition-all duration-200 ease-out">
+                    <Link to="/dashboard" aria-label="Go to Dashboard">
+                      Go to Dashboard <ArrowRight className="ml-2" />
+                    </Link>
+                  </Button>
+                  <Button asChild variant="glass" size="xl">
+                    <Link to="/profile" aria-label="View Profile">
+                      View Profile
+                    </Link>
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button asChild variant="hero" size="xl" className="hover:scale-[1.03] hover:shadow-[0_0_20px_rgba(0,255,156,0.35)] transition-all duration-200 ease-out">
+                    <Link to="/auth" aria-label="Start Transformation">
+                      Start Transformation <ArrowRight className="ml-2" />
+                    </Link>
+                  </Button>
+                  <Button
+                    variant="glass"
+                    size="xl"
+                    onClick={() => {
+                      document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    aria-label="Scroll to features section"
+                  >
+                    Explore Features
+                  </Button>
+                </>
+              )}
             </motion.div>
 
             {/* Stats */}
