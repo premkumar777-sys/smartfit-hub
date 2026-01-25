@@ -8,6 +8,8 @@ import { useCounter, formatAnimatedNumber } from "@/hooks/useCounter";
 import { useStats } from "@/hooks/useStats";
 import { useAuth } from "@/hooks/use-auth";
 import "@/styles/feature-card.css";
+import { FeaturesCarousel } from "@/components/FeaturesCarousel";
+import { HowItWorksCarousel } from "@/components/HowItWorksCarousel";
 
 const HeroDumbbellScene = lazy(() => import("@/components/Hero3DScene"));
 
@@ -65,7 +67,7 @@ const Home = () => {
                 Welcome back, {user.username || user.email?.split('@')[0]}! 👋
               </motion.p>
             )}
-            
+
             <motion.h1
               className="text-4xl md:text-5xl lg:text-6xl font-bold leading-normal pb-2"
               initial={{ opacity: 0, y: 20 }}
@@ -162,6 +164,9 @@ const Home = () => {
         </motion.div>
       </section>
 
+      {/* Features Carousel Section */}
+      <FeaturesCarousel />
+
       {/* Features Section */}
       <section id="features" className="py-16">
         <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
@@ -256,6 +261,9 @@ const Home = () => {
           </div>
         </div>
       </section>
+
+      {/* How It Works Carousel Section */}
+      <HowItWorksCarousel />
 
       {/* CTA Section */}
       <section className="py-16 relative overflow-hidden">
