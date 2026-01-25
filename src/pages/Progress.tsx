@@ -14,6 +14,7 @@ import {
   Ruler, Trophy, Flame, Calendar, ArrowLeft, Zap, ChevronRight
 } from "lucide-react";
 import { useGamification, XP_REWARDS } from "@/hooks/useGamification";
+import { PremiumLock } from "@/components/PremiumLock";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from "recharts";
 
 // Types

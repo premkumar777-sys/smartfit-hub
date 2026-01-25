@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useGamification, ACHIEVEMENTS, getLevelFromXP, getXPForNextLevel, AchievementId } from "@/hooks/useGamification";
+import { PremiumLock } from "@/components/PremiumLock";
 
 // Icon mapping for achievements
 const achievementIcons: Record<string, React.ElementType> = {
