@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { ENABLE_PAYMENTS } from "@/config";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useAuth } from "@/hooks/use-auth";
 import { PRO_PLANS, PaymentPlan, openPaymentLink } from "@/config/payments";
 
 export type { PaymentPlan as Plan };
@@ -27,6 +28,7 @@ export function PremiumLock({
     plans = PRO_PLANS
 }: PremiumLockProps) {
     const { hasPremiumAccess, isLoading } = useSubscription();
+    const { isAuthenticated } = useAuth();
     // Keep local state for plan selection
     const [selectedPlan, setSelectedPlan] = useState(plans[0]);
 
@@ -46,8 +48,8 @@ export function PremiumLock({
     // Grant access if:
     // 1. Payments are globally disabled (Beta Mode)
     // 2. User has active subscription
-    // 3. isLoading is handled above
-    if (!ENABLE_PAYMENTS || hasPremiumAccess) {
+    // 3. User is authenticated (Beta: logged-in users get full access)
+    if (!ENABLE_PAYMENTS || hasPremiumAccess || isAuthenticated) {
         return <>{children}</>;
     }
 

@@ -129,43 +129,45 @@ const Home = () => {
               )}
             </motion.div>
 
-            {/* Stats */}
-            <motion.div
-              className="grid grid-cols-2 md:grid-cols-4 gap-8 pt-12"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.8 }}
-            >
-              {[
-                {
-                  number: stats.isLoading ? "..." : activeMembers,
-                  label: "Active Members",
-                  realValue: stats.totalUsers
-                },
-                {
-                  number: stats.isLoading ? "..." : workouts,
-                  label: "Workouts",
-                  realValue: stats.totalWorkouts
-                },
-                {
-                  number: stats.isLoading ? "..." : successRate,
-                  label: "Success Rate",
-                  realValue: stats.successRate
-                },
-                { number: aiSupport, label: "AI Support" },
-              ].map((stat, index) => (
-                <motion.div
-                  key={stat.label}
-                  className="space-y-2"
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.5, delay: 1 + index * 0.1 }}
-                >
-                  <div className="text-3xl md:text-4xl font-bold text-primary">{stat.number}</div>
-                  <div className="text-sm text-muted-foreground">{stat.label}</div>
-                </motion.div>
-              ))}
-            </motion.div>
+            {/* Stats - only show for non-authenticated users */}
+            {!isAuthenticated && (
+              <motion.div
+                className="grid grid-cols-2 md:grid-cols-4 gap-8 pt-12"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.8 }}
+              >
+                {[
+                  {
+                    number: stats.isLoading ? "..." : activeMembers,
+                    label: "Active Members",
+                    realValue: stats.totalUsers
+                  },
+                  {
+                    number: stats.isLoading ? "..." : workouts,
+                    label: "Workouts",
+                    realValue: stats.totalWorkouts
+                  },
+                  {
+                    number: stats.isLoading ? "..." : successRate,
+                    label: "Success Rate",
+                    realValue: stats.successRate
+                  },
+                  { number: aiSupport, label: "AI Support" },
+                ].map((stat, index) => (
+                  <motion.div
+                    key={stat.label}
+                    className="space-y-2"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.5, delay: 1 + index * 0.1 }}
+                  >
+                    <div className="text-3xl md:text-4xl font-bold text-primary">{stat.number}</div>
+                    <div className="text-sm text-muted-foreground">{stat.label}</div>
+                  </motion.div>
+                ))}
+              </motion.div>
+            )}
           </motion.div>
         </div>
 
