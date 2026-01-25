@@ -183,117 +183,120 @@ const Home = () => {
         </motion.div>
       </section>
 
-      {/* Marketing sections - only show for non-authenticated users */}
-      {!isAuthenticated && (
-        <>
-          {/* Features Carousel Section */}
-          <FeaturesCarousel />
+      {/* Features Carousel - only show for non-authenticated users */}
+      {!isAuthenticated && <FeaturesCarousel />}
 
-          {/* Features Section */}
-          <section id="features" className="py-16">
-            <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
-              <div className="text-center max-w-3xl mx-auto mb-16">
-                <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4 text-white">
-                  Why Choose <span className="text-gradient">SmartFit Hub</span>
-                </h2>
-                <p className="text-lg md:text-xl leading-relaxed text-gray-300 max-w-prose mx-auto">
-                  Cutting-edge technology meets personalized fitness coaching
-                </p>
-              </div>
+      {/* Features Section - shown for everyone */}
+      <section id="features" className="py-16">
+        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4 text-white">
+              {isAuthenticated ? (
+                <>Explore <span className="text-gradient">Features</span></>
+              ) : (
+                <>Why Choose <span className="text-gradient">SmartFit Hub</span></>
+              )}
+            </h2>
+            <p className="text-lg md:text-xl leading-relaxed text-gray-300 max-w-prose mx-auto">
+              {isAuthenticated
+                ? "Access all the powerful tools to reach your fitness goals"
+                : "Cutting-edge technology meets personalized fitness coaching"
+              }
+            </p>
+          </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                {[
-                  {
-                    icon: Brain,
-                    title: "AI Personal Trainer",
-                    description: "Intelligent workout recommendations powered by advanced AI algorithms",
-                    link: "/ai-trainer"
-                  },
-                  {
-                    icon: Eye,
-                    title: "Real-Time Form Detection",
-                    description: "Computer vision technology analyzes your form and provides instant feedback",
-                    link: "/workout-session"
-                  },
-                  {
-                    icon: Sparkles,
-                    title: "3D Trainer Mode",
-                    description: "Follow animated 3D demonstrations with voice coaching – no camera required",
-                    link: "/3d-trainer"
-                  },
-                  {
-                    icon: BarChart3,
-                    title: "Smart Progress Dashboard",
-                    description: "Comprehensive analytics tracking your fitness journey and achievements",
-                    link: "/progress"
-                  },
-                  {
-                    icon: Utensils,
-                    title: "Nutrition & Macro AI",
-                    description: "AI-powered meal planning with precise macro calculations",
-                    link: "/nutrition"
-                  },
-                  {
-                    icon: Calendar,
-                    title: "Home Workouts",
-                    description: "Complete 6-day workout plan you can do anywhere – no equipment needed",
-                    link: "/home-workouts"
-                  },
-                  {
-                    icon: QrCode,
-                    title: "QR Smart Attendance",
-                    description: "Contactless entry system with automated check-in and attendance tracking",
-                    link: "/dashboard"
-                  },
-                  {
-                    icon: Trophy,
-                    title: "Gamified Training System",
-                    description: "Earn rewards, unlock achievements, and compete with friends",
-                    link: "/gamification"
-                  },
-                  {
-                    icon: Wrench,
-                    title: "Trainer Performance Tools",
-                    description: "Advanced tools for trainers to optimize client results and track progress",
-                    link: "/trainer-tools"
-                  },
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[
+              {
+                icon: Brain,
+                title: "AI Personal Trainer",
+                description: "Intelligent workout recommendations powered by advanced AI algorithms",
+                link: "/ai-trainer"
+              },
+              {
+                icon: Eye,
+                title: "Real-Time Form Detection",
+                description: "Computer vision technology analyzes your form and provides instant feedback",
+                link: "/workout-session"
+              },
+              {
+                icon: Sparkles,
+                title: "3D Trainer Mode",
+                description: "Follow animated 3D demonstrations with voice coaching – no camera required",
+                link: "/3d-trainer"
+              },
+              {
+                icon: BarChart3,
+                title: "Smart Progress Dashboard",
+                description: "Comprehensive analytics tracking your fitness journey and achievements",
+                link: "/progress"
+              },
+              {
+                icon: Utensils,
+                title: "Nutrition & Macro AI",
+                description: "AI-powered meal planning with precise macro calculations",
+                link: "/nutrition"
+              },
+              {
+                icon: Calendar,
+                title: "Home Workouts",
+                description: "Complete 6-day workout plan you can do anywhere – no equipment needed",
+                link: "/home-workouts"
+              },
+              {
+                icon: QrCode,
+                title: "QR Smart Attendance",
+                description: "Contactless entry system with automated check-in and attendance tracking",
+                link: "/dashboard"
+              },
+              {
+                icon: Trophy,
+                title: "Gamified Training System",
+                description: "Earn rewards, unlock achievements, and compete with friends",
+                link: "/gamification"
+              },
+              {
+                icon: Wrench,
+                title: "Trainer Performance Tools",
+                description: "Advanced tools for trainers to optimize client results and track progress",
+                link: "/trainer-tools"
+              },
 
-                  {
-                    icon: LineChart,
-                    title: "AI Analytics Dashboard",
-                    description: "Deep learning insights into your workout performance and predictive trend analysis",
-                    link: "/gym-analytics/ai"
-                  },
-                  {
-                    icon: Laptop,
-                    title: "Online Coaching",
-                    description: "Connect with expert trainers for 1-on-1 remote video coaching sessions",
-                    link: "/online-coaching"
-                  },
-                  {
-                    icon: Calculator,
-                    title: "BMI Calculator",
-                    description: "Calculate your BMI with gender-specific healthy ranges and personalized feedback",
-                    link: "/bmi-calculator"
-                  },
-                ].map((feature, index) => (
-                  <FeatureCard
-                    key={feature.title}
-                    icon={feature.icon}
-                    title={feature.title}
-                    description={feature.description}
-                    link={feature.link}
-                    index={index}
-                  />
-                ))}
-              </div>
-            </div>
-          </section>
+              {
+                icon: LineChart,
+                title: "AI Analytics Dashboard",
+                description: "Deep learning insights into your workout performance and predictive trend analysis",
+                link: "/gym-analytics/ai"
+              },
+              {
+                icon: Laptop,
+                title: "Online Coaching",
+                description: "Connect with expert trainers for 1-on-1 remote video coaching sessions",
+                link: "/online-coaching"
+              },
+              {
+                icon: Calculator,
+                title: "BMI Calculator",
+                description: "Calculate your BMI with gender-specific healthy ranges and personalized feedback",
+                link: "/bmi-calculator"
+              },
+            ].map((feature, index) => (
+              <FeatureCard
+                key={feature.title}
+                icon={feature.icon}
+                title={feature.title}
+                description={feature.description}
+                link={feature.link}
+                index={index}
+              />
+            ))}
+          </div>
+        </div>
+      </section>
 
-          {/* How It Works Carousel Section */}
-          <HowItWorksCarousel />
-        </>
-      )}
+      {/* How It Works Carousel - only show for non-authenticated users */}
+      {!isAuthenticated && <HowItWorksCarousel />}
+
 
       {/* CTA Section */}
       <section className="py-16 relative overflow-hidden">

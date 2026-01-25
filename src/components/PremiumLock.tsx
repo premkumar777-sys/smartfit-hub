@@ -47,9 +47,8 @@ export function PremiumLock({
 
     // Grant access if:
     // 1. Payments are globally disabled (Beta Mode)
-    // 2. User has active subscription
-    // 3. User is authenticated (Beta: logged-in users get full access)
-    if (!ENABLE_PAYMENTS || hasPremiumAccess || isAuthenticated) {
+    // 2. User has active Pro subscription
+    if (!ENABLE_PAYMENTS || hasPremiumAccess) {
         return <>{children}</>;
     }
 
