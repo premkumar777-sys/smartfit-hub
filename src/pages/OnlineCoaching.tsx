@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Container } from "@/components/Container";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -54,16 +55,26 @@ const AnimatedCounter = ({
 };
 
 export default function OnlineCoaching() {
+    const [searchParams] = useSearchParams();
     const [isFormOpen, setIsFormOpen] = useState(false);
+
+    // Auto-open form if they returned from a successful payment
+    useEffect(() => {
+        const paymentStatus = searchParams.get("payment_status");
+        if (paymentStatus === "Credit") {
+            setIsFormOpen(true);
+            toast.success("Payment successful! Please complete your onboarding details.", {
+                duration: 5000,
+            });
+        }
+    }, [searchParams]);
 
     const handleApply = async (formData: any) => {
         try {
             const { data: { user } } = await supabase.auth.getUser();
 
             // 1. Construct WhatsApp message for the coach
-            const responseId = Math.floor(Math.random() * 9000) + 10000;
-            const messageBody = `*Online Coaching Client Details*\n` +
-                `Response #${responseId}\n\n` +
+            const messageBody = `*Online Coaching Client Details*\n\n` +
                 `Your Transformation starts here ⚡️\n\n` +
                 `*Name :* ${formData.full_name}\n` +
                 `*Age :* ${formData.age || 'N/A'}\n` +
@@ -122,15 +133,11 @@ export default function OnlineCoaching() {
                     if (error) console.warn("Supabase background sync failed:", error.message);
                 });
 
-            toast.success("Details captured! Opening WhatsApp...");
+            toast.success("Onboarding complete! Opening WhatsApp...");
 
-            // 3. Open WhatsApp in new tab and then redirect to payment
+            // 3. Open WhatsApp in new tab
             window.open(waUrl, '_blank');
-
-            setTimeout(() => {
-                toast.success("Application complete! Redirecting to payment...");
-                openPaymentLink(COACHING_PLAN.link);
-            }, 2000);
+            setIsFormOpen(false);
         } catch (error) {
             console.error("Error submitting application:", error);
             toast.error("Process interrupted. Please try again.");
@@ -169,16 +176,25 @@ export default function OnlineCoaching() {
                                 Get personalized attention, custom workout plans, and real-time form correction directly from the Head Coach. No generic bots—just real, human coaching tailored to your unique goals.
                             </p>
 
-                            <div className="flex flex-wrap gap-4">
-                                <Button
-                                    onClick={() => setIsFormOpen(true)}
-                                    className="bg-[#00FF9C] text-black hover:bg-[#00FF9C]/90 h-12 px-8 text-lg font-bold"
-                                >
-                                    Book Consultation
-                                </Button>
-                                <Button variant="outline" className="h-12 px-8 text-lg border-gray-700 hover:bg-gray-800">
-                                    View Transformations
-                                </Button>
+                            <div className="space-y-4">
+                                <p className="text-[#00FF9C] text-sm font-medium animate-pulse">
+                                    Step 1: Pay ➔ Step 2: Fill Form
+                                </p>
+                                <div className="flex flex-wrap gap-4">
+                                    <Button
+                                        onClick={() => openPaymentLink(COACHING_PLAN.link)}
+                                        className="bg-[#00FF9C] text-black hover:bg-[#00FF9C]/90 h-12 px-8 text-lg font-bold"
+                                    >
+                                        1. Secure Your Spot
+                                    </Button>
+                                    <Button
+                                        onClick={() => setIsFormOpen(true)}
+                                        variant="outline"
+                                        className="h-12 px-8 text-lg border-[#00FF9C]/30 text-[#00FF9C] hover:bg-[#00FF9C]/10"
+                                    >
+                                        2. Fill Onboarding Form
+                                    </Button>
+                                </div>
                             </div>
 
                             <div className="mt-12 grid grid-cols-3 gap-6 border-t border-gray-800 pt-8">
@@ -398,12 +414,22 @@ export default function OnlineCoaching() {
                                         </li>
                                     ))}
                                 </ul>
-                                <Button
-                                    onClick={() => setIsFormOpen(true)}
-                                    className="w-full max-w-sm bg-[#00FF9C] text-black hover:bg-[#00FF9C]/90 h-14 text-lg font-bold shadow-[0_0_20px_rgba(0,255,156,0.3)]"
-                                >
-                                    Apply Now
-                                </Button>
+                                <div className="space-y-4 w-full max-w-sm mx-auto">
+                                    <p className="text-[#00FF9C] text-sm font-medium">Follow these steps carefully:</p>
+                                    <Button
+                                        onClick={() => openPaymentLink(COACHING_PLAN.link)}
+                                        className="w-full bg-[#00FF9C] text-black hover:bg-[#00FF9C]/90 h-14 text-lg font-bold shadow-[0_0_20px_rgba(0,255,156,0.3)]"
+                                    >
+                                        1. Secure Your Spot (Pay ₹199)
+                                    </Button>
+                                    <Button
+                                        onClick={() => setIsFormOpen(true)}
+                                        variant="outline"
+                                        className="w-full h-14 text-lg font-bold border-[#00FF9C]/30 text-[#00FF9C] hover:bg-[#00FF9C]/10"
+                                    >
+                                        2. Fill Onboarding Form
+                                    </Button>
+                                </div>
                                 <p className="text-xs text-gray-500">Only 2 spots left for this month.</p>
                             </CardContent>
                         </Card>
@@ -414,9 +440,9 @@ export default function OnlineCoaching() {
                     open={isFormOpen}
                     onOpenChange={setIsFormOpen}
                     onSubmit={handleApply}
-                    title="Online Coaching Application"
-                    description="Fill out the details below to start your transformation with our Head Coach."
-                    submitText="Proceed to Payment"
+                    title="Online Onboarding Form"
+                    description="Congratulations on your enrollment! Please fill out your details so the Head Coach can build your custom transformation plan."
+                    submitText="Submit Application"
                 />
             </Container>
         </div>
