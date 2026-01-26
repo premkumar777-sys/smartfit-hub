@@ -228,7 +228,6 @@ const Home = () => {
                 icon: QrCode,
                 title: "QR Smart Attendance",
                 description: "Contactless entry system with automated check-in and attendance tracking",
-                link: "/dashboard",
                 badge: "COMING SOON",
                 onClick: () => toast.info("Coming Soon! 🚀 We're currently building the Smart Attendance system. Stay tuned!", {
                   description: "This feature will be available in the next major update.",
@@ -278,6 +277,7 @@ const Home = () => {
                 index={index}
                 badge={(feature as any).badge}
                 isPremium={(feature as any).isPremium}
+                onClick={(feature as any).onClick}
               />
             ))}
           </div>
