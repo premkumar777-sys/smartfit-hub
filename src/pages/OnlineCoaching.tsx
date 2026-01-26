@@ -62,30 +62,30 @@ export default function OnlineCoaching() {
 
             // 1. Construct WhatsApp message for the coach
             const responseId = Math.floor(Math.random() * 9000) + 10000;
-            const message = `*Online Coaching Client Details*%0A` +
-                `Response #${responseId}%0A%0A` +
-                `Your Transformation starts here ⚡️%0A%0A` +
-                `*Name :* ${formData.full_name}%0A` +
-                `*Age :* ${formData.age || 'N/A'}%0A` +
-                `*City :* ${formData.city || 'N/A'}%0A` +
-                `*Country :* ${formData.country || 'N/A'}%0A` +
-                `*Height in feet :* ${formData.height_feet || 'N/A'}%0A` +
-                `*Current Body Weight in kgs :* ${formData.current_weight_kg}%0A` +
-                `*Dream Body Weight in kgs :* ${formData.target_weight_kg}%0A` +
-                `*Occupation :* ${formData.occupation || 'N/A'}%0A` +
-                `*Mobile number :* ${formData.phone || 'N/A'}%0A` +
-                `*Whatsapp number :* ${formData.whatsapp_number || 'N/A'}%0A` +
-                `*Choose your primary goal :* ${formData.primary_goal || 'N/A'}%0A` +
-                `*Prior Training Experience :* ${formData.prior_experience || 'N/A'}%0A` +
-                `*Preferred Training Type :* ${formData.training_type || 'N/A'}%0A` +
-                `*Plans Interested :* ${formData.plan_duration || 'N/A'}%0A` +
-                `*Diet :* ${formData.diet_preference || 'N/A'}%0A` +
-                `*Any Habits ? :* ${formData.habits || 'None'}%0A` +
-                `*Do you suffer from any of the following conditions ? :* ${formData.medical_conditions || 'None'}%0A` +
-                `*If you are on any medications, Please mention them. :* ${formData.medications || 'No'}%0A` +
+            const messageBody = `*Online Coaching Client Details*\n` +
+                `Response #${responseId}\n\n` +
+                `Your Transformation starts here ⚡️\n\n` +
+                `*Name :* ${formData.full_name}\n` +
+                `*Age :* ${formData.age || 'N/A'}\n` +
+                `*City :* ${formData.city || 'N/A'}\n` +
+                `*Country :* ${formData.country || 'N/A'}\n` +
+                `*Height in feet :* ${formData.height_feet || 'N/A'}\n` +
+                `*Current Body Weight in kgs :* ${formData.current_weight_kg}\n` +
+                `*Dream Body Weight in kgs :* ${formData.target_weight_kg}\n` +
+                `*Occupation :* ${formData.occupation || 'N/A'}\n` +
+                `*Mobile number :* ${formData.phone || 'N/A'}\n` +
+                `*Whatsapp number :* ${formData.whatsapp_number || 'N/A'}\n` +
+                `*Choose your primary goal :* ${formData.primary_goal || 'N/A'}\n` +
+                `*Prior Training Experience :* ${formData.prior_experience || 'N/A'}\n` +
+                `*Preferred Training Type :* ${formData.training_type || 'N/A'}\n` +
+                `*Plans Interested :* ${formData.plan_duration || 'N/A'}\n` +
+                `*Diet :* ${formData.diet_preference || 'N/A'}\n` +
+                `*Any Habits ? :* ${formData.habits || 'None'}\n` +
+                `*Do you suffer from any of the following conditions ? :* ${formData.medical_conditions || 'None'}\n` +
+                `*If you are on any medications, Please mention them. :* ${formData.medications || 'No'}\n` +
                 `*If you have any injuries,, Please mention them. :* ${formData.injuries || 'No'}`;
 
-            const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${message}`;
+            const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(messageBody)}`;
 
             // 2. Save application data to trainer_clients table (Background - Non-blocking)
             supabase
