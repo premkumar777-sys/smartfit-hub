@@ -73,6 +73,8 @@ export default function Progress() {
       try {
         const { data: { user } } = await supabase.auth.getUser();
 
+        let loadedLogs: ProgressLog[] = [];
+
         if (user) {
           setUserId(user.id);
           const { data, error } = await supabase
@@ -82,18 +84,25 @@ export default function Progress() {
             .order('date', { ascending: false })
             .limit(90);
 
-          if (error) throw error;
-          setLogs(data || []);
+          if (!error && data) {
+            loadedLogs = data;
+          } else {
+            console.warn("Supabase fetch failed, falling back to localStorage:", error?.message);
+            // Fallback to localStorage if DB fails
+            const saved = localStorage.getItem(STORAGE_KEYS.PROGRESS);
+            if (saved) loadedLogs = JSON.parse(saved);
+          }
         } else {
-          // Fallback to localStorage
+          // Fallback to localStorage for guests
           const saved = localStorage.getItem(STORAGE_KEYS.PROGRESS);
           if (saved) {
             try {
-              const parsed = JSON.parse(saved);
-              setLogs(parsed);
+              loadedLogs = JSON.parse(saved);
             } catch { /* ignore */ }
           }
         }
+
+        setLogs(loadedLogs);
 
         // Load measurements from localStorage
         const savedMeasurements = localStorage.getItem(STORAGE_KEYS.MEASUREMENTS);
@@ -108,7 +117,7 @@ export default function Progress() {
         }
       } catch (err) {
         console.error("Error loading data:", err);
-        toast.error("Failed to load progress data");
+        // Don't toast error if we have a valid fallback or it's just a missing table
       } finally {
         setIsLoading(false);
       }
