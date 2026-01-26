@@ -94,7 +94,9 @@ export default function OnlineCoaching() {
                 `*Any Habits ? :* ${formData.habits || 'None'}\n` +
                 `*Do you suffer from any of the following conditions ? :* ${formData.medical_conditions || 'None'}\n` +
                 `*If you are on any medications, Please mention them. :* ${formData.medications || 'No'}\n` +
-                `*If you have any injuries,, Please mention them. :* ${formData.injuries || 'No'}`;
+                `*If you have any injuries,, Please mention them. :* ${formData.injuries || 'No'}\n\n` +
+                `*Payment Status :* ${formData.is_enrolled ? 'PAID ✅' : 'NOT PAID ❌'}\n` +
+                `*Transaction ID :* ${formData.payment_id || 'N/A'}`;
 
             const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(messageBody)}`;
 
@@ -107,7 +109,7 @@ export default function OnlineCoaching() {
                     phone: formData.phone || null,
                     whatsapp_number: formData.whatsapp_number || null,
                     whatsapp_group_link: formData.whatsapp_group_link || null,
-                    status: 'pending',
+                    status: formData.is_enrolled ? 'active' : 'pending',
                     progress: 0,
                     age: formData.age ? parseInt(formData.age) : null,
                     city: formData.city || null,

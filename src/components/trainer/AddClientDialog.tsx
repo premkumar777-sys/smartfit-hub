@@ -49,7 +49,8 @@ export function AddClientDialog({
         medical_conditions: "",
         medications: "",
         injuries: "",
-        is_enrolled: false
+        is_enrolled: false,
+        payment_id: ""
     });
 
     const handleChange = (field: string, value: any) => {
@@ -84,7 +85,8 @@ export function AddClientDialog({
                 medical_conditions: "",
                 medications: "",
                 injuries: "",
-                is_enrolled: false
+                is_enrolled: false,
+                payment_id: ""
             });
         } catch (error) {
             console.error("Error submitting form:", error);
@@ -391,19 +393,32 @@ export function AddClientDialog({
                                 </div>
                             </div>
 
-                            <div className="flex items-center space-x-2 pt-2">
-                                <Checkbox
-                                    id="is_enrolled"
-                                    checked={formData.is_enrolled}
-                                    onCheckedChange={(checked) => handleChange("is_enrolled", checked)}
-                                    className="border-[#00FF9C] data-[state=checked]:bg-[#00FF9C] data-[state=checked]:text-black"
-                                />
-                                <Label
-                                    htmlFor="is_enrolled"
-                                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                                >
-                                    Confirm enrollment in paid online training
-                                </Label>
+                            <div className="grid grid-cols-1 gap-4 pt-2">
+                                <div className="flex items-center space-x-2">
+                                    <Checkbox
+                                        id="is_enrolled"
+                                        required
+                                        checked={formData.is_enrolled}
+                                        onCheckedChange={(checked) => handleChange("is_enrolled", checked)}
+                                        className="border-[#00FF9C] data-[state=checked]:bg-[#00FF9C] data-[state=checked]:text-black"
+                                    />
+                                    <Label
+                                        htmlFor="is_enrolled"
+                                        className="text-sm font-medium text-[#00FF9C]"
+                                    >
+                                        Payment Completed? *
+                                    </Label>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="payment_id">Payment ID / Transaction Ref (Optional)</Label>
+                                    <Input
+                                        id="payment_id"
+                                        placeholder="Enter Instamojo payment ID if available"
+                                        value={formData.payment_id}
+                                        onChange={(e) => handleChange("payment_id", e.target.value)}
+                                        className="bg-gray-900 border-gray-800 focus:border-[#00FF9C]"
+                                    />
+                                </div>
                             </div>
                         </div>
 
