@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,7 +34,11 @@ const authSchema = z.object({
 
 export default function Auth() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
+
+  // Get return URL from navigation state (for redirecting back after login from premium features)
+  const returnUrl = (location.state as { returnUrl?: string })?.returnUrl || "/";
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
@@ -44,13 +48,13 @@ export default function Auth() {
     // Check if user is already logged in
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        navigate("/");
+        navigate(returnUrl);
       }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
-        navigate("/");
+        navigate(returnUrl);
       }
     });
 
@@ -86,7 +90,7 @@ export default function Auth() {
         title: "Welcome back!",
         description: "You've successfully logged in.",
       });
-      navigate("/");
+      navigate(returnUrl);
     } catch (error) {
       if (error instanceof z.ZodError) {
         toast({
@@ -138,7 +142,7 @@ export default function Auth() {
         title: "Account created!",
         description: "You've successfully signed up.",
       });
-      navigate("/");
+      navigate(returnUrl);
     } catch (error) {
       if (error instanceof z.ZodError) {
         toast({
@@ -158,7 +162,7 @@ export default function Auth() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/`,
+          redirectTo: `${window.location.origin}${returnUrl}`,
         },
       });
 
@@ -252,7 +256,7 @@ export default function Auth() {
         title: "Password updated!",
         description: "Your password has been successfully updated.",
       });
-      
+
       window.history.replaceState({}, '', '/auth');
       navigate("/");
     } catch (error) {
