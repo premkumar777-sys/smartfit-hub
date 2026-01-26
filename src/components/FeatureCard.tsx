@@ -10,9 +10,11 @@ interface FeatureCardProps {
   description: string;
   link?: string;
   index: number;
+  badge?: string;
+  isPremium?: boolean;
 }
 
-export const FeatureCard = ({ icon: Icon, title, description, link, index }: FeatureCardProps) => {
+export const FeatureCard = ({ icon: Icon, title, description, link, index, badge, isPremium }: FeatureCardProps) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
@@ -143,7 +145,7 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index }: Fea
         "transition-all duration-300 ease-out",
         "focus:outline-none focus:ring-2 focus:ring-[#00FF9C] focus:ring-offset-2 focus:ring-offset-gray-900",
         "cursor-pointer select-none overflow-hidden",
-        isHovered && "border-[#00FF9C]/40",
+        isHovered && (isPremium ? "border-blue-400/50 shadow-[0_0_20px_rgba(59,130,246,0.3)]" : "border-[#00FF9C]/40"),
         isFocused && "ring-2 ring-[#00FF9C] border-[#00FF9C]/40"
       )}
       style={{
@@ -162,11 +164,23 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index }: Fea
       role={link ? "button" : "article"}
       aria-label={`${title}: ${description}`}
     >
+      {/* Floating Badge */}
+      {badge && (
+        <div className={cn(
+          "absolute top-4 right-4 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider z-20",
+          isPremium ? "bg-blue-500 text-white shadow-[0_0_10px_rgba(59,130,246,0.5)]" : "bg-[#00FF9C] text-black"
+        )} style={{ transform: 'translateZ(40px)' }}>
+          {badge}
+        </div>
+      )}
+
       {/* Animated gradient background */}
       <div
         className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
         style={{
-          background: `radial-gradient(circle at ${50 + mousePosition.x * 0.1}% ${50 + mousePosition.y * 0.1}%, rgba(0, 255, 156, 0.15), transparent 70%)`
+          background: isPremium
+            ? `radial-gradient(circle at ${50 + mousePosition.x * 0.1}% ${50 + mousePosition.y * 0.1}%, rgba(59, 130, 246, 0.2), transparent 70%)`
+            : `radial-gradient(circle at ${50 + mousePosition.x * 0.1}% ${50 + mousePosition.y * 0.1}%, rgba(0, 255, 156, 0.15), transparent 70%)`
         }}
       />
 
@@ -174,7 +188,9 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index }: Fea
       <div
         className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
         style={{
-          boxShadow: isHovered ? `inset 0 0 30px rgba(0, 255, 156, 0.2), 0 0 40px rgba(0, 255, 156, 0.3)` : 'none'
+          boxShadow: isHovered
+            ? (isPremium ? `inset 0 0 30px rgba(59, 130, 246, 0.2), 0 0 40px rgba(59, 130, 246, 0.3)` : `inset 0 0 30px rgba(0, 255, 156, 0.2), 0 0 40px rgba(0, 255, 156, 0.3)`)
+            : 'none'
         }}
       />
 

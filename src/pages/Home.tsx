@@ -251,8 +251,10 @@ const Home = () => {
               {
                 icon: Laptop,
                 title: "Online Coaching",
-                description: "Connect with expert trainers for 1-on-1 remote video coaching sessions",
-                link: "/online-coaching"
+                description: "Get 1-on-1 expert guidance with personalized workout and nutrition roadmap",
+                link: "/online-coaching",
+                badge: "LIVE",
+                isPremium: true
               },
               {
                 icon: Calculator,
@@ -268,6 +270,8 @@ const Home = () => {
                 description={feature.description}
                 link={feature.link}
                 index={index}
+                badge={(feature as any).badge}
+                isPremium={(feature as any).isPremium}
               />
             ))}
           </div>

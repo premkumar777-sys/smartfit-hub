@@ -7,6 +7,9 @@ import { Check, Calendar, Video, Star, Users, Trophy } from "lucide-react";
 import { motion } from "framer-motion";
 import { openPaymentLink, COACHING_PLAN } from "@/config/payments";
 import { BusinessPremiumLock } from "@/components/BusinessPremiumLock";
+import { AddClientDialog } from "@/components/trainer/AddClientDialog";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 // Animated Counter Component
 const AnimatedCounter = ({
@@ -51,6 +54,37 @@ const AnimatedCounter = ({
 };
 
 export default function OnlineCoaching() {
+    const [isFormOpen, setIsFormOpen] = useState(false);
+
+    const handleApply = async (formData: any) => {
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+
+            // Save application data to trainer_clients table (acting as lead/application)
+            const { error } = await supabase
+                .from('trainer_clients')
+                .insert({
+                    ...formData,
+                    trainer_id: '00000000-0000-0000-0000-000000000000', // Default or Head Coach ID
+                    user_id: user?.id || null,
+                    status: 'pending'
+                });
+
+            if (error) throw error;
+
+            toast.success("Application submitted! Redirecting to payment...");
+
+            // Short delay to show toast before redirect
+            setTimeout(() => {
+                openPaymentLink(COACHING_PLAN.link);
+            }, 1500);
+        } catch (error) {
+            console.error("Error submitting application:", error);
+            toast.error("Failed to submit application. Please try again.");
+            throw error;
+        }
+    };
+
     return (
         <div className="min-h-screen pt-20 pb-12 bg-background">
             <Container>
@@ -83,7 +117,10 @@ export default function OnlineCoaching() {
                             </p>
 
                             <div className="flex flex-wrap gap-4">
-                                <Button className="bg-[#00FF9C] text-black hover:bg-[#00FF9C]/90 h-12 px-8 text-lg font-bold">
+                                <Button
+                                    onClick={() => setIsFormOpen(true)}
+                                    className="bg-[#00FF9C] text-black hover:bg-[#00FF9C]/90 h-12 px-8 text-lg font-bold"
+                                >
                                     Book Consultation
                                 </Button>
                                 <Button variant="outline" className="h-12 px-8 text-lg border-gray-700 hover:bg-gray-800">
@@ -309,7 +346,7 @@ export default function OnlineCoaching() {
                                     ))}
                                 </ul>
                                 <Button
-                                    onClick={() => openPaymentLink(COACHING_PLAN.link)}
+                                    onClick={() => setIsFormOpen(true)}
                                     className="w-full max-w-sm bg-[#00FF9C] text-black hover:bg-[#00FF9C]/90 h-14 text-lg font-bold shadow-[0_0_20px_rgba(0,255,156,0.3)]"
                                 >
                                     Apply Now
@@ -319,6 +356,15 @@ export default function OnlineCoaching() {
                         </Card>
                     </div>
                 </BusinessPremiumLock>
+
+                <AddClientDialog
+                    open={isFormOpen}
+                    onOpenChange={setIsFormOpen}
+                    onSubmit={handleApply}
+                    title="Online Coaching Application"
+                    description="Fill out the details below to start your transformation with our Head Coach."
+                    submitText="Proceed to Payment"
+                />
             </Container>
         </div>
     );

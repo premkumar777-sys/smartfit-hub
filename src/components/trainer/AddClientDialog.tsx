@@ -13,9 +13,19 @@ interface AddClientDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     onSubmit: (data: any) => Promise<void>;
+    title?: string;
+    description?: string;
+    submitText?: string;
 }
 
-export function AddClientDialog({ open, onOpenChange, onSubmit }: AddClientDialogProps) {
+export function AddClientDialog({
+    open,
+    onOpenChange,
+    onSubmit,
+    title = "Add New Client",
+    description = "Enter the client's comprehensive details for their fitness journey.",
+    submitText = "Add Client"
+}: AddClientDialogProps) {
     const [isLoading, setIsLoading] = useState(false);
     const [formData, setFormData] = useState({
         full_name: "",
@@ -87,9 +97,9 @@ export function AddClientDialog({ open, onOpenChange, onSubmit }: AddClientDialo
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0 gap-0 bg-gray-950 border-gray-800 text-white">
                 <DialogHeader className="p-6 pb-2 shrink-0">
-                    <DialogTitle className="text-2xl font-bold text-[#00FF9C]">Add New Client</DialogTitle>
+                    <DialogTitle className="text-2xl font-bold text-[#00FF9C]">{title}</DialogTitle>
                     <DialogDescription className="text-gray-400">
-                        Enter the client's comprehensive details for their fitness journey.
+                        {description}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -413,10 +423,10 @@ export function AddClientDialog({ open, onOpenChange, onSubmit }: AddClientDialo
                         {isLoading ? (
                             <>
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Adding...
+                                {submitText === "Add Client" ? "Adding..." : "Submitting..."}
                             </>
                         ) : (
-                            "Add Client"
+                            submitText
                         )}
                     </Button>
                 </DialogFooter>
