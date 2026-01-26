@@ -236,7 +236,7 @@ export default function OnlineCoaching() {
                                 <Badge className="bg-[#00FF9C] text-black hover:bg-[#00FF9C]">Limited Spots Available</Badge>
                                 <h2 className="text-3xl font-bold text-white">Exclusive 1:1 Coaching</h2>
                                 <div className="text-5xl font-bold text-white">
-                                    ₹4,999 <span className="text-lg text-gray-500 font-normal">/ month</span>
+                                    ₹199 <span className="text-lg text-gray-500 font-normal">/ month</span>
                                 </div>
                                 <ul className="text-left space-y-4 max-w-sm mx-auto">
                                     {[

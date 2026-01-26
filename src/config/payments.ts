@@ -70,9 +70,9 @@ export const BUSINESS_PLANS: PaymentPlan[] = [
 export const COACHING_PLAN: PaymentPlan = {
     id: "coaching",
     name: "Personal Coaching",
-    price: "₹1,499",
+    price: "₹199",
     period: "per month",
-    link: "RAZORPAY_COACHING_LINK" // TODO: Replace with Razorpay link
+    link: "https://imjo.in/ZQVVWg"
 };
 
 // ===========================================
