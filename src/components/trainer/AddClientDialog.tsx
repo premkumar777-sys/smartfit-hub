@@ -410,10 +410,10 @@ export function AddClientDialog({
                                     </Label>
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="payment_id">Payment ID / Transaction Ref (Optional)</Label>
+                                    <Label htmlFor="payment_id">UTR Number (12-digit UPI reference)</Label>
                                     <Input
                                         id="payment_id"
-                                        placeholder="Enter Instamojo payment ID if available"
+                                        placeholder="Enter the 12-digit UTR number from your payment"
                                         value={formData.payment_id}
                                         onChange={(e) => handleChange("payment_id", e.target.value)}
                                         className="bg-gray-900 border-gray-800 focus:border-[#00FF9C]"

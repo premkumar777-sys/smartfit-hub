@@ -96,7 +96,7 @@ export default function OnlineCoaching() {
                 `*If you are on any medications, Please mention them. :* ${formData.medications || 'No'}\n` +
                 `*If you have any injuries,, Please mention them. :* ${formData.injuries || 'No'}\n\n` +
                 `*Payment Status :* ${formData.is_enrolled ? 'PAID ✅' : 'NOT PAID ❌'}\n` +
-                `*Transaction ID :* ${formData.payment_id || 'N/A'}`;
+                `*UTR Number :* ${formData.payment_id || 'N/A'}`;
 
             const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(messageBody)}`;
 
