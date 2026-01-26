@@ -176,7 +176,9 @@ export default function Progress() {
     const currentNotes = notes; // Capture before clearing
 
     const entry: ProgressLog = {
-      id: crypto.randomUUID(),
+      id: typeof crypto.randomUUID === "function"
+        ? crypto.randomUUID()
+        : Math.random().toString(36).substring(2, 11),
       user_id: userId || '',
       date: dateStr,
       weight: w,
@@ -184,10 +186,12 @@ export default function Progress() {
       created_at: new Date().toISOString(),
     };
 
-    // Update UI immediately (no loading state needed for localStorage)
-    const newLogs = [entry, ...logs].slice(0, 90);
-    setLogs(newLogs);
-    localStorage.setItem(STORAGE_KEYS.PROGRESS, JSON.stringify(newLogs));
+    // Update UI immediately (using functional update to avoid stale state)
+    setLogs(prev => {
+      const newLogs = [entry, ...prev].slice(0, 90);
+      localStorage.setItem(STORAGE_KEYS.PROGRESS, JSON.stringify(newLogs));
+      return newLogs;
+    });
 
     // Award XP and clear form instantly
     gamification.recordProgressLog();
@@ -199,7 +203,7 @@ export default function Progress() {
     if (userId) {
       supabase
         .from('progress_logs')
-        .insert({ user_id: userId, date: dateStr, weight: w, notes: currentNotes || null })
+        .insert({ id: entry.id, user_id: userId, date: dateStr, weight: w, notes: currentNotes || null })
         .then(({ error }) => {
           if (error) {
             console.warn("Supabase sync failed:", error.message);
@@ -214,11 +218,11 @@ export default function Progress() {
         const { error } = await supabase.from('progress_logs').delete().eq('id', logId);
         if (error) throw error;
       }
-      const newLogs = logs.filter((l) => l.id !== logId);
-      setLogs(newLogs);
-      if (!userId) {
+      setLogs(prev => {
+        const newLogs = prev.filter((l) => l.id !== logId);
         localStorage.setItem(STORAGE_KEYS.PROGRESS, JSON.stringify(newLogs));
-      }
+        return newLogs;
+      });
       toast.success("Entry deleted");
     } catch (err) {
       console.error("Error deleting log:", err);
