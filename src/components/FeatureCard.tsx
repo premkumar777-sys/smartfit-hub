@@ -325,25 +325,28 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index, badge
     </motion.div>
   );
 
-  return (link || onClick) ? (
-    <div
-      onClick={(e) => {
-        if (onClick) {
+  if (onClick) {
+    return (
+      <div
+        onClick={(e) => {
           e.preventDefault();
+          e.stopPropagation();
           onClick();
-        }
-      }}
-      className="cursor-pointer"
-    >
-      {link ? (
-        <Link to={onClick ? "#" : link} className="block">
-          {cardContent}
-        </Link>
-      ) : (
-        cardContent
-      )}
-    </div>
-  ) : (
-    cardContent
-  );
+        }}
+        className="block"
+      >
+        {cardContent}
+      </div>
+    );
+  }
+
+  if (link) {
+    return (
+      <Link to={link} className="block">
+        {cardContent}
+      </Link>
+    );
+  }
+
+  return cardContent;
 };
