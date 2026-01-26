@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Check, Calendar, Video, Star, Users, Trophy } from "lucide-react";
 import { motion } from "framer-motion";
-import { openPaymentLink, COACHING_PLAN } from "@/config/payments";
+import { openPaymentLink, COACHING_PLAN, WHATSAPP_NUMBER } from "@/config/payments";
 import { BusinessPremiumLock } from "@/components/BusinessPremiumLock";
 import { AddClientDialog } from "@/components/trainer/AddClientDialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -60,8 +60,21 @@ export default function OnlineCoaching() {
         try {
             const { data: { user } } = await supabase.auth.getUser();
 
-            // Save application data to trainer_clients table (acting as lead/application)
-            const { error } = await supabase
+            // 1. Construct WhatsApp message for the coach
+            const message = `*NEW COACHING APPLICATION*%0A%0A` +
+                `*Client:* ${formData.full_name}%0A` +
+                `*Phone:* ${formData.phone || 'N/A'}%0A` +
+                `*Goal:* ${formData.primary_goal || 'N/A'}%0A` +
+                `*Weight:* ${formData.current_weight_kg}kg (Target: ${formData.target_weight_kg}kg)%0A` +
+                `*Experience:* ${formData.prior_experience || 'N/A'}%0A` +
+                `*Training:* ${formData.training_type || 'N/A'}%0A` +
+                `*Duration:* ${formData.plan_duration || 'N/A'}%0A` +
+                `*Diet:* ${formData.diet_preference || 'N/A'}`;
+
+            const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${message}`;
+
+            // 2. Save application data to trainer_clients table (Background - Non-blocking)
+            supabase
                 .from('trainer_clients')
                 .insert({
                     full_name: formData.full_name,
@@ -90,19 +103,23 @@ export default function OnlineCoaching() {
                     is_enrolled: formData.is_enrolled || false,
                     trainer_id: '00000000-0000-0000-0000-000000000000', // Default Head Coach ID
                     user_id: user?.id || null
+                })
+                .then(({ error }) => {
+                    if (error) console.warn("Supabase background sync failed:", error.message);
                 });
 
-            if (error) throw error;
+            toast.success("Details captured! Opening WhatsApp...");
 
-            toast.success("Application submitted! Redirecting to payment...");
+            // 3. Open WhatsApp in new tab and then redirect to payment
+            window.open(waUrl, '_blank');
 
-            // Short delay to show toast before redirect
             setTimeout(() => {
+                toast.success("Application complete! Redirecting to payment...");
                 openPaymentLink(COACHING_PLAN.link);
-            }, 1500);
+            }, 2000);
         } catch (error) {
             console.error("Error submitting application:", error);
-            toast.error("Failed to submit application. Please try again.");
+            toast.error("Process interrupted. Please try again.");
             throw error;
         }
     };

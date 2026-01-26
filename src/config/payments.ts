@@ -5,6 +5,8 @@
  * All components will automatically use these links.
  */
 
+export const WHATSAPP_NUMBER = "917671862872"; // Replace with your business number (e.g., 919876543210)
+
 export interface PaymentPlan {
     id: string;
     name: string;
