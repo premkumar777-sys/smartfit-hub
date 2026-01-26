@@ -15,7 +15,7 @@ import { ENABLE_PAYMENTS } from "@/config";
 import { openPaymentLink, BUSINESS_PLANS } from "@/config/payments";
 
 import { AddClientDialog } from "@/components/trainer/AddClientDialog";
-import { PremiumLock } from "@/components/PremiumLock";
+import { BusinessPremiumLock } from "@/components/BusinessPremiumLock";
 
 // Types for database tables
 interface Trainer {
@@ -453,7 +453,7 @@ export default function TrainerTools() {
     return (
         <div className="min-h-screen bg-background pt-20 pb-12">
             <Container>
-                <PremiumLock
+                <BusinessPremiumLock
                     title="Unlock Business Tools"
                     description="Professional trainers get unlimited clients, advanced analytics, and revenue tracking."
                     features={[
@@ -870,7 +870,7 @@ export default function TrainerTools() {
                         onOpenChange={setIsAddClientOpen}
                         onSubmit={handleAddClient}
                     />
-                </PremiumLock>
+                </BusinessPremiumLock>
             </Container>
         </div>
     );

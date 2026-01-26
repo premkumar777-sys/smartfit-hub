@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { PremiumLock } from "@/components/PremiumLock";
-import { BUSINESS_PLANS } from "@/config/payments";
+import { BusinessPremiumLock } from "@/components/BusinessPremiumLock";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -585,7 +584,7 @@ export default function GymAnalytics() {
 
           {/* AI Predictions Tab */}
           <TabsContent value="predictions" className="space-y-6">
-            <PremiumLock
+            <BusinessPremiumLock
               title="Unlock Business Intelligence"
               description="Get AI-powered revenue forecasts, churn prediction, and competitor benchmarking."
               features={[
@@ -594,7 +593,6 @@ export default function GymAnalytics() {
                 "Competitor Benchmarking",
                 "Member Lifetime Value Analysis"
               ]}
-              plans={BUSINESS_PLANS}
             >
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Competitor Benchmark */}
@@ -674,7 +672,7 @@ export default function GymAnalytics() {
                   </CardContent>
                 </Card>
               </div>
-            </PremiumLock>
+            </BusinessPremiumLock>
           </TabsContent>
         </Tabs>
       </div>

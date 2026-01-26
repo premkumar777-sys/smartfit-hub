@@ -5,13 +5,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Check, Calendar, Video, Star, Users, Trophy } from "lucide-react";
 import { motion } from "framer-motion";
 import { openPaymentLink, COACHING_PLAN } from "@/config/payments";
-import { PremiumLock } from "@/components/PremiumLock";
+import { BusinessPremiumLock } from "@/components/BusinessPremiumLock";
 
 export default function OnlineCoaching() {
     return (
         <div className="min-h-screen pt-20 pb-12 bg-background">
             <Container>
-                <PremiumLock
+                <BusinessPremiumLock
                     title="Unlock Expert Coaching"
                     description="Get 1:1 mentorship from elite trainers who will build your roadmap to success."
                     features={[
@@ -171,7 +171,7 @@ export default function OnlineCoaching() {
                             </CardContent>
                         </Card>
                     </div>
-                </PremiumLock>
+                </BusinessPremiumLock>
             </Container>
         </div>
     );
