@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Container } from "@/components/Container";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -6,6 +7,48 @@ import { Check, Calendar, Video, Star, Users, Trophy } from "lucide-react";
 import { motion } from "framer-motion";
 import { openPaymentLink, COACHING_PLAN } from "@/config/payments";
 import { BusinessPremiumLock } from "@/components/BusinessPremiumLock";
+
+// Animated Counter Component
+const AnimatedCounter = ({
+    end,
+    duration = 2000,
+    suffix = "",
+    decimals = 0
+}: {
+    end: number;
+    duration?: number;
+    suffix?: string;
+    decimals?: number;
+}) => {
+    const [count, setCount] = useState(0);
+
+    useEffect(() => {
+        let startTime: number;
+        let animationFrame: number;
+
+        const animate = (timestamp: number) => {
+            if (!startTime) startTime = timestamp;
+            const progress = Math.min((timestamp - startTime) / duration, 1);
+
+            // Easing function for smooth animation
+            const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+            setCount(easeOutQuart * end);
+
+            if (progress < 1) {
+                animationFrame = requestAnimationFrame(animate);
+            }
+        };
+
+        animationFrame = requestAnimationFrame(animate);
+        return () => cancelAnimationFrame(animationFrame);
+    }, [end, duration]);
+
+    const displayValue = decimals > 0
+        ? count.toFixed(decimals)
+        : Math.floor(count).toLocaleString();
+
+    return <>{displayValue}{suffix}</>;
+};
 
 export default function OnlineCoaching() {
     return (
@@ -49,17 +92,32 @@ export default function OnlineCoaching() {
                             </div>
 
                             <div className="mt-12 grid grid-cols-3 gap-6 border-t border-gray-800 pt-8">
-                                <div>
-                                    <h4 className="text-3xl font-bold text-white">500+</h4>
-                                    <p className="text-sm text-gray-500">Clients Trained</p>
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 rounded-lg bg-[#00FF9C]/10">
+                                        <Video className="w-5 h-5 text-[#00FF9C]" />
+                                    </div>
+                                    <div>
+                                        <h4 className="text-lg font-bold text-white">Weekly Calls</h4>
+                                        <p className="text-xs text-gray-500">1:1 Video Sessions</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h4 className="text-3xl font-bold text-white">10k+</h4>
-                                    <p className="text-sm text-gray-500">Sessions</p>
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 rounded-lg bg-blue-500/10">
+                                        <Calendar className="w-5 h-5 text-blue-400" />
+                                    </div>
+                                    <div>
+                                        <h4 className="text-lg font-bold text-white">30-Day Plans</h4>
+                                        <p className="text-xs text-gray-500">Custom Programs</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h4 className="text-3xl font-bold text-white">4.9</h4>
-                                    <p className="text-sm text-gray-500">Rating</p>
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 rounded-lg bg-purple-500/10">
+                                        <Check className="w-5 h-5 text-purple-400" />
+                                    </div>
+                                    <div>
+                                        <h4 className="text-lg font-bold text-white">24/7 Support</h4>
+                                        <p className="text-xs text-gray-500">Always Available</p>
+                                    </div>
                                 </div>
                             </div>
                         </motion.div>
