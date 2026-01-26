@@ -70,37 +70,126 @@ export default function OnlineCoaching() {
                             transition={{ duration: 0.5, delay: 0.2 }}
                             className="relative"
                         >
-                            {/* Placeholder for Coach Image */}
-                            <div className="aspect-[4/5] rounded-3xl overflow-hidden bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-800 relative group">
-                                <div className="absolute inset-0 flex items-center justify-center text-gray-600">
-                                    <Users className="w-24 h-24 opacity-20" />
-                                    <span className="absolute mt-32 text-sm uppercase tracking-widest opacity-40"> Coach Photo </span>
+                            {/* Enhanced Visual Section */}
+                            <div className="relative">
+                                {/* Main Gradient Background */}
+                                <div className="aspect-square rounded-3xl overflow-hidden bg-gradient-to-br from-[#00FF9C]/20 via-blue-500/10 to-purple-500/20 border border-[#00FF9C]/20 relative">
+                                    {/* Animated Glow Effects */}
+                                    <div className="absolute inset-0">
+                                        <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-[#00FF9C]/30 rounded-full blur-3xl animate-pulse" />
+                                        <div className="absolute bottom-1/4 right-1/4 w-40 h-40 bg-blue-500/20 rounded-full blur-3xl animate-pulse delay-1000" />
+                                    </div>
+
+                                    {/* Central Icon */}
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                        <div className="relative">
+                                            <div className="w-32 h-32 rounded-full bg-gradient-to-br from-[#00FF9C] to-[#00FF9C]/50 flex items-center justify-center shadow-[0_0_60px_rgba(0,255,156,0.4)]">
+                                                <Video className="w-16 h-16 text-black" />
+                                            </div>
+                                            {/* Pulsing Ring */}
+                                            <div className="absolute inset-0 rounded-full border-2 border-[#00FF9C]/50 animate-ping" />
+                                        </div>
+                                    </div>
+
+                                    {/* Floating Feature Cards */}
+                                    <motion.div
+                                        initial={{ y: 20, opacity: 0 }}
+                                        animate={{ y: 0, opacity: 1 }}
+                                        transition={{ delay: 0.5, duration: 0.5 }}
+                                        className="absolute top-6 right-6"
+                                    >
+                                        <Card className="bg-black/80 backdrop-blur-md border-[#00FF9C]/30 shadow-xl">
+                                            <CardContent className="p-4 flex items-center gap-3">
+                                                <div className="p-2 rounded-full bg-[#00FF9C]/10 text-[#00FF9C]">
+                                                    <Trophy className="w-5 h-5" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs text-gray-400">Certified</p>
+                                                    <p className="text-sm font-bold text-white">NASM Elite</p>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    </motion.div>
+
+                                    <motion.div
+                                        initial={{ y: 20, opacity: 0 }}
+                                        animate={{ y: 0, opacity: 1 }}
+                                        transition={{ delay: 0.7, duration: 0.5 }}
+                                        className="absolute bottom-6 left-6"
+                                    >
+                                        <Card className="bg-black/80 backdrop-blur-md border-blue-500/30 shadow-xl">
+                                            <CardContent className="p-4 flex items-center gap-3">
+                                                <div className="p-2 rounded-full bg-blue-500/10 text-blue-400">
+                                                    <Video className="w-5 h-5" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs text-gray-400">Live Sessions</p>
+                                                    <p className="text-sm font-bold text-white">Always Available</p>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    </motion.div>
+
+                                    <motion.div
+                                        initial={{ y: -20, opacity: 0 }}
+                                        animate={{ y: 0, opacity: 1 }}
+                                        transition={{ delay: 0.9, duration: 0.5 }}
+                                        className="absolute top-6 left-6"
+                                    >
+                                        <Card className="bg-black/80 backdrop-blur-md border-purple-500/30 shadow-xl">
+                                            <CardContent className="p-4 flex items-center gap-3">
+                                                <div className="p-2 rounded-full bg-purple-500/10 text-purple-400">
+                                                    <Star className="w-5 h-5 fill-current" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs text-gray-400">Success Rate</p>
+                                                    <p className="text-sm font-bold text-white">98% Goals Hit</p>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    </motion.div>
+
+                                    <motion.div
+                                        initial={{ y: 20, opacity: 0 }}
+                                        animate={{ y: 0, opacity: 1 }}
+                                        transition={{ delay: 1.1, duration: 0.5 }}
+                                        className="absolute bottom-6 right-6"
+                                    >
+                                        <Card className="bg-black/80 backdrop-blur-md border-amber-500/30 shadow-xl">
+                                            <CardContent className="p-4 flex items-center gap-3">
+                                                <div className="p-2 rounded-full bg-amber-500/10 text-amber-400">
+                                                    <Calendar className="w-5 h-5" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs text-gray-400">Flexible</p>
+                                                    <p className="text-sm font-bold text-white">Your Schedule</p>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    </motion.div>
                                 </div>
 
-                                {/* Floating Cards */}
-                                <Card className="absolute top-8 right-8 bg-black/80 backdrop-blur-md border-gray-700 w-48 shadow-xl animate-bounce-slow">
-                                    <CardContent className="p-4 flex items-center gap-3">
-                                        <div className="p-2 rounded-full bg-[#00FF9C]/10 text-[#00FF9C]">
-                                            <Trophy className="w-5 h-5" />
+                                {/* Testimonial Strip */}
+                                <div className="mt-6 p-4 rounded-xl bg-gradient-to-r from-gray-900 to-gray-800 border border-gray-700">
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex -space-x-2">
+                                            {['bg-gradient-to-br from-pink-400 to-pink-600', 'bg-gradient-to-br from-blue-400 to-blue-600', 'bg-gradient-to-br from-green-400 to-green-600'].map((bg, i) => (
+                                                <div key={i} className={`w-8 h-8 rounded-full ${bg} border-2 border-gray-900 flex items-center justify-center text-white text-xs font-bold`}>
+                                                    {['A', 'R', 'K'][i]}
+                                                </div>
+                                            ))}
                                         </div>
-                                        <div>
-                                            <p className="text-xs text-gray-400">Certified</p>
-                                            <p className="text-sm font-bold text-white">NASM Elite</p>
+                                        <div className="flex-1">
+                                            <p className="text-sm text-white font-medium">"Life-changing coaching!"</p>
+                                            <p className="text-xs text-gray-400">Join 500+ successful clients</p>
                                         </div>
-                                    </CardContent>
-                                </Card>
-
-                                <Card className="absolute bottom-12 left-8 bg-black/80 backdrop-blur-md border-gray-700 w-56 shadow-xl animate-bounce-slow delay-700">
-                                    <CardContent className="p-4 flex items-center gap-3 desktop:hidden">
-                                        <div className="p-2 rounded-full bg-blue-500/10 text-blue-400">
-                                            <Video className="w-5 h-5" />
+                                        <div className="flex text-[#00FF9C]">
+                                            {[...Array(5)].map((_, i) => (
+                                                <Star key={i} className="w-4 h-4 fill-current" />
+                                            ))}
                                         </div>
-                                        <div>
-                                            <p className="text-xs text-gray-400">Live Session</p>
-                                            <p className="text-sm font-bold text-white">Ready to connect</p>
-                                        </div>
-                                    </CardContent>
-                                </Card>
+                                    </div>
+                                </div>
                             </div>
                         </motion.div>
                     </div>
