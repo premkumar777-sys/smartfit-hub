@@ -64,10 +64,32 @@ export default function OnlineCoaching() {
             const { error } = await supabase
                 .from('trainer_clients')
                 .insert({
-                    ...formData,
-                    trainer_id: '00000000-0000-0000-0000-000000000000', // Default or Head Coach ID
-                    user_id: user?.id || null,
-                    status: 'pending'
+                    full_name: formData.full_name,
+                    email: formData.email || null,
+                    phone: formData.phone || null,
+                    whatsapp_number: formData.whatsapp_number || null,
+                    whatsapp_group_link: formData.whatsapp_group_link || null,
+                    status: 'pending',
+                    progress: 0,
+                    age: formData.age ? parseInt(formData.age) : null,
+                    city: formData.city || null,
+                    country: formData.country || null,
+                    occupation: formData.occupation || null,
+                    height_feet: formData.height_feet ? parseFloat(formData.height_feet) : null,
+                    current_weight_kg: formData.current_weight_kg ? parseFloat(formData.current_weight_kg) : null,
+                    target_weight_kg: formData.target_weight_kg ? parseFloat(formData.target_weight_kg) : null,
+                    primary_goal: formData.primary_goal || null,
+                    prior_experience: formData.prior_experience || null,
+                    training_type: formData.training_type || null,
+                    plan_duration: formData.plan_duration || null,
+                    diet_preference: formData.diet_preference || null,
+                    habits: formData.habits || null,
+                    medical_conditions: formData.medical_conditions || null,
+                    medications: formData.medications || null,
+                    injuries: formData.injuries || null,
+                    is_enrolled: formData.is_enrolled || false,
+                    trainer_id: '00000000-0000-0000-0000-000000000000', // Default Head Coach ID
+                    user_id: user?.id || null
                 });
 
             if (error) throw error;
