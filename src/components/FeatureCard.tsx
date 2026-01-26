@@ -12,9 +12,10 @@ interface FeatureCardProps {
   index: number;
   badge?: string;
   isPremium?: boolean;
+  onClick?: () => void;
 }
 
-export const FeatureCard = ({ icon: Icon, title, description, link, index, badge, isPremium }: FeatureCardProps) => {
+export const FeatureCard = ({ icon: Icon, title, description, link, index, badge, isPremium, onClick }: FeatureCardProps) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
@@ -324,10 +325,24 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index, badge
     </motion.div>
   );
 
-  return link ? (
-    <Link to={link} className="block">
-      {cardContent}
-    </Link>
+  return (link || onClick) ? (
+    <div
+      onClick={(e) => {
+        if (onClick) {
+          e.preventDefault();
+          onClick();
+        }
+      }}
+      className="cursor-pointer"
+    >
+      {link ? (
+        <Link to={onClick ? "#" : link} className="block">
+          {cardContent}
+        </Link>
+      ) : (
+        cardContent
+      )}
+    </div>
   ) : (
     cardContent
   );

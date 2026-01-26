@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/use-auth";
 import "@/styles/feature-card.css";
 import { FeaturesCarousel } from "@/components/FeaturesCarousel";
 import { HowItWorksCarousel } from "@/components/HowItWorksCarousel";
+import { toast } from "sonner";
 
 const HeroDumbbellScene = lazy(() => import("@/components/Hero3DScene"));
 
@@ -227,7 +228,12 @@ const Home = () => {
                 icon: QrCode,
                 title: "QR Smart Attendance",
                 description: "Contactless entry system with automated check-in and attendance tracking",
-                link: "/dashboard"
+                link: "/dashboard",
+                badge: "COMING SOON",
+                onClick: () => toast.info("Coming Soon! 🚀 We're currently building the Smart Attendance system. Stay tuned!", {
+                  description: "This feature will be available in the next major update.",
+                  duration: 5000,
+                })
               },
               {
                 icon: Trophy,
