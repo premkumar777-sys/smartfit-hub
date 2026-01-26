@@ -54,7 +54,6 @@ export default function Progress() {
   const [weight, setWeight] = useState("");
   const [notes, setNotes] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [chartPeriod, setChartPeriod] = useState<30 | 60 | 90>(30);
 
@@ -168,45 +167,42 @@ export default function Progress() {
     return { progress, remaining, daysLeft };
   }, [goal, stats]);
 
-  const addLog = async (e: React.FormEvent) => {
+  const addLog = (e: React.FormEvent) => {
     e.preventDefault();
     const w = parseFloat(weight);
     if (!w) return;
 
-    setIsSaving(true);
     const dateStr = new Date().toISOString().slice(0, 10);
+    const currentNotes = notes; // Capture before clearing
 
     const entry: ProgressLog = {
       id: crypto.randomUUID(),
       user_id: userId || '',
       date: dateStr,
       weight: w,
-      notes: notes || null,
+      notes: currentNotes || null,
       created_at: new Date().toISOString(),
     };
 
-    // Always save to state and localStorage immediately
+    // Update UI immediately (no loading state needed for localStorage)
     const newLogs = [entry, ...logs].slice(0, 90);
     setLogs(newLogs);
     localStorage.setItem(STORAGE_KEYS.PROGRESS, JSON.stringify(newLogs));
 
-    // Award XP and clear form
+    // Award XP and clear form instantly
     gamification.recordProgressLog();
     setWeight("");
     setNotes("");
-    setIsSaving(false);
     toast.success("Progress logged! +25 XP 💪");
 
-    // Try to sync to Supabase in background (non-blocking)
+    // Sync to Supabase in background (fire and forget)
     if (userId) {
       supabase
         .from('progress_logs')
-        .insert({ user_id: userId, date: dateStr, weight: w, notes: notes || null })
+        .insert({ user_id: userId, date: dateStr, weight: w, notes: currentNotes || null })
         .then(({ error }) => {
           if (error) {
             console.warn("Supabase sync failed:", error.message);
-          } else {
-            console.log("Synced to Supabase");
           }
         });
     }
@@ -369,9 +365,9 @@ export default function Progress() {
                           placeholder="How are you feeling?"
                         />
                       </div>
-                      <Button type="submit" variant="hero" className="w-full" disabled={isSaving}>
-                        {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Zap className="mr-2 h-4 w-4" />}
-                        {isSaving ? "Saving..." : "Log Weight"}
+                      <Button type="submit" variant="hero" className="w-full">
+                        <Zap className="mr-2 h-4 w-4" />
+                        Log Weight
                       </Button>
                     </form>
                   </CardContent>
