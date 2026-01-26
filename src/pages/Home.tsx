@@ -1,11 +1,9 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Zap, Target, TrendingUp, Users, Brain, Eye, BarChart3, Utensils, Calendar, QrCode, Trophy, Wrench, PieChart, Sparkles, LineChart, Laptop, Calculator } from "lucide-react";
+import { ArrowRight, Zap, Brain, Eye, BarChart3, Utensils, Calendar, QrCode, Trophy, Wrench, Sparkles, LineChart, Laptop, Calculator } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Suspense, lazy, useEffect, useState } from "react";
+import { Suspense, lazy } from "react";
 import { FeatureCard } from "@/components/FeatureCard";
-import { useCounter, formatAnimatedNumber } from "@/hooks/useCounter";
-import { useStats } from "@/hooks/useStats";
 import { useAuth } from "@/hooks/use-auth";
 import "@/styles/feature-card.css";
 import { FeaturesCarousel } from "@/components/FeaturesCarousel";
@@ -15,31 +13,6 @@ const HeroDumbbellScene = lazy(() => import("@/components/Hero3DScene"));
 
 const Home = () => {
   const { user, isAuthenticated } = useAuth();
-  const stats = useStats();
-
-  // Animated counters for display
-  const activeMembers = useCounter({
-    end: stats.totalUsers || 1250,
-    duration: 2500,
-    delay: 1000,
-    suffix: '+'
-  });
-
-  const workouts = useCounter({
-    end: stats.totalWorkouts || 890,
-    duration: 2000,
-    delay: 1200,
-    suffix: '+'
-  });
-
-  const successRate = useCounter({
-    end: Math.round(stats.successRate) || 88,
-    duration: 1800,
-    delay: 1400,
-    suffix: '%'
-  });
-
-  const aiSupport = "24/7";
 
   return (
     <div className="min-h-screen">
@@ -139,31 +112,38 @@ const Home = () => {
               >
                 {[
                   {
-                    number: stats.isLoading ? "..." : activeMembers,
-                    label: "Active Members",
-                    realValue: stats.totalUsers
+                    icon: Brain,
+                    title: "AI Workouts",
+                    subtitle: "Smart Training"
                   },
                   {
-                    number: stats.isLoading ? "..." : workouts,
-                    label: "Workouts",
-                    realValue: stats.totalWorkouts
+                    icon: Utensils,
+                    title: "Nutrition Plans",
+                    subtitle: "Macro Tracking"
                   },
                   {
-                    number: stats.isLoading ? "..." : successRate,
-                    label: "Success Rate",
-                    realValue: stats.successRate
+                    icon: Eye,
+                    title: "Form Detection",
+                    subtitle: "Real-time Coaching"
                   },
-                  { number: aiSupport, label: "AI Support" },
+                  {
+                    icon: Zap,
+                    title: "24/7 Support",
+                    subtitle: "AI Powered"
+                  },
                 ].map((stat, index) => (
                   <motion.div
-                    key={stat.label}
-                    className="space-y-2"
+                    key={stat.title}
+                    className="flex flex-col items-center gap-2"
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.5, delay: 1 + index * 0.1 }}
                   >
-                    <div className="text-3xl md:text-4xl font-bold text-primary">{stat.number}</div>
-                    <div className="text-sm text-muted-foreground">{stat.label}</div>
+                    <div className="p-3 rounded-xl bg-primary/10 mb-1">
+                      <stat.icon className="w-6 h-6 text-primary" />
+                    </div>
+                    <div className="text-lg font-bold text-white">{stat.title}</div>
+                    <div className="text-sm text-muted-foreground">{stat.subtitle}</div>
                   </motion.div>
                 ))}
               </motion.div>
@@ -307,7 +287,7 @@ const Home = () => {
               Ready to Transform Your Life?
             </h2>
             <p className="text-lg md:text-xl leading-relaxed text-gray-300 mb-8 max-w-prose mx-auto">
-              Join thousands of members who have already achieved their fitness goals with our AI-powered platform
+              Start your fitness journey today with personalized AI-powered training and nutrition plans
             </p>
             <Button asChild variant="hero" size="xl">
               <Link to="/auth">
