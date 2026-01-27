@@ -45,7 +45,7 @@ const calculateAngle = (
 };
 
 // Check if keypoint is valid (exists and has good confidence)
-const isValidKeypoint = (kp: poseDetection.Keypoint | undefined, minScore = 0.25): kp is poseDetection.Keypoint => {
+const isValidKeypoint = (kp: poseDetection.Keypoint | undefined, minScore = 0.15): kp is poseDetection.Keypoint => {
   return kp !== undefined && kp.score !== undefined && kp.score > minScore;
 };
 
@@ -70,21 +70,21 @@ const EXERCISES: Record<ExerciseType, ExerciseConfig> = {
       if (!leftValid && !rightValid) return { isDown, repCompleted: false };
 
       let kneeAngle = 180;
-      
+
       if (leftValid) {
         kneeAngle = calculateAngle(leftHip, leftKnee, leftAnkle);
       } else if (rightValid) {
         kneeAngle = calculateAngle(rightHip, rightKnee, rightAnkle);
       }
 
-      // Down position: knee bent past 120 degrees (lower = more bent)
+      // Down position: knee bent past 130 degrees (lower = more bent)
       // Standing: knee extended past 150 degrees
-      if (kneeAngle < 120 && !isDown) {
+      if (kneeAngle < 130 && !isDown) {
         return { isDown: true, repCompleted: false };
       } else if (kneeAngle > 150 && isDown) {
         return { isDown: false, repCompleted: true };
       }
-      
+
       return { isDown, repCompleted: false };
     }
   },
@@ -106,21 +106,21 @@ const EXERCISES: Record<ExerciseType, ExerciseConfig> = {
       if (!leftValid && !rightValid) return { isDown, repCompleted: false };
 
       let elbowAngle = 180;
-      
+
       if (leftValid) {
         elbowAngle = calculateAngle(leftShoulder, leftElbow, leftWrist);
       } else if (rightValid) {
         elbowAngle = calculateAngle(rightShoulder, rightElbow, rightWrist);
       }
 
-      // Down position: elbow bent past 100 degrees
+      // Down position: elbow bent past 110 degrees
       // Up position: elbow extended past 150 degrees
-      if (elbowAngle < 100 && !isDown) {
+      if (elbowAngle < 110 && !isDown) {
         return { isDown: true, repCompleted: false };
       } else if (elbowAngle > 150 && isDown) {
         return { isDown: false, repCompleted: true };
       }
-      
+
       return { isDown, repCompleted: false };
     }
   },
@@ -143,7 +143,7 @@ const EXERCISES: Record<ExerciseType, ExerciseConfig> = {
 
       // Check which leg is forward (lower ankle y = more forward in camera view typically inverted)
       let kneeAngle = 180;
-      
+
       if (leftValid && rightValid) {
         // Use the leg with the smaller knee angle (more bent = front leg in lunge)
         const leftAngle = calculateAngle(leftHip, leftKnee, leftAnkle);
@@ -155,14 +155,14 @@ const EXERCISES: Record<ExerciseType, ExerciseConfig> = {
         kneeAngle = calculateAngle(rightHip, rightKnee, rightAnkle);
       }
 
-      // Down position: front knee bent past 110 degrees
+      // Down position: front knee bent past 125 degrees
       // Standing: knee extended past 155 degrees
-      if (kneeAngle < 110 && !isDown) {
+      if (kneeAngle < 125 && !isDown) {
         return { isDown: true, repCompleted: false };
       } else if (kneeAngle > 155 && isDown) {
         return { isDown: false, repCompleted: true };
       }
-      
+
       return { isDown, repCompleted: false };
     }
   },
@@ -180,10 +180,10 @@ const EXERCISES: Record<ExerciseType, ExerciseConfig> = {
       const leftAnkle = keypoints[15];
       const rightAnkle = keypoints[16];
 
-      const armsValid = isValidKeypoint(leftShoulder) && isValidKeypoint(rightShoulder) && 
-                        isValidKeypoint(leftWrist) && isValidKeypoint(rightWrist);
+      const armsValid = isValidKeypoint(leftShoulder) && isValidKeypoint(rightShoulder) &&
+        isValidKeypoint(leftWrist) && isValidKeypoint(rightWrist);
       const legsValid = isValidKeypoint(leftHip) && isValidKeypoint(rightHip) &&
-                        isValidKeypoint(leftAnkle) && isValidKeypoint(rightAnkle);
+        isValidKeypoint(leftAnkle) && isValidKeypoint(rightAnkle);
 
       if (!armsValid || !legsValid) return { isDown, repCompleted: false };
 
@@ -203,7 +203,7 @@ const EXERCISES: Record<ExerciseType, ExerciseConfig> = {
       } else if (!armsUp && !legsSpread && isDown) {
         return { isDown: false, repCompleted: true };
       }
-      
+
       return { isDown, repCompleted: false };
     }
   },
@@ -225,7 +225,7 @@ const EXERCISES: Record<ExerciseType, ExerciseConfig> = {
       if (!leftValid && !rightValid) return { isDown, repCompleted: false };
 
       let elbowAngle = 180;
-      
+
       if (leftValid && rightValid) {
         // Average both arms
         const leftAngle = calculateAngle(leftShoulder, leftElbow, leftWrist);
@@ -237,14 +237,14 @@ const EXERCISES: Record<ExerciseType, ExerciseConfig> = {
         elbowAngle = calculateAngle(rightShoulder, rightElbow, rightWrist);
       }
 
-      // Curled position: elbow bent past 60 degrees (small angle = fully curled)
+      // Curled position: elbow bent past 70 degrees (small angle = fully curled)
       // Extended: elbow extended past 140 degrees
-      if (elbowAngle < 60 && !isDown) {
+      if (elbowAngle < 70 && !isDown) {
         return { isDown: true, repCompleted: false };
       } else if (elbowAngle > 140 && isDown) {
         return { isDown: false, repCompleted: true };
       }
-      
+
       return { isDown, repCompleted: false };
     }
   }
@@ -579,8 +579,8 @@ export default function PoseDetector() {
           y: 0,
           score: 0,
           name: ['nose', 'left_eye', 'right_eye', 'left_ear', 'right_ear', 'left_shoulder', 'right_shoulder',
-                 'left_elbow', 'right_elbow', 'left_wrist', 'right_wrist', 'left_hip', 'right_hip',
-                 'left_knee', 'right_knee', 'left_ankle', 'right_ankle'][i] as any
+            'left_elbow', 'right_elbow', 'left_wrist', 'right_wrist', 'left_hip', 'right_hip',
+            'left_knee', 'right_knee', 'left_ankle', 'right_ankle'][i] as any
         }));
 
         console.log("No pose detected - showing empty keypoints for reference");
@@ -727,7 +727,7 @@ export default function PoseDetector() {
         const padding = 4;
 
         ctx.fillStyle = "rgba(138, 43, 226, 0.85)"; // Purple background like reference
-        ctx.fillRect(x - textWidth/2 - padding, y - 12, textWidth + padding * 2, 20);
+        ctx.fillRect(x - textWidth / 2 - padding, y - 12, textWidth + padding * 2, 20);
 
         // Angle text
         ctx.fillStyle = "#FFFFFF";
@@ -789,9 +789,9 @@ export default function PoseDetector() {
     } else {
       quality = "poor";
     }
-    
+
     setFormQuality(quality);
-    
+
     // Voice feedback for form corrections (debounced)
     if (voiceEnabled && quality !== "good" && lastFormFeedbackRef.current !== quality) {
       if (formFeedbackTimeoutRef.current) {
@@ -850,7 +850,7 @@ export default function PoseDetector() {
           ctx.lineWidth = 3;
           ctx.lineJoin = "round";
           ctx.miterLimit = 2;
-          
+
           const labelY = keypoint.y - radius - 10;
           ctx.strokeText(keypointLabels[index], keypoint.x, labelY);
           ctx.fillText(keypointLabels[index], keypoint.x, labelY);
@@ -969,11 +969,12 @@ export default function PoseDetector() {
   const countReps = useCallback((keypoints: poseDetection.Keypoint[]) => {
     const exercise = EXERCISES[selectedExercise];
     const result = exercise.detectRep(keypoints, isDownRef.current);
-    
+
     if (result.isDown !== isDownRef.current) {
+      isDownRef.current = result.isDown;
       setIsDown(result.isDown);
     }
-    
+
     if (result.repCompleted) {
       setRepCount(prev => {
         const newCount = prev + 1;
@@ -1064,16 +1065,14 @@ export default function PoseDetector() {
 
         {/* Enhanced Form Quality Indicator */}
         {isDetecting && formQuality && (
-          <div className={`flex items-center gap-3 px-6 py-3 rounded-xl border-2 transition-all duration-300 ${
-            formQuality === "good" ? "bg-green-500/20 border-green-400/50 text-green-400 shadow-lg shadow-green-400/20" :
-            formQuality === "fair" ? "bg-yellow-500/20 border-yellow-400/50 text-yellow-400 shadow-lg shadow-yellow-400/20" :
-            "bg-red-500/20 border-red-400/50 text-red-400 shadow-lg shadow-red-400/20"
-          }`}>
-            <div className={`w-4 h-4 rounded-full animate-pulse ${
-              formQuality === "good" ? "bg-green-400" :
-              formQuality === "fair" ? "bg-yellow-400" :
-              "bg-red-400"
-            }`} />
+          <div className={`flex items-center gap-3 px-6 py-3 rounded-xl border-2 transition-all duration-300 ${formQuality === "good" ? "bg-green-500/20 border-green-400/50 text-green-400 shadow-lg shadow-green-400/20" :
+              formQuality === "fair" ? "bg-yellow-500/20 border-yellow-400/50 text-yellow-400 shadow-lg shadow-yellow-400/20" :
+                "bg-red-500/20 border-red-400/50 text-red-400 shadow-lg shadow-red-400/20"
+            }`}>
+            <div className={`w-4 h-4 rounded-full animate-pulse ${formQuality === "good" ? "bg-green-400" :
+                formQuality === "fair" ? "bg-yellow-400" :
+                  "bg-red-400"
+              }`} />
             <div className="flex flex-col">
               <span className="font-bold text-lg capitalize">Form: {formQuality}</span>
               <span className="text-sm opacity-80">
@@ -1129,7 +1128,7 @@ export default function PoseDetector() {
               </div>
             </div>
           )}
-          
+
           {/* Debug Overlay */}
           {isDetecting && debugMode && (
             <div className="absolute top-4 left-4 bg-black/80 text-white p-4 rounded-lg text-sm font-mono space-y-1 max-w-[200px]">
@@ -1197,8 +1196,8 @@ export default function PoseDetector() {
               Stop Camera
             </Button>
           )}
-          <Button 
-            onClick={resetCount} 
+          <Button
+            onClick={resetCount}
             variant="outline"
           >
             <RotateCcw className="mr-2 h-4 w-4" />
