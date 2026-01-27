@@ -159,8 +159,6 @@ export default function Auth() {
 
   const handleGoogleLogin = async () => {
     setIsGoogleLoading(true);
-    console.log("Attempting Google login with URL:", import.meta.env.VITE_SUPABASE_URL);
-    console.log("Current Origin:", window.location.origin);
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -172,7 +170,7 @@ export default function Auth() {
       if (error) {
         toast({
           title: "Google login failed",
-          description: `${error.message}. (Project: ${import.meta.env.VITE_SUPABASE_URL})`,
+          description: error.message,
           variant: "destructive",
         });
       }
@@ -315,21 +313,6 @@ export default function Auth() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {/* DEBUG INFO - REMOVE AFTER FIXING */}
-            <div className="mb-6 p-3 rounded bg-amber-500/10 border border-amber-500/20 text-[10px] space-y-1">
-              <p className="font-mono text-amber-500">DEBUG: Supabase Project</p>
-              <div className="flex justify-between gap-2">
-                <span className="text-muted-foreground">URL:</span>
-                <span className="text-white break-all">{import.meta.env.VITE_SUPABASE_URL || 'Using hardcoded fallback'}</span>
-              </div>
-              <div className="flex justify-between gap-2">
-                <span className="text-muted-foreground">Origin:</span>
-                <span className="text-white font-mono">{window.location.origin}</span>
-              </div>
-              <p className="text-[9px] text-amber-500/80 leading-tight pt-1 border-t border-amber-500/20">
-                Ensure the reference ID in the URL above matches the one in your Supabase Dashboard "Project Settings".
-              </p>
-            </div>
 
             {isResettingPassword ? (
               <div className="space-y-4">
