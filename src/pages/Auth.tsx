@@ -9,7 +9,7 @@ import { Container } from "@/components/Container";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
-import { Loader2 } from "lucide-react";
+import { Loader2, Check } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
 const authSchema = z.object({
@@ -48,19 +48,21 @@ export default function Auth() {
   useEffect(() => {
     // Check if user is already logged in
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
+      // Don't redirect if we are in the middle of a password reset
+      if (session && !isResettingPassword) {
         navigate(returnUrl);
       }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session) {
+      // Don't redirect if we are in the middle of a password reset
+      if (session && !isResettingPassword) {
         navigate(returnUrl);
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, isResettingPassword]);
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -356,11 +358,28 @@ export default function Auth() {
                   ← Back to Login
                 </Button>
                 {resetEmailSent ? (
-                  <div className="text-center py-6">
-                    <div className="text-lg font-semibold mb-2">Check Your Email</div>
-                    <p className="text-sm text-muted-foreground">
-                      We've sent you a password reset link. Please check your email and follow the instructions.
-                    </p>
+                  <div className="text-center py-6 space-y-4">
+                    <div className="flex justify-center">
+                      <div className="p-3 rounded-full bg-primary/10">
+                        <Check className="w-8 h-8 text-primary" />
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-lg font-semibold mb-2">Check Your Email</div>
+                      <p className="text-sm text-muted-foreground">
+                        We've sent you a password reset link. Please check your email and follow the instructions.
+                      </p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      className="w-full mt-4"
+                      onClick={() => {
+                        setShowForgotPassword(false);
+                        setResetEmailSent(false);
+                      }}
+                    >
+                      Back to Login
+                    </Button>
                   </div>
                 ) : (
                   <>
