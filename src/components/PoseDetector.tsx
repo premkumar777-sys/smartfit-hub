@@ -45,7 +45,7 @@ const calculateAngle = (
 };
 
 // Check if keypoint is valid (exists and has good confidence)
-const isValidKeypoint = (kp: poseDetection.Keypoint | undefined, minScore = 0.15): kp is poseDetection.Keypoint => {
+const isValidKeypoint = (kp: poseDetection.Keypoint | undefined, minScore = 0.05): kp is poseDetection.Keypoint => {
   return kp !== undefined && kp.score !== undefined && kp.score > minScore;
 };
 
@@ -323,21 +323,7 @@ export default function PoseDetector() {
       let poseDetector;
 
       try {
-        // Try lightning model first (faster)
-        const detectorConfig: poseDetection.MoveNetModelConfig = {
-          modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING,
-          enableSmoothing: true,
-        };
-
-        poseDetector = await poseDetection.createDetector(
-          poseDetection.SupportedModels.MoveNet,
-          detectorConfig
-        );
-        console.log("Lightning model loaded successfully");
-      } catch (lightningError) {
-        console.warn("Lightning model failed, trying Thunder model:", lightningError);
-
-        // Fallback to Thunder model (more accurate but slower)
+        // Try Thunder model first (more accurate - super accuracy mode)
         const thunderConfig: poseDetection.MoveNetModelConfig = {
           modelType: poseDetection.movenet.modelType.SINGLEPOSE_THUNDER,
           enableSmoothing: true,
@@ -347,7 +333,21 @@ export default function PoseDetector() {
           poseDetection.SupportedModels.MoveNet,
           thunderConfig
         );
-        console.log("Thunder model loaded successfully");
+        console.log("Thunder model (Super Accuracy) loaded successfully");
+      } catch (thunderError) {
+        console.warn("Thunder model failed, trying Lightning model:", thunderError);
+
+        // Fallback to Lightning model (faster but less accurate)
+        const lightningConfig: poseDetection.MoveNetModelConfig = {
+          modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING,
+          enableSmoothing: true,
+        };
+
+        poseDetector = await poseDetection.createDetector(
+          poseDetection.SupportedModels.MoveNet,
+          lightningConfig
+        );
+        console.log("Lightning model loaded successfully");
       }
 
       setDetector(poseDetector);
@@ -535,7 +535,7 @@ export default function PoseDetector() {
             poses = await detector.estimatePoses(video, {
               maxPoses: 1,
               flipHorizontal: false,
-              scoreThreshold: 0.1, // Even lower threshold
+              scoreThreshold: 0.05, // Super low threshold for better persistence
             });
             console.log("Poses detected:", poses.length);
             if (poses.length > 0) {
@@ -562,7 +562,7 @@ export default function PoseDetector() {
         const pose = poses[0];
         keypointsToDraw = pose.keypoints;
         avgScore = calculateAverageScore(pose.keypoints);
-        const validKeypoints = pose.keypoints.filter(kp => kp.score && kp.score > 0.1).length;
+        const validKeypoints = pose.keypoints.filter(kp => kp.score && kp.score > 0.05).length;
 
         console.log("Pose detected with", validKeypoints, "valid keypoints, avg score:", avgScore);
 
@@ -822,7 +822,7 @@ export default function PoseDetector() {
 
     keypoints.forEach((keypoint, index) => {
       // Always show keypoints if they have any detection
-      const shouldShow = keypoint.score && keypoint.score > 0.1;
+      const shouldShow = keypoint.score && keypoint.score > 0.05;
       const confidence = keypoint.score || 0;
 
       if (shouldShow) {
@@ -882,7 +882,7 @@ export default function PoseDetector() {
     adjacentKeyPoints.forEach(([i, j]) => {
       const kp1 = keypoints[i];
       const kp2 = keypoints[j];
-      if (kp1.score && kp2.score && kp1.score > 0.15 && kp2.score > 0.15) {
+      if (kp1.score && kp2.score && kp1.score > 0.05 && kp2.score > 0.05) {
         const avgConfidence = (kp1.score + kp2.score) / 2;
         const lineWidth = Math.max(3, Math.min(6, avgConfidence * 5));
         const lineColor = getLineColor(i, j);
@@ -1066,12 +1066,12 @@ export default function PoseDetector() {
         {/* Enhanced Form Quality Indicator */}
         {isDetecting && formQuality && (
           <div className={`flex items-center gap-3 px-6 py-3 rounded-xl border-2 transition-all duration-300 ${formQuality === "good" ? "bg-green-500/20 border-green-400/50 text-green-400 shadow-lg shadow-green-400/20" :
-              formQuality === "fair" ? "bg-yellow-500/20 border-yellow-400/50 text-yellow-400 shadow-lg shadow-yellow-400/20" :
-                "bg-red-500/20 border-red-400/50 text-red-400 shadow-lg shadow-red-400/20"
+            formQuality === "fair" ? "bg-yellow-500/20 border-yellow-400/50 text-yellow-400 shadow-lg shadow-yellow-400/20" :
+              "bg-red-500/20 border-red-400/50 text-red-400 shadow-lg shadow-red-400/20"
             }`}>
             <div className={`w-4 h-4 rounded-full animate-pulse ${formQuality === "good" ? "bg-green-400" :
-                formQuality === "fair" ? "bg-yellow-400" :
-                  "bg-red-400"
+              formQuality === "fair" ? "bg-yellow-400" :
+                "bg-red-400"
               }`} />
             <div className="flex flex-col">
               <span className="font-bold text-lg capitalize">Form: {formQuality}</span>
