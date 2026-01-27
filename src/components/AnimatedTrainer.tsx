@@ -412,5 +412,3 @@ export function AnimatedTrainer({ exercise, isAnimating }: AnimatedTrainerProps)
     </group>
   );
 }
-  );
-}
