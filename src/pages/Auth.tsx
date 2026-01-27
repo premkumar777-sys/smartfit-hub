@@ -45,6 +45,10 @@ export default function Auth() {
   const [resetEmailSent, setResetEmailSent] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("login");
 
+  // Check if we're in password reset mode - needs to be above useEffect
+  const urlParams = new URLSearchParams(window.location.search);
+  const isResettingPassword = urlParams.get('reset') === 'true';
+
   useEffect(() => {
     // Check if user is already logged in
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -94,11 +98,17 @@ export default function Auth() {
         description: "You've successfully logged in.",
       });
       navigate(returnUrl);
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof z.ZodError) {
         toast({
           title: "Validation error",
           description: error.errors[0].message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Login failed",
+          description: error.message || "An unexpected error occurred",
           variant: "destructive",
         });
       }
@@ -146,11 +156,17 @@ export default function Auth() {
         description: "You've successfully signed up.",
       });
       navigate(returnUrl);
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof z.ZodError) {
         toast({
           title: "Validation error",
           description: error.errors[0].message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Signup failed",
+          description: error.message || "An unexpected error occurred",
           variant: "destructive",
         });
       }
@@ -275,9 +291,7 @@ export default function Auth() {
     }
   };
 
-  // Check if we're in password reset mode
-  const urlParams = new URLSearchParams(window.location.search);
-  const isResettingPassword = urlParams.get('reset') === 'true';
+
 
   const GoogleIcon = () => (
     <svg className="w-5 h-5" viewBox="0 0 24 24">
