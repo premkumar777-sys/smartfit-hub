@@ -43,6 +43,7 @@ export default function Auth() {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>("login");
 
   useEffect(() => {
     // Check if user is already logged in
@@ -393,16 +394,19 @@ export default function Auth() {
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-full flex items-center justify-center gap-3 h-12"
+                  className="w-full flex items-center justify-center gap-3 h-12 transition-all duration-300 hover:border-primary/50 hover:bg-primary/5 group relative overflow-hidden"
                   onClick={handleGoogleLogin}
                   disabled={isGoogleLoading}
                 >
+                  <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
                   {isGoogleLoading ? (
                     <Loader2 className="h-5 w-5 animate-spin" />
                   ) : (
                     <GoogleIcon />
                   )}
-                  Continue with Google
+                  <span className="relative z-10">
+                    {activeTab === "login" ? "Sign in with Google" : "Sign up with Google"}
+                  </span>
                 </Button>
 
                 <div className="relative">
@@ -416,7 +420,7 @@ export default function Auth() {
                   </div>
                 </div>
 
-                <Tabs defaultValue="login" className="w-full">
+                <Tabs defaultValue="login" className="w-full" onValueChange={(value) => setActiveTab(value)}>
                   <TabsList className="grid w-full grid-cols-2 mb-4">
                     <TabsTrigger value="login">Login</TabsTrigger>
                     <TabsTrigger value="signup">Sign Up</TabsTrigger>
