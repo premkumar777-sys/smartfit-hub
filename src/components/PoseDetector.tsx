@@ -589,10 +589,8 @@ export default function PoseDetector() {
       // Always update debug angles and draw keypoints/skeleton
       updateDebugAngles(keypointsToDraw);
 
-      // Draw skeleton first (so keypoints appear on top)
-      if (poses.length > 0) {
-        drawSkeleton(keypointsToDraw, ctx);
-      }
+      // Always draw skeleton (inner checks will handle scores)
+      drawSkeleton(keypointsToDraw, ctx);
 
       // Draw keypoints
       drawKeypoints(keypointsToDraw, ctx);
@@ -600,12 +598,8 @@ export default function PoseDetector() {
       // Draw angles dynamically on canvas near joints
       drawAnglesOnCanvas(keypointsToDraw, ctx);
 
-      // Show accuracy indicator or low confidence message
-      if (poses.length > 0 && avgScore > 0) {
-        drawAccuracyIndicator(avgScore, ctx, canvas);
-      } else {
-        drawLowConfidenceIndicator(ctx, canvas);
-      }
+      // Always show accuracy indicator (0% if no detections)
+      drawAccuracyIndicator(avgScore, ctx, canvas);
 
       // Draw celebration effect if active
       if (repCelebration) {
@@ -662,29 +656,7 @@ export default function PoseDetector() {
     ctx.fillText("Accuracy", centerX, centerY + 20);
   };
 
-  const drawLowConfidenceIndicator = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {
-    const centerX = canvas.width - 100;
-    const centerY = 120;
 
-    // Small indicator background
-    ctx.fillStyle = "rgba(255, 152, 0, 0.9)";
-    ctx.fillRect(centerX - 80, centerY - 25, 160, 50);
-
-    // Border
-    ctx.strokeStyle = "#FF6B35";
-    ctx.lineWidth = 2;
-    ctx.strokeRect(centerX - 80, centerY - 25, 160, 50);
-
-    // Text
-    ctx.fillStyle = "#FFFFFF";
-    ctx.font = "bold 14px Arial";
-    ctx.textAlign = "center";
-    ctx.fillText("🔍 Detecting...", centerX, centerY - 5);
-
-    ctx.fillStyle = "#FFFFFF";
-    ctx.font = "12px Arial";
-    ctx.fillText("Low confidence", centerX, centerY + 15);
-  };
 
   const drawRepCelebration = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {
     const centerX = canvas.width / 2;
