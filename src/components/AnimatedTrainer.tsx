@@ -28,34 +28,36 @@ export function AnimatedTrainer({ exercise, isAnimating }: AnimatedTrainerProps)
   const leftCalfRef = useRef<THREE.Mesh>(null);
   const rightCalfRef = useRef<THREE.Mesh>(null);
 
-  // Holographic blue material for the body
-  const bodyMaterial = useMemo(() => new THREE.MeshStandardMaterial({
-    color: '#4CC9F0',
-    transparent: true,
-    opacity: 0.35,
-    roughness: 0.3,
-    metalness: 0.8,
-    emissive: '#4CC9F0',
-    emissiveIntensity: 0.2,
+  // Solid anatomical gray material (matches reference image)
+  const anatomicalMaterial = useMemo(() => new THREE.MeshStandardMaterial({
+    color: '#d1d5db',
+    roughness: 0.5,
+    metalness: 0.2,
   }), []);
 
-  // Glowing joint nodes
-  const jointMaterial = useMemo(() => new THREE.MeshStandardMaterial({
+  // Highlight material for active muscles
+  const highlightMaterial = useMemo(() => new THREE.MeshStandardMaterial({
     color: '#00FF9C',
     emissive: '#00FF9C',
-    emissiveIntensity: 1.5,
+    emissiveIntensity: 2,
     transparent: true,
     opacity: 0.9,
   }), []);
 
-  // Skeletal segment material
-  const skeletonMaterial = useMemo(() => new THREE.MeshStandardMaterial({
-    color: '#00FF9C',
-    transparent: true,
-    opacity: 0.5,
-    emissive: '#00FF9C',
-    emissiveIntensity: 0.5,
-  }), []);
+  // Map exercises to target muscles
+  const activeMuscles = useMemo(() => {
+    switch (exercise) {
+      case 'pushup': return ['chest', 'abs', 'arms'];
+      case 'squat': return ['legs', 'abs'];
+      case 'bicepCurl': return ['arms'];
+      default: return [];
+    }
+  }, [exercise]);
+
+  // Helper to determine material for a muscle group
+  const getMaterial = (groupName: string) => {
+    return isAnimating && activeMuscles.includes(groupName) ? highlightMaterial : anatomicalMaterial;
+  };
 
   // Animation logic
   useFrame((_, delta) => {
@@ -176,238 +178,101 @@ export function AnimatedTrainer({ exercise, isAnimating }: AnimatedTrainerProps)
 
   return (
     <group ref={groupRef}>
-      {/* ===== TORSO - Holographic blueprint ===== */}
+      {/* ===== TORSO & CORE ===== */}
       <mesh ref={torsoRef} position={[0, 0.6, 0]}>
-        <capsuleGeometry args={[0.32, 0.55, 12, 20]} />
-        <primitive object={bodyMaterial} />
+        <capsuleGeometry args={[0.3, 0.5, 12, 16]} />
+        <primitive object={anatomicalMaterial} />
       </mesh>
 
-      {/* Lower torso area */}
-      <mesh position={[0, 0.2, 0]}>
-        <capsuleGeometry args={[0.25, 0.25, 12, 16]} />
-        <primitive object={bodyMaterial} />
+      {/* Abdominals (Core) - 6 Pack Highlight */}
+      <group position={[0, 0.45, 0.15]}>
+        {[0, 1, 2].map((i) => (
+          <group key={i} position={[0, -i * 0.12, 0]}>
+            <mesh position={[0.07, 0, 0]}>
+              <capsuleGeometry args={[0.05, 0.04, 8, 8]} />
+              <primitive object={getMaterial('abs')} />
+            </mesh>
+            <mesh position={[-0.07, 0, 0]}>
+              <capsuleGeometry args={[0.05, 0.04, 8, 8]} />
+              <primitive object={getMaterial('abs')} />
+            </mesh>
+          </group>
+        ))}
+      </group>
+
+      {/* Pectorals (Chest) */}
+      <mesh position={[0.13, 0.75, 0.2]} rotation={[0, 0.2, 0]}>
+        <sphereGeometry args={[0.15, 12, 12]} />
+        <primitive object={getMaterial('chest')} />
+      </mesh>
+      <mesh position={[-0.13, 0.75, 0.2]} rotation={[0, -0.2, 0]}>
+        <sphereGeometry args={[0.15, 12, 12]} />
+        <primitive object={getMaterial('chest')} />
       </mesh>
 
       {/* ===== HEAD ===== */}
-      <mesh ref={headRef} position={[0, 1.35, 0]}>
-        <sphereGeometry args={[0.18, 20, 20]} />
-        <primitive object={bodyMaterial} />
+      <mesh position={[0, 1.35, 0]}>
+        <sphereGeometry args={[0.18, 16, 16]} />
+        <primitive object={anatomicalMaterial} />
       </mesh>
-
-      {/* Neck Joint Node */}
       <mesh position={[0, 1.1, 0]}>
-        <sphereGeometry args={[0.06, 12, 12]} />
-        <primitive object={jointMaterial} />
+        <cylinderGeometry args={[0.08, 0.1, 0.2, 12]} />
+        <primitive object={anatomicalMaterial} />
       </mesh>
 
-      {/* ===== JOINTS & SKELETON (Picture 2 Style) ===== */}
-
-      {/* Center Spine Line */}
-      <mesh position={[0, 0.65, 0]}>
-        <cylinderGeometry args={[0.02, 0.02, 0.9, 8]} />
-        <primitive object={skeletonMaterial} />
-      </mesh>
-
-      {/* Shoulder Line */}
-      <mesh position={[0, 0.88, 0]} rotation={[0, 0, Math.PI / 2]}>
-        <cylinderGeometry args={[0.02, 0.02, 0.9, 8]} />
-        <primitive object={skeletonMaterial} />
-      </mesh>
-
-      {/* Shoulder Joint Nodes */}
-      <mesh position={[0.45, 0.88, 0]}>
-        <sphereGeometry args={[0.08, 16, 16]} />
-        <primitive object={jointMaterial} />
-      </mesh>
-      <mesh position={[-0.45, 0.88, 0]}>
-        <sphereGeometry args={[0.08, 16, 16]} />
-        <primitive object={jointMaterial} />
-      </mesh>
-
-      {/* ===== LEFT ARM - Skeletal ===== */}
+      {/* ===== ARMS & HIGHLIGHTS ===== */}
       <group ref={leftArmRef} position={[0.45, 0.88, 0]} rotation={[0, 0, 0.12]}>
-        {/* Upper arm body */}
-        <mesh position={[0.08, -0.18, 0]}>
-          <capsuleGeometry args={[0.1, 0.28, 12, 12]} />
-          <primitive object={bodyMaterial} />
+        {/* Upper Arm / Bicep Highlight */}
+        <mesh position={[0.08, -0.2, 0]}>
+          <capsuleGeometry args={[0.11, 0.3, 12, 12]} />
+          <primitive object={getMaterial('arms')} />
         </mesh>
-
-        {/* Upper arm bone */}
-        <mesh position={[0.08, -0.18, 0]}>
-          <cylinderGeometry args={[0.015, 0.015, 0.35, 8]} />
-          <primitive object={skeletonMaterial} />
+        <mesh ref={leftForearmRef} position={[0.08, -0.55, 0]}>
+          <capsuleGeometry args={[0.07, 0.3, 10, 10]} />
+          <primitive object={getMaterial('arms')} />
         </mesh>
-
-        {/* Elbow Joint Node */}
-        <group position={[0.08, -0.4, 0]}>
-          <mesh>
-            <sphereGeometry args={[0.07, 16, 16]} />
-            <primitive object={jointMaterial} />
-          </mesh>
-
-          {/* Forearm body */}
-          <mesh ref={leftForearmRef} position={[0, -0.2, 0]}>
-            <capsuleGeometry args={[0.065, 0.28, 10, 10]} />
-            <primitive object={bodyMaterial} />
-          </mesh>
-
-          {/* Forearm bone */}
-          <mesh position={[0, -0.2, 0]}>
-            <cylinderGeometry args={[0.015, 0.015, 0.35, 8]} />
-            <primitive object={skeletonMaterial} />
-          </mesh>
-
-          {/* Wrist Joint Node */}
-          <mesh position={[0, -0.4, 0]}>
-            <sphereGeometry args={[0.05, 12, 12]} />
-            <primitive object={jointMaterial} />
-          </mesh>
-        </group>
       </group>
 
-      {/* ===== RIGHT ARM - Skeletal ===== */}
       <group ref={rightArmRef} position={[-0.45, 0.88, 0]} rotation={[0, 0, -0.12]}>
-        {/* Upper arm body */}
-        <mesh position={[-0.08, -0.18, 0]}>
-          <capsuleGeometry args={[0.1, 0.28, 12, 12]} />
-          <primitive object={bodyMaterial} />
+        {/* Upper Arm / Bicep Highlight */}
+        <mesh position={[-0.08, -0.2, 0]}>
+          <capsuleGeometry args={[0.11, 0.3, 12, 12]} />
+          <primitive object={getMaterial('arms')} />
         </mesh>
-
-        {/* Upper arm bone */}
-        <mesh position={[-0.08, -0.18, 0]}>
-          <cylinderGeometry args={[0.015, 0.015, 0.35, 8]} />
-          <primitive object={skeletonMaterial} />
+        <mesh ref={rightForearmRef} position={[-0.08, -0.55, 0]}>
+          <capsuleGeometry args={[0.07, 0.3, 10, 10]} />
+          <primitive object={getMaterial('arms')} />
         </mesh>
-
-        {/* Elbow Joint Node */}
-        <group position={[-0.08, -0.4, 0]}>
-          <mesh>
-            <sphereGeometry args={[0.07, 16, 16]} />
-            <primitive object={jointMaterial} />
-          </mesh>
-
-          {/* Forearm body */}
-          <mesh ref={rightForearmRef} position={[0, -0.2, 0]}>
-            <capsuleGeometry args={[0.065, 0.28, 10, 10]} />
-            <primitive object={bodyMaterial} />
-          </mesh>
-
-          {/* Forearm bone */}
-          <mesh position={[0, -0.2, 0]}>
-            <cylinderGeometry args={[0.015, 0.015, 0.35, 8]} />
-            <primitive object={skeletonMaterial} />
-          </mesh>
-
-          {/* Wrist Joint Node */}
-          <mesh position={[0, -0.4, 0]}>
-            <sphereGeometry args={[0.05, 12, 12]} />
-            <primitive object={jointMaterial} />
-          </mesh>
-        </group>
       </group>
 
-      {/* ===== HIPS / PELVIS ===== */}
-      <mesh position={[0, -0.08, 0]}>
-        <capsuleGeometry args={[0.22, 0.18, 12, 16]} />
-        <primitive object={bodyMaterial} />
+      {/* ===== HIPS & LEGS ===== */}
+      <mesh position={[0, 0.1, 0]}>
+        <capsuleGeometry args={[0.22, 0.2, 12, 12]} />
+        <primitive object={anatomicalMaterial} />
       </mesh>
 
-      {/* Hip Line */}
-      <mesh position={[0, -0.08, 0]} rotation={[0, 0, Math.PI / 2]}>
-        <cylinderGeometry args={[0.02, 0.02, 0.4, 8]} />
-        <primitive object={skeletonMaterial} />
-      </mesh>
-
-      {/* Hip Joint Nodes */}
-      <mesh position={[0.2, -0.08, 0]}>
-        <sphereGeometry args={[0.08, 16, 16]} />
-        <primitive object={jointMaterial} />
-      </mesh>
-      <mesh position={[-0.2, -0.08, 0]}>
-        <sphereGeometry args={[0.08, 16, 16]} />
-        <primitive object={jointMaterial} />
-      </mesh>
-
-      {/* ===== LEFT LEG - Skeletal ===== */}
-      <group ref={leftLegRef} position={[0.2, -0.08, 0]}>
-        {/* Thigh body */}
-        <mesh position={[0, -0.3, 0]}>
-          <capsuleGeometry args={[0.13, 0.4, 12, 12]} />
-          <primitive object={bodyMaterial} />
+      <group ref={leftLegRef} position={[0.18, -0.1, 0]}>
+        {/* Thigh / Quad Highlight */}
+        <mesh position={[0, -0.35, 0]}>
+          <capsuleGeometry args={[0.14, 0.45, 12, 12]} />
+          <primitive object={getMaterial('legs')} />
         </mesh>
-
-        {/* Thigh bone */}
-        <mesh position={[0, -0.3, 0]}>
-          <cylinderGeometry args={[0.02, 0.02, 0.5, 8]} />
-          <primitive object={skeletonMaterial} />
+        <mesh ref={leftCalfRef} position={[0, -0.85, 0]}>
+          <capsuleGeometry args={[0.09, 0.45, 10, 10]} />
+          <primitive object={anatomicalMaterial} />
         </mesh>
-
-        {/* Knee Joint Node */}
-        <group position={[0, -0.6, 0]}>
-          <mesh>
-            <sphereGeometry args={[0.09, 16, 16]} />
-            <primitive object={jointMaterial} />
-          </mesh>
-
-          {/* Calf body */}
-          <mesh ref={leftCalfRef} position={[0, -0.3, 0]}>
-            <capsuleGeometry args={[0.085, 0.4, 10, 10]} />
-            <primitive object={bodyMaterial} />
-          </mesh>
-
-          {/* Calf bone */}
-          <mesh position={[0, -0.3, 0]}>
-            <cylinderGeometry args={[0.02, 0.02, 0.5, 8]} />
-            <primitive object={skeletonMaterial} />
-          </mesh>
-
-          {/* Ankle Joint Node */}
-          <mesh position={[0, -0.6, 0]}>
-            <sphereGeometry args={[0.06, 12, 12]} />
-            <primitive object={jointMaterial} />
-          </mesh>
-        </group>
       </group>
 
-      {/* ===== RIGHT LEG - Skeletal ===== */}
-      <group ref={rightLegRef} position={[-0.2, -0.08, 0]}>
-        {/* Thigh body */}
-        <mesh position={[0, -0.3, 0]}>
-          <capsuleGeometry args={[0.13, 0.4, 12, 12]} />
-          <primitive object={bodyMaterial} />
+      <group ref={rightLegRef} position={[-0.18, -0.1, 0]}>
+        {/* Thigh / Quad Highlight */}
+        <mesh position={[0, -0.35, 0]}>
+          <capsuleGeometry args={[0.14, 0.45, 12, 12]} />
+          <primitive object={getMaterial('legs')} />
         </mesh>
-
-        {/* Thigh bone */}
-        <mesh position={[0, -0.3, 0]}>
-          <cylinderGeometry args={[0.02, 0.02, 0.5, 8]} />
-          <primitive object={skeletonMaterial} />
+        <mesh ref={rightCalfRef} position={[0, -0.85, 0]}>
+          <capsuleGeometry args={[0.09, 0.45, 10, 10]} />
+          <primitive object={anatomicalMaterial} />
         </mesh>
-
-        {/* Knee Joint Node */}
-        <group position={[0, -0.6, 0]}>
-          <mesh>
-            <sphereGeometry args={[0.09, 16, 16]} />
-            <primitive object={jointMaterial} />
-          </mesh>
-
-          {/* Calf body */}
-          <mesh ref={rightCalfRef} position={[0, -0.3, 0]}>
-            <capsuleGeometry args={[0.085, 0.4, 10, 10]} />
-            <primitive object={bodyMaterial} />
-          </mesh>
-
-          {/* Calf bone */}
-          <mesh position={[0, -0.3, 0]}>
-            <cylinderGeometry args={[0.02, 0.02, 0.5, 8]} />
-            <primitive object={skeletonMaterial} />
-          </mesh>
-
-          {/* Ankle Joint Node */}
-          <mesh position={[0, -0.6, 0]}>
-            <sphereGeometry args={[0.06, 12, 12]} />
-            <primitive object={jointMaterial} />
-          </mesh>
-        </group>
       </group>
     </group>
   );
