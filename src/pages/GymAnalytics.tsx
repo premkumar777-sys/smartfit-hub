@@ -11,7 +11,7 @@ import {
   Users, TrendingUp, DollarSign, Activity, Target,
   AlertTriangle, Zap, Clock, BarChart3, PieChart,
   Brain, Lightbulb, ArrowUpRight, ArrowDownRight,
-  Dumbbell, Calendar, Trophy, Heart, Flame
+  Dumbbell, Calendar, Trophy, Heart, Flame, ArrowLeft
 } from "lucide-react";
 import {
   AreaChart, Area, BarChart, Bar, LineChart, Line,
@@ -177,6 +177,11 @@ export default function GymAnalytics() {
   return (
     <div className="min-h-screen bg-background pt-20 pb-12">
       <div className="container mx-auto px-4 max-w-7xl">
+        <button onClick={() => navigate(-1)} className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors mb-6" aria-label="Go back">
+          <ArrowLeft className="w-4 h-4 mr-2" aria-hidden="true" />
+          Back
+        </button>
+
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
           <div>
