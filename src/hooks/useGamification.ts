@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 // Types
 export type AchievementId =
@@ -78,25 +79,70 @@ export function useGamification() {
     const [data, setData] = useState<GamificationData>(defaultData);
     const [isLoaded, setIsLoaded] = useState(false);
 
-    // Load data from localStorage on mount
+    // Load data from Supabase and localStorage on mount
     useEffect(() => {
-        const stored = localStorage.getItem(STORAGE_KEY);
-        if (stored) {
-            try {
-                const parsed = JSON.parse(stored);
-                setData({ ...defaultData, ...parsed });
-            } catch {
-                setData(defaultData);
+        const loadData = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+
+            // Try loading from localStorage first for immediate UI
+            const stored = localStorage.getItem(STORAGE_KEY);
+            let initialData = defaultData;
+            if (stored) {
+                try {
+                    initialData = { ...defaultData, ...JSON.parse(stored) };
+                } catch (e) {
+                    console.error("Error parsing stored gamification data", e);
+                }
             }
-        }
-        setIsLoaded(true);
+
+            if (session) {
+                // Fetch from Supabase
+                const { data: profile, error } = await supabase
+                    .from("profiles")
+                    .select("xp, level, streak, avatar_emoji")
+                    .eq("id", session.user.id)
+                    .single();
+
+                if (!error && profile) {
+                    initialData = {
+                        ...initialData,
+                        xp: profile.xp || initialData.xp,
+                        currentStreak: profile.streak || initialData.currentStreak,
+                    };
+                }
+            }
+
+            setData(initialData);
+            setIsLoaded(true);
+        };
+
+        loadData();
     }, []);
 
-    // Save data to localStorage whenever it changes
+    // Save data to Supabase and localStorage
     useEffect(() => {
-        if (isLoaded) {
+        if (!isLoaded) return;
+
+        const saveData = async () => {
+            // Always save to localStorage
             localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-        }
+
+            // Save to Supabase if authenticated
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                const level = getLevelFromXP(data.xp);
+                await supabase
+                    .from("profiles")
+                    .update({
+                        xp: data.xp,
+                        level: level,
+                        streak: data.currentStreak,
+                    })
+                    .eq("id", session.user.id);
+            }
+        };
+
+        saveData();
     }, [data, isLoaded]);
 
     // Check and update streak

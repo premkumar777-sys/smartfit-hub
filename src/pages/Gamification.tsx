@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -27,40 +28,6 @@ const achievementIcons: Record<string, React.ElementType> = {
     "progress-logger": BarChart3,
 };
 
-// Leaderboard entry type
-interface LeaderboardEntry {
-    rank: number;
-    name: string;
-    xp: number;
-    level: number;
-    streak: number;
-    avatar: string;
-    isCurrentUser?: boolean;
-}
-
-// Leaderboard data (mock - in production this would come from database)
-const generateLeaderboard = (userXP: number, userLevel: number, userStreak: number): LeaderboardEntry[] => {
-    const entries: LeaderboardEntry[] = [
-        { rank: 1, name: "FitnessPro", xp: 15420, level: 52, streak: 45, avatar: "🏆" },
-        { rank: 2, name: "GymMaster", xp: 12850, level: 43, streak: 38, avatar: "💪" },
-        { rank: 3, name: "WorkoutKing", xp: 11200, level: 38, streak: 30, avatar: "🔥" },
-        { rank: 4, name: "HealthyLife", xp: 8100, level: 28, streak: 25, avatar: "🌟" },
-        { rank: 5, name: "FitJourney", xp: 5850, level: 20, streak: 18, avatar: "🎯" },
-        { rank: 6, name: "StrongMind", xp: 3620, level: 13, streak: 12, avatar: "💎" },
-    ];
-
-    // Add user entry
-    const allEntries: LeaderboardEntry[] = [
-        ...entries,
-        { rank: 0, name: "You", xp: userXP, level: userLevel, streak: userStreak, avatar: "⭐", isCurrentUser: true }
-    ];
-
-    // Sort by XP and assign ranks
-    return allEntries
-        .sort((a, b) => b.xp - a.xp)
-        .map((entry, idx) => ({ ...entry, rank: idx + 1 }))
-        .slice(0, 8);
-};
 
 // Helper functions for UI
 const getRarityColor = (rarity: string) => {
@@ -88,12 +55,43 @@ export default function Gamification() {
     const [selectedCategory, setSelectedCategory] = useState<string>("all");
     const [animateXP, setAnimateXP] = useState(false);
 
-    // Generate leaderboard with user's data
-    const leaderboard = generateLeaderboard(
-        gamification.xp,
-        gamification.level,
-        gamification.currentStreak
-    );
+    const [leaderboard, setLeaderboard] = useState<any[]>([]);
+    const [isLoadingLeaderboard, setIsLoadingLeaderboard] = useState(true);
+
+    const fetchLeaderboard = useCallback(async () => {
+        setIsLoadingLeaderboard(true);
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            const { data, error } = await supabase
+                .from("profiles")
+                .select("id, username, xp, level, streak, avatar_emoji")
+                .order("xp", { ascending: false })
+                .limit(10);
+
+            if (error) throw error;
+
+            if (data) {
+                const formattedData = data.map((profile: any, index: number) => ({
+                    rank: index + 1,
+                    name: profile.username || "Anonymous Hero",
+                    xp: profile.xp || 0,
+                    level: profile.level || 1,
+                    streak: profile.streak || 0,
+                    avatar: profile.avatar_emoji || "👤",
+                    isCurrentUser: session?.user?.id === profile.id
+                }));
+                setLeaderboard(formattedData);
+            }
+        } catch (error) {
+            console.error("Error fetching leaderboard:", error);
+        } finally {
+            setIsLoadingLeaderboard(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchLeaderboard();
+    }, [fetchLeaderboard]);
 
     // Build achievements with unlock status from hook
     const achievements = ACHIEVEMENTS.map(a => ({
