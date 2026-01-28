@@ -23,7 +23,10 @@ import {
     LogOut,
     Crown,
     Loader2,
-    CheckCircle
+    CheckCircle,
+    Camera,
+    MapPin,
+    BookOpen
 } from "lucide-react";
 import { toast } from "sonner";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -71,7 +74,11 @@ export default function Profile() {
 
     // Edit form state
     const [editUsername, setEditUsername] = useState("");
+    const [editFullName, setEditFullName] = useState("");
+    const [editBio, setEditBio] = useState("");
+    const [editLocation, setEditLocation] = useState("");
     const [editGoal, setEditGoal] = useState("");
+    const [uploading, setUploading] = useState(false);
 
     // Streak state
     const [streak, setStreak] = useState<StreakData>({
@@ -160,6 +167,9 @@ export default function Profile() {
                 if (profileData) {
                     setProfile(profileData);
                     setEditUsername(profileData.username || "");
+                    setEditFullName(profileData.full_name || "");
+                    setEditBio(profileData.bio || "");
+                    setEditLocation(profileData.location || "");
                     setEditGoal(profileData.fitness_goal || "");
                 }
 
@@ -194,6 +204,9 @@ export default function Profile() {
                 .from('profiles')
                 .update({
                     username: editUsername,
+                    full_name: editFullName,
+                    bio: editBio,
+                    location: editLocation,
                     fitness_goal: editGoal,
                     updated_at: new Date().toISOString()
                 })
@@ -204,6 +217,9 @@ export default function Profile() {
             setProfile(prev => prev ? {
                 ...prev,
                 username: editUsername,
+                full_name: editFullName,
+                bio: editBio,
+                location: editLocation,
                 fitness_goal: editGoal
             } : null);
 
@@ -214,6 +230,43 @@ export default function Profile() {
             toast.error("Failed to update profile");
         } finally {
             setSaving(false);
+        }
+    };
+
+    const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        try {
+            setUploading(true);
+            if (!event.target.files || event.target.files.length === 0) {
+                throw new Error("You must select an image to upload.");
+            }
+
+            const file = event.target.files[0];
+            const fileExt = file.name.split(".").pop();
+            const filePath = `${user.id}/${Math.random()}.${fileExt}`;
+
+            const { error: uploadError } = await supabase.storage
+                .from("avatars")
+                .upload(filePath, file);
+
+            if (uploadError) throw uploadError;
+
+            const { data: { publicUrl } } = supabase.storage
+                .from("avatars")
+                .getPublicUrl(filePath);
+
+            const { error: updateError } = await supabase
+                .from("profiles")
+                .update({ avatar_url: publicUrl })
+                .eq("user_id", user.id);
+
+            if (updateError) throw updateError;
+
+            setProfile(prev => prev ? { ...prev, avatar_url: publicUrl } : null);
+            toast.success("Avatar updated successfully!");
+        } catch (error: any) {
+            toast.error(error.message);
+        } finally {
+            setUploading(false);
         }
     };
 
@@ -253,14 +306,30 @@ export default function Profile() {
                         <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
                             {/* Avatar */}
                             <div className="relative">
-                                <Avatar className="w-24 h-24 border-4 border-primary/30">
+                                <Avatar className="w-24 h-24 border-4 border-primary/30 relative">
                                     <AvatarImage src={profile?.avatar_url || undefined} />
                                     <AvatarFallback className="bg-primary/20 text-primary text-2xl font-bold">
                                         {initials}
                                     </AvatarFallback>
+                                    {isEditing && (
+                                        <label className="absolute inset-0 flex items-center justify-center bg-black/60 rounded-full cursor-pointer opacity-0 hover:opacity-100 transition-opacity">
+                                            {uploading ? (
+                                                <Loader2 className="w-6 h-6 animate-spin text-white" />
+                                            ) : (
+                                                <Camera className="w-6 h-6 text-white" />
+                                            )}
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                className="hidden"
+                                                onChange={handleAvatarUpload}
+                                                disabled={uploading}
+                                            />
+                                        </label>
+                                    )}
                                 </Avatar>
                                 {hasPremiumAccess && (
-                                    <div className="absolute -top-1 -right-1 bg-yellow-500 rounded-full p-1">
+                                    <div className="absolute -top-1 -right-1 bg-yellow-500 rounded-full p-1 z-10">
                                         <Crown className="w-4 h-4 text-black" />
                                     </div>
                                 )}
@@ -269,21 +338,34 @@ export default function Profile() {
                             {/* Info */}
                             <div className="flex-1 text-center md:text-left">
                                 <div className="flex flex-col md:flex-row md:items-center gap-2 mb-2">
-                                    <h1 className="text-2xl font-bold">{profile?.username || "User"}</h1>
+                                    <h1 className="text-2xl font-bold">{profile?.full_name || profile?.username || "SmartFit User"}</h1>
                                     {hasPremiumAccess && (
                                         <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-black">
                                             Pro Member
                                         </Badge>
                                     )}
                                 </div>
-                                <p className="text-muted-foreground flex items-center justify-center md:justify-start gap-2">
-                                    <Mail className="w-4 h-4" />
-                                    {user?.email}
-                                </p>
-                                <p className="text-muted-foreground flex items-center justify-center md:justify-start gap-2 mt-1">
-                                    <Calendar className="w-4 h-4" />
-                                    Member since {new Date(profile?.created_at || Date.now()).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-                                </p>
+                                {profile?.bio && (
+                                    <p className="text-sm text-muted-foreground mb-3 max-w-md mx-auto md:mx-0">
+                                        {profile.bio}
+                                    </p>
+                                )}
+                                <div className="flex flex-col md:flex-row gap-x-4 gap-y-1">
+                                    <p className="text-sm text-muted-foreground flex items-center justify-center md:justify-start gap-2">
+                                        <Mail className="w-4 h-4" />
+                                        {user?.email}
+                                    </p>
+                                    {profile?.location && (
+                                        <p className="text-sm text-muted-foreground flex items-center justify-center md:justify-start gap-2">
+                                            <MapPin className="w-4 h-4" />
+                                            {profile.location}
+                                        </p>
+                                    )}
+                                    <p className="text-sm text-muted-foreground flex items-center justify-center md:justify-start gap-2">
+                                        <Calendar className="w-4 h-4" />
+                                        Joined {new Date(profile?.created_at || Date.now()).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                                    </p>
+                                </div>
                             </div>
 
                             {/* Actions */}
@@ -373,50 +455,75 @@ export default function Profile() {
                         <CardContent className="space-y-4">
                             {isEditing ? (
                                 <>
-                                    <div>
-                                        <Label>Username</Label>
-                                        <Input
-                                            value={editUsername}
-                                            onChange={(e) => setEditUsername(e.target.value)}
-                                            placeholder="Enter username"
-                                        />
-                                    </div>
-                                    <div>
-                                        <Label>Fitness Goal</Label>
-                                        <select
-                                            value={editGoal}
-                                            onChange={(e) => setEditGoal(e.target.value)}
-                                            className="w-full bg-background border border-input rounded-md px-3 py-2"
-                                        >
-                                            <option value="">Select a goal</option>
-                                            {FITNESS_GOALS.map(goal => (
-                                                <option key={goal} value={goal}>{goal}</option>
-                                            ))}
-                                        </select>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label>Username</Label>
+                                            <Input
+                                                value={editUsername}
+                                                onChange={(e) => setEditUsername(e.target.value)}
+                                                placeholder="Enter username"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>Full Name</Label>
+                                            <Input
+                                                value={editFullName}
+                                                onChange={(e) => setEditFullName(e.target.value)}
+                                                placeholder="Enter full name"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>Location</Label>
+                                            <Input
+                                                value={editLocation}
+                                                onChange={(e) => setEditLocation(e.target.value)}
+                                                placeholder="e.g. New York, USA"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>Fitness Goal</Label>
+                                            <select
+                                                value={editGoal}
+                                                onChange={(e) => setEditGoal(e.target.value)}
+                                                className="w-full bg-background border border-input rounded-md px-3 py-2 h-10"
+                                            >
+                                                <option value="">Select a goal</option>
+                                                {FITNESS_GOALS.map(goal => (
+                                                    <option key={goal} value={goal}>{goal}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className="space-y-2 md:col-span-2">
+                                            <Label>Bio</Label>
+                                            <textarea
+                                                value={editBio}
+                                                onChange={(e) => setEditBio(e.target.value)}
+                                                placeholder="Tell us about yourself..."
+                                                className="w-full min-h-[100px] bg-background border border-input rounded-md px-3 py-2"
+                                            />
+                                        </div>
                                     </div>
                                 </>
                             ) : (
                                 <>
                                     <div className="flex justify-between items-center py-2 border-b border-border/50">
+                                        <span className="text-muted-foreground">Full Name</span>
+                                        <span className="font-medium">{profile?.full_name || "Not set"}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center py-2 border-b border-border/50">
                                         <span className="text-muted-foreground">Username</span>
                                         <span className="font-medium">{profile?.username || "Not set"}</span>
                                     </div>
                                     <div className="flex justify-between items-center py-2 border-b border-border/50">
-                                        <span className="text-muted-foreground">Email</span>
-                                        <span className="font-medium">{user?.email}</span>
-                                    </div>
-                                    <div className="flex justify-between items-center py-2 border-b border-border/50">
-                                        <span className="text-muted-foreground">Fitness Goal</span>
+                                        <span className="text-muted-foreground">Location</span>
                                         <span className="font-medium flex items-center gap-2">
-                                            <Target className="w-4 h-4 text-primary" />
-                                            {profile?.fitness_goal || "Not set"}
+                                            <MapPin className="w-4 h-4 text-primary" />
+                                            {profile?.location || "Not set"}
                                         </span>
                                     </div>
                                     <div className="flex justify-between items-center py-2">
-                                        <span className="text-muted-foreground">Member Since</span>
-                                        <span className="font-medium">
-                                            {new Date(profile?.created_at || Date.now()).toLocaleDateString()}
-                                        </span>
+                                        <span className="text-muted-foreground">Bio</span>
+                                        <span className="font-medium text-right max-w-[60%]">{profile?.bio || "No bio yet"}</span>
                                     </div>
                                 </>
                             )}

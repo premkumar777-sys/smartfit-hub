@@ -19,15 +19,32 @@ export function AuthMenu() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    const fetchProfile = async (userId: string) => {
+      const { data } = await supabase
+        .from('profiles')
+        .select('username, avatar_url')
+        .eq('user_id', userId)
+        .single();
+
+      if (data) {
+        setUser(prev => prev ? {
+          ...prev,
+          username: data.username || prev.username,
+          avatar_url: data.avatar_url || prev.avatar_url
+        } : null);
+      }
+    };
+
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         setUser({
           id: session.user.id,
           email: session.user.email!,
-          username: (session.user as any).username || session.user.email!.split('@')[0],
-          avatar_url: (session.user as any).avatar_url,
+          username: session.user.email!.split('@')[0],
+          avatar_url: undefined,
         });
+        fetchProfile(session.user.id);
       }
     });
 
@@ -37,9 +54,10 @@ export function AuthMenu() {
         setUser({
           id: session.user.id,
           email: session.user.email!,
-          username: (session.user as any).username || session.user.email!.split('@')[0],
-          avatar_url: (session.user as any).avatar_url,
+          username: session.user.email!.split('@')[0],
+          avatar_url: undefined,
         });
+        fetchProfile(session.user.id);
       } else {
         setUser(null);
       }
