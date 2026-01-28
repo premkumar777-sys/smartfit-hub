@@ -137,66 +137,19 @@ export default function HomeWorkouts() {
                             Weekly Schedule
                         </h2>
 
+                        {/* Free Workout (Monday) */}
                         {workoutPlan.slice(0, 1).map((day, index) => (
-                            <Card key={day.day} className="glass border-primary/20 overflow-hidden">
-                                <button
-                                    onClick={() => toggleDay(index)}
-                                    className="w-full text-left"
-                                >
-                                    <CardHeader className="pb-2">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-3">
-                                                <div className={`w-3 h-12 rounded-full bg-gradient-to-b ${day.color}`} />
-                                                <div>
-                                                    <CardTitle className="text-lg">{day.day}</CardTitle>
-                                                    <CardDescription className="text-sm font-medium text-primary">
-                                                        {day.focus}
-                                                    </CardDescription>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <Badge variant="secondary" className="bg-primary/20 text-primary hover:bg-primary/30">Free</Badge>
-                                                <Badge variant="outline">{day.exercises.length} exercises</Badge>
-                                                {expandedDay === index ? (
-                                                    <ChevronUp className="w-5 h-5 text-muted-foreground" />
-                                                ) : (
-                                                    <ChevronDown className="w-5 h-5 text-muted-foreground" />
-                                                )}
-                                            </div>
-                                        </div>
-                                    </CardHeader>
-                                </button>
-
-                                {expandedDay === index && (
-                                    <CardContent className="pt-0">
-                                        <div className="border-t border-gray-800 pt-4 mt-2">
-                                            <div className="space-y-3">
-                                                {day.exercises.map((exercise, exIndex) => (
-                                                    <div
-                                                        key={exercise.name}
-                                                        className="flex items-center justify-between p-3 rounded-lg bg-gray-900/50 hover:bg-gray-900/70 transition-colors"
-                                                    >
-                                                        <div className="flex items-center gap-3">
-                                                            <span className="w-6 h-6 rounded-full bg-primary/20 text-primary text-xs flex items-center justify-center font-medium">
-                                                                {exIndex + 1}
-                                                            </span>
-                                                            <div>
-                                                                <p className="font-medium">{exercise.name}</p>
-                                                                {exercise.notes && (
-                                                                    <p className="text-xs text-muted-foreground">{exercise.notes}</p>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                        <Badge variant="secondary">{exercise.sets}</Badge>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </CardContent>
-                                )}
-                            </Card>
+                            <DayWorkoutCard
+                                key={day.day}
+                                day={day}
+                                index={index}
+                                expandedDay={expandedDay}
+                                toggleDay={toggleDay}
+                                isFree={true}
+                            />
                         ))}
 
+                        {/* Premium Workouts */}
                         <PremiumLock
                             title="Unlock Full 6-Day Program"
                             description="Get the complete weekly schedule including Pull, Legs, and Recovery routines."
@@ -208,36 +161,15 @@ export default function HomeWorkouts() {
                             ]}
                         >
                             <div className="space-y-4">
-                                {workoutPlan.slice(1).map((day, index) => {
-                                    // Adjust index since we sliced
-                                    const realIndex = index + 1;
-                                    return (
-                                        <Card key={day.day} className="glass border-primary/20 overflow-hidden opacity-75">
-                                            <button
-                                                className="w-full text-left cursor-not-allowed"
-                                                disabled
-                                            >
-                                                <CardHeader className="pb-2">
-                                                    <div className="flex items-center justify-between">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className={`w-3 h-12 rounded-full bg-gradient-to-b ${day.color}`} />
-                                                            <div>
-                                                                <CardTitle className="text-lg">{day.day}</CardTitle>
-                                                                <CardDescription className="text-sm font-medium text-primary">
-                                                                    {day.focus}
-                                                                </CardDescription>
-                                                            </div>
-                                                        </div>
-                                                        <div className="flex items-center gap-2">
-                                                            <Badge variant="outline" className="opacity-50">{day.exercises.length} exercises</Badge>
-                                                            <ChevronDown className="w-5 h-5 text-muted-foreground" />
-                                                        </div>
-                                                    </div>
-                                                </CardHeader>
-                                            </button>
-                                        </Card>
-                                    );
-                                })}
+                                {workoutPlan.slice(1).map((day, index) => (
+                                    <DayWorkoutCard
+                                        key={day.day}
+                                        day={day}
+                                        index={index + 1}
+                                        expandedDay={expandedDay}
+                                        toggleDay={toggleDay}
+                                    />
+                                ))}
                             </div>
                         </PremiumLock>
                     </div>
@@ -284,5 +216,77 @@ export default function HomeWorkouts() {
                 </div>
             </Container>
         </div>
+    );
+}
+
+interface DayWorkoutCardProps {
+    day: DayWorkout;
+    index: number;
+    expandedDay: number | null;
+    toggleDay: (index: number) => void;
+    isFree?: boolean;
+}
+
+function DayWorkoutCard({ day, index, expandedDay, toggleDay, isFree }: DayWorkoutCardProps) {
+    const isExpanded = expandedDay === index;
+
+    return (
+        <Card className={`glass border-primary/20 overflow-hidden transition-all duration-300 ${!isFree && !isExpanded ? 'opacity-90' : 'opacity-100'}`}>
+            <button
+                onClick={() => toggleDay(index)}
+                className="w-full text-left"
+            >
+                <CardHeader className="pb-2">
+                    <div className="flex items-center justify-between text-gray-300">
+                        <div className="flex items-center gap-3">
+                            <div className={`w-3 h-12 rounded-full bg-gradient-to-b ${day.color}`} />
+                            <div>
+                                <CardTitle className="text-lg">{day.day}</CardTitle>
+                                <CardDescription className="text-sm font-medium text-primary">
+                                    {day.focus}
+                                </CardDescription>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            {isFree && <Badge variant="secondary" className="bg-primary/20 text-primary hover:bg-primary/30">Free</Badge>}
+                            <Badge variant="outline">{day.exercises.length} exercises</Badge>
+                            {isExpanded ? (
+                                <ChevronUp className="w-5 h-5 text-muted-foreground" />
+                            ) : (
+                                <ChevronDown className="w-5 h-5 text-muted-foreground" />
+                            )}
+                        </div>
+                    </div>
+                </CardHeader>
+            </button>
+
+            {isExpanded && (
+                <CardContent className="pt-0">
+                    <div className="border-t border-gray-800 pt-4 mt-2">
+                        <div className="space-y-3">
+                            {day.exercises.map((exercise, exIndex) => (
+                                <div
+                                    key={exercise.name}
+                                    className="flex items-center justify-between p-3 rounded-lg bg-gray-900/50 hover:bg-gray-900/70 transition-colors"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <span className="w-6 h-6 rounded-full bg-primary/20 text-primary text-xs flex items-center justify-center font-medium">
+                                            {exIndex + 1}
+                                        </span>
+                                        <div>
+                                            <p className="font-medium text-gray-300">{exercise.name}</p>
+                                            {exercise.notes && (
+                                                <p className="text-xs text-muted-foreground">{exercise.notes}</p>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <Badge variant="secondary">{exercise.sets}</Badge>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </CardContent>
+            )}
+        </Card>
     );
 }
