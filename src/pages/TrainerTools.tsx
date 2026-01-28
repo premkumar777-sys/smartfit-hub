@@ -453,6 +453,7 @@ export default function TrainerTools() {
         <div className="min-h-screen bg-background pt-20 pb-12">
             <Container>
                 <BusinessPremiumLock
+                    lockType="trainer"
                     requireTrainer={true}
                     title="Unlock Business Tools"
                     description="Professional trainers get unlimited clients, advanced analytics, and revenue tracking."

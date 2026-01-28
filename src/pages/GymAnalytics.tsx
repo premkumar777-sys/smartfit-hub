@@ -209,6 +209,7 @@ export default function GymAnalytics() {
         </div>
 
         <BusinessPremiumLock
+          lockType="management"
           title="Gym Business Analytics"
           description="Unlock deep insights into your gym's performance, member retention, and revenue growth."
           features={[
