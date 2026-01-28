@@ -21,6 +21,7 @@ import CameraOffWorkout from "./pages/CameraOffWorkout";
 import Profile from "./pages/Profile";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import VerifyPayment from "./pages/VerifyPayment";
+import Settings from "./pages/Settings";
 
 import GymAnalytics from "./pages/GymAnalytics";
 import TrainerTools from "./pages/TrainerTools";
@@ -134,6 +135,7 @@ const App = () => {
                 <Route path="/bmi-calculator" element={<BMICalculator />} />
                 <Route path="/3d-trainer" element={<CameraOffWorkout />} />
                 <Route path="/profile" element={<Profile />} />
+                <Route path="/settings" element={<Settings />} />
 
                 <Route path="/gym-analytics" element={<GymAnalytics />} />
                 <Route path="/gym-analytics/ai" element={<GymAnalytics />} />
