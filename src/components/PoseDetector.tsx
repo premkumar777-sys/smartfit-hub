@@ -4,7 +4,7 @@ import * as poseDetection from "@tensorflow-models/pose-detection";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Camera, StopCircle, RotateCcw, ChevronDown, Volume2, VolumeX, Bug } from "lucide-react";
+import { Camera, StopCircle, RotateCcw, ChevronDown, Volume2, VolumeX, Bug, Save, Loader2, Target } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -536,31 +536,16 @@ export default function PoseDetector() {
       let poses: poseDetection.Pose[] = [];
       if (detector) {
         try {
-          // Debug: Check if video is ready
-          console.log("Video state - readyState:", video.readyState, "networkState:", video.networkState, "dimensions:", video.videoWidth, "x", video.videoHeight);
-
-          if (video.readyState >= 2 && video.videoWidth > 0 && video.videoHeight > 0) { // HAVE_CURRENT_DATA or better
-            console.log("Attempting pose detection...");
+          if (video.readyState >= 2 && video.videoWidth > 0 && video.videoHeight > 0) {
             poses = await detector.estimatePoses(video, {
               maxPoses: 1,
               flipHorizontal: false,
-              scoreThreshold: 0.05, // Super low threshold for better persistence
+              scoreThreshold: 0.35, // MoveNet recommended threshold
             });
-            console.log("Poses detected:", poses.length);
-            if (poses.length > 0) {
-              console.log("First pose keypoints:", poses[0].keypoints.length);
-              console.log("Keypoint scores:", poses[0].keypoints.map(kp => kp.score));
-            }
-          } else {
-            console.log("Video not ready for pose detection");
           }
         } catch (error) {
           console.error("Pose detection error:", error);
-          console.error("Error stack:", error.stack);
-          // Continue with empty poses if detection fails
         }
-      } else {
-        console.log("Detector not available - model not loaded yet");
       }
 
       // Always try to process keypoints, even if no full pose detected
@@ -571,18 +556,14 @@ export default function PoseDetector() {
         const pose = poses[0];
         keypointsToDraw = pose.keypoints;
         avgScore = calculateAverageScore(pose.keypoints);
-        const validKeypoints = pose.keypoints.filter(kp => kp.score && kp.score > 0.05).length;
-
-        console.log("Pose detected with", validKeypoints, "valid keypoints, avg score:", avgScore);
+        const validKeypoints = pose.keypoints.filter(kp => kp.score && kp.score > 0.35).length;
 
         updateFormQuality(avgScore);
 
-        // Only count reps if we have enough valid keypoints for the exercise
-        if (validKeypoints >= 8) { // Require at least 8 keypoints for basic pose detection
+        if (validKeypoints >= 8) {
           countReps(pose.keypoints);
         }
       } else {
-        // Create empty keypoints array to show we're trying to detect
         keypointsToDraw = Array.from({ length: 17 }, (_, i) => ({
           x: 0,
           y: 0,
@@ -592,7 +573,8 @@ export default function PoseDetector() {
             'left_knee', 'right_knee', 'left_ankle', 'right_ankle'][i] as any
         }));
 
-        console.log("No pose detected - showing empty keypoints for reference");
+        // Reset form quality if no one is in view
+        setFormQuality(null);
       }
 
       // Always update debug angles and draw keypoints/skeleton
@@ -623,6 +605,7 @@ export default function PoseDetector() {
 
   const calculateAverageScore = (keypoints: poseDetection.Keypoint[]): number => {
     const scores = keypoints.filter(kp => kp.score !== undefined).map(kp => kp.score!);
+    if (scores.length === 0) return 0;
     return scores.reduce((a, b) => a + b, 0) / scores.length;
   };
 
