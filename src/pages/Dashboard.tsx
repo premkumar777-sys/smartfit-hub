@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Container } from "@/components/Container";
-import { Activity, Apple, Dumbbell, Target, TrendingUp, FileText, Trash2 } from "lucide-react";
+import { Activity, Apple, Dumbbell, Target, TrendingUp, FileText, Trash2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import type { Tables } from "@/integrations/supabase/types";
@@ -150,8 +150,9 @@ const Dashboard = () => {
                 Start Workout
               </Link>
             </Button>
-            <Button variant="glass" size="lg" onClick={handleLogout}>
-              Logout
+            <Button variant="ghost" size="lg" onClick={() => navigate(-1)}>
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back
             </Button>
           </div>
         </div>
