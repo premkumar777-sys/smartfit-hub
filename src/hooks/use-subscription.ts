@@ -117,9 +117,9 @@ export function useSubscription(): SubscriptionData {
       // FORCE UPGRADE FOR ADMINS (FAIL-SAFE)
       const adminEmails = [
         'eslavathpremkumar17@gmail.com',
-        '24r01a66t7@cmrithyderabad.edu.in',
-        '24r01a66t7@cmrithyderbad.edu.in'
+        '24r01a66t7@cmrithyderabad.edu.in'
       ];
+
 
       if (user?.email && adminEmails.map(e => e.toLowerCase()).includes(user.email.toLowerCase())) {
         console.log('Admin account detected. Forcing Pro status.');

@@ -49,8 +49,7 @@ export function BusinessPremiumLock({
     // Admin emails that bypass all restrictions
     const ADMIN_EMAILS = [
         'eslavathpremkumar17@gmail.com',
-        '24r01a66t7@cmrithyderabad.edu.in',
-        '24r01a66t7@cmrithyderbad.edu.in'
+        '24r01a66t7@cmrithyderabad.edu.in'
     ];
 
     const isAdmin = user?.email && ADMIN_EMAILS.map(e => e.toLowerCase()).includes(user.email.toLowerCase());
@@ -137,11 +136,8 @@ export function BusinessPremiumLock({
         );
     }
 
-    // Grant access if:
-    // 1. Payments are globally disabled (Beta Mode) AND it's not strictly trainer-only
-    // 2. User is an admin
-    // 3. User has business-tier subscription
-    if ((!ENABLE_PAYMENTS && !requireTrainer) || hasBusinessAccess || isAdmin) {
+    // Grant access strictly to authorized administrators for these tools
+    if (isAdmin) {
         return <>{children}</>;
     }
 
