@@ -126,7 +126,7 @@ const AIWorkout = () => {
   };
 
   return (
-    <div className="min-h-screen py-20 relative overflow-hidden">
+    <div className="min-h-screen py-10 relative overflow-hidden">
       <div className="absolute inset-0 gradient-hero opacity-20"></div>
 
       <Container className="relative z-10">
@@ -138,7 +138,7 @@ const AIWorkout = () => {
           <ComingSoonBadge />
         </div>
 
-        <div className="text-center mb-12 relative">
+        <div className="text-center mb-8 relative">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-primary/10 rounded-full blur-[80px] -z-10" />
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full gradient-primary mb-4 shadow-[0_0_20px_rgba(0,255,156,0.3)]">
             <Dumbbell className="w-8 h-8 text-white" />
@@ -151,7 +151,7 @@ const AIWorkout = () => {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8">
+        <div className="grid md:grid-cols-2 gap-6">
           <PremiumLock
             title="Unlock SmartFit Pro"
             description="Get unlimited AI workout generation and real-time form correction."
@@ -162,7 +162,7 @@ const AIWorkout = () => {
               "Unlimited Plan Saves"
             ]}
           >
-            <div className="grid md:grid-cols-2 gap-8 w-full">
+            <div className="grid md:grid-cols-2 gap-6 w-full">
               <Card className="glass border-primary/20">
                 <CardHeader>
                   <CardTitle>Your Information</CardTitle>
@@ -294,7 +294,7 @@ const AIWorkout = () => {
                   {workoutPlan ? (
                     <div className="space-y-6">
                       <div className="prose prose-invert prose-green max-w-none">
-                        <div className="bg-black/20 rounded-xl p-6 border border-white/5 shadow-inner leading-relaxed">
+                        <div className="bg-black/20 rounded-xl p-5 border border-white/5 shadow-inner leading-relaxed">
                           {workoutPlan.split('\n').map((line, i) => {
                             if (line.startsWith('## ')) {
                               return <h2 key={i} className="text-2xl font-bold text-primary mt-6 mb-4">{line.replace('## ', '')}</h2>;
