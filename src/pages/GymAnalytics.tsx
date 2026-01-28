@@ -183,7 +183,7 @@ export default function GymAnalytics() {
   return (
     <div className="min-h-screen bg-background pt-20 pb-12">
       <div className="container mx-auto px-4 max-w-7xl">
-        <button onClick={() => navigate(isAuthenticated ? "/dashboard" : "/")} className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors mb-6" aria-label="Go back">
+        <button onClick={() => navigate(-1)} className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors mb-6" aria-label="Go back">
           <ArrowLeft className="w-4 h-4 mr-2" aria-hidden="true" />
           Back
         </button>
