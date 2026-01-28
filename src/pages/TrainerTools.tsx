@@ -189,7 +189,7 @@ export default function TrainerTools() {
                 const { data: { user } } = await supabase.auth.getUser();
 
                 if (!user) {
-                    loadDemoData();
+                    loadDemoData(); // Still show demo for public exploration
                     setIsLoading(false);
                     return;
                 }
@@ -202,16 +202,15 @@ export default function TrainerTools() {
                     .single();
 
                 if (error || !trainerData) {
-                    // User is logged in but not a trainer - show demo data anyway?
-                    // Or maybe we treat them as a demo user for now to be safe
-                    loadDemoData();
+                    // Don't load demo data for personal users - BusinessPremiumLock will handle UI
+                    setIsLoading(false);
                 } else {
                     setTrainer(trainerData);
                     await loadAllData(trainerData.id);
                 }
             } catch (err) {
                 console.error("Error loading dashboard:", err);
-                loadDemoData(); // Fallback to demo
+                // No fallback to demo for authenticated users
             } finally {
                 setIsLoading(false);
             }
@@ -454,6 +453,7 @@ export default function TrainerTools() {
         <div className="min-h-screen bg-background pt-20 pb-12">
             <Container>
                 <BusinessPremiumLock
+                    requireTrainer={true}
                     title="Unlock Business Tools"
                     description="Professional trainers get unlimited clients, advanced analytics, and revenue tracking."
                     features={[

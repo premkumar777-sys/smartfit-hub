@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Lock, Sparkles, Check, Star, Loader2, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { ENABLE_PAYMENTS } from "@/config";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useAuth } from "@/hooks/use-auth";
 import { BUSINESS_PLANS, PaymentPlan, openPaymentLink } from "@/config/payments";
+import { supabase } from "@/integrations/supabase/client";
 
 interface BusinessPremiumLockProps {
     children: React.ReactNode;
@@ -16,13 +17,14 @@ interface BusinessPremiumLockProps {
     description?: string;
     features?: string[];
     plans?: PaymentPlan[];
+    requireTrainer?: boolean;
 }
 
 /**
  * BusinessPremiumLock - Access control for B2B features
  * 
  * Used for: Gym Analytics, Trainer Tools, Online Coaching
- * Shows BUSINESS_PLANS pricing (₹999-₹9,999) instead of individual Pro pricing
+ * Shows BUSINESS_PLANS pricing (?999-?9,999) instead of individual Pro pricing
  * 
  * Regular Pro users will NOT have access to these features.
  * Only users with business-tier subscription or admins can access.
@@ -32,12 +34,17 @@ export function BusinessPremiumLock({
     title = "Business Feature",
     description = "Unlock powerful tools for gym owners and trainers.",
     features = ["Gym Analytics", "Client Management", "Revenue Tracking", "AI Insights"],
-    plans = BUSINESS_PLANS
+    plans = BUSINESS_PLANS,
+    requireTrainer = false
 }: BusinessPremiumLockProps) {
-    const { hasPremiumAccess, isLoading, plan } = useSubscription();
-    const { isAuthenticated, user } = useAuth();
+    const { hasPremiumAccess, isLoading: isSubLoading, plan } = useSubscription();
+    const { isAuthenticated, user, isLoading: isAuthLoading } = useAuth();
     const navigate = useNavigate();
     const [selectedPlan, setSelectedPlan] = useState(plans[0]);
+    const [isTrainer, setIsTrainer] = useState<boolean | null>(null);
+    const [isCheckingTrainer, setIsCheckingTrainer] = useState(false);
+
+    const isLoading = isSubLoading || isAuthLoading || isCheckingTrainer;
 
     // Admin emails that bypass all restrictions
     const ADMIN_EMAILS = [
@@ -53,6 +60,32 @@ export function BusinessPremiumLock({
         plan?.plan_name?.toLowerCase().includes('business') ||
         isAdmin;
 
+    // Check trainer status if required
+    useEffect(() => {
+        const checkTrainer = async () => {
+            if (requireTrainer && user) {
+                setIsCheckingTrainer(true);
+                try {
+                    const { data, error } = await supabase
+                        .from('trainers')
+                        .select('id')
+                        .eq('user_id', user.id)
+                        .maybeSingle();
+
+                    setIsTrainer(!!data);
+                } catch (err) {
+                    console.error("Trainer check error:", err);
+                    setIsTrainer(false);
+                } finally {
+                    setIsCheckingTrainer(false);
+                }
+            } else {
+                setIsTrainer(null);
+            }
+        };
+        checkTrainer();
+    }, [requireTrainer, user]);
+
     if (isLoading) {
         return (
             <div className="relative w-full h-full min-h-[300px] flex items-center justify-center">
@@ -66,11 +99,49 @@ export function BusinessPremiumLock({
         );
     }
 
+    // User is authenticated but not a trainer (and it's required)
+    if (requireTrainer && isAuthenticated && isTrainer === false && !isAdmin) {
+        return (
+            <div className="relative w-full h-full">
+                <div className="filter blur-sm select-none pointer-events-none opacity-50 user-select-none transition-all duration-500">
+                    {children}
+                </div>
+
+                <div className="absolute inset-0 z-10 flex items-center justify-center p-4 text-center">
+                    <Card className="max-w-md w-full border-2 border-amber-500/30 bg-black/90 backdrop-blur-md shadow-[0_0_40px_rgba(245,158,11,0.1)]">
+                        <CardContent className="flex flex-col items-center p-6 md:p-8 space-y-6">
+                            <div className="p-4 rounded-full bg-amber-500/10 ring-1 ring-amber-500/40">
+                                <Lock className="w-8 h-8 text-amber-500" />
+                            </div>
+
+                            <div className="space-y-2">
+                                <h3 className="text-2xl font-bold text-white">
+                                    Trainer Access Only
+                                </h3>
+                                <p className="text-gray-400">
+                                    This tool is specifically designed for fitness professionals. Your account is not registered as a trainer.
+                                </p>
+                            </div>
+
+                            <Button
+                                onClick={() => navigate('/dashboard')}
+                                variant="outline"
+                                className="w-full border-amber-500/50 text-amber-500 hover:bg-amber-500/10"
+                            >
+                                Back to Dashboard
+                            </Button>
+                        </CardContent>
+                    </Card>
+                </div>
+            </div>
+        );
+    }
+
     // Grant access if:
-    // 1. Payments are globally disabled (Beta Mode)
+    // 1. Payments are globally disabled (Beta Mode) AND it's not strictly trainer-only
     // 2. User is an admin
     // 3. User has business-tier subscription
-    if (!ENABLE_PAYMENTS || hasBusinessAccess) {
+    if ((!ENABLE_PAYMENTS && !requireTrainer) || hasBusinessAccess || isAdmin) {
         return <>{children}</>;
     }
 
@@ -110,7 +181,7 @@ export function BusinessPremiumLock({
                                 </Button>
 
                                 <p className="text-xs text-gray-500">
-                                    Business plans start at ₹999/month
+                                    Business plans start at ?999/month
                                 </p>
                             </div>
                         </CardContent>

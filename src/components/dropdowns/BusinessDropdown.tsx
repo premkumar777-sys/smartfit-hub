@@ -13,12 +13,14 @@ const businessSolutions = [
   {
     icon: Building2,
     title: "Gym Management",
-    description: "Complete digital solution for gym operations and member management"
+    description: "Complete digital solution for gym operations and member management",
+    href: "/gym-analytics"
   },
   {
     icon: Users,
     title: "Trainer Dashboard",
-    description: "Powerful tools for fitness professionals to manage clients and sessions"
+    description: "Powerful tools for fitness professionals to manage clients and sessions",
+    href: "/trainer-tools"
   },
 
   {
