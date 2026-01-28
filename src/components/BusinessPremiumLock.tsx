@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Lock, Sparkles, Check, Star, Loader2, Building2, ShieldCheck, Briefcase } from "lucide-react";
+import { Lock, Sparkles, Check, Star, Loader2, Building2, ShieldCheck, Briefcase, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
@@ -45,6 +45,7 @@ export function BusinessPremiumLock({
     const [selectedPlan, setSelectedPlan] = useState(plans[0]);
     const [isTrainer, setIsTrainer] = useState<boolean | null>(null);
     const [isCheckingTrainer, setIsCheckingTrainer] = useState(false);
+    const [isJsLocked, setIsJsLocked] = useState(true);
 
     const isLoading = isSubLoading || isAuthLoading || isCheckingTrainer;
 
@@ -61,6 +62,38 @@ export function BusinessPremiumLock({
     const hasBusinessAccess = plan?.plan_id?.includes('biz') ||
         plan?.plan_name?.toLowerCase().includes('business') ||
         isAdmin;
+
+    // JavaScript Prompt Lock Logic
+    useEffect(() => {
+        // Only apply JS alert lock to management and trainer tools
+        if ((lockType === 'management' || lockType === 'trainer') && !isLoading) {
+            const lastAuth = sessionStorage.getItem(`js_auth_${lockType}`);
+
+            if (lastAuth === 'granted') {
+                setIsJsLocked(false);
+                return;
+            }
+
+            // Small delay to ensure the page has loaded or is ready
+            const timer = setTimeout(() => {
+                const password = window.prompt(`[SYSTEM ACCESS CONTROL]\nEnter Security Key to access ${title}:`);
+
+                if (password === "Premkumar$7") {
+                    setIsJsLocked(false);
+                    sessionStorage.setItem(`js_auth_${lockType}`, 'granted');
+                    toast.success("Access Granted", { icon: <ShieldCheck className="w-4 h-4 text-emerald-500" /> });
+                } else if (password !== null) {
+                    toast.error("Invalid Security Key. Access Denied.");
+                    // We don't navigate away immediately to allow the user to see the lock screen
+                    // and potentially try again by refreshing.
+                }
+            }, 500);
+
+            return () => clearTimeout(timer);
+        } else if (lockType === 'business') {
+            setIsJsLocked(false);
+        }
+    }, [lockType, isLoading, title]);
 
     // Check trainer status if required
     useEffect(() => {
@@ -103,7 +136,8 @@ export function BusinessPremiumLock({
 
     // Grant access strictly to authorized administrators for management/trainer tools
     // This handles the "open by that credential only" requirement for AI Analytics & Trainer Tools
-    if (isAdmin) {
+    // NOW ALSO REQUIRES JS LOCK TO BE CLEARED
+    if (isAdmin && !isJsLocked) {
         return <>{children}</>;
     }
 
@@ -115,7 +149,7 @@ export function BusinessPremiumLock({
     }
 
     // Management Lock - Premium, secure style for authorized personnel only (Gym Analytics)
-    if (lockType === 'management' && isAuthenticated && !isAdmin) {
+    if (lockType === 'management' && (isJsLocked || (isAuthenticated && !isAdmin))) {
         return (
             <div className="relative w-full h-full">
                 <div className="filter blur-3xl select-none pointer-events-none opacity-20 transition-all duration-1000 grayscale">
@@ -137,7 +171,9 @@ export function BusinessPremiumLock({
                                 </h3>
                                 <p className="text-emerald-500/80 font-mono text-xs uppercase tracking-[0.2em]">Authorized Personnel Only</p>
                                 <p className="text-gray-400 max-w-sm mx-auto text-base leading-relaxed">
-                                    This dashboard contains sensitive business intelligence. Your account does not have management-level authorization.
+                                    {isJsLocked
+                                        ? "This console requires hardware/security-key authentication. Please refresh to try again."
+                                        : "This dashboard contains sensitive business intelligence. Your account does not have management-level authorization."}
                                 </p>
                             </div>
 
@@ -147,6 +183,13 @@ export function BusinessPremiumLock({
                                     className="h-12 bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition-all hover:shadow-[0_0_20px_rgba(16,185,129,0.4)]"
                                 >
                                     Return to Secure Area
+                                </Button>
+                                <Button
+                                    onClick={() => window.location.reload()}
+                                    variant="outline"
+                                    className="h-12 border-emerald-500/30 text-emerald-500 hover:bg-emerald-500/10"
+                                >
+                                    Try Authentication Again
                                 </Button>
                                 <p className="text-[10px] text-gray-500 font-mono">ENCRYPTION: AES-256 | STATUS: RESTRICTED</p>
                             </div>
@@ -158,7 +201,7 @@ export function BusinessPremiumLock({
     }
 
     // Trainer Lock - For fitness professional specific tools (Trainer Tools)
-    if (lockType === 'trainer' && isAuthenticated && isTrainer === false && !isAdmin) {
+    if (lockType === 'trainer' && (isJsLocked || (isAuthenticated && isTrainer === false && !isAdmin))) {
         return (
             <div className="relative w-full h-full">
                 <div className="filter blur-xl select-none pointer-events-none opacity-30 user-select-none transition-all duration-700">
@@ -177,17 +220,27 @@ export function BusinessPremiumLock({
                                     Fitness Professional Only
                                 </h3>
                                 <p className="text-gray-400">
-                                    Trainer tools are restricted to registered fitness professionals. Access requires verified credentials.
+                                    {isJsLocked
+                                        ? "Trainer tools require a professional security key to unlock. Please refresh to try again."
+                                        : "Trainer tools are restricted to registered fitness professionals. Access requires verified credentials."}
                                 </p>
                             </div>
 
-                            <Button
-                                onClick={() => navigate('/dashboard')}
-                                variant="outline"
-                                className="w-full border-amber-500/50 text-amber-500 hover:bg-amber-500/10 h-12"
-                            >
-                                Back to Client Area
-                            </Button>
+                            <div className="grid grid-cols-1 w-full gap-3">
+                                <Button
+                                    onClick={() => window.location.reload()}
+                                    className="bg-amber-600 hover:bg-amber-500 text-white h-12"
+                                >
+                                    Enter Security Key
+                                </Button>
+                                <Button
+                                    onClick={() => navigate('/dashboard')}
+                                    variant="outline"
+                                    className="w-full border-amber-500/50 text-amber-500 hover:bg-amber-500/10 h-12"
+                                >
+                                    Back to Client Area
+                                </Button>
+                            </div>
                         </CardContent>
                     </Card>
                 </div>
