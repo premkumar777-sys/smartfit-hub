@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Container } from "@/components/Container";
@@ -65,6 +65,7 @@ const guides: Guide[] = [
 ];
 
 export default function Guides() {
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [level, setLevel] = useState<string>("all");
   const [goal, setGoal] = useState<string>("all");
@@ -82,9 +83,9 @@ export default function Guides() {
     <div className="min-h-screen py-16 relative overflow-hidden">
       <div className="absolute inset-0 gradient-hero opacity-15" />
       <Container className="relative z-10">
-        <Link to="/" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6" aria-label="Back to home page">
+        <button onClick={() => navigate(-1)} className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6" aria-label="Go back">
           ← Back
-        </Link>
+        </button>
 
         <div className="flex flex-col gap-8">
           <div className="text-center space-y-3">
@@ -178,11 +179,10 @@ function SelectPill({
             key={opt.value}
             type="button"
             onClick={() => onChange(opt.value)}
-            className={`px-3 py-1 text-xs rounded-full transition ${
-              value === opt.value
+            className={`px-3 py-1 text-xs rounded-full transition ${value === opt.value
                 ? "bg-primary text-black"
                 : "text-muted-foreground hover:text-white"
-            }`}
+              }`}
           >
             {opt.label}
           </button>

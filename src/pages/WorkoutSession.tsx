@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/Container";
@@ -6,15 +6,14 @@ import PoseDetector from "@/components/PoseDetector";
 import { PremiumLock } from "@/components/PremiumLock";
 
 export default function WorkoutSession() {
+  const navigate = useNavigate();
   return (
     <div className="min-h-screen bg-background py-20">
       <Container>
         <div className="mb-6">
-          <Button asChild variant="ghost">
-            <Link to="/dashboard" aria-label="Back to dashboard">
-              <ArrowLeft className="mr-2" aria-hidden="true" />
-              Back to Dashboard
-            </Link>
+          <Button onClick={() => navigate(-1)} variant="ghost">
+            <ArrowLeft className="mr-2" aria-hidden="true" />
+            Back
           </Button>
         </div>
 

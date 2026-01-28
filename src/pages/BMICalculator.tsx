@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Container } from "@/components/Container";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,7 @@ import { motion } from "framer-motion";
 import { BMIResult } from "@/components/BMIResult";
 
 const BMICalculator = () => {
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
         weight: "",
         height: "",
@@ -33,13 +34,14 @@ const BMICalculator = () => {
             <div className="absolute inset-0 gradient-hero opacity-20"></div>
 
             <Container className="relative z-10">
-                <Link
-                    to="/"
+                <button
+                    onClick={() => navigate(-1)}
                     className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-8 transition-colors"
+                    aria-label="Go back"
                 >
                     <ArrowLeft className="w-4 h-4 mr-2" />
-                    Back to Home
-                </Link>
+                    Back
+                </button>
 
                 <motion.div
                     className="text-center mb-12"

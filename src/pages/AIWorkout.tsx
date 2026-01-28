@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Container } from "@/components/Container";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, Dumbbell, ArrowLeft, Save, Zap } from "lucide-react";
-import { Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useGamification, XP_REWARDS } from "@/hooks/useGamification";
@@ -15,6 +15,7 @@ import { PremiumLock } from "@/components/PremiumLock";
 import { BMIResult } from "@/components/BMIResult";
 
 const AIWorkout = () => {
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [workoutPlan, setWorkoutPlan] = useState<string>("");
@@ -133,10 +134,10 @@ const AIWorkout = () => {
           feature="AI Workout Generator"
           description="Get personalized workout plans powered by AI to achieve your fitness goals faster"
         >
-          <Link to="/" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-8 transition-colors" aria-label="Back to home page">
+          <button onClick={() => navigate(-1)} className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-8 transition-colors" aria-label="Go back">
             <ArrowLeft className="w-4 h-4 mr-2" aria-hidden="true" />
-            Back to Home
-          </Link>
+            Back
+          </button>
 
           <div className="text-center mb-12">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full gradient-primary mb-4">

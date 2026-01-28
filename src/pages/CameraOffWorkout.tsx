@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft,
@@ -164,6 +164,7 @@ const WORKOUT_VIDEOS = [
 ];
 
 export default function CameraOffWorkout() {
+  const navigate = useNavigate();
   const [selectedExercise, setSelectedExercise] = useState<Exercise>('idle');
   const [isWorkoutActive, setIsWorkoutActive] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
@@ -249,11 +250,9 @@ export default function CameraOffWorkout() {
       <Container>
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
-          <Button asChild variant="ghost">
-            <Link to="/dashboard" aria-label="Back to dashboard">
-              <ArrowLeft className="mr-2" aria-hidden="true" />
-              Back to Dashboard
-            </Link>
+          <Button onClick={() => navigate(-1)} variant="ghost">
+            <ArrowLeft className="mr-2" aria-hidden="true" />
+            Back
           </Button>
           <Button
             variant="outline"

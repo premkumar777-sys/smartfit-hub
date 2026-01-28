@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Container } from "@/components/Container";
@@ -28,6 +28,7 @@ const goalMap: Record<Goal, { label: string; calories: number; protein: number; 
 const storageKey = "smartfit_nutrition_v1";
 
 export default function Nutrition() {
+  const navigate = useNavigate();
   const [age, setAge] = useState("28");
   const [weight, setWeight] = useState("70"); // kg
   const [height, setHeight] = useState("175"); // cm
@@ -81,9 +82,9 @@ export default function Nutrition() {
     <div className="min-h-screen py-16 relative overflow-hidden">
       <div className="absolute inset-0 gradient-hero opacity-20" />
       <Container className="relative z-10">
-        <Link to="/" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6" aria-label="Back to home page">
+        <button onClick={() => navigate(-1)} className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6" aria-label="Go back">
           ← Back
-        </Link>
+        </button>
 
         <div className="flex flex-col gap-8">
           <div className="text-center space-y-3">

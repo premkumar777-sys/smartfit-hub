@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Container } from "@/components/Container";
@@ -76,6 +76,7 @@ const tips = [
 ];
 
 export default function HomeWorkouts() {
+    const navigate = useNavigate();
     const [expandedDay, setExpandedDay] = useState<number | null>(0);
 
     const toggleDay = (index: number) => {
@@ -86,14 +87,14 @@ export default function HomeWorkouts() {
         <div className="min-h-screen py-16 relative overflow-hidden">
             <div className="absolute inset-0 gradient-hero opacity-15" />
             <Container className="relative z-10">
-                <Link
-                    to="/"
+                <button
+                    onClick={() => navigate(-1)}
                     className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6"
-                    aria-label="Back to home page"
+                    aria-label="Go back"
                 >
                     <ArrowLeft className="w-4 h-4 mr-2" />
                     Back
-                </Link>
+                </button>
 
                 <div className="flex flex-col gap-8">
                     {/* Header */}
