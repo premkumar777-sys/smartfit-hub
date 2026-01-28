@@ -34,7 +34,6 @@ import BMICalculator from "./pages/BMICalculator";
 import ShippingPolicy from "./pages/ShippingPolicy";
 import ContactUs from "./pages/ContactUs";
 import NotFound from "./pages/NotFound";
-import { FitnessCursor } from "@/components/FitnessCursor";
 import { FloatingChatbot } from "@/components/FloatingChatbot";
 import { Footer } from "@/components/Footer";
 import ErrorBoundary from "@/components/ErrorBoundary";
@@ -117,7 +116,6 @@ const App = () => {
           <Sonner />
           <BrowserRouter>
             <ErrorBoundary>
-              <FitnessCursor />
               <FloatingChatbot />
               <Header />
               <Routes>
