@@ -54,14 +54,14 @@ export default function Auth() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       // Don't redirect if we are in the middle of a password reset
       if (session && !isResettingPassword) {
-        navigate(returnUrl);
+        navigate(returnUrl, { replace: true });
       }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       // Don't redirect if we are in the middle of a password reset
       if (session && !isResettingPassword) {
-        navigate(returnUrl);
+        navigate(returnUrl, { replace: true });
       }
     });
 
@@ -97,7 +97,7 @@ export default function Auth() {
         title: "Welcome back!",
         description: "You've successfully logged in.",
       });
-      navigate(returnUrl);
+      navigate(returnUrl, { replace: true });
     } catch (error: any) {
       if (error instanceof z.ZodError) {
         toast({

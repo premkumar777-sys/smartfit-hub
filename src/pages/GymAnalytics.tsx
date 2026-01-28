@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { BusinessPremiumLock } from "@/components/BusinessPremiumLock";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -130,6 +131,7 @@ const competitorBenchmark = [
 export default function GymAnalytics() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { isAuthenticated } = useAuth();
   const [activeTab, setActiveTab] = useState(location.pathname.includes("/ai") ? "predictions" : "overview");
   const [isLoading, setIsLoading] = useState(true);
 
@@ -137,6 +139,10 @@ export default function GymAnalytics() {
     const timer = setTimeout(() => setIsLoading(false), 1000);
     return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    setActiveTab(location.pathname.includes("/ai") ? "predictions" : "overview");
+  }, [location.pathname]);
 
   const StatCard = ({ title, value, change, icon: Icon, trend, subtitle }: any) => (
     <Card className="relative overflow-hidden border-border/50 bg-gradient-to-br from-card to-card/80">
@@ -177,7 +183,7 @@ export default function GymAnalytics() {
   return (
     <div className="min-h-screen bg-background pt-20 pb-12">
       <div className="container mx-auto px-4 max-w-7xl">
-        <button onClick={() => navigate(-1)} className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors mb-6" aria-label="Go back">
+        <button onClick={() => navigate(isAuthenticated ? "/dashboard" : "/")} className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors mb-6" aria-label="Go back">
           <ArrowLeft className="w-4 h-4 mr-2" aria-hidden="true" />
           Back
         </button>
