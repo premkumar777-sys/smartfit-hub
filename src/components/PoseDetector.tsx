@@ -11,6 +11,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useGamification } from "@/hooks/useGamification";
+import { useNavigate } from "react-router-dom";
 
 type ExerciseType = "squat" | "pushup" | "lunge" | "jumpingJack" | "bicepCurl";
 
@@ -265,6 +267,12 @@ export default function PoseDetector() {
   const [debugMode, setDebugMode] = useState(false);
   const [hasRequestedPermission, setHasRequestedPermission] = useState(false);
   const [repCelebration, setRepCelebration] = useState(false);
+  const [startTime, setStartTime] = useState<number | null>(null);
+  const [isFinishing, setIsFinishing] = useState(false);
+
+  const gamification = useGamification();
+  const navigate = useNavigate();
+
   const [debugAngles, setDebugAngles] = useState<{
     leftKnee: number | null;
     rightKnee: number | null;
@@ -428,6 +436,7 @@ export default function PoseDetector() {
         videoRef.current.srcObject = stream;
         isDetectingRef.current = true;
         setIsDetecting(true);
+        setStartTime(Date.now());
 
         videoRef.current.onloadedmetadata = () => {
           if (canvasRef.current && videoRef.current) {
@@ -997,6 +1006,43 @@ export default function PoseDetector() {
     setRepCount(0);
     setIsDown(false);
     isDownRef.current = false;
+    setStartTime(isDetecting ? Date.now() : null);
+  };
+
+  const handleFinishWorkout = async () => {
+    if (repCount === 0) {
+      toast({
+        title: "No reps yet!",
+        description: "Complete at least one rep before logging.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsFinishing(true);
+    try {
+      const duration = startTime ? Math.round((Date.now() - startTime) / 60000) : 10;
+      const finalDuration = Math.max(1, duration); // At least 1 min
+
+      await gamification.recordWorkout(finalDuration);
+
+      toast({
+        title: "Workout Logged! 🏆",
+        description: `Recorded ${repCount} reps in ${finalDuration} mins. Points awarded!`,
+      });
+
+      stopCamera();
+      navigate("/dashboard");
+    } catch (err) {
+      console.error("Error logging workout:", err);
+      toast({
+        title: "Error",
+        description: "Failed to log workout session.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsFinishing(false);
+    }
   };
 
   return (
@@ -1168,6 +1214,15 @@ export default function PoseDetector() {
               Stop Camera
             </Button>
           )}
+          <Button
+            onClick={handleFinishWorkout}
+            variant="hero"
+            className="flex-1 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
+            disabled={isFinishing || repCount === 0}
+          >
+            {isFinishing ? <Loader2 className="animate-spin mr-2" /> : <Save className="mr-2" />}
+            Finish & Log
+          </Button>
           <Button
             onClick={resetCount}
             variant="outline"

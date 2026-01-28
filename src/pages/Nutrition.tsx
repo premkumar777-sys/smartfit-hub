@@ -7,6 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PremiumLock } from "@/components/PremiumLock";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { Loader2, Plus, Utensils } from "lucide-react";
 
 type Activity = "sedentary" | "light" | "moderate" | "active" | "athlete";
 type Goal = "cut" | "recomp" | "bulk";
@@ -34,8 +37,26 @@ export default function Nutrition() {
   const [height, setHeight] = useState("175"); // cm
   const [activity, setActivity] = useState<Activity>("moderate");
   const [goal, setGoal] = useState<Goal>("recomp");
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [isLogging, setIsLogging] = useState(false);
+
+  // Quick Log State
+  const [logCalories, setLogCalories] = useState("");
 
   useEffect(() => {
+    const loadProfileSettings = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const { data } = await supabase
+          .from('profiles')
+          .select('daily_calories_target, fitness_goal')
+          .eq('id', session.user.id)
+          .single();
+
+        // If we have data in DB, we could use it, but the local inputs are and calcs are better for UI
+      }
+    };
+
     const saved = localStorage.getItem(storageKey);
     if (saved) {
       try {
@@ -50,13 +71,6 @@ export default function Nutrition() {
       }
     }
   }, []);
-
-  useEffect(() => {
-    localStorage.setItem(
-      storageKey,
-      JSON.stringify({ age, weight, height, activity, goal })
-    );
-  }, [age, weight, height, activity, goal]);
 
   const result = useMemo(() => {
     const w = parseFloat(weight || "0");
@@ -78,6 +92,69 @@ export default function Nutrition() {
     return { bmr: Math.round(bmr), tdee: Math.round(tdee), calories, protein, fats, carbs };
   }, [age, weight, height, activity, goal]);
 
+  const handleUpdatePlan = async () => {
+    if (!result) return;
+    setIsUpdating(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error("Please sign in to save your targets");
+        return;
+      }
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          daily_calories_target: result.calories,
+          protein_target: result.protein,
+          carbs_target: result.carbs,
+          fats_target: result.fats,
+          fitness_goal: goalMap[goal].label
+        })
+        .eq('id', session.user.id);
+
+      if (error) throw error;
+
+      localStorage.setItem(storageKey, JSON.stringify({ age, weight, height, activity, goal }));
+      toast.success("Nutrition targets updated and synced! 🚀");
+    } catch (err) {
+      console.error("Update plan error:", err);
+      toast.error("Failed to sync targets to cloud.");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleLogMeal = async () => {
+    const cals = parseInt(logCalories);
+    if (!cals || cals <= 0) {
+      toast.error("Please enter valid calories");
+      return;
+    }
+
+    setIsLogging(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const { error } = await supabase.from('nutrition_logs').insert({
+        user_id: session.user.id,
+        calories: cals,
+        // For now we just log calories, could expand to macros
+      });
+
+      if (error) throw error;
+
+      toast.success(`Logged ${cals} calories! 🍏`);
+      setLogCalories("");
+    } catch (err) {
+      console.error("Log meal error:", err);
+      toast.error("Failed to log nutrition.");
+    } finally {
+      setIsLogging(false);
+    }
+  };
+
   return (
     <div className="min-h-screen py-16 relative overflow-hidden">
       <div className="absolute inset-0 gradient-hero opacity-20" />
@@ -91,7 +168,7 @@ export default function Nutrition() {
             <p className="text-xs uppercase tracking-[0.3em] text-primary">Nutrition</p>
             <h1 className="text-4xl md:text-5xl font-bold">Macro & Calorie Planner</h1>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Modern, fast, and offline-friendly. Calculate TDEE, target calories, and macros instantly.
+              {result ? `Targeting ${result.calories} kcal for ${goalMap[goal].label}. Synchronized with your global dashboard.` : 'Calculate TDEE, target calories, and macros instantly.'}
             </p>
           </div>
 
@@ -109,7 +186,7 @@ export default function Nutrition() {
               <Card className="lg:col-span-2 glass border-primary/20">
                 <CardHeader>
                   <CardTitle>Inputs</CardTitle>
-                  <CardDescription>All local—no data leaves your browser.</CardDescription>
+                  <CardDescription>Setup your profile to calculate targets.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="grid sm:grid-cols-3 gap-4">
@@ -129,7 +206,7 @@ export default function Nutrition() {
 
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label>Activity</Label>
+                      <Label>Activity Level</Label>
                       <Select value={activity} onValueChange={(v) => setActivity(v as Activity)}>
                         <SelectTrigger><SelectValue placeholder="Activity level" /></SelectTrigger>
                         <SelectContent>
@@ -142,12 +219,12 @@ export default function Nutrition() {
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label>Goal</Label>
+                      <Label>Primary Goal</Label>
                       <Select value={goal} onValueChange={(v) => setGoal(v as Goal)}>
                         <SelectTrigger><SelectValue placeholder="Goal" /></SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="cut">Cut</SelectItem>
-                          <SelectItem value="recomp">Recomp</SelectItem>
+                          <SelectItem value="cut">Fat Loss (Cut)</SelectItem>
+                          <SelectItem value="recomp">Maintain / Recomp</SelectItem>
                           <SelectItem value="bulk">Lean Bulk</SelectItem>
                         </SelectContent>
                       </Select>
@@ -155,8 +232,14 @@ export default function Nutrition() {
                   </div>
 
                   <div className="flex gap-3">
-                    <Button variant="hero" type="button" onClick={() => { /* values auto-calc via memo */ }}>
-                      Update Plan
+                    <Button
+                      variant="hero"
+                      type="button"
+                      onClick={handleUpdatePlan}
+                      disabled={isUpdating}
+                    >
+                      {isUpdating ? <Loader2 className="animate-spin h-4 w-4 mr-2" /> : null}
+                      Update & Sync Plan
                     </Button>
                     <Button variant="outline" type="button" onClick={() => {
                       setAge("28"); setWeight("70"); setHeight("175"); setActivity("moderate"); setGoal("recomp");
@@ -167,10 +250,11 @@ export default function Nutrition() {
                 </CardContent>
               </Card>
 
+              {/* Dynamic Targets Tile */}
               <Card className="glass border-primary/20">
                 <CardHeader>
                   <CardTitle>Your Targets</CardTitle>
-                  <CardDescription>Auto-updates as you tweak inputs.</CardDescription>
+                  <CardDescription>Auto-calculated targets.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {result ? (
@@ -178,14 +262,34 @@ export default function Nutrition() {
                       <div className="grid grid-cols-2 gap-3">
                         <Tile label="BMR" value={`${result.bmr} kcal`} />
                         <Tile label="TDEE" value={`${result.tdee} kcal`} />
-                        <Tile label="Target Calories" value={`${result.calories} kcal`} accent />
+                        <Tile label="Target" value={`${result.calories} kcal`} accent />
                         <Tile label="Protein" value={`${result.protein} g`} />
                         <Tile label="Carbs" value={`${result.carbs} g`} />
                         <Tile label="Fats" value={`${result.fats} g`} />
                       </div>
-                      <p className="text-xs text-muted-foreground">
-                        Protein/Fats scaled per kg. Carbs fill the remaining calories.
-                      </p>
+
+                      <div className="mt-6 pt-6 border-t border-white/10">
+                        <Label htmlFor="log-cals" className="flex items-center gap-2 mb-3">
+                          <Utensils className="w-4 h-4 text-orange-500" /> Quick Log Intake
+                        </Label>
+                        <div className="flex gap-2">
+                          <Input
+                            id="log-cals"
+                            placeholder="E.g. 500 kcal"
+                            value={logCalories}
+                            onChange={(e) => setLogCalories(e.target.value)}
+                            type="number"
+                          />
+                          <Button
+                            size="icon"
+                            className="bg-orange-500 hover:bg-orange-600"
+                            onClick={handleLogMeal}
+                            disabled={isLogging}
+                          >
+                            {isLogging ? <Loader2 className="animate-spin h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                          </Button>
+                        </div>
+                      </div>
                     </div>
                   ) : (
                     <p className="text-sm text-muted-foreground">Enter your details to see targets.</p>
@@ -203,7 +307,7 @@ export default function Nutrition() {
                   </p>
                   <p>Protein: ~{goalMap[goal].protein} g/kg</p>
                   <p>Fats: ~{goalMap[goal].fats} g/kg</p>
-                  <p>Carbs: Fill the rest (aim higher for training volume).</p>
+                  <p>Carbs: Remaining calories.</p>
                   {result && (
                     <div className="rounded-lg border border-primary/20 bg-primary/5 p-2 text-xs text-foreground">
                       Target: {result.calories} kcal · P {result.protein}g · C {result.carbs}g · F {result.fats}g
@@ -212,43 +316,23 @@ export default function Nutrition() {
                 </CardContent>
               </Card>
               <Card className="glass border-primary/20">
-                <CardHeader><CardTitle>Meal Ideas</CardTitle></CardHeader>
+                <CardHeader><CardTitle>Meal Strategy</CardTitle></CardHeader>
                 <CardContent className="space-y-2 text-sm text-muted-foreground">
-                  {goal === "cut" && (
-                    <>
-                      <p>Breakfast: Egg whites + oats + berries.</p>
-                      <p>Lunch: Chicken, greens, olive oil, quinoa (measured).</p>
-                      <p>Dinner: White fish, potatoes, broccoli.</p>
-                      <p>Snacks: Greek yogurt, fruit; limit nuts.</p>
-                    </>
-                  )}
-                  {goal === "recomp" && (
-                    <>
-                      <p>Breakfast: Greek yogurt, oats, whey, banana.</p>
-                      <p>Lunch: Chicken, rice, veggies, avocado.</p>
-                      <p>Dinner: Salmon, sweet potato, greens.</p>
-                      <p>Snacks: Cottage cheese, fruit, light nuts.</p>
-                    </>
-                  )}
-                  {goal === "bulk" && (
-                    <>
-                      <p>Breakfast: Oats, whey, nut butter, berries.</p>
-                      <p>Lunch: Beef or chicken, rice/pasta, veggies, olive oil.</p>
-                      <p>Dinner: Salmon or beef, potatoes, veggies.</p>
-                      <p>Snacks: Greek yogurt + granola; smoothies.</p>
-                    </>
-                  )}
+                  {goal === "cut" && <p>Focus on high volume, low calorie foods like leafy greens and lean protein.</p>}
+                  {goal === "recomp" && <p>Focus on timing carbs around your workouts for maximum performance.</p>}
+                  {goal === "bulk" && <p>Eat calorie dense foods like nuts, avocados, and whole grains.</p>}
+                  <p className="mt-2">Try to hit within +/- 100 calories of your target daily for best results.</p>
                 </CardContent>
               </Card>
               <Card className="glass border-primary/20">
-                <CardHeader><CardTitle>Hydration & Recovery</CardTitle></CardHeader>
+                <CardHeader><CardTitle>Hydration & Data</CardTitle></CardHeader>
                 <CardContent className="space-y-2 text-sm text-muted-foreground">
-                  <p>Hydrate: 30–40 ml/kg daily.</p>
-                  <p>Electrolytes on high-sweat days.</p>
-                  <p>Sleep: 7–9 hours; light mobility on rest days.</p>
-                  {activity === "athlete" && (
-                    <p className="text-foreground font-semibold">Athlete tip: add 300–500 ml/hour of training.</p>
-                  )}
+                  <p>Aim for 3-4 liters of water daily.</p>
+                  <p>Logging your intake help the AI refine your plans and gives you accurate dashboard metrics.</p>
+                  <div className="mt-4 flex items-center gap-2 text-xs text-primary">
+                    <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                    Live Dashboard Sync Active
+                  </div>
                 </CardContent>
               </Card>
             </div>
@@ -261,9 +345,9 @@ export default function Nutrition() {
 
 function Tile({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
-    <div className={`p-3 rounded-lg border ${accent ? "border-primary/50 bg-primary/5 text-primary-foreground" : "border-gray-800 bg-gray-900/60"}`}>
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="text-lg font-semibold">{value}</p>
+    <div className={`p-3 rounded-lg border ${accent ? "border-primary/50 bg-primary/20 text-white font-bold" : "border-gray-800 bg-gray-900/60"}`}>
+      <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">{label}</p>
+      <p className="text-lg">{value}</p>
     </div>
   );
 }

@@ -99,7 +99,7 @@ export function useGamification() {
                 // Fetch from Supabase
                 const { data: profile, error } = await supabase
                     .from("profiles")
-                    .select("xp, level, streak, avatar_emoji")
+                    .select("xp, level, streak, avatar_emoji, total_workouts, chat_sessions, progress_logs")
                     .eq("id", session.user.id)
                     .single();
 
@@ -108,6 +108,9 @@ export function useGamification() {
                         ...initialData,
                         xp: profile.xp || initialData.xp,
                         currentStreak: profile.streak || initialData.currentStreak,
+                        totalWorkouts: profile.total_workouts || initialData.totalWorkouts,
+                        chatSessions: profile.chat_sessions || initialData.chatSessions,
+                        progressLogs: profile.progress_logs || initialData.progressLogs,
                     };
                 }
             }
@@ -127,7 +130,8 @@ export function useGamification() {
             // Always save to localStorage
             localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 
-            // Save to Supabase if authenticated
+            // Save basic stats to profiles table if authenticated
+            // This is a subset for quick dashboard access
             const { data: { session } } = await supabase.auth.getSession();
             if (session) {
                 const level = getLevelFromXP(data.xp);
@@ -137,6 +141,9 @@ export function useGamification() {
                         xp: data.xp,
                         level: level,
                         streak: data.currentStreak,
+                        total_workouts: data.totalWorkouts,
+                        chat_sessions: data.chatSessions,
+                        progress_logs: data.progressLogs
                     })
                     .eq("id", session.user.id);
             }
@@ -144,6 +151,21 @@ export function useGamification() {
 
         saveData();
     }, [data, isLoaded]);
+
+    /**
+     * Helper to log activity to activity_logs table for charts/history
+     */
+    const logActivity = useCallback(async (type: 'workout' | 'nutrition' | 'chat' | 'progress', value: number = 0, metadata: any = {}) => {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
+
+        await supabase.from('activity_logs').insert({
+            user_id: session.user.id,
+            activity_type: type,
+            value: value,
+            metadata: metadata
+        });
+    }, []);
 
     // Check and update streak
     const updateStreak = useCallback(() => {
@@ -227,8 +249,9 @@ export function useGamification() {
     }, []);
 
     // Record a workout completion
-    const recordWorkout = useCallback(() => {
+    const recordWorkout = useCallback((durationMinutes: number = 45) => {
         updateStreak();
+        logActivity('workout', durationMinutes);
 
         setData(prev => {
             const newWorkouts = prev.totalWorkouts + 1;
@@ -256,10 +279,11 @@ export function useGamification() {
             console.log(`[Gamification] Workout recorded. Total: ${newWorkouts}, XP: ${updatedData.xp}`);
             return updatedData;
         });
-    }, [updateStreak, checkAchievements]);
+    }, [updateStreak, checkAchievements, logActivity]);
 
     // Record a chat session
     const recordChatSession = useCallback(() => {
+        logActivity('chat');
         setData(prev => {
             const newSessions = prev.chatSessions + 1;
 
@@ -284,12 +308,12 @@ export function useGamification() {
             console.log(`[Gamification] Chat session recorded. Total: ${newSessions}`);
             return updatedData;
         });
-    }, [checkAchievements]);
+    }, [checkAchievements, logActivity]);
 
     // Record a progress log
     const recordProgressLog = useCallback(() => {
         updateStreak();
-
+        logActivity('progress');
         setData(prev => {
             const newLogs = prev.progressLogs + 1;
 
@@ -314,7 +338,27 @@ export function useGamification() {
             console.log(`[Gamification] Progress log recorded. Total: ${newLogs}`);
             return updatedData;
         });
-    }, [updateStreak, checkAchievements]);
+    }, [updateStreak, checkAchievements, logActivity]);
+
+    /**
+     * Helper to fetch activity logs for the last 7 days
+     */
+    const getWeeklyActivity = useCallback(async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return [];
+
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+        const { data, error } = await supabase
+            .from('activity_logs')
+            .select('*')
+            .eq('user_id', session.user.id)
+            .gte('created_at', sevenDaysAgo.toISOString())
+            .order('created_at', { ascending: true });
+
+        return data || [];
+    }, []);
 
     // Get current level
     const level = getLevelFromXP(data.xp);
@@ -341,5 +385,7 @@ export function useGamification() {
         recordChatSession,
         recordProgressLog,
         updateStreak,
+        getWeeklyActivity,
+        logActivity
     };
 }
