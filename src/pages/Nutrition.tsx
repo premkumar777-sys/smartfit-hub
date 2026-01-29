@@ -127,14 +127,28 @@ export default function Nutrition() {
 
   useEffect(() => {
     const runConnectivityCheck = async () => {
+      console.group("🚀 SMARTFIT CONNECTION DIAGNOSTIC");
       const { data: { session } } = await supabase.auth.getSession();
-      console.log("🔑 Session:", session ? "Active" : "None");
+      console.log("� Supabase URL:", (supabase as any).supabaseUrl);
+      console.log("�🔑 User Session:", session ? `Logged in as ${session.user.email}` : "No active session");
 
-      const { error: profErr } = await supabase.from('profiles').select('count').limit(1);
-      console.log("📊 Profiles Access:", profErr ? `FAILED: ${profErr.message}` : "OK");
+      const { error: profErr } = await supabase.from('profiles').select('id').limit(1);
+      if (profErr) {
+        console.error("❌ PROFILES TABLE ACCESS FAILED:", profErr.message);
+      } else {
+        console.log("✅ PROFILES TABLE ACCESS: OK");
+      }
 
       const { error: nutrErr } = await supabase.from('nutrition_logs').select('count', { count: 'exact', head: true });
-      console.log("🍏 Nutrition Access:", nutrErr ? `FAILED: ${nutrErr.message}` : "OK");
+      if (nutrErr) {
+        console.error("❌ NUTRITION TABLE ACCESS FAILED:", nutrErr.message);
+        if (nutrErr.message.includes('schema cache')) {
+          console.warn("💡 HINT: PostgreSQL knows the table exists, but the API cache is stale. Try restarting your local dev server.");
+        }
+      } else {
+        console.log("✅ NUTRITION TABLE ACCESS: OK");
+      }
+      console.groupEnd();
 
       if (nutrErr && nutrErr.message.includes('schema cache')) {
         toast.error("Critical Schema Desync", {
