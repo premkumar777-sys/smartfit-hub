@@ -17,6 +17,7 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
     const [activeTab, setActiveTab] = useState<"photo" | "search" | "camera">("photo");
     const [searchQuery, setSearchQuery] = useState("");
     const [stream, setStream] = useState<MediaStream | null>(null);
+    const [quotaExceeded, setQuotaExceeded] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -157,6 +158,8 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
             if (!success && lastError) throw lastError;
         } catch (error: any) {
             console.error("AI Search Error:", error);
+            const isQuota = error.message?.toLowerCase().includes("quota") || error.message?.includes("429");
+            if (isQuota) setQuotaExceeded(true);
             toast.error("AI Search failed", { description: error.message });
         } finally {
             setLoading(false);
@@ -282,6 +285,7 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
             }
 
             const isQuotaError = descriptiveError.toLowerCase().includes("quota") || descriptiveError.includes("429");
+            if (isQuotaError) setQuotaExceeded(true);
 
             toast.error(isQuotaError ? "Free Tier Quota Reached" : "AI Analysis failed", {
                 description: isQuotaError
@@ -344,6 +348,46 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
             <CardContent className="space-y-4">
                 {!result ? (
                     <>
+                        {quotaExceeded && (
+                            <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 mb-4 animate-in fade-in slide-in-from-top-2">
+                                <div className="flex items-start gap-3">
+                                    <div className="p-2 rounded-full bg-amber-500/20">
+                                        <Info className="w-5 h-5 text-amber-500" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <p className="text-sm font-bold text-amber-500 mb-1">AI limit reached for today!</p>
+                                        <p className="text-xs text-muted-foreground mb-3">
+                                            The AI is resting. Use the manual search below or log calories directly to stay on track.
+                                        </p>
+                                        <div className="flex gap-2">
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="text-xs h-8 border-amber-500/20 hover:bg-amber-500/10"
+                                                onClick={() => { setQuotaExceeded(false); setActiveTab("search"); }}
+                                            >
+                                                Try Text Search
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="text-xs h-8 border-amber-500/20 hover:bg-amber-500/10"
+                                                onClick={() => {
+                                                    // This will scroll to the manual log on parent page
+                                                    const manualLog = document.getElementById('manual-log-entry');
+                                                    if (manualLog) manualLog.scrollIntoView({ behavior: 'smooth' });
+                                                }}
+                                            >
+                                                Log Manually
+                                            </Button>
+                                        </div>
+                                    </div>
+                                    <button onClick={() => setQuotaExceeded(false)} className="text-muted-foreground hover:text-white">
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                         {activeTab === "photo" && (
                             <div className="space-y-4">
                                 {!image ? (

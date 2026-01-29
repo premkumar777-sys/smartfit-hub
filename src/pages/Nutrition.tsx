@@ -368,7 +368,7 @@ export default function Nutrition() {
                           <Tile label="Fats" value={`${result.fats} g`} />
                         </div>
 
-                        <div className="mt-6 pt-6 border-t border-white/10">
+                        <div className="mt-6 pt-6 border-t border-white/10" id="manual-log-entry">
                           <Label htmlFor="log-cals" className="flex items-center gap-2 mb-3">
                             <Utensils className="w-4 h-4 text-orange-500" /> Quick Log Intake
                           </Label>
