@@ -474,9 +474,9 @@ const Dashboard = () => {
                 activityFeed.map((log) => (
                   <div key={log.id} className="flex items-start gap-4 p-3 rounded-lg bg-muted/20 border border-white/5">
                     <div className={`mt-1 p-2 rounded-lg ${log.activity_type === 'workout' ? 'bg-primary/20 text-primary' :
-                        log.activity_type === 'nutrition' ? 'bg-orange-500/20 text-orange-500' :
-                          log.activity_type === 'chat' ? 'bg-accent/20 text-accent' :
-                            'bg-gray-500/20 text-gray-400'
+                      log.activity_type === 'nutrition' ? 'bg-orange-500/20 text-orange-500' :
+                        log.activity_type === 'chat' ? 'bg-accent/20 text-accent' :
+                          'bg-gray-500/20 text-gray-400'
                       }`}>
                       {log.activity_type === 'workout' ? <Dumbbell className="w-4 h-4" /> :
                         log.activity_type === 'nutrition' ? <Apple className="w-4 h-4" /> :
@@ -484,7 +484,11 @@ const Dashboard = () => {
                             <Activity className="w-4 h-4" />}
                     </div>
                     <div>
-                      <p className="text-sm font-medium capitalize">{log.activity_type} Logged</p>
+                      <p className="text-sm font-medium capitalize">
+                        {log.activity_type === 'nutrition' && (log.metadata as any)?.name
+                          ? (log.metadata as any).name
+                          : `${log.activity_type} Logged`}
+                      </p>
                       <p className="text-xs text-muted-foreground">
                         {log.activity_type === 'workout' ? `${log.value} mins session` :
                           log.activity_type === 'nutrition' ? `${log.value} calories` :

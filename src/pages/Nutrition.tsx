@@ -188,6 +188,7 @@ export default function Nutrition() {
       const { error: logError } = await supabase.from('nutrition_logs').insert({
         user_id: session.user.id,
         calories: Math.round(cals),
+        meal_name: "Manual Entry",
       });
 
       if (logError) throw logError;
@@ -202,9 +203,9 @@ export default function Nutrition() {
       toast.success(`Logged ${cals} calories! 🍏`);
       setLogCalories("");
       fetchNutritionLogs();
-    } catch (err) {
+    } catch (err: any) {
       console.error("Log meal error:", err);
-      toast.error("Failed to log nutrition.");
+      toast.error(`Error: ${err.message || "Failed to log nutrition"}`);
     } finally {
       setIsLogging(false);
     }
@@ -223,7 +224,7 @@ export default function Nutrition() {
         protein: Math.round(data.protein),
         carbs: Math.round(data.carbs),
         fats: Math.round(data.fats),
-        // meal_name column doesn't exist in DB yet, skipping for now to avoid error
+        meal_name: data.name,
       });
 
       if (logError) throw logError;
@@ -240,9 +241,9 @@ export default function Nutrition() {
         description: `Macros: P:${Math.round(data.protein)}g C:${Math.round(data.carbs)}g F:${Math.round(data.fats)}g`
       });
       fetchNutritionLogs();
-    } catch (err) {
+    } catch (err: any) {
       console.error("Log scanned meal error:", err);
-      toast.error("Failed to log nutrition.");
+      toast.error(`Error: ${err.message || "Failed to log nutrition"}`);
     } finally {
       setIsLogging(false);
     }
