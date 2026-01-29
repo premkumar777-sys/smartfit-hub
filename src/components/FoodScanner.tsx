@@ -33,21 +33,26 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
 
         setLoading(true);
         try {
-            // 1. Get API Key from profile preferences
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) throw new Error("Not authenticated");
+            // 1. Get API Key: Priority 1: Environment Variable (Developer Provided), Priority 2: Profile Settings (User Provided)
+            const masterKey = import.meta.env.VITE_GEMINI_API_KEY;
 
-            const { data: profile } = await supabase
-                .from("profiles")
-                .select("preferences")
-                .eq("user_id", user.id)
-                .single();
-
-            const apiKey = (profile?.preferences as any)?.gemini_api_key;
+            let apiKey = masterKey;
 
             if (!apiKey) {
-                toast.error("Please add your Gemini API Key in Settings first!", {
-                    description: "Go to Settings > AI Settings to add your key for free.",
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user) {
+                    const { data: profile } = await supabase
+                        .from("profiles")
+                        .select("preferences")
+                        .eq("user_id", user.id)
+                        .single();
+                    apiKey = (profile?.preferences as any)?.gemini_api_key;
+                }
+            }
+
+            if (!apiKey) {
+                toast.error("AI Feature Unavailable", {
+                    description: "The developer hasn't set a master key, and no personal key was found in Settings.",
                     duration: 5000
                 });
                 setLoading(false);
@@ -111,7 +116,18 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
                     <Camera className="w-5 h-5 text-primary" />
                     AI Meal Scanner
                 </CardTitle>
-                <CardDescription>Snap or upload a photo of your meal for instant macro tracking.</CardDescription>
+                <CardDescription className="flex items-center justify-between">
+                    <span>Snap or upload a photo of your meal for instant macro tracking.</span>
+                    <a
+                        href="https://aistudio.google.com/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[10px] text-primary hover:underline flex items-center gap-1"
+                    >
+                        <Info className="w-3 h-3" />
+                        Powered by Gemini AI (Free)
+                    </a>
+                </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
                 {!image ? (
