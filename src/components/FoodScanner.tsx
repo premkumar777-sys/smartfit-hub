@@ -98,9 +98,13 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
                 setResult(data);
                 toast.success("AI Analysis Complete!");
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error("AI Analysis Error:", error);
-            toast.error("AI Analysis failed. Please check your API key.");
+            const errorMessage = error?.message || "Check your API key and connection.";
+            toast.error("AI Analysis failed", {
+                description: errorMessage,
+                duration: 8000
+            });
         } finally {
             setLoading(false);
         }
