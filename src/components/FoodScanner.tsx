@@ -11,96 +11,24 @@ interface FoodScannerProps {
 }
 
 export function FoodScanner({ onScanComplete }: FoodScannerProps) {
-    const [image, setImage] = useState<string | null>(null);
-    const [loading, setLoading] = useState(false);
-    const [result, setResult] = useState<any>(null);
-    const [activeTab, setActiveTab] = useState<"photo" | "search" | "camera">("photo");
     const [searchQuery, setSearchQuery] = useState("");
-    const [stream, setStream] = useState<MediaStream | null>(null);
+    const [loading, setLoading] = useState(false);
+    const [result, setResult] = useState<{ name: string; calories: number; protein: number; carbs: number; fats: number } | null>(null);
     const [quotaExceeded, setQuotaExceeded] = useState(false);
-    const fileInputRef = useRef<HTMLInputElement>(null);
-    const videoRef = useRef<HTMLVideoElement>(null);
 
-    // Cleanup camera on unmount
-    useEffect(() => {
-        return () => {
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
-            }
-        };
-    }, [stream]);
-
-    const startCamera = async () => {
-        try {
-            const mediaStream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: "environment" },
-                audio: false
-            });
-            setStream(mediaStream);
-            if (videoRef.current) {
-                videoRef.current.srcObject = mediaStream;
-            }
-        } catch (err) {
-            console.error("Camera access denied:", err);
-            toast.error("Camera Error", { description: "Please allow camera access in your browser settings." });
-            setActiveTab("photo");
-        }
-    };
-
-    const stopCamera = () => {
-        if (stream) {
-            stream.getTracks().forEach(track => track.stop());
-            setStream(null);
-        }
-    };
-
-    const capturePhoto = () => {
-        if (videoRef.current) {
-            const canvas = document.createElement("canvas");
-            canvas.width = videoRef.current.videoWidth;
-            canvas.height = videoRef.current.videoHeight;
-            const ctx = canvas.getContext("2d");
-            if (ctx) {
-                ctx.drawImage(videoRef.current, 0, 0);
-                const dataUrl = canvas.toDataURL("image/jpeg");
-                setImage(dataUrl);
-                setResult(null);
-                stopCamera();
-                setActiveTab("photo");
-            }
-        }
-    };
-
-    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setImage(reader.result as string);
-                setResult(null);
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-
+    // Simplified AI key retrieval
     const getApiKey = async () => {
         const envKey = import.meta.env.VITE_GEMINI_API_KEY;
-        let key = envKey || "";
+        let cleanKey = envKey || "";
 
-        if (!key) {
+        if (!cleanKey) {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
                 const { data: profile } = await supabase.from("profiles").select("preferences").eq("user_id", user.id).single();
-                key = (profile?.preferences as any)?.gemini_api_key || "";
+                cleanKey = (profile?.preferences as any)?.gemini_api_key || "";
             }
         }
-
-        const cleanKey = key.replace(/^["']|["']$/g, '').trim();
-        if (!cleanKey) {
-            toast.error("No API key found. Add one in .env or Settings.");
-            return null;
-        }
-        return cleanKey;
+        return cleanKey.replace(/^["']|["']$/g, '').trim();
     };
 
     const analyzeText = async (query: string) => {
@@ -197,147 +125,11 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
         }
     };
 
-    const analyzeImage = async () => {
-        if (!image) return;
-
-        setLoading(true);
-        let apiKey = "";
-        let source = "Unknown";
-
-        const possibleModels = [
-            "gemini-1.5-flash",
-            "gemini-1.5-flash-latest",
-            "gemini-2.0-flash",
-            "gemini-1.5-pro",
-            "gemini-1.5-flash-8b"
-        ];
-
-        try {
-            // 1. Get API Key: Priority 1: Environment Variable (Developer Provided), Priority 2: Profile Settings (User Provided)
-            const envKey = import.meta.env.VITE_GEMINI_API_KEY;
-            apiKey = envKey || "";
-            source = "Environment (.env)";
-
-            if (!apiKey) {
-                const { data: { user } } = await supabase.auth.getUser();
-                if (user) {
-                    const { data: profile } = await supabase
-                        .from("profiles")
-                        .select("preferences")
-                        .eq("user_id", user.id)
-                        .single();
-                    apiKey = (profile?.preferences as any)?.gemini_api_key || "";
-                    source = "User Profile (Settings)";
-                }
-            }
-
-            // Sanitize: Trim quotes and whitespace
-            apiKey = apiKey.replace(/^["']|["']$/g, '').trim();
-
-            if (!apiKey) {
-                console.error("SmartFit AI: No API key found.");
-                toast.error("AI Feature Unavailable", {
-                    description: "Please add your API key in .env or Settings.",
-                    duration: 5000
-                });
-                setLoading(false);
-                return;
-            }
-
-            console.log(`SmartFit AI: Using key from ${source}. Starts with: ${apiKey.substring(0, 6)}`);
-
-            // 2. Initialize Gemini
-            const genAI = new GoogleGenerativeAI(apiKey);
-
-            let success = false;
-            let lastError = null;
-
-            // 3. Prepare image for Gemini (remove data:image/...;base64, prefix)
-            const base64Data = image.split(",")[1];
-            const imagePart = {
-                inlineData: {
-                    data: base64Data,
-                    mimeType: "image/jpeg",
-                },
-            };
-
-            const prompt = `Analyze this food image and provide the estimated Calories, Protein (g), Carbs (g), and Fats (g). 
-            Return ONLY a JSON object in this format: 
-            { "name": "food name", "calories": 123, "protein": 12, "carbs": 34, "fats": 5 }. 
-            If multi-food plate, give total for the plate. If no food is detected, return { "error": "No food detected" }.`;
-
-            for (const modelName of possibleModels) {
-                try {
-                    console.log(`SmartFit AI: Trying model ${modelName} with key starting ${apiKey.substring(0, 4)}...`);
-                    const model = genAI.getGenerativeModel({ model: modelName });
-                    const result = await model.generateContent([prompt, imagePart]);
-                    const response = await result.response;
-                    const text = response.text();
-
-                    // 4. Parse JSON from response
-                    const jsonMatch = text.match(/\{.*\}/s);
-                    if (!jsonMatch) throw new Error(`Model ${modelName} returned non-JSON: ${text.substring(0, 100)}`);
-
-                    const data = JSON.parse(jsonMatch[0]);
-
-                    if (data.error) {
-                        console.warn(`SmartFit AI: API returned error for ${modelName}:`, data.error);
-                        toast.error(data.error);
-                    } else {
-                        setResult(data);
-                        toast.success(`Success! Analyzed with ${modelName}`);
-                        success = true;
-                    }
-                    if (success) break;
-                } catch (err: any) {
-                    console.warn(`SmartFit AI: Model ${modelName} attempt failed:`, err.message || err);
-                    lastError = err;
-
-                    // If we hit a quota error (429), don't bother trying other models as they likely share the same quota
-                    if (err.message?.includes("429") || err.message?.toLowerCase().includes("quota")) {
-                        console.error("SmartFit AI: Quota exceeded detected. Stopping model fallback loop.");
-                        break;
-                    }
-                }
-            }
-
-            if (!success && lastError) {
-                throw lastError;
-            }
-        } catch (error: any) {
-            console.error("SmartFit AI: Final Analysis Failure:", error);
-
-            let descriptiveError = error?.message || "Check your API key and connection.";
-            const keyPreview = apiKey?.substring(0, 6) + "..." || "None";
-
-            // Provide specific troubleshooting for 404/Not Found errors
-            if (descriptiveError.includes("404") || descriptiveError.includes("not found")) {
-                descriptiveError = `No compatible model found for key [${keyPreview}]. If you enabled the API, it may take 1-2 mins to activate. Otherwise, try a fresh key from AI Studio.`;
-            }
-
-            const isQuotaError = descriptiveError.toLowerCase().includes("quota") || descriptiveError.includes("429");
-            if (isQuotaError) setQuotaExceeded(true);
-
-            toast.error(isQuotaError ? "Free Tier Quota Reached" : "AI Analysis failed", {
-                description: isQuotaError
-                    ? "You've reached the daily limit for the Gemini Free Tier. Please try again in a few hours or use a different API key."
-                    : `Tried ${possibleModels.length} models, but all failed. Last error: ${descriptiveError}`,
-                action: {
-                    label: "Check API Key",
-                    onClick: () => window.open("https://aistudio.google.com/app/apikey", "_blank")
-                },
-                duration: 10000
-            });
-        } finally {
-            setLoading(false);
-        }
-    };
-
     const handleConfirm = () => {
         if (result) {
             onScanComplete(result);
-            setImage(null);
             setResult(null);
+            setSearchQuery("");
         }
     };
 
@@ -346,39 +138,19 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
             <CardHeader className="pb-4">
                 <div className="flex items-center justify-between mb-2">
                     <CardTitle className="text-xl flex items-center gap-2">
-                        <Sparkles className="w-5 h-5 text-primary animate-pulse" />
-                        Smart AI Tracker
+                        <div className="p-2 rounded-lg bg-primary/20">
+                            <Sparkles className="w-5 h-5 text-primary" />
+                        </div>
+                        Your's Nutritionist
                     </CardTitle>
-                    <div className="flex bg-black/40 p-1 rounded-lg border border-white/5">
-                        <button
-                            onClick={() => { setActiveTab("photo"); setResult(null); stopCamera(); }}
-                            className={`px-3 py-1 text-xs rounded-md transition-all ${activeTab === "photo" ? "bg-primary text-black font-bold" : "text-muted-foreground hover:text-white"}`}
-                        >
-                            Upload
-                        </button>
-                        <button
-                            onClick={() => { setActiveTab("camera"); setResult(null); startCamera(); }}
-                            className={`px-3 py-1 text-xs rounded-md transition-all ${activeTab === "camera" ? "bg-primary text-black font-bold" : "text-muted-foreground hover:text-white"}`}
-                        >
-                            Camera
-                        </button>
-                        <button
-                            onClick={() => { setActiveTab("search"); setResult(null); stopCamera(); }}
-                            className={`px-3 py-1 text-xs rounded-md transition-all ${activeTab === "search" ? "bg-primary text-black font-bold" : "text-muted-foreground hover:text-white"}`}
-                        >
-                            AI Assistant
-                        </button>
-                    </div>
                 </div>
                 <CardDescription>
-                    {activeTab === "photo" && "Choose a photo from your gallery."}
-                    {activeTab === "camera" && "Snap a live photo of your meal."}
-                    {activeTab === "search" && "Chat with your AI nutritionist assistant."}
+                    Chat with your AI nutritionist to log meals instantly.
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
                 {!result ? (
-                    <>
+                    <div className="space-y-4">
                         {quotaExceeded && (
                             <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 mb-4 animate-in fade-in slide-in-from-top-2">
                                 <div className="flex items-start gap-3">
@@ -386,32 +158,21 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
                                         <Info className="w-5 h-5 text-amber-500" />
                                     </div>
                                     <div className="flex-1">
-                                        <p className="text-sm font-bold text-amber-500 mb-1">AI limit reached for today!</p>
+                                        <p className="text-sm font-bold text-amber-500 mb-1">Quota hit!</p>
                                         <p className="text-xs text-muted-foreground mb-3">
-                                            The AI is resting. Use the manual search below or log calories directly to stay on track.
+                                            The AI needs a short break. You can log calories directly below.
                                         </p>
-                                        <div className="flex gap-2">
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                className="text-xs h-8 border-amber-500/20 hover:bg-amber-500/10"
-                                                onClick={() => { setQuotaExceeded(false); setActiveTab("search"); }}
-                                            >
-                                                Try Text Search
-                                            </Button>
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                className="text-xs h-8 border-amber-500/20 hover:bg-amber-500/10"
-                                                onClick={() => {
-                                                    // This will scroll to the manual log on parent page
-                                                    const manualLog = document.getElementById('manual-log-entry');
-                                                    if (manualLog) manualLog.scrollIntoView({ behavior: 'smooth' });
-                                                }}
-                                            >
-                                                Log Manually
-                                            </Button>
-                                        </div>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="text-xs h-8 border-amber-500/20 hover:bg-amber-500/10"
+                                            onClick={() => {
+                                                const manualLog = document.getElementById('manual-log-entry');
+                                                if (manualLog) manualLog.scrollIntoView({ behavior: 'smooth' });
+                                            }}
+                                        >
+                                            Log Manually
+                                        </Button>
                                     </div>
                                     <button onClick={() => setQuotaExceeded(false)} className="text-muted-foreground hover:text-white">
                                         <X className="w-4 h-4" />
@@ -419,80 +180,41 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
                                 </div>
                             </div>
                         )}
-                        {activeTab === "photo" && (
-                            <div className="space-y-4">
-                                {!image ? (
-                                    <div
-                                        onClick={() => fileInputRef.current?.click()}
-                                        className="border-2 border-dashed border-primary/20 rounded-2xl p-8 flex flex-col items-center justify-center gap-3 hover:bg-primary/5 transition-all cursor-pointer group"
-                                    >
-                                        <div className="p-4 rounded-full bg-primary/10 group-hover:scale-110 transition-transform">
-                                            <Upload className="w-8 h-8 text-primary" />
-                                        </div>
-                                        <div className="text-center">
-                                            <p className="font-medium">Choose File</p>
-                                            <p className="text-sm text-muted-foreground text-[10px]">Photo-to-Macros</p>
-                                        </div>
-                                        <input type="file" ref={fileInputRef} onChange={handleImageUpload} accept="image/*" className="hidden" />
-                                    </div>
-                                ) : (
-                                    <div className="space-y-4">
-                                        <div className="relative aspect-square max-h-[200px] mx-auto rounded-xl overflow-hidden bg-black/40 border border-white/10">
-                                            <img src={image} alt="Meal" className="w-full h-full object-cover" />
-                                            {!loading && (
-                                                <button onClick={() => setImage(null)} className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white hover:bg-red-500 transition-colors">
-                                                    <X className="w-4 h-4" />
-                                                </button>
-                                            )}
-                                        </div>
-                                        <Button onClick={analyzeImage} className="w-full" disabled={loading}>
-                                            {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Analyzing...</> : "Scan Photo"}
-                                        </Button>
-                                    </div>
-                                )}
-                            </div>
-                        )}
 
-                        {activeTab === "camera" && (
-                            <div className="space-y-4">
-                                <div className="relative aspect-square max-h-[250px] mx-auto rounded-xl overflow-hidden bg-black/40 border border-white/10">
-                                    <video
-                                        ref={videoRef}
-                                        autoPlay
-                                        playsInline
-                                        className="w-full h-full object-cover"
-                                    />
-                                    <div className="absolute inset-0 border-2 border-primary/30 pointer-events-none rounded-xl"></div>
+                        <div className="space-y-3">
+                            <div className="relative">
+                                <textarea
+                                    placeholder="Tell me what you ate... (e.g., '3 scrambled eggs and bread')"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="w-full h-32 bg-black/40 border border-white/10 rounded-xl p-4 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 placeholder:text-muted-foreground resize-none transition-all hover:border-primary/20"
+                                />
+                                <div className="absolute bottom-3 right-3 flex items-center gap-2">
+                                    <span className="text-[10px] text-muted-foreground bg-black/60 px-2 py-1 rounded border border-white/5">
+                                        Enter to log
+                                    </span>
                                 </div>
-                                <Button onClick={capturePhoto} className="w-full bg-primary text-black font-bold">
-                                    <Camera className="w-4 h-4 mr-2" />
-                                    Capture Photo
-                                </Button>
                             </div>
-                        )}
-                        {activeTab === "search" && (
-                            <div className="space-y-3">
-                                <div className="relative">
-                                    <textarea
-                                        placeholder="What did you eat today?"
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                        className="w-full h-24 bg-black/40 border border-white/10 rounded-xl p-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 placeholder:text-muted-foreground resize-none"
-                                    />
-                                </div>
-                                <Button
-                                    onClick={() => analyzeText(searchQuery)}
-                                    className="w-full bg-primary text-black font-bold hover:bg-primary/90"
-                                    disabled={loading || !searchQuery.trim()}
-                                >
-                                    {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Thinking...</> : "Send to Assistant"}
-                                </Button>
-                                <p className="text-[10px] text-center text-muted-foreground italic">
-                                    Example: "One large bowl of oatmeal with blueberries and honey"
-                                </p>
+                            <Button
+                                onClick={() => analyzeText(searchQuery)}
+                                className="w-full py-6 bg-primary text-black font-bold text-base hover:bg-primary/90 shadow-[0_0_20px_rgba(var(--primary),0.3)] transition-all active:scale-[0.98]"
+                                disabled={loading || !searchQuery.trim()}
+                            >
+                                {loading ? (
+                                    <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Analyzing Nutrients...</>
+                                ) : (
+                                    <><Sparkles className="w-5 h-5 mr-2" /> Analyze Meal</>
+                                )}
+                            </Button>
+                            <div className="flex items-center justify-center gap-4 text-[11px] text-muted-foreground opacity-60">
+                                <span>Fast</span>
+                                <span>•</span>
+                                <span>Free</span>
+                                <span>•</span>
+                                <span>Accurate</span>
                             </div>
-                        )}
-                    </>
+                        </div>
+                    </div>
                 ) : (
                     <div className="space-y-4 animate-in fade-in zoom-in-95 duration-300">
                         <div className="p-4 rounded-xl bg-primary/10 border border-primary/30 relative overflow-hidden">
@@ -514,7 +236,7 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
                                 <Check className="w-4 h-4 mr-2" />
                                 Add to Journal
                             </Button>
-                            <Button variant="outline" onClick={() => { setResult(null); setImage(null); setSearchQuery(""); }} className="border-white/10 text-white hover:bg-white/5">
+                            <Button variant="outline" onClick={() => { setResult(null); setSearchQuery(""); }} className="border-white/10 text-white hover:bg-white/5">
                                 Cancel
                             </Button>
                         </div>
