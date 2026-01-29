@@ -49,8 +49,7 @@ export default function Nutrition() {
         const { data } = await supabase
           .from('profiles')
           .select('daily_calories_target, fitness_goal')
-          .select('daily_calories_target, fitness_goal')
-          .eq('user_id', session.user.id)
+          .eq('id', session.user.id)
           .single();
 
         if (data?.fitness_goal) {

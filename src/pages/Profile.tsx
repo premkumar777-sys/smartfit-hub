@@ -200,19 +200,26 @@ export default function Profile() {
 
         setSaving(true);
         try {
+            const updateData = {
+                id: user.id,
+                username: editUsername,
+                full_name: editFullName,
+                bio: editBio,
+                location: editLocation,
+                fitness_goal: editGoal,
+                updated_at: new Date().toISOString()
+            };
+
+            console.log("Saving profile with data:", updateData);
+
             const { error } = await supabase
                 .from('profiles')
-                .update({
-                    username: editUsername,
-                    full_name: editFullName,
-                    bio: editBio,
-                    location: editLocation,
-                    fitness_goal: editGoal,
-                    updated_at: new Date().toISOString()
-                })
-                .eq('id', user.id);
+                .upsert(updateData, { onConflict: 'id' });
 
-            if (error) throw error;
+            if (error) {
+                console.error("Supabase error updating profile:", error);
+                throw error;
+            }
 
             setProfile(prev => prev ? {
                 ...prev,

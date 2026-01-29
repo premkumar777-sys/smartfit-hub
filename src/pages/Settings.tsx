@@ -103,15 +103,22 @@ export default function Settings() {
 
         setSaving(true);
         try {
+            const updateData = {
+                id: user?.id,
+                preferences: nextPreferences,
+                updated_at: new Date().toISOString()
+            };
+
+            console.log("Saving settings with data:", updateData);
+
             const { error } = await supabase
                 .from("profiles")
-                .update({
-                    preferences: nextPreferences,
-                    updated_at: new Date().toISOString()
-                })
-                .eq("id", user?.id);
+                .upsert(updateData, { onConflict: 'id' });
 
-            if (error) throw error;
+            if (error) {
+                console.error("Supabase error saving settings:", error);
+                throw error;
+            }
             toast.success("Settings updated");
         } catch (error) {
             console.error("Error saving settings:", error);

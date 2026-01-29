@@ -7,6 +7,7 @@ import { Activity, Apple, Dumbbell, Target, TrendingUp, FileText, Trash2, ArrowL
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import type { Tables } from "@/integrations/supabase/types";
+import { useAuth } from "@/hooks/use-auth";
 import { useGamification } from "@/hooks/useGamification";
 
 type Profile = Tables<"profiles">;
