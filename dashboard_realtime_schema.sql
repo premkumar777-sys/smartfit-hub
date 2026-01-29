@@ -37,21 +37,24 @@ ALTER TABLE public.activity_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.nutrition_logs ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies
-CREATE POLICY "Users can view their own activity logs" 
-ON public.activity_logs FOR SELECT 
-USING (auth.uid() = user_id);
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can view their own activity logs') THEN
+        CREATE POLICY "Users can view their own activity logs" ON public.activity_logs FOR SELECT USING (auth.uid() = user_id);
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can insert their own activity logs') THEN
+        CREATE POLICY "Users can insert their own activity logs" ON public.activity_logs FOR INSERT WITH CHECK (auth.uid() = user_id);
+    END IF;
 
-CREATE POLICY "Users can insert their own activity logs" 
-ON public.activity_logs FOR INSERT 
-WITH CHECK (auth.uid() = user_id);
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can view their own nutrition logs') THEN
+        CREATE POLICY "Users can view their own nutrition logs" ON public.nutrition_logs FOR SELECT USING (auth.uid() = user_id);
+    END IF;
 
-CREATE POLICY "Users can view their own nutrition logs" 
-ON public.nutrition_logs FOR SELECT 
-USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can insert their own nutrition logs" 
-ON public.nutrition_logs FOR INSERT 
-WITH CHECK (auth.uid() = user_id);
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can insert their own nutrition logs') THEN
+        CREATE POLICY "Users can insert their own nutrition logs" ON public.nutrition_logs FOR INSERT WITH CHECK (auth.uid() = user_id);
+    END IF;
+END $$;
 
 -- Update profile stats when activity is logged (optional but good for performance)
 CREATE OR REPLACE FUNCTION update_profile_stats()
@@ -68,6 +71,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS tr_update_profile_stats ON public.activity_logs;
 CREATE TRIGGER tr_update_profile_stats
 AFTER INSERT ON public.activity_logs
 FOR EACH ROW EXECUTE FUNCTION update_profile_stats();
