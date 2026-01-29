@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Camera, Upload, Check, X, Info, Sparkles } from "lucide-react";
+import { Loader2, Camera, Upload, X, Info, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -80,7 +80,7 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
                 toast.error(resultData.error);
             } else {
                 setResult(resultData);
-                toast.success("Assistant processed your meal! 🍏");
+                toast.success("Nutrition facts retrieved! 🍎");
             }
         } catch (error: any) {
             console.error("AI Assistant Error:", error);
@@ -92,12 +92,9 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
         }
     };
 
-    const handleConfirm = () => {
-        if (result) {
-            onScanComplete(result);
-            setResult(null);
-            setSearchQuery("");
-        }
+    const handleDone = () => {
+        setResult(null);
+        setSearchQuery("");
     };
 
     return (
@@ -199,12 +196,8 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
                             </div>
                         </div>
                         <div className="flex gap-2">
-                            <Button onClick={handleConfirm} className="flex-1 bg-primary text-black font-bold hover:bg-primary/80">
-                                <Check className="w-4 h-4 mr-2" />
-                                Add to Journal
-                            </Button>
-                            <Button variant="outline" onClick={() => { setResult(null); setSearchQuery(""); }} className="border-white/10 text-white hover:bg-white/5">
-                                Cancel
+                            <Button onClick={handleDone} className="w-full bg-primary text-black font-bold hover:bg-primary/80">
+                                Done
                             </Button>
                         </div>
                     </div>
