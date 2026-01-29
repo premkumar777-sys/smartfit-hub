@@ -184,13 +184,20 @@ export default function Nutrition() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      const { error } = await supabase.from('nutrition_logs').insert({
+      // 1. Save to nutrition_logs for macro tracking
+      const { error: logError } = await supabase.from('nutrition_logs').insert({
         user_id: session.user.id,
-        calories: cals,
-        // For now we just log calories, could expand to macros
+        calories: Math.round(cals),
       });
 
-      if (error) throw error;
+      if (logError) throw logError;
+
+      // 2. Save to activity_logs for dashboard feed
+      await supabase.from('activity_logs').insert({
+        user_id: session.user.id,
+        activity_type: 'nutrition',
+        value: Math.round(cals),
+      });
 
       toast.success(`Logged ${cals} calories! 🍏`);
       setLogCalories("");
@@ -209,19 +216,28 @@ export default function Nutrition() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      const { error } = await supabase.from('nutrition_logs').insert({
+      // 1. Save to nutrition_logs for macro tracking
+      const { error: logError } = await supabase.from('nutrition_logs').insert({
         user_id: session.user.id,
-        calories: data.calories,
-        protein: data.protein,
-        carbs: data.carbs,
-        fats: data.fats,
-        meal_name: data.name
+        calories: Math.round(data.calories),
+        protein: Math.round(data.protein),
+        carbs: Math.round(data.carbs),
+        fats: Math.round(data.fats),
+        // meal_name column doesn't exist in DB yet, skipping for now to avoid error
       });
 
-      if (error) throw error;
+      if (logError) throw logError;
 
-      toast.success(`Logged ${data.name} (${data.calories} kcal)! 🍏`, {
-        description: `Macros: P:${data.protein}g C:${data.carbs}g F:${data.fats}g`
+      // 2. Save to activity_logs for dashboard feed
+      await supabase.from('activity_logs').insert({
+        user_id: session.user.id,
+        activity_type: 'nutrition',
+        value: Math.round(data.calories),
+        metadata: { name: data.name }
+      });
+
+      toast.success(`Logged ${data.name} (${Math.round(data.calories)} kcal)! 🍏`, {
+        description: `Macros: P:${Math.round(data.protein)}g C:${Math.round(data.carbs)}g F:${Math.round(data.fats)}g`
       });
       fetchNutritionLogs();
     } catch (err) {
