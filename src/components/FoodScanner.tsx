@@ -66,8 +66,11 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
 
             // 2. Initialize Gemini
             const genAI = new GoogleGenerativeAI(apiKey);
-            // Use 'gemini-1.5-flash-latest' which is often more stable for 404 errors
-            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+
+            // Try possible models in order of performance
+            const possibleModels = ["gemini-1.5-flash-latest", "gemini-1.5-flash", "gemini-pro-vision"];
+            let success = false;
+            let lastError = null;
 
             // 3. Prepare image for Gemini (remove data:image/...;base64, prefix)
             const base64Data = image.split(",")[1];
@@ -83,21 +86,38 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
             { "name": "food name", "calories": 123, "protein": 12, "carbs": 34, "fats": 5 }. 
             If multi-food plate, give total for the plate. If no food is detected, return { "error": "No food detected" }.`;
 
-            const result = await model.generateContent([prompt, imagePart]);
-            const response = await result.response;
-            const text = response.text();
+            for (const modelName of possibleModels) {
+                try {
+                    console.log(`Trying AI model: ${modelName}...`);
+                    const model = genAI.getGenerativeModel({ model: modelName });
+                    const result = await model.generateContent([prompt, imagePart]);
+                    const response = await result.response;
+                    const text = response.text();
 
-            // 4. Parse JSON from response
-            const jsonMatch = text.match(/\{.*\}/s);
-            if (!jsonMatch) throw new Error("Could not parse AI response");
+                    // 4. Parse JSON from response
+                    const jsonMatch = text.match(/\{.*\}/s);
+                    if (!jsonMatch) throw new Error("Could not parse AI response");
 
-            const data = JSON.parse(jsonMatch[0]);
+                    const data = JSON.parse(jsonMatch[0]);
 
-            if (data.error) {
-                toast.error(data.error);
-            } else {
-                setResult(data);
-                toast.success("AI Analysis Complete!");
+                    if (data.error) {
+                        toast.error(data.error);
+                    } else {
+                        setResult(data);
+                        toast.success(`Success using ${modelName}!`);
+                        success = true;
+                    }
+                    break; // Success! Exit loop
+                } catch (err: any) {
+                    console.warn(`Model ${modelName} failed:`, err);
+                    lastError = err;
+                    // If it's not a 404, the problem might be something else (like API key), 
+                    // but we try the next model anyway just in case.
+                }
+            }
+
+            if (!success && lastError) {
+                throw lastError;
             }
         } catch (error: any) {
             console.error("AI Analysis Error:", error);
