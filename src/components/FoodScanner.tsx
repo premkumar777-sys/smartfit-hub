@@ -32,11 +32,14 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
         if (!image) return;
 
         setLoading(true);
+        let apiKey = "";
+        let source = "Unknown";
+
         try {
             // 1. Get API Key: Priority 1: Environment Variable (Developer Provided), Priority 2: Profile Settings (User Provided)
             const envKey = import.meta.env.VITE_GEMINI_API_KEY;
-            let apiKey = envKey;
-            let source = "Environment (.env)";
+            apiKey = envKey || "";
+            source = "Environment (.env)";
 
             if (!apiKey) {
                 const { data: { user } } = await supabase.auth.getUser();
@@ -46,27 +49,25 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
                         .select("preferences")
                         .eq("user_id", user.id)
                         .single();
-                    apiKey = (profile?.preferences as any)?.gemini_api_key;
+                    apiKey = (profile?.preferences as any)?.gemini_api_key || "";
                     source = "User Profile (Settings)";
                 }
             }
 
             // Sanitize: Trim quotes and whitespace
-            if (apiKey) {
-                apiKey = apiKey.replace(/^["']|["']$/g, '').trim();
-            }
+            apiKey = apiKey.replace(/^["']|["']$/g, '').trim();
 
             if (!apiKey) {
-                console.error("SmartFit AI: No API key found in .env or Profile.");
+                console.error("SmartFit AI: No API key found.");
                 toast.error("AI Feature Unavailable", {
-                    description: "No API key was found. Please check your .env file or Settings.",
+                    description: "Please add your API key in .env or Settings.",
                     duration: 5000
                 });
                 setLoading(false);
                 return;
             }
 
-            console.log(`SmartFit AI: Using key from ${source}. Key starts with: ${apiKey.substring(0, 6)}...`);
+            console.log(`SmartFit AI: Using key from ${source}. Starts with: ${apiKey.substring(0, 6)}`);
 
             // 2. Initialize Gemini
             const genAI = new GoogleGenerativeAI(apiKey);
@@ -92,7 +93,7 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
 
             for (const modelName of possibleModels) {
                 try {
-                    console.log(`Trying AI model: ${modelName}...`);
+                    console.log(`SmartFit AI: Trying model ${modelName} with key starting ${apiKey.substring(0, 4)}...`);
                     const model = genAI.getGenerativeModel({ model: modelName });
                     const result = await model.generateContent([prompt, imagePart]);
                     const response = await result.response;
@@ -100,23 +101,22 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
 
                     // 4. Parse JSON from response
                     const jsonMatch = text.match(/\{.*\}/s);
-                    if (!jsonMatch) throw new Error("Could not parse AI response");
+                    if (!jsonMatch) throw new Error(`Model ${modelName} returned non-JSON: ${text.substring(0, 100)}`);
 
                     const data = JSON.parse(jsonMatch[0]);
 
                     if (data.error) {
+                        console.warn(`SmartFit AI: API returned error for ${modelName}:`, data.error);
                         toast.error(data.error);
                     } else {
                         setResult(data);
-                        toast.success(`Success using ${modelName}!`);
+                        toast.success(`Success! Analyzed with ${modelName}`);
                         success = true;
                     }
-                    break; // Success! Exit loop
+                    if (success) break;
                 } catch (err: any) {
-                    console.warn(`Model ${modelName} failed:`, err);
+                    console.warn(`SmartFit AI: Model ${modelName} failed. Full error:`, err);
                     lastError = err;
-                    // If it's not a 404, the problem might be something else (like API key), 
-                    // but we try the next model anyway just in case.
                 }
             }
 
@@ -124,20 +124,21 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
                 throw lastError;
             }
         } catch (error: any) {
-            console.error("AI Analysis Error:", error);
+            console.error("SmartFit AI: Final Analysis Failure:", error);
 
             let descriptiveError = error?.message || "Check your API key and connection.";
+            const keyPreview = apiKey?.substring(0, 6) + "..." || "None";
 
             // Provide specific troubleshooting for 404/Not Found errors
             if (descriptiveError.includes("404") || descriptiveError.includes("not found")) {
-                descriptiveError = "The Gemini API is likely disabled for your key. Visit https://console.cloud.google.com/apis/library/generativelanguage.googleapis.com and click 'ENABLE' to fix this.";
+                descriptiveError = `No compatible model found for key [${keyPreview}]. If you enabled the API, it may take 1-2 mins to activate. Otherwise, try a fresh key from AI Studio.`;
             }
 
             toast.error("AI Analysis failed", {
                 description: descriptiveError,
                 action: {
-                    label: "Enable API",
-                    onClick: () => window.open("https://console.cloud.google.com/apis/library/generativelanguage.googleapis.com", "_blank")
+                    label: "Troubleshoot",
+                    onClick: () => window.open("https://aistudio.google.com/app/apikey", "_blank")
                 },
                 duration: 15000
             });
