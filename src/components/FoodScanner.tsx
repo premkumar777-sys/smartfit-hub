@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,9 +14,61 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
     const [image, setImage] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState<any>(null);
-    const [activeTab, setActiveTab] = useState<"photo" | "search">("photo");
+    const [activeTab, setActiveTab] = useState<"photo" | "search" | "camera">("photo");
     const [searchQuery, setSearchQuery] = useState("");
+    const [stream, setStream] = useState<MediaStream | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const videoRef = useRef<HTMLVideoElement>(null);
+
+    // Cleanup camera on unmount
+    useEffect(() => {
+        return () => {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+        };
+    }, [stream]);
+
+    const startCamera = async () => {
+        try {
+            const mediaStream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: "environment" },
+                audio: false
+            });
+            setStream(mediaStream);
+            if (videoRef.current) {
+                videoRef.current.srcObject = mediaStream;
+            }
+        } catch (err) {
+            console.error("Camera access denied:", err);
+            toast.error("Camera Error", { description: "Please allow camera access in your browser settings." });
+            setActiveTab("photo");
+        }
+    };
+
+    const stopCamera = () => {
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+            setStream(null);
+        }
+    };
+
+    const capturePhoto = () => {
+        if (videoRef.current) {
+            const canvas = document.createElement("canvas");
+            canvas.width = videoRef.current.videoWidth;
+            canvas.height = videoRef.current.videoHeight;
+            const ctx = canvas.getContext("2d");
+            if (ctx) {
+                ctx.drawImage(videoRef.current, 0, 0);
+                const dataUrl = canvas.toDataURL("image/jpeg");
+                setImage(dataUrl);
+                setResult(null);
+                stopCamera();
+                setActiveTab("photo");
+            }
+        }
+    };
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -250,13 +302,19 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
                     </CardTitle>
                     <div className="flex bg-black/40 p-1 rounded-lg border border-white/5">
                         <button
-                            onClick={() => { setActiveTab("photo"); setResult(null); }}
+                            onClick={() => { setActiveTab("photo"); setResult(null); stopCamera(); }}
                             className={`px-3 py-1 text-xs rounded-md transition-all ${activeTab === "photo" ? "bg-primary text-black font-bold" : "text-muted-foreground hover:text-white"}`}
                         >
-                            Photo
+                            Upload
                         </button>
                         <button
-                            onClick={() => { setActiveTab("search"); setResult(null); }}
+                            onClick={() => { setActiveTab("camera"); setResult(null); startCamera(); }}
+                            className={`px-3 py-1 text-xs rounded-md transition-all ${activeTab === "camera" ? "bg-primary text-black font-bold" : "text-muted-foreground hover:text-white"}`}
+                        >
+                            Camera
+                        </button>
+                        <button
+                            onClick={() => { setActiveTab("search"); setResult(null); stopCamera(); }}
                             className={`px-3 py-1 text-xs rounded-md transition-all ${activeTab === "search" ? "bg-primary text-black font-bold" : "text-muted-foreground hover:text-white"}`}
                         >
                             Search
@@ -264,15 +322,15 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
                     </div>
                 </div>
                 <CardDescription>
-                    {activeTab === "photo"
-                        ? "Scan your plate for instant tracking."
-                        : "Describe your meal (e.g., '2 eggs with a slice of bread')."}
+                    {activeTab === "photo" && "Choose a photo from your gallery."}
+                    {activeTab === "camera" && "Snap a live photo of your meal."}
+                    {activeTab === "search" && "Describe your meal if you don't have a photo."}
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
                 {!result ? (
                     <>
-                        {activeTab === "photo" ? (
+                        {activeTab === "photo" && (
                             <div className="space-y-4">
                                 {!image ? (
                                     <div
@@ -280,10 +338,10 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
                                         className="border-2 border-dashed border-primary/20 rounded-2xl p-8 flex flex-col items-center justify-center gap-3 hover:bg-primary/5 transition-all cursor-pointer group"
                                     >
                                         <div className="p-4 rounded-full bg-primary/10 group-hover:scale-110 transition-transform">
-                                            <Camera className="w-8 h-8 text-primary" />
+                                            <Upload className="w-8 h-8 text-primary" />
                                         </div>
                                         <div className="text-center">
-                                            <p className="font-medium">Snap or Upload</p>
+                                            <p className="font-medium">Choose File</p>
                                             <p className="text-sm text-muted-foreground text-[10px]">Photo-to-Macros</p>
                                         </div>
                                         <input type="file" ref={fileInputRef} onChange={handleImageUpload} accept="image/*" className="hidden" />
@@ -304,7 +362,26 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
                                     </div>
                                 )}
                             </div>
-                        ) : (
+                        )}
+
+                        {activeTab === "camera" && (
+                            <div className="space-y-4">
+                                <div className="relative aspect-square max-h-[250px] mx-auto rounded-xl overflow-hidden bg-black/40 border border-white/10">
+                                    <video
+                                        ref={videoRef}
+                                        autoPlay
+                                        playsInline
+                                        className="w-full h-full object-cover"
+                                    />
+                                    <div className="absolute inset-0 border-2 border-primary/30 pointer-events-none rounded-xl"></div>
+                                </div>
+                                <Button onClick={capturePhoto} className="w-full bg-primary text-black font-bold">
+                                    <Camera className="w-4 h-4 mr-2" />
+                                    Capture Photo
+                                </Button>
+                            </div>
+                        )}
+                        {activeTab === "search" && (
                             <div className="space-y-3">
                                 <div className="relative">
                                     <textarea
