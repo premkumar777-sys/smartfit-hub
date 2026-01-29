@@ -14,6 +14,8 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
     const [image, setImage] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState<any>(null);
+    const [activeTab, setActiveTab] = useState<"photo" | "search">("photo");
+    const [searchQuery, setSearchQuery] = useState("");
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -25,6 +27,65 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
                 setResult(null);
             };
             reader.readAsDataURL(file);
+        }
+    };
+
+    const getApiKey = async () => {
+        const envKey = import.meta.env.VITE_GEMINI_API_KEY;
+        let key = envKey || "";
+
+        if (!key) {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                const { data: profile } = await supabase.from("profiles").select("preferences").eq("user_id", user.id).single();
+                key = (profile?.preferences as any)?.gemini_api_key || "";
+            }
+        }
+
+        const cleanKey = key.replace(/^["']|["']$/g, '').trim();
+        if (!cleanKey) {
+            toast.error("No API key found. Add one in .env or Settings.");
+            return null;
+        }
+        return cleanKey;
+    };
+
+    const analyzeText = async (query: string) => {
+        if (!query.trim()) return;
+        setLoading(true);
+        setResult(null);
+
+        try {
+            const apiKey = await getApiKey();
+            if (!apiKey) return;
+
+            const genAI = new GoogleGenerativeAI(apiKey);
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+            const prompt = `Analyze this food description: "${query}". 
+            Identify the food and provide estimated Calories, Protein (g), Carbs (g), and Fats (g). 
+            Return ONLY a JSON object: { "name": "food name", "calories": 123, "protein": 12, "carbs": 34, "fats": 5 }.
+            If the description is not food, return { "error": "Please describe a valid meal." }.`;
+
+            const result = await model.generateContent(prompt);
+            const response = await result.response;
+            const text = response.text();
+
+            const jsonMatch = text.match(/\{.*\}/s);
+            if (!jsonMatch) throw new Error("Could not parse AI response");
+            const data = JSON.parse(jsonMatch[0]);
+
+            if (data.error) {
+                toast.error(data.error);
+            } else {
+                setResult(data);
+                toast.success("AI Search Success!");
+            }
+        } catch (error: any) {
+            console.error("AI Search Error:", error);
+            toast.error("AI Search failed", { description: error.message });
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -156,106 +217,117 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
     };
 
     return (
-        <Card className="glass border-primary/20 overflow-hidden">
+        <Card className="glass border-primary/20 overflow-hidden shadow-2xl">
             <CardHeader className="pb-4">
-                <CardTitle className="text-xl flex items-center gap-2">
-                    <Camera className="w-5 h-5 text-primary" />
-                    AI Meal Scanner
-                </CardTitle>
-                <CardDescription className="flex items-center justify-between">
-                    <span>Snap or upload a photo of your meal for instant macro tracking.</span>
-                    <a
-                        href="https://aistudio.google.com/"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-[10px] text-primary hover:underline flex items-center gap-1"
-                    >
-                        <Info className="w-3 h-3" />
-                        Powered by Gemini AI (Free)
-                    </a>
+                <div className="flex items-center justify-between mb-2">
+                    <CardTitle className="text-xl flex items-center gap-2">
+                        <SparklesIcon className="w-5 h-5 text-primary animate-pulse" />
+                        Smart AI Tracker
+                    </CardTitle>
+                    <div className="flex bg-black/40 p-1 rounded-lg border border-white/5">
+                        <button
+                            onClick={() => { setActiveTab("photo"); setResult(null); }}
+                            className={`px-3 py-1 text-xs rounded-md transition-all ${activeTab === "photo" ? "bg-primary text-black font-bold" : "text-muted-foreground hover:text-white"}`}
+                        >
+                            Photo
+                        </button>
+                        <button
+                            onClick={() => { setActiveTab("search"); setResult(null); }}
+                            className={`px-3 py-1 text-xs rounded-md transition-all ${activeTab === "search" ? "bg-primary text-black font-bold" : "text-muted-foreground hover:text-white"}`}
+                        >
+                            Search
+                        </button>
+                    </div>
+                </div>
+                <CardDescription>
+                    {activeTab === "photo"
+                        ? "Scan your plate for instant tracking."
+                        : "Describe your meal (e.g., '2 eggs with a slice of bread')."}
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-                {!image ? (
-                    <div
-                        onClick={() => fileInputRef.current?.click()}
-                        className="border-2 border-dashed border-primary/20 rounded-2xl p-10 flex flex-col items-center justify-center gap-3 hover:bg-primary/5 transition-colors cursor-pointer"
-                    >
-                        <div className="p-4 rounded-full bg-primary/10">
-                            <Upload className="w-8 h-8 text-primary" />
-                        </div>
-                        <div className="text-center">
-                            <p className="font-medium">Click to Upload</p>
-                            <p className="text-sm text-muted-foreground">or drop your meal photo here</p>
-                        </div>
-                        <input
-                            type="file"
-                            ref={fileInputRef}
-                            onChange={handleImageUpload}
-                            accept="image/*"
-                            className="hidden"
-                        />
-                    </div>
-                ) : (
-                    <div className="space-y-4">
-                        <div className="relative aspect-video rounded-xl overflow-hidden bg-black/40 border border-white/10">
-                            <img src={image} alt="Meal" className="w-full h-full object-contain" />
-                            {!result && !loading && (
-                                <button
-                                    onClick={() => setImage(null)}
-                                    className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white hover:bg-red-500 transition-colors"
-                                >
-                                    <X className="w-4 h-4" />
-                                </button>
-                            )}
-                        </div>
-
-                        {!result ? (
-                            <Button
-                                onClick={analyzeImage}
-                                className="w-full"
-                                disabled={loading}
-                            >
-                                {loading ? (
-                                    <>
-                                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                        AI Analyzing...
-                                    </>
-                                ) : (
-                                    <>
-                                        <SparklesIcon className="w-4 h-4 mr-2" />
-                                        Analyze Meal with AI
-                                    </>
-                                )}
-                            </Button>
-                        ) : (
-                            <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                <div className="p-4 rounded-xl bg-primary/10 border border-primary/20">
-                                    <h4 className="font-bold text-lg mb-3 flex items-center justify-between">
-                                        {result.name}
-                                        <span className="text-primary text-sm font-medium">{result.calories} kcal</span>
-                                    </h4>
-                                    <div className="grid grid-cols-3 gap-2">
-                                        <MacroItem label="Protein" value={`${result.protein}g`} />
-                                        <MacroItem label="Carbs" value={`${result.carbs}g`} />
-                                        <MacroItem label="Fats" value={`${result.fats}g`} />
+                {!result ? (
+                    <>
+                        {activeTab === "photo" ? (
+                            <div className="space-y-4">
+                                {!image ? (
+                                    <div
+                                        onClick={() => fileInputRef.current?.click()}
+                                        className="border-2 border-dashed border-primary/20 rounded-2xl p-8 flex flex-col items-center justify-center gap-3 hover:bg-primary/5 transition-all cursor-pointer group"
+                                    >
+                                        <div className="p-4 rounded-full bg-primary/10 group-hover:scale-110 transition-transform">
+                                            <Camera className="w-8 h-8 text-primary" />
+                                        </div>
+                                        <div className="text-center">
+                                            <p className="font-medium">Snap or Upload</p>
+                                            <p className="text-sm text-muted-foreground text-[10px]">Photo-to-Macros</p>
+                                        </div>
+                                        <input type="file" ref={fileInputRef} onChange={handleImageUpload} accept="image/*" className="hidden" />
                                     </div>
+                                ) : (
+                                    <div className="space-y-4">
+                                        <div className="relative aspect-square max-h-[200px] mx-auto rounded-xl overflow-hidden bg-black/40 border border-white/10">
+                                            <img src={image} alt="Meal" className="w-full h-full object-cover" />
+                                            {!loading && (
+                                                <button onClick={() => setImage(null)} className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white hover:bg-red-500 transition-colors">
+                                                    <X className="w-4 h-4" />
+                                                </button>
+                                            )}
+                                        </div>
+                                        <Button onClick={analyzeImage} className="w-full" disabled={loading}>
+                                            {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Analyzing...</> : "Scan Photo"}
+                                        </Button>
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="space-y-3">
+                                <div className="relative">
+                                    <textarea
+                                        placeholder="What did you eat today?"
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        className="w-full h-24 bg-black/40 border border-white/10 rounded-xl p-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 placeholder:text-muted-foreground resize-none"
+                                    />
                                 </div>
-                                <div className="flex gap-2">
-                                    <Button onClick={handleConfirm} className="flex-1 bg-primary text-black hover:bg-primary/90">
-                                        <Check className="w-4 h-4 mr-2" />
-                                        Confirm & Log Meal
-                                    </Button>
-                                    <Button variant="outline" onClick={() => setResult(null)} disabled={loading}>
-                                        Retry
-                                    </Button>
-                                </div>
-                                <p className="text-[10px] text-center text-muted-foreground flex items-center justify-center gap-1">
-                                    <Info className="w-3 h-3" />
-                                    AI estimates may vary. Verify before logging.
+                                <Button
+                                    onClick={() => analyzeText(searchQuery)}
+                                    className="w-full"
+                                    disabled={loading || !searchQuery.trim()}
+                                >
+                                    {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Searching...</> : "AI Search Macros"}
+                                </Button>
+                                <p className="text-[10px] text-center text-muted-foreground italic">
+                                    Example: "One large bowl of oatmeal with blueberries and honey"
                                 </p>
                             </div>
                         )}
+                    </>
+                ) : (
+                    <div className="space-y-4 animate-in fade-in zoom-in-95 duration-300">
+                        <div className="p-4 rounded-xl bg-primary/10 border border-primary/30 relative overflow-hidden">
+                            <div className="absolute top-0 right-0 p-2 opacity-10">
+                                <SparklesIcon className="w-12 h-12" />
+                            </div>
+                            <h4 className="font-bold text-lg mb-4 flex items-center justify-between">
+                                <span className="truncate pr-4">{result.name}</span>
+                                <span className="text-primary whitespace-nowrap">{result.calories} <span className="text-[10px]">kcal</span></span>
+                            </h4>
+                            <div className="grid grid-cols-3 gap-2">
+                                <MacroItem label="Protein" value={`${result.protein}g`} />
+                                <MacroItem label="Carbs" value={`${result.carbs}g`} />
+                                <MacroItem label="Fats" value={`${result.fats}g`} />
+                            </div>
+                        </div>
+                        <div className="flex gap-2">
+                            <Button onClick={handleConfirm} className="flex-1 bg-primary text-black font-bold hover:bg-primary/80">
+                                <Check className="w-4 h-4 mr-2" />
+                                Add to Journal
+                            </Button>
+                            <Button variant="outline" onClick={() => { setResult(null); setImage(null); setSearchQuery(""); }} className="border-white/10 text-white hover:bg-white/5">
+                                Cancel
+                            </Button>
+                        </div>
                     </div>
                 )}
             </CardContent>
