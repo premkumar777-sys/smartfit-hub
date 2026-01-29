@@ -60,7 +60,7 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
             if (!apiKey) return;
 
             const genAI = new GoogleGenerativeAI(apiKey);
-            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
             const prompt = `Analyze this food description: "${query}". 
             Identify the food and provide estimated Calories, Protein (g), Carbs (g), and Fats (g). 
@@ -134,7 +134,16 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
             const genAI = new GoogleGenerativeAI(apiKey);
 
             // Try possible models in order of performance
-            const possibleModels = ["gemini-1.5-flash-latest", "gemini-1.5-flash", "gemini-2.0-flash-exp", "gemini-1.5-pro", "gemini-pro-vision"];
+            const possibleModels = [
+                "gemini-2.0-flash",
+                "gemini-2.0-flash-lite",
+                "gemini-1.5-flash",
+                "gemini-1.5-flash-latest",
+                "gemini-2.0-flash-exp",
+                "gemini-2.5-flash",
+                "gemini-1.5-pro",
+                "gemini-pro-vision"
+            ];
             let success = false;
             let lastError = null;
 
