@@ -41,25 +41,38 @@ export default function Nutrition() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [isLogging, setIsLogging] = useState(false);
   const [nutritionLogs, setNutritionLogs] = useState<any[]>([]);
+  const [logCalories, setLogCalories] = useState("");
 
   const fetchNutritionLogs = async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
+      console.log("🔍 DIAGNOSTIC: Attempting to fetch from nutrition_logs...");
+      const { data: diagnosticData, error: diagnosticError } = await supabase
+        .from('nutrition_logs')
+        .select('*')
+        .limit(1);
+
+      if (diagnosticError) {
+        console.error("❌ SCHEMA ERROR:", diagnosticError);
+        if (diagnosticError.message.includes('schema cache')) {
+          console.warn("Schema cache desync detected.");
+        }
+      }
+
       const todayStart = new Date();
       todayStart.setHours(0, 0, 0, 0);
 
-      const { data, error } = await supabase
+      const { data: fullData } = await supabase
         .from('nutrition_logs')
         .select('*')
         .eq('user_id', session.user.id)
         .gte('logged_at', todayStart.toISOString())
         .order('logged_at', { ascending: false });
 
-      if (error) throw error;
-      setNutritionLogs(data || []);
-    } catch (err) {
+      setNutritionLogs(fullData || []);
+    } catch (err: any) {
       console.error("Error fetching nutrition logs:", err);
     }
   };
@@ -79,25 +92,20 @@ export default function Nutrition() {
       if (error) throw error;
       toast.success("Log removed");
       fetchNutritionLogs();
-    } catch (err) {
-      toast.error("Failed to delete log");
+    } catch (err: any) {
+      toast.error(`Failed to delete: ${err.message}`);
     }
   };
-
-  // Quick Log State
-  const [logCalories, setLogCalories] = useState("");
 
   useEffect(() => {
     const loadProfileSettings = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        const { data } = await supabase
+        await supabase
           .from('profiles')
           .select('daily_calories_target, fitness_goal')
           .eq('id', session.user.id)
           .single();
-
-        // If we have data in DB, we could use it, but the local inputs are and calcs are better for UI
       }
     };
 
@@ -115,6 +123,27 @@ export default function Nutrition() {
       }
     }
     loadProfileSettings();
+  }, []);
+
+  useEffect(() => {
+    const runConnectivityCheck = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log("🔑 Session:", session ? "Active" : "None");
+
+      const { error: profErr } = await supabase.from('profiles').select('count').limit(1);
+      console.log("📊 Profiles Access:", profErr ? `FAILED: ${profErr.message}` : "OK");
+
+      const { error: nutrErr } = await supabase.from('nutrition_logs').select('count', { count: 'exact', head: true });
+      console.log("🍏 Nutrition Access:", nutrErr ? `FAILED: ${nutrErr.message}` : "OK");
+
+      if (nutrErr && nutrErr.message.includes('schema cache')) {
+        toast.error("Critical Schema Desync", {
+          description: "Wait 2 minutes and refresh. If it persists, your .env project URL might not match your Supabase Dashboard."
+        });
+      }
+    };
+
+    runConnectivityCheck();
     fetchNutritionLogs();
   }, []);
 
@@ -124,13 +153,11 @@ export default function Nutrition() {
     const a = parseFloat(age || "0");
     if (!w || !h || !a) return null;
 
-    // Mifflin-St Jeor (male-ish default)
     const bmr = 10 * w + 6.25 * h - 5 * a + 5;
     const tdee = Math.round(bmr * activityMap[activity]);
     const goalAdjust = goalMap[goal];
     const calories = tdee + goalAdjust.calories;
 
-    // macros per kg
     const protein = Math.round(goalAdjust.protein * w);
     const fats = Math.round(goalAdjust.fats * w);
     const carbs = Math.max(0, Math.round((calories - protein * 4 - fats * 9) / 4));
@@ -164,9 +191,9 @@ export default function Nutrition() {
       localStorage.setItem(storageKey, JSON.stringify({ age, weight, height, activity, goal }));
       toast.success("Nutrition targets updated and synced! 🚀");
       fetchNutritionLogs();
-    } catch (err) {
+    } catch (err: any) {
       console.error("Update plan error:", err);
-      toast.error("Failed to sync targets to cloud.");
+      toast.error(`Sync failed: ${err.message}`);
     } finally {
       setIsUpdating(false);
     }
@@ -184,7 +211,6 @@ export default function Nutrition() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      // 1. Save to nutrition_logs for macro tracking
       const { error: logError } = await supabase.from('nutrition_logs').insert({
         user_id: session.user.id,
         calories: Math.round(cals),
@@ -193,7 +219,6 @@ export default function Nutrition() {
 
       if (logError) throw logError;
 
-      // 2. Save to activity_logs for dashboard feed
       await supabase.from('activity_logs').insert({
         user_id: session.user.id,
         activity_type: 'nutrition',
@@ -205,7 +230,7 @@ export default function Nutrition() {
       fetchNutritionLogs();
     } catch (err: any) {
       console.error("Log meal error:", err);
-      toast.error(`Error: ${err.message || "Failed to log nutrition"}`);
+      toast.error(`Error: ${err.message}`);
     } finally {
       setIsLogging(false);
     }
@@ -217,7 +242,6 @@ export default function Nutrition() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      // 1. Save to nutrition_logs for macro tracking
       const { error: logError } = await supabase.from('nutrition_logs').insert({
         user_id: session.user.id,
         calories: Math.round(data.calories),
@@ -229,7 +253,6 @@ export default function Nutrition() {
 
       if (logError) throw logError;
 
-      // 2. Save to activity_logs for dashboard feed
       await supabase.from('activity_logs').insert({
         user_id: session.user.id,
         activity_type: 'nutrition',
@@ -243,7 +266,7 @@ export default function Nutrition() {
       fetchNutritionLogs();
     } catch (err: any) {
       console.error("Log scanned meal error:", err);
-      toast.error(`Error: ${err.message || "Failed to log nutrition"}`);
+      toast.error(`Error: ${err.message}`);
     } finally {
       setIsLogging(false);
     }
@@ -266,7 +289,6 @@ export default function Nutrition() {
             </p>
           </div>
 
-          {/* AI Food Scanner Section */}
           <div className="max-w-xl mx-auto w-full mb-4">
             <FoodScanner onScanComplete={handleScanComplete} />
           </div>
@@ -331,12 +353,7 @@ export default function Nutrition() {
                   </div>
 
                   <div className="flex gap-3">
-                    <Button
-                      variant="hero"
-                      type="button"
-                      onClick={handleUpdatePlan}
-                      disabled={isUpdating}
-                    >
+                    <Button variant="hero" type="button" onClick={handleUpdatePlan} disabled={isUpdating}>
                       {isUpdating ? <Loader2 className="animate-spin h-4 w-4 mr-2" /> : null}
                       Update & Sync Plan
                     </Button>
@@ -349,7 +366,6 @@ export default function Nutrition() {
                 </CardContent>
               </Card>
 
-              {/* Dynamic Targets Tile */}
               <div className="space-y-6">
                 <Card className="glass border-primary/20">
                   <CardHeader>
@@ -367,37 +383,22 @@ export default function Nutrition() {
                           <Tile label="Carbs" value={`${result.carbs} g`} />
                           <Tile label="Fats" value={`${result.fats} g`} />
                         </div>
-
                         <div className="mt-6 pt-6 border-t border-white/10">
                           <Label htmlFor="log-cals" className="flex items-center gap-2 mb-3">
                             <Utensils className="w-4 h-4 text-orange-500" /> Quick Log Intake
                           </Label>
                           <div className="flex gap-2">
-                            <Input
-                              id="log-cals"
-                              placeholder="E.g. 500 kcal"
-                              value={logCalories}
-                              onChange={(e) => setLogCalories(e.target.value)}
-                              type="number"
-                            />
-                            <Button
-                              size="icon"
-                              className="bg-orange-500 hover:bg-orange-600"
-                              onClick={handleLogMeal}
-                              disabled={isLogging}
-                            >
+                            <Input id="log-cals" placeholder="E.g. 500 kcal" value={logCalories} onChange={(e) => setLogCalories(e.target.value)} type="number" />
+                            <Button size="icon" className="bg-orange-500 hover:bg-orange-600" onClick={handleLogMeal} disabled={isLogging}>
                               {isLogging ? <Loader2 className="animate-spin h-4 w-4" /> : <Plus className="h-4 w-4" />}
                             </Button>
                           </div>
                         </div>
                       </div>
-                    ) : (
-                      <p className="text-sm text-muted-foreground">Enter your details to see targets.</p>
-                    )}
+                    ) : <p className="text-sm text-muted-foreground">Enter your details to see targets.</p>}
                   </CardContent>
                 </Card>
 
-                {/* Today's Stats Progress */}
                 <Card className="glass border-primary/20 p-6 space-y-4">
                   <h3 className="font-bold text-lg flex items-center gap-2">
                     <TrendingUp className="w-5 h-5 text-primary" />
@@ -410,10 +411,7 @@ export default function Nutrition() {
                         <span>{totalsToday.calories} / {result?.calories || 2000} kcal</span>
                       </div>
                       <div className="h-2 bg-white/5 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-primary transition-all duration-500"
-                          style={{ width: `${Math.min(100, (totalsToday.calories / (result?.calories || 2000)) * 100)}%` }}
-                        />
+                        <div className="h-full bg-primary transition-all duration-500" style={{ width: `${Math.min(100, (totalsToday.calories / (result?.calories || 2000)) * 100)}%` }} />
                       </div>
                     </div>
                     <div className="grid grid-cols-3 gap-2">
@@ -426,7 +424,6 @@ export default function Nutrition() {
               </div>
             </div>
 
-            {/* Today's Journal */}
             <Card className="glass border-primary/20">
               <CardHeader className="flex flex-row items-center justify-between">
                 <div>
@@ -445,26 +442,15 @@ export default function Nutrition() {
                           <p className="text-[10px] text-muted-foreground">
                             {new Date(log.logged_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {log.calories} kcal
                           </p>
-                          <p className="text-[10px] text-primary/60">
-                            P: {log.protein}g · C: {log.carbs}g · F: {log.fats}g
-                          </p>
+                          <p className="text-[10px] text-primary/60">P: {log.protein}g · C: {log.carbs}g · F: {log.fats}g</p>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => deleteLog(log.id)}
-                          className="opacity-0 group-hover:opacity-100 h-8 w-8 text-red-400 hover:text-red-500 hover:bg-red-500/10 transition-all"
-                        >
+                        <Button variant="ghost" size="icon" onClick={() => deleteLog(log.id)} className="opacity-0 group-hover:opacity-100 h-8 w-8 text-red-400 hover:text-red-500 hover:bg-red-500/10 transition-all">
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
                     ))}
                   </div>
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground text-sm italic">
-                    No meals logged today. Use the AI Scanner above to start!
-                  </div>
-                )}
+                ) : <div className="text-center py-8 text-muted-foreground text-sm italic">No meals logged today.</div>}
               </CardContent>
             </Card>
 
@@ -472,37 +458,23 @@ export default function Nutrition() {
               <Card className="glass border-primary/20">
                 <CardHeader><CardTitle>Quick Macro Splits</CardTitle></CardHeader>
                 <CardContent className="space-y-3 text-sm text-muted-foreground">
-                  <p className="text-foreground font-semibold">
-                    {goalMap[goal].label} ({goal})
-                  </p>
+                  <p className="text-foreground font-semibold">{goalMap[goal].label}</p>
                   <p>Protein: ~{goalMap[goal].protein} g/kg</p>
                   <p>Fats: ~{goalMap[goal].fats} g/kg</p>
-                  <p>Carbs: Remaining calories.</p>
-                  {result && (
-                    <div className="rounded-lg border border-primary/20 bg-primary/5 p-2 text-xs text-foreground">
-                      Target: {result.calories} kcal · P {result.protein}g · C {result.carbs}g · F {result.fats}g
-                    </div>
-                  )}
+                  {result && <div className="rounded-lg border border-primary/20 bg-primary/5 p-2 text-xs text-foreground text-center">T: {result.calories} kcal · P {result.protein}g · C {result.carbs}g · F {result.fats}g</div>}
                 </CardContent>
               </Card>
               <Card className="glass border-primary/20">
                 <CardHeader><CardTitle>Meal Strategy</CardTitle></CardHeader>
                 <CardContent className="space-y-2 text-sm text-muted-foreground">
-                  {goal === "cut" && <p>Focus on high volume, low calorie foods like leafy greens and lean protein.</p>}
-                  {goal === "recomp" && <p>Focus on timing carbs around your workouts for maximum performance.</p>}
-                  {goal === "bulk" && <p>Eat calorie dense foods like nuts, avocados, and whole grains.</p>}
-                  <p className="mt-2">Try to hit within +/- 100 calories of your target daily for best results.</p>
+                  <p>{goal === "cut" ? "Focus on high volume, low calorie foods." : goal === "recomp" ? "Focus on workout nutrition." : "Eat calorie dense foods."}</p>
                 </CardContent>
               </Card>
               <Card className="glass border-primary/20">
-                <CardHeader><CardTitle>Hydration & Data</CardTitle></CardHeader>
+                <CardHeader><CardTitle>Hydration</CardTitle></CardHeader>
                 <CardContent className="space-y-2 text-sm text-muted-foreground">
                   <p>Aim for 3-4 liters of water daily.</p>
-                  <p>Logging your intake help the AI refine your plans and gives you accurate dashboard metrics.</p>
-                  <div className="mt-4 flex items-center gap-2 text-xs text-primary">
-                    <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                    Live Dashboard Sync Active
-                  </div>
+                  <div className="mt-4 flex items-center gap-2 text-xs text-primary"><div className="w-2 h-2 rounded-full bg-primary animate-pulse" />Live Dashboard Sync Active</div>
                 </CardContent>
               </Card>
             </div>
@@ -517,16 +489,8 @@ function MacroProgress({ label, current, target, color }: { label: string; curre
   const percentage = Math.min(100, (current / target) * 100);
   return (
     <div className="space-y-1">
-      <div className="flex justify-between text-[10px]">
-        <span>{label}</span>
-        <span className="text-muted-foreground">{current}g</span>
-      </div>
-      <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
-        <div
-          className={`h-full ${color} transition-all duration-500`}
-          style={{ width: `${percentage}%` }}
-        />
-      </div>
+      <div className="flex justify-between text-[10px]"><span>{label}</span><span className="text-muted-foreground">{current}g</span></div>
+      <div className="h-1.5 bg-white/5 rounded-full overflow-hidden"><div className={`h-full ${color} transition-all duration-500`} style={{ width: `${percentage}%` }} /></div>
     </div>
   );
 }
