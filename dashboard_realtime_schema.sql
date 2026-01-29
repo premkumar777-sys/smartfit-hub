@@ -8,20 +8,7 @@ ADD COLUMN IF NOT EXISTS protein_target INTEGER DEFAULT 150,
 ADD COLUMN IF NOT EXISTS carbs_target INTEGER DEFAULT 200,
 ADD COLUMN IF NOT EXISTS fats_target INTEGER DEFAULT 65;
 
--- Create activity_logs table for chart data and history
-CREATE TABLE IF NOT EXISTS public.activity_logs (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-    activity_type TEXT NOT NULL, -- 'workout', 'nutrition', 'chat', 'progress'
-    value FLOAT DEFAULT 0, -- e.g. calories consumed, workout duration
-    metadata JSONB DEFAULT '{}'::jsonb,
-    created_at TIMESTAMPTZ DEFAULT now()
-);
-
--- Index for faster weekly activity queries
-CREATE INDEX IF NOT EXISTS idx_activity_logs_user_date ON public.activity_logs(user_id, created_at);
-
--- Create nutrition_logs for specific calorie tracking
+-- 1. Create nutrition_logs (CRITICAL TABLE)
 CREATE TABLE IF NOT EXISTS public.nutrition_logs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -30,6 +17,16 @@ CREATE TABLE IF NOT EXISTS public.nutrition_logs (
     carbs INTEGER DEFAULT 0,
     fats INTEGER DEFAULT 0,
     logged_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- 2. Create activity_logs
+CREATE TABLE IF NOT EXISTS public.activity_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    activity_type TEXT NOT NULL, -- 'workout', 'nutrition', 'chat', 'progress'
+    value FLOAT DEFAULT 0, -- e.g. calories consumed, workout duration
+    metadata JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ DEFAULT now()
 );
 
 -- Enable RLS
