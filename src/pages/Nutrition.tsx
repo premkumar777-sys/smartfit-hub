@@ -39,6 +39,8 @@ export default function Nutrition() {
   const [activity, setActivity] = useState<Activity>("moderate");
   const [goal, setGoal] = useState<Goal>("recomp");
   const [isUpdating, setIsUpdating] = useState(false);
+  const [showOverlay, setShowOverlay] = useState(false);
+  const [overlayStep, setOverlayStep] = useState(0);
 
   useEffect(() => {
     const loadProfileSettings = async () => {
@@ -97,22 +99,19 @@ export default function Nutrition() {
     if (!result) return;
     setIsUpdating(true);
 
-    // Celebratory Surprise Sequence
-    const sequence = [
-      { msg: "Initiating Metabolic Synchronization...", desc: "Calibrating biological signature", delay: 800 },
-      { msg: "Mastery Protocol Activated! 💎", desc: "Energy flux stabilized at peak performance", delay: 1800 },
-      { msg: "You are now in God Mode! 🔥", desc: "Nutritional trajectory: OPTIMIZED", delay: 2800 }
-    ];
+    // Immersive Overlay Sequence
+    setShowOverlay(true);
+    setOverlayStep(0);
 
-    for (const step of sequence) {
-      await new Promise(r => setTimeout(r, step.delay));
-      toast.success(step.msg, {
-        description: step.desc,
-        className: "bg-primary border-black text-black font-black uppercase tracking-tighter"
-      });
+    // 3 steps, 2 seconds each
+    const stepsCount = 3;
+    for (let i = 0; i < stepsCount; i++) {
+      setOverlayStep(i);
+      await new Promise(r => setTimeout(r, 2000));
     }
 
     localStorage.setItem(storageKey, JSON.stringify({ age, weight, height, activity, goal }));
+    setShowOverlay(false);
     setIsUpdating(false);
   };
 
@@ -341,6 +340,47 @@ export default function Nutrition() {
           </BusinessPremiumLock>
         </div>
       </Container>
+
+      {/* Immersive Mastery Overlay */}
+      {showOverlay && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-2xl transition-all duration-500 animate-in fade-in">
+          <div className="absolute inset-0 bg-gradient-to-t from-primary/10 via-transparent to-transparent pointer-events-none" />
+          <div className="relative text-center space-y-8 max-w-2xl px-6">
+            <div className="relative inline-block">
+              <div className="absolute inset-0 bg-primary blur-[60px] opacity-20 animate-pulse" />
+              <div className="relative bg-primary/10 border border-primary/30 w-24 h-24 rounded-[2rem] flex items-center justify-center mx-auto mb-12 shadow-[0_0_50px_rgba(var(--primary),0.2)]">
+                <Zap className="w-12 h-12 text-primary animate-pulse" />
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <h2 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tighter animate-in slide-in-from-bottom-4 duration-700">
+                {[
+                  "Initiating Metabolic Synchronization...",
+                  "Mastery Protocol Activated! 💎",
+                  "You are now in God Mode! 🔥"
+                ][overlayStep]}
+              </h2>
+              <p className="text-primary/60 font-black uppercase tracking-[0.4em] text-sm md:text-base animate-in fade-in slide-in-from-bottom-2 delay-300 duration-700">
+                {[
+                  "Calibrating physiological baseline",
+                  "Energy flux stabilized at peak performance",
+                  "Nutritional trajectory: OPTIMIZED"
+                ][overlayStep]}
+              </p>
+            </div>
+
+            <div className="pt-12">
+              <div className="w-48 h-1 bg-white/5 mx-auto rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-primary transition-all duration-1000 ease-linear shadow-[0_0_15px_#00FF9C]"
+                  style={{ width: `${((overlayStep + 1) / 3) * 100}%` }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
