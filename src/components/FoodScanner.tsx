@@ -108,59 +108,90 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
         setLoading(true);
         setResult(null);
 
-        const possibleModels = ["gemini-1.5-flash", "gemini-1.5-flash-latest", "gemini-2.0-flash", "gemini-1.5-pro"];
+        const possibleModels = ["llama-3.3-70b-versatile", "mixtral-8x7b-32768", "llama3-8b-8192"];
 
         try {
-            const apiKey = await getApiKey();
-            if (!apiKey) return;
+            // Get Groq Key
+            let groqKey = import.meta.env.VITE_GROQ_API_KEY || "";
 
-            const genAI = new GoogleGenerativeAI(apiKey);
-            let success = false;
-            let lastError = null;
-
-            const prompt = `Analyze this food description: "${query}". 
-            Identify the food and provide estimated Calories, Protein (g), Carbs (g), and Fats (g). 
-            Return ONLY a JSON object: { "name": "food name", "calories": 123, "protein": 12, "carbs": 34, "fats": 5 }.
-            If the description is not food, return { "error": "Please describe a valid meal." }.`;
-
-            for (const modelName of possibleModels) {
-                try {
-                    console.log(`SmartFit AI: Trying text search with ${modelName}...`);
-                    const model = genAI.getGenerativeModel({ model: modelName });
-                    const result = await model.generateContent(prompt);
-                    const response = await result.response;
-                    const text = response.text();
-
-                    const jsonMatch = text.match(/\{.*\}/s);
-                    if (!jsonMatch) throw new Error("Invalid response format");
-                    const data = JSON.parse(jsonMatch[0]);
-
-                    if (data.error) {
-                        toast.error(data.error);
-                    } else {
-                        setResult(data);
-                        toast.success(`Search Success! (${modelName})`);
-                        success = true;
-                    }
-                    if (success) break;
-                } catch (err: any) {
-                    console.warn(`SmartFit AI: Text model ${modelName} failed. Error:`, err.message || err);
-                    lastError = err;
-
-                    // If we hit a quota error (429), don't bother trying other models
-                    if (err.message?.includes("429") || err.message?.toLowerCase().includes("quota")) {
-                        console.error("SmartFit AI: Quota exceeded. Stopping fallback.");
-                        break;
-                    }
+            // If not in env, check profile
+            if (!groqKey) {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user) {
+                    const { data: profile } = await supabase
+                        .from("profiles")
+                        .select("preferences")
+                        .eq("user_id", user.id)
+                        .single();
+                    groqKey = (profile?.preferences as any)?.groq_api_key || "";
                 }
             }
 
-            if (!success && lastError) throw lastError;
+            groqKey = groqKey.replace(/^["']|["']$/g, '').trim();
+
+            if (!groqKey) {
+                console.warn("SmartFit AI: No Groq key found, falling back to Gemini for text.");
+                // Fallback to Gemini if no Groq key is provided
+                const apiKey = await getApiKey();
+                if (!apiKey) {
+                    setLoading(false);
+                    return;
+                }
+                const genAI = new GoogleGenerativeAI(apiKey);
+                const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+                const prompt = `Analyze this food description: "${query}". 
+                    Identify the food and provide estimated Calories, Protein (g), Carbs (g), and Fats (g). 
+                    Return ONLY a JSON object: { "name": "food name", "calories": 123, "protein": 12, "carbs": 34, "fats": 5 }.`;
+                const result = await model.generateContent(prompt);
+                const response = await result.response;
+                const data = JSON.parse(response.text().match(/\{.*\}/s)?.[0] || "{}");
+                if (data.error) throw new Error(data.error);
+                setResult(data);
+                toast.success("Searched via Gemini");
+                setLoading(false);
+                return;
+            }
+
+            console.log("SmartFit AI: Using Groq for high-speed chat...");
+
+            const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${groqKey}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    model: possibleModels[0],
+                    messages: [
+                        {
+                            role: "system",
+                            content: "You are a specialized Nutrition AI. Analyze food descriptions and return ONLY a JSON object with: name, calories, protein, carbs, fats. No extra text."
+                        },
+                        {
+                            role: "user",
+                            content: `Analyze: ${query}`
+                        }
+                    ],
+                    response_format: { type: "json_object" }
+                })
+            });
+
+            if (!response.ok) throw new Error(`Groq API Error: ${response.status}`);
+
+            const data = await response.json();
+            const resultData = JSON.parse(data.choices[0].message.content);
+
+            if (resultData.error) {
+                toast.error(resultData.error);
+            } else {
+                setResult(resultData);
+                toast.success("Assistant processed your meal! 🍏");
+            }
         } catch (error: any) {
-            console.error("AI Search Error:", error);
+            console.error("AI Assistant Error:", error);
             const isQuota = error.message?.toLowerCase().includes("quota") || error.message?.includes("429");
             if (isQuota) setQuotaExceeded(true);
-            toast.error("AI Search failed", { description: error.message });
+            toast.error("Assistant failed", { description: error.message });
         } finally {
             setLoading(false);
         }
@@ -335,14 +366,14 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
                             onClick={() => { setActiveTab("search"); setResult(null); stopCamera(); }}
                             className={`px-3 py-1 text-xs rounded-md transition-all ${activeTab === "search" ? "bg-primary text-black font-bold" : "text-muted-foreground hover:text-white"}`}
                         >
-                            Search
+                            AI Assistant
                         </button>
                     </div>
                 </div>
                 <CardDescription>
                     {activeTab === "photo" && "Choose a photo from your gallery."}
                     {activeTab === "camera" && "Snap a live photo of your meal."}
-                    {activeTab === "search" && "Describe your meal if you don't have a photo."}
+                    {activeTab === "search" && "Chat with your AI nutritionist assistant."}
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -451,10 +482,10 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
                                 </div>
                                 <Button
                                     onClick={() => analyzeText(searchQuery)}
-                                    className="w-full"
+                                    className="w-full bg-primary text-black font-bold hover:bg-primary/90"
                                     disabled={loading || !searchQuery.trim()}
                                 >
-                                    {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Searching...</> : "AI Search Macros"}
+                                    {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Thinking...</> : "Send to Assistant"}
                                 </Button>
                                 <p className="text-[10px] text-center text-muted-foreground italic">
                                     Example: "One large bowl of oatmeal with blueberries and honey"
