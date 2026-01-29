@@ -236,7 +236,7 @@ export default function Nutrition() {
                         ) : (
                           <>
                             <Zap className="w-6 h-6 text-black group-hover:animate-pulse" />
-                            <span className="text-sm font-black text-black uppercase tracking-tighter">Sync & Recalculate</span>
+                            <span className="text-sm font-black text-black uppercase tracking-tighter">Activate Metabolic Mastery</span>
                           </>
                         )}
                       </div>
