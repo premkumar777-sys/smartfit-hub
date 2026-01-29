@@ -127,28 +127,14 @@ export default function Nutrition() {
 
   useEffect(() => {
     const runConnectivityCheck = async () => {
-      console.group("🚀 SMARTFIT CONNECTION DIAGNOSTIC");
       const { data: { session } } = await supabase.auth.getSession();
-      console.log("� Supabase URL:", (supabase as any).supabaseUrl);
-      console.log("�🔑 User Session:", session ? `Logged in as ${session.user.email}` : "No active session");
+      console.log("🔑 Session:", session ? "Active" : "None");
 
-      const { error: profErr } = await supabase.from('profiles').select('id').limit(1);
-      if (profErr) {
-        console.error("❌ PROFILES TABLE ACCESS FAILED:", profErr.message);
-      } else {
-        console.log("✅ PROFILES TABLE ACCESS: OK");
-      }
+      const { error: profErr } = await supabase.from('profiles').select('count', { count: 'exact', head: true });
+      console.log("📊 Profiles Access:", profErr ? `FAILED: ${profErr.message}` : "OK");
 
       const { error: nutrErr } = await supabase.from('nutrition_logs').select('count', { count: 'exact', head: true });
-      if (nutrErr) {
-        console.error("❌ NUTRITION TABLE ACCESS FAILED:", nutrErr.message);
-        if (nutrErr.message.includes('schema cache')) {
-          console.warn("💡 HINT: PostgreSQL knows the table exists, but the API cache is stale. Try restarting your local dev server.");
-        }
-      } else {
-        console.log("✅ NUTRITION TABLE ACCESS: OK");
-      }
-      console.groupEnd();
+      console.log("🍏 Nutrition Access:", nutrErr ? `FAILED: ${nutrErr.message}` : "OK");
 
       if (nutrErr && nutrErr.message.includes('schema cache')) {
         toast.error("Critical Schema Desync", {
@@ -331,7 +317,7 @@ export default function Nutrition() {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="weight">Weight (kg)</Label>
-                      <Input id="weight" value={weight} onChange={(e) => setWeight(e.target.value)} type="number" min={30} max={200} step="0.1" />
+                      <Input id="weight" value={weight} onChange={(e) => setAge(e.target.value)} type="number" min={30} max={200} step="0.1" />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="height">Height (cm)</Label>
