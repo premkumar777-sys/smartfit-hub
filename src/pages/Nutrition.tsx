@@ -6,10 +6,10 @@ import { Container } from "@/components/Container";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PremiumLock } from "@/components/PremiumLock";
+import { BusinessPremiumLock } from "@/components/BusinessPremiumLock";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, TrendingUp, Info, Scale, Ruler, User, Target, Zap, Waves } from "lucide-react";
+import { Loader2, TrendingUp, Info, Scale, Ruler, User, Target, Zap, Waves, Sparkles } from "lucide-react";
 import { FoodScanner } from "@/components/FoodScanner";
 
 type Activity = "sedentary" | "light" | "moderate" | "active" | "athlete";
@@ -237,8 +237,8 @@ export default function Nutrition() {
                           key={key}
                           onClick={() => setGoal(key as Goal)}
                           className={`w-full p-4 rounded-2xl border text-left transition-all duration-300 ${goal === key
-                              ? "bg-primary/20 border-primary text-white"
-                              : "bg-white/5 border-white/5 text-muted-foreground hover:bg-white/10"
+                            ? "bg-primary/20 border-primary text-white"
+                            : "bg-white/5 border-white/5 text-muted-foreground hover:bg-white/10"
                             }`}
                         >
                           <p className="text-xs font-bold uppercase tracking-widest mb-1 opacity-60">Phase</p>
