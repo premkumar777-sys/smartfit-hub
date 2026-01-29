@@ -66,7 +66,7 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
                     return;
                 }
                 const genAI = new GoogleGenerativeAI(apiKey);
-                const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+                const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
                 const prompt = `Analyze this food description: "${query}". 
                     Identify the food and provide estimated Calories, Protein (g), Carbs (g), and Fats (g). 
                     Return ONLY a JSON object: { "name": "food name", "calories": 123, "protein": 12, "carbs": 34, "fats": 5 }.`;
