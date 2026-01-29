@@ -165,7 +165,7 @@ export default function Nutrition() {
             </p>
           </div>
 
-          <PremiumLock
+          <BusinessPremiumLock
             lockType="business"
             title="Unlock Metabolic Mastery"
             description="Access deep physiological analytics and personalized nutrition routing."
@@ -306,7 +306,7 @@ export default function Nutrition() {
                 </div>
               </div>
             </div>
-          </PremiumLock>
+          </BusinessPremiumLock>
         </div>
       </Container>
     </div>
