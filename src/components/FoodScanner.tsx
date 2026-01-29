@@ -68,7 +68,7 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
             const genAI = new GoogleGenerativeAI(apiKey);
 
             // Try possible models in order of performance
-            const possibleModels = ["gemini-1.5-flash-latest", "gemini-1.5-flash", "gemini-pro-vision"];
+            const possibleModels = ["gemini-1.5-flash-latest", "gemini-1.5-flash", "gemini-2.0-flash-exp", "gemini-1.5-pro", "gemini-pro-vision"];
             let success = false;
             let lastError = null;
 
