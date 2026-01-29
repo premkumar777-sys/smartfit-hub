@@ -126,12 +126,16 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
 
             // Provide specific troubleshooting for 404/Not Found errors
             if (descriptiveError.includes("404") || descriptiveError.includes("not found")) {
-                descriptiveError = "Model not found. Please ensure you enabled the 'Generative Language API' in Google AI Studio (aistudio.google.com). If you used the GCP Console, this API must be manually enabled.";
+                descriptiveError = "The Gemini API is likely disabled for your key. Visit https://console.cloud.google.com/apis/library/generativelanguage.googleapis.com and click 'ENABLE' to fix this.";
             }
 
             toast.error("AI Analysis failed", {
                 description: descriptiveError,
-                duration: 10000
+                action: {
+                    label: "Enable API",
+                    onClick: () => window.open("https://console.cloud.google.com/apis/library/generativelanguage.googleapis.com", "_blank")
+                },
+                duration: 15000
             });
         } finally {
             setLoading(false);
