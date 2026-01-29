@@ -1,5 +1,4 @@
-import { useState, useRef, useEffect } from "react";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Camera, Upload, Check, X, Info, Sparkles } from "lucide-react";
@@ -16,21 +15,6 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
     const [result, setResult] = useState<{ name: string; calories: number; protein: number; carbs: number; fats: number } | null>(null);
     const [quotaExceeded, setQuotaExceeded] = useState(false);
 
-    // Simplified AI key retrieval
-    const getApiKey = async () => {
-        const envKey = import.meta.env.VITE_GEMINI_API_KEY;
-        let cleanKey = envKey || "";
-
-        if (!cleanKey) {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user) {
-                const { data: profile } = await supabase.from("profiles").select("preferences").eq("user_id", user.id).single();
-                cleanKey = (profile?.preferences as any)?.gemini_api_key || "";
-            }
-        }
-        return cleanKey.replace(/^["']|["']$/g, '').trim();
-    };
-
     const analyzeText = async (query: string) => {
         if (!query.trim()) return;
         setLoading(true);
@@ -41,7 +25,6 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
         try {
             // Get Groq Key
             let groqKey = import.meta.env.VITE_GROQ_API_KEY || "";
-            console.log("SmartFit AI Debug - Groq key from env:", groqKey ? `Found (${groqKey.substring(0, 5)}...)` : "NOT FOUND");
 
             // If not in env, check profile
             if (!groqKey) {
@@ -53,31 +36,13 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
                         .eq("user_id", user.id)
                         .single();
                     groqKey = (profile?.preferences as any)?.groq_api_key || "";
-                    console.log("SmartFit AI Debug - Groq key from profile:", groqKey ? `Found (${groqKey.substring(0, 5)}...)` : "NOT FOUND");
                 }
             }
 
             groqKey = groqKey.replace(/^["']|["']$/g, '').trim();
 
             if (!groqKey) {
-                console.warn("SmartFit AI: No Groq key found after checking env & profile. Falling back to Gemini.");
-                // Fallback to Gemini if no Groq key is provided
-                const apiKey = await getApiKey();
-                if (!apiKey) {
-                    setLoading(false);
-                    return;
-                }
-                const genAI = new GoogleGenerativeAI(apiKey);
-                const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
-                const prompt = `Analyze this food description: "${query}". 
-                    Identify the food and provide estimated Calories, Protein (g), Carbs (g), and Fats (g). 
-                    Return ONLY a JSON object: { "name": "food name", "calories": 123, "protein": 12, "carbs": 34, "fats": 5 }.`;
-                const result = await model.generateContent(prompt);
-                const response = await result.response;
-                const data = JSON.parse(response.text().match(/\{.*\}/s)?.[0] || "{}");
-                if (data.error) throw new Error(data.error);
-                setResult(data);
-                toast.success("Searched via Gemini");
+                toast.error("AI Assistant Unavailable", { description: "Please add your Groq API key in Settings or .env" });
                 setLoading(false);
                 return;
             }
