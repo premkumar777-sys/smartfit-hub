@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { BusinessPremiumLock } from "@/components/BusinessPremiumLock";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, TrendingUp, Info, Scale, Ruler, User, Target, Zap, Waves, Sparkles } from "lucide-react";
+import { Loader2, TrendingUp, Info, Scale, Ruler, User, Target, Zap, Waves, Sparkles, Flame, Activity as ActivityIcon, TrendingDown } from "lucide-react";
 import { FoodScanner } from "@/components/FoodScanner";
 
 type Activity = "sedentary" | "light" | "moderate" | "active" | "athlete";
@@ -244,46 +244,66 @@ export default function Nutrition() {
                 </div>
               </div>
 
-              {/* Advanced Config */}
+              {/* Advanced Config - Operational Directives & Metabolic Flux */}
               <div className="lg:col-span-4 space-y-6">
-                <Card className="bg-black/40 border-white/5 backdrop-blur-sm shadow-2xl overflow-hidden rounded-3xl">
-                  <div className="h-1 bg-gradient-to-r from-primary to-purple-500 w-full" />
-                  <CardHeader>
-                    <CardTitle className="text-xl font-black text-white flex items-center gap-3">
-                      <Target className="w-5 h-5 text-primary" /> Strategic Goal
+                <Card className="bg-black/40 border-white/5 backdrop-blur-xl shadow-2xl overflow-hidden rounded-[2.5rem] border-none ring-1 ring-white/10">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-black text-white/40 uppercase tracking-[0.3em] flex items-center justify-between">
+                      Operational Directives
+                      <Target className="w-4 h-4 text-primary" />
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-4">
-                      {Object.entries(goalMap).map(([key, value]) => (
+                  <CardContent className="space-y-3">
+                    <div className="grid grid-cols-1 gap-3">
+                      {[
+                        { id: 'cut', label: 'Caloric Deficit', sub: 'Protocol: Lipid Oxidation', icon: <TrendingDown className="w-4 h-4" /> },
+                        { id: 'recomp', label: 'Maintenance', sub: 'Protocol: Metabolic Stasis', icon: <ActivityIcon className="w-4 h-4" /> },
+                        { id: 'bulk', label: 'Lean Bulk', sub: 'Protocol: Tissue Synthesis', icon: <TrendingUp className="w-4 h-4" /> }
+                      ].map((item) => (
                         <button
-                          key={key}
-                          onClick={() => setGoal(key as Goal)}
-                          className={`w-full p-4 rounded-2xl border text-left transition-all duration-300 ${goal === key
-                            ? "bg-primary/20 border-primary text-white"
-                            : "bg-white/5 border-white/5 text-muted-foreground hover:bg-white/10"
+                          key={item.id}
+                          onClick={() => setGoal(item.id as Goal)}
+                          className={`group relative p-4 rounded-2xl border transition-all duration-300 text-left overflow-hidden ${goal === item.id
+                            ? "bg-primary/20 border-primary text-white shadow-[0_0_20px_rgba(var(--primary),0.1)]"
+                            : "bg-white/5 border-white/5 text-muted-foreground hover:bg-white/10 hover:border-white/20"
                             }`}
                         >
-                          <p className="text-xs font-bold uppercase tracking-widest mb-1 opacity-60">Phase</p>
-                          <p className="text-lg font-black">{value.label}</p>
+                          <div className={`absolute top-0 left-0 w-1 h-full transition-all ${goal === item.id ? "bg-primary" : "bg-transparent"}`} />
+                          <div className="flex items-center justify-between relative z-10">
+                            <div className="space-y-1">
+                              <p className={`text-xs font-black uppercase tracking-widest ${goal === item.id ? "text-primary" : "text-white/40"}`}>{item.label}</p>
+                              <p className="text-[10px] opacity-60 font-medium">{item.sub}</p>
+                            </div>
+                            <div className={`p-2 rounded-xl transition-all ${goal === item.id ? "bg-primary text-black" : "bg-white/5 text-white/20"}`}>
+                              {item.icon}
+                            </div>
+                          </div>
                         </button>
                       ))}
                     </div>
 
-                    <div className="pt-6 border-t border-white/5">
-                      <Label className="text-[10px] uppercase tracking-widest text-muted-foreground mb-4 block">Activity Multiplier</Label>
-                      <Select value={activity} onValueChange={(v) => setActivity(v as Activity)}>
-                        <SelectTrigger className="bg-white/5 border-white/10 rounded-xl h-12">
-                          <SelectValue placeholder="Burn Rate" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-neutral-900 border-white/10">
-                          <SelectItem value="sedentary">Sedentary (Low Burn)</SelectItem>
-                          <SelectItem value="light">Steady Output (1-2x)</SelectItem>
-                          <SelectItem value="moderate" className="text-primary font-bold">Standard Hybrid (3-4x)</SelectItem>
-                          <SelectItem value="active">High Tempo (5-6x)</SelectItem>
-                          <SelectItem value="athlete">Maximum Overdrive (Daily)</SelectItem>
-                        </SelectContent>
-                      </Select>
+                    <div className="pt-6 mt-4 border-t border-white/5">
+                      <Label className="text-[10px] uppercase tracking-[0.4em] text-white/40 mb-4 block font-black">Metabolic Flux Level</Label>
+                      <div className="grid grid-cols-5 gap-1.5 p-1 bg-white/5 rounded-2xl border border-white/5">
+                        {(['sedentary', 'light', 'moderate', 'active', 'athlete'] as Activity[]).map((level, i) => (
+                          <button
+                            key={level}
+                            onClick={() => setActivity(level)}
+                            className={`h-10 rounded-xl flex flex-col items-center justify-center transition-all ${activity === level
+                              ? "bg-primary text-black shadow-lg"
+                              : "text-white/40 hover:bg-white/10 hover:text-white"
+                              }`}
+                          >
+                            <span className="text-[10px] font-black">{i + 1}</span>
+                            <div className={`w-1 h-1 rounded-full mt-0.5 ${activity === level ? "bg-black" : "bg-white/20"}`} />
+                          </button>
+                        ))}
+                      </div>
+                      <div className="flex justify-between mt-2 px-1">
+                        <span className="text-[9px] uppercase tracking-widest text-white/20 font-bold">Base</span>
+                        <span className="text-[9px] uppercase tracking-widest text-primary font-black">{activity.toUpperCase()}</span>
+                        <span className="text-[9px] uppercase tracking-widest text-white/20 font-bold">Peak</span>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
