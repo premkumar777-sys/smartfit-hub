@@ -484,11 +484,7 @@ const Dashboard = () => {
                             <Activity className="w-4 h-4" />}
                     </div>
                     <div>
-                      <p className="text-sm font-medium capitalize">
-                        {log.activity_type === 'nutrition' && (log.metadata as any)?.name
-                          ? (log.metadata as any).name
-                          : `${log.activity_type} Logged`}
-                      </p>
+                      <p className="text-sm font-medium capitalize">{log.activity_type} Logged</p>
                       <p className="text-xs text-muted-foreground">
                         {log.activity_type === 'workout' ? `${log.value} mins session` :
                           log.activity_type === 'nutrition' ? `${log.value} calories` :
