@@ -47,7 +47,8 @@ export default function Nutrition() {
         const { data } = await supabase
           .from('profiles')
           .select('daily_calories_target, fitness_goal')
-          .eq('id', session.user.id)
+          .select('daily_calories_target, fitness_goal')
+          .eq('user_id', session.user.id)
           .single();
 
         if (data?.fitness_goal) {
@@ -111,7 +112,7 @@ export default function Nutrition() {
           fats_target: result.fats,
           fitness_goal: goalMap[goal].label
         })
-        .eq('id', session.user.id);
+        .eq('user_id', session.user.id);
 
       if (error) throw error;
 
@@ -121,7 +122,7 @@ export default function Nutrition() {
       });
     } catch (err) {
       console.error("Update plan error:", err);
-      toast.error("Failed to sync targets to cloud.");
+      toast.error("Failed to sync targets to cloud. Check console for details.");
     } finally {
       setIsUpdating(false);
     }
