@@ -102,21 +102,16 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
         } catch (error: any) {
             console.error("AI Analysis Error:", error);
 
-            // Debugging helper: If 404, the model name might be different for this key
-            if (error?.message?.includes("404") || error?.message?.includes("not found")) {
-                console.log("Attempting to list available models for this key...");
-                try {
-                    // Note: listModels might not be available in all SDK versions or keys
-                    // But we can try to guess or provide more info
-                } catch (e) {
-                    console.error("Could not list models:", e);
-                }
+            let descriptiveError = error?.message || "Check your API key and connection.";
+
+            // Provide specific troubleshooting for 404/Not Found errors
+            if (descriptiveError.includes("404") || descriptiveError.includes("not found")) {
+                descriptiveError = "Model not found. Please ensure you enabled the 'Generative Language API' in Google AI Studio (aistudio.google.com). If you used the GCP Console, this API must be manually enabled.";
             }
 
-            const errorMessage = error?.message || "Check your API key and connection.";
             toast.error("AI Analysis failed", {
-                description: errorMessage,
-                duration: 8000
+                description: descriptiveError,
+                duration: 10000
             });
         } finally {
             setLoading(false);
