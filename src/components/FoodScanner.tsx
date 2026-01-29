@@ -107,7 +107,7 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
         setLoading(true);
         setResult(null);
 
-        const possibleModels = ["gemini-1.5-flash", "gemini-1.5-flash-latest", "gemini-2.0-flash", "gemini-1.5-pro", "gemini-2.0-flash-lite"];
+        const possibleModels = ["gemini-1.5-flash", "gemini-1.5-flash-latest", "gemini-2.0-flash", "gemini-1.5-pro"];
 
         try {
             const apiKey = await getApiKey();
@@ -145,6 +145,12 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
                 } catch (err: any) {
                     console.warn(`SmartFit AI: Text model ${modelName} failed. Error:`, err.message || err);
                     lastError = err;
+
+                    // If we hit a quota error (429), don't bother trying other models
+                    if (err.message?.includes("429") || err.message?.toLowerCase().includes("quota")) {
+                        console.error("SmartFit AI: Quota exceeded. Stopping fallback.");
+                        break;
+                    }
                 }
             }
 
@@ -169,8 +175,7 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
             "gemini-1.5-flash-latest",
             "gemini-2.0-flash",
             "gemini-1.5-pro",
-            "gemini-1.5-flash-8b",
-            "gemini-2.0-flash-lite"
+            "gemini-1.5-flash-8b"
         ];
 
         try {
@@ -253,6 +258,12 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
                 } catch (err: any) {
                     console.warn(`SmartFit AI: Model ${modelName} attempt failed:`, err.message || err);
                     lastError = err;
+
+                    // If we hit a quota error (429), don't bother trying other models as they likely share the same quota
+                    if (err.message?.includes("429") || err.message?.toLowerCase().includes("quota")) {
+                        console.error("SmartFit AI: Quota exceeded detected. Stopping model fallback loop.");
+                        break;
+                    }
                 }
             }
 
@@ -270,8 +281,12 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
                 descriptiveError = `No compatible model found for key [${keyPreview}]. If you enabled the API, it may take 1-2 mins to activate. Otherwise, try a fresh key from AI Studio.`;
             }
 
-            toast.error("AI Analysis failed", {
-                description: `Tried ${possibleModels.length} models, but all failed. Last error: ${descriptiveError}`,
+            const isQuotaError = descriptiveError.toLowerCase().includes("quota") || descriptiveError.includes("429");
+
+            toast.error(isQuotaError ? "Free Tier Quota Reached" : "AI Analysis failed", {
+                description: isQuotaError
+                    ? "You've reached the daily limit for the Gemini Free Tier. Please try again in a few hours or use a different API key."
+                    : `Tried ${possibleModels.length} models, but all failed. Last error: ${descriptiveError}`,
                 action: {
                     label: "Check API Key",
                     onClick: () => window.open("https://aistudio.google.com/app/apikey", "_blank")
