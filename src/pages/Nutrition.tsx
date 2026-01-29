@@ -9,7 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { PremiumLock } from "@/components/PremiumLock";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Plus, Utensils } from "lucide-react";
+import { Loader2, Plus, Utensils, Camera } from "lucide-react";
+import { FoodScanner } from "@/components/FoodScanner";
 
 type Activity = "sedentary" | "light" | "moderate" | "active" | "athlete";
 type Goal = "cut" | "recomp" | "bulk";
@@ -155,6 +156,33 @@ export default function Nutrition() {
     }
   };
 
+  const handleScanComplete = async (data: { calories: number; protein: number; carbs: number; fats: number; name: string }) => {
+    setIsLogging(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const { error } = await supabase.from('nutrition_logs').insert({
+        user_id: session.user.id,
+        calories: data.calories,
+        protein: data.protein,
+        carbs: data.carbs,
+        fats: data.fats,
+      });
+
+      if (error) throw error;
+
+      toast.success(`Logged ${data.name} (${data.calories} kcal)! 🍏`, {
+        description: `Macros: P:${data.protein}g C:${data.carbs}g F:${data.fats}g`
+      });
+    } catch (err) {
+      console.error("Log scanned meal error:", err);
+      toast.error("Failed to log nutrition.");
+    } finally {
+      setIsLogging(false);
+    }
+  };
+
   return (
     <div className="min-h-screen py-16 relative overflow-hidden">
       <div className="absolute inset-0 gradient-hero opacity-20" />
@@ -170,6 +198,11 @@ export default function Nutrition() {
             <p className="text-muted-foreground max-w-2xl mx-auto">
               {result ? `Targeting ${result.calories} kcal for ${goalMap[goal].label}. Synchronized with your global dashboard.` : 'Calculate TDEE, target calories, and macros instantly.'}
             </p>
+          </div>
+
+          {/* AI Food Scanner Section */}
+          <div className="max-w-xl mx-auto w-full mb-4">
+            <FoodScanner onScanComplete={handleScanComplete} />
           </div>
 
           <PremiumLock

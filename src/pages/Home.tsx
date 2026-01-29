@@ -192,37 +192,47 @@ const Home = () => {
                 icon: Brain,
                 title: "AI Personal Trainer",
                 description: "Intelligent workout recommendations powered by advanced AI algorithms",
-                link: "/ai-trainer"
+                link: "/ai-trainer",
+                badge: "PRO",
+                isPremium: true
               },
               {
                 icon: Eye,
                 title: "Real-Time Form Detection",
                 description: "Computer vision technology analyzes your form and provides instant feedback",
-                link: "/workout-session"
+                link: "/workout-session",
+                badge: "PRO",
+                isPremium: true
               },
               {
                 icon: Sparkles,
                 title: "3D Trainer Mode",
                 description: "Follow animated 3D demonstrations with voice coaching – no camera required",
-                link: "/3d-trainer"
+                link: "/3d-trainer",
+                badge: "PRO",
+                isPremium: true
               },
               {
                 icon: BarChart3,
                 title: "Smart Progress Dashboard",
                 description: "Comprehensive analytics tracking your fitness journey and achievements",
-                link: "/progress"
+                link: "/progress",
+                badge: "FREE"
               },
               {
                 icon: Utensils,
                 title: "Nutrition & Macro AI",
                 description: "AI-powered meal planning with precise macro calculations",
-                link: "/nutrition"
+                link: "/nutrition",
+                badge: "PRO",
+                isPremium: true
               },
               {
                 icon: Calendar,
                 title: "Home Workouts",
                 description: "Complete 6-day workout plan you can do anywhere – no equipment needed",
-                link: "/home-workouts"
+                link: "/home-workouts",
+                badge: "FREE"
               },
               {
                 icon: QrCode,
@@ -238,7 +248,8 @@ const Home = () => {
                 icon: Trophy,
                 title: "Gamified Training System",
                 description: "Earn rewards, unlock achievements, and compete with friends",
-                link: "/gamification"
+                link: "/gamification",
+                badge: "FREE"
               },
               {
                 icon: Wrench,
@@ -265,7 +276,8 @@ const Home = () => {
                 icon: Calculator,
                 title: "BMI Calculator",
                 description: "Calculate your BMI with gender-specific healthy ranges and personalized feedback",
-                link: "/bmi-calculator"
+                link: "/bmi-calculator",
+                badge: "FREE"
               },
             ].map((feature, index) => (
               <FeatureCard

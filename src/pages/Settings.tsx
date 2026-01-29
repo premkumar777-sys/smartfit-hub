@@ -12,6 +12,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import {
     ArrowLeft,
     Settings as SettingsIcon,
@@ -26,7 +27,8 @@ import {
     Smartphone,
     Save,
     Loader2,
-    Trash2
+    Trash2,
+    BrainCircuit
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -40,6 +42,7 @@ interface UserPreferences {
     privacy: "public" | "private";
     theme: "dark" | "light" | "system";
     language: string;
+    gemini_api_key?: string;
 }
 
 const DEFAULT_PREFERENCES: UserPreferences = {
@@ -50,7 +53,8 @@ const DEFAULT_PREFERENCES: UserPreferences = {
     units: "metric",
     privacy: "public",
     theme: "dark",
-    language: "english"
+    language: "english",
+    gemini_api_key: ""
 };
 
 export default function Settings() {
@@ -298,6 +302,35 @@ export default function Settings() {
                                             <SelectItem value="private">Private</SelectItem>
                                         </SelectContent>
                                     </Select>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* AI Settings */}
+                        <Card className="glass border-primary/10">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <BrainCircuit className="w-5 h-5 text-primary" />
+                                    AI Settings (Developer)
+                                </CardTitle>
+                                <CardDescription>Configure your API keys for advanced AI features</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-6">
+                                <div className="space-y-2">
+                                    <div className="flex items-center justify-between">
+                                        <Label className="text-base">Google Gemini API Key</Label>
+                                        <a href="https://aistudio.google.com/" target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">Get Free Key</a>
+                                    </div>
+                                    <p className="text-sm text-muted-foreground mb-4">Needed for the AI Meal Scanner. Your key is stored locally and sent only to Google.</p>
+                                    <div className="relative">
+                                        <Input
+                                            type="password"
+                                            placeholder="Paste your API key here..."
+                                            value={preferences.gemini_api_key || ""}
+                                            onChange={(e) => handleSavePreferences(p => ({ ...p, gemini_api_key: e.target.value }))}
+                                            className="bg-black/20 border-primary/20"
+                                        />
+                                    </div>
                                 </div>
                             </CardContent>
                         </Card>
