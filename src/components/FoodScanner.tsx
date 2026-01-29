@@ -107,12 +107,13 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
         setLoading(true);
         setResult(null);
 
+        const possibleModels = ["gemini-1.5-flash", "gemini-1.5-flash-latest", "gemini-2.0-flash", "gemini-1.5-pro", "gemini-2.0-flash-lite"];
+
         try {
             const apiKey = await getApiKey();
             if (!apiKey) return;
 
             const genAI = new GoogleGenerativeAI(apiKey);
-            const possibleModels = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-flash-latest", "gemini-2.0-flash-exp"];
             let success = false;
             let lastError = null;
 
@@ -142,7 +143,7 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
                     }
                     if (success) break;
                 } catch (err: any) {
-                    console.warn(`SmartFit AI: Text model ${modelName} failed:`, err.message);
+                    console.warn(`SmartFit AI: Text model ${modelName} failed. Error:`, err.message || err);
                     lastError = err;
                 }
             }
@@ -162,6 +163,15 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
         setLoading(true);
         let apiKey = "";
         let source = "Unknown";
+
+        const possibleModels = [
+            "gemini-1.5-flash",
+            "gemini-1.5-flash-latest",
+            "gemini-2.0-flash",
+            "gemini-1.5-pro",
+            "gemini-1.5-flash-8b",
+            "gemini-2.0-flash-lite"
+        ];
 
         try {
             // 1. Get API Key: Priority 1: Environment Variable (Developer Provided), Priority 2: Profile Settings (User Provided)
@@ -200,15 +210,6 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
             // 2. Initialize Gemini
             const genAI = new GoogleGenerativeAI(apiKey);
 
-            // Try possible models in order of performance
-            const possibleModels = [
-                "gemini-2.0-flash",
-                "gemini-1.5-flash",
-                "gemini-1.5-flash-latest",
-                "gemini-2.0-flash-exp",
-                "gemini-1.5-flash-8b",
-                "gemini-1.5-pro"
-            ];
             let success = false;
             let lastError = null;
 
@@ -250,7 +251,7 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
                     }
                     if (success) break;
                 } catch (err: any) {
-                    console.warn(`SmartFit AI: Model ${modelName} failed. Full error:`, err);
+                    console.warn(`SmartFit AI: Model ${modelName} attempt failed:`, err.message || err);
                     lastError = err;
                 }
             }
@@ -270,12 +271,12 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
             }
 
             toast.error("AI Analysis failed", {
-                description: descriptiveError,
+                description: `Tried ${possibleModels.length} models, but all failed. Last error: ${descriptiveError}`,
                 action: {
-                    label: "Troubleshoot",
+                    label: "Check API Key",
                     onClick: () => window.open("https://aistudio.google.com/app/apikey", "_blank")
                 },
-                duration: 15000
+                duration: 10000
             });
         } finally {
             setLoading(false);
