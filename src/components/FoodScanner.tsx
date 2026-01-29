@@ -34,9 +34,9 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
         setLoading(true);
         try {
             // 1. Get API Key: Priority 1: Environment Variable (Developer Provided), Priority 2: Profile Settings (User Provided)
-            const masterKey = import.meta.env.VITE_GEMINI_API_KEY;
+            const envKey = import.meta.env.VITE_GEMINI_API_KEY;
 
-            let apiKey = masterKey;
+            let apiKey = envKey;
 
             if (!apiKey) {
                 const { data: { user } } = await supabase.auth.getUser();
@@ -48,6 +48,11 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
                         .single();
                     apiKey = (profile?.preferences as any)?.gemini_api_key;
                 }
+            }
+
+            // Sanitize: Trim quotes and whitespace
+            if (apiKey) {
+                apiKey = apiKey.replace(/^["']|["']$/g, '').trim();
             }
 
             if (!apiKey) {
