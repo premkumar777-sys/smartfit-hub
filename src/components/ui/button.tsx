@@ -16,9 +16,9 @@ const buttonVariants = cva(
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
         // Primary CTA Button
-        hero: "inline-block px-6 py-3 rounded-lg font-semibold bg-[#00FF9C] text-black shadow-md hover:brightness-95 transition",
+        hero: "inline-flex items-center justify-center px-6 py-3 rounded-lg font-semibold bg-[#00FF9C] text-black shadow-md hover:brightness-95 transition",
         // Secondary CTA Button
-        glass: "inline-block px-6 py-3 rounded-lg font-semibold border border-gray-700 text-gray-200 hover:bg-gray-800 transition",
+        glass: "inline-flex items-center justify-center px-6 py-3 rounded-lg font-semibold border border-gray-700 text-gray-200 hover:bg-gray-800 transition",
       },
       size: {
         default: "h-10 px-4 py-2",
@@ -37,7 +37,7 @@ const buttonVariants = cva(
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
+  VariantProps<typeof buttonVariants> {
   asChild?: boolean;
 }
 
