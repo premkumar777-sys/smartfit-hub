@@ -35,8 +35,8 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
         try {
             // 1. Get API Key: Priority 1: Environment Variable (Developer Provided), Priority 2: Profile Settings (User Provided)
             const envKey = import.meta.env.VITE_GEMINI_API_KEY;
-
             let apiKey = envKey;
+            let source = "Environment (.env)";
 
             if (!apiKey) {
                 const { data: { user } } = await supabase.auth.getUser();
@@ -47,6 +47,7 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
                         .eq("user_id", user.id)
                         .single();
                     apiKey = (profile?.preferences as any)?.gemini_api_key;
+                    source = "User Profile (Settings)";
                 }
             }
 
@@ -56,13 +57,16 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
             }
 
             if (!apiKey) {
+                console.error("SmartFit AI: No API key found in .env or Profile.");
                 toast.error("AI Feature Unavailable", {
-                    description: "The developer hasn't set a master key, and no personal key was found in Settings.",
+                    description: "No API key was found. Please check your .env file or Settings.",
                     duration: 5000
                 });
                 setLoading(false);
                 return;
             }
+
+            console.log(`SmartFit AI: Using key from ${source}. Key starts with: ${apiKey.substring(0, 6)}...`);
 
             // 2. Initialize Gemini
             const genAI = new GoogleGenerativeAI(apiKey);
