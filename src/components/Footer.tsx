@@ -59,6 +59,7 @@ export function Footer() {
                                 <li><Link to="/nutrition" className="text-muted-foreground hover:text-foreground transition-colors">Nutrition Planner</Link></li>
                                 <li><Link to="/3d-trainer" className="text-muted-foreground hover:text-foreground transition-colors">3D Trainer Mode</Link></li>
                                 <li><Link to="/progress" className="text-muted-foreground hover:text-foreground transition-colors">Progress Tracking</Link></li>
+                                <li><Link to="/pricing" className="text-muted-foreground hover:text-foreground transition-colors">Pricing & Plans</Link></li>
                             </ul>
                         </div>
 
