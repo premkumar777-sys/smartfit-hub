@@ -77,7 +77,7 @@ export default function Settings() {
                 const { data: profile } = await supabase
                     .from("profiles")
                     .select("preferences")
-                    .eq("user_id", authUser.id)
+                    .eq("id", authUser.id)
                     .single();
 
                 if (profile?.preferences) {
@@ -109,7 +109,7 @@ export default function Settings() {
                     preferences: nextPreferences,
                     updated_at: new Date().toISOString()
                 })
-                .eq("user_id", user?.id);
+                .eq("id", user?.id);
 
             if (error) throw error;
             toast.success("Settings updated");

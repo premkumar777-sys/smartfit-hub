@@ -161,7 +161,7 @@ export default function Profile() {
                 const { data: profileData } = await supabase
                     .from('profiles')
                     .select('*')
-                    .eq('user_id', authUser.id)
+                    .eq('id', authUser.id)
                     .single();
 
                 if (profileData) {
@@ -210,7 +210,7 @@ export default function Profile() {
                     fitness_goal: editGoal,
                     updated_at: new Date().toISOString()
                 })
-                .eq('user_id', user.id);
+                .eq('id', user.id);
 
             if (error) throw error;
 
@@ -257,7 +257,7 @@ export default function Profile() {
             const { error: updateError } = await supabase
                 .from("profiles")
                 .update({ avatar_url: publicUrl })
-                .eq("user_id", user.id);
+                .eq("id", user.id);
 
             if (updateError) throw updateError;
 
