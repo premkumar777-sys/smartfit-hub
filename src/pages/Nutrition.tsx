@@ -182,30 +182,39 @@ export default function Nutrition() {
     setIsLogging(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+      if (!session) {
+        toast.error("Please sign in to log meals");
+        return;
+      }
 
-      // 1. Save to nutrition_logs for macro tracking
+      console.log("SmartFit Debug: Logging manual meal...", { calories: cals });
+
+      // 1. Save to nutrition_logs
       const { error: logError } = await supabase.from('nutrition_logs').insert({
         user_id: session.user.id,
-        calories: Math.round(cals),
-        meal_name: 'Manual Entry'
+        calories: Math.round(cals)
       });
 
-      if (logError) throw logError;
+      if (logError) {
+        console.error("Supabase nutrition_logs error:", logError);
+        throw new Error(`Journal Error: ${logError.message}`);
+      }
 
-      // 2. Save to activity_logs for dashboard feed
-      await supabase.from('activity_logs').insert({
+      // 2. Save to activity_logs
+      const { error: actError } = await supabase.from('activity_logs').insert({
         user_id: session.user.id,
         activity_type: 'nutrition',
         value: Math.round(cals),
       });
 
+      if (actError) console.warn("Activity feed sync failed (non-critical):", actError.message);
+
       toast.success(`Logged ${cals} calories! 🍏`);
       setLogCalories("");
       fetchNutritionLogs();
-    } catch (err) {
+    } catch (err: any) {
       console.error("Log meal error:", err);
-      toast.error("Failed to log nutrition.");
+      toast.error(err.message || "Failed to log nutrition.");
     } finally {
       setIsLogging(false);
     }
@@ -215,35 +224,56 @@ export default function Nutrition() {
     setIsLogging(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+      if (!session) {
+        toast.error("Please sign in to log meals");
+        return;
+      }
 
-      // 1. Save to nutrition_logs for macro tracking
+      // Validate data
+      const calories = Math.round(data.calories || 0);
+      const protein = Math.round(data.protein || 0);
+      const carbs = Math.round(data.carbs || 0);
+      const fats = Math.round(data.fats || 0);
+      const mealName = data.name || "AI Analyzed Meal";
+
+      if (calories <= 0) {
+        toast.error("Invalid calorie data received from AI");
+        return;
+      }
+
+      console.log("SmartFit Debug: Saving AI meal...", { calories, mealName });
+
+      // 1. Save to nutrition_logs
       const { error: logError } = await supabase.from('nutrition_logs').insert({
         user_id: session.user.id,
-        calories: Math.round(data.calories),
-        protein: Math.round(data.protein),
-        carbs: Math.round(data.carbs),
-        fats: Math.round(data.fats),
-        meal_name: data.name
+        calories,
+        protein,
+        carbs,
+        fats
       });
 
-      if (logError) throw logError;
+      if (logError) {
+        console.error("Supabase nutrition_logs error:", logError);
+        throw new Error(`Journal Error: ${logError.message}`);
+      }
 
-      // 2. Save to activity_logs for dashboard feed
-      await supabase.from('activity_logs').insert({
+      // 2. Save to activity_logs
+      const { error: actError } = await supabase.from('activity_logs').insert({
         user_id: session.user.id,
         activity_type: 'nutrition',
-        value: Math.round(data.calories),
-        metadata: { name: data.name }
+        value: calories,
+        metadata: { name: mealName }
       });
 
-      toast.success(`Logged ${data.name} (${Math.round(data.calories)} kcal)! 🍏`, {
-        description: `Macros: P:${Math.round(data.protein)}g C:${Math.round(data.carbs)}g F:${Math.round(data.fats)}g`
+      if (actError) console.warn("Activity feed sync failed (non-critical):", actError.message);
+
+      toast.success(`Logged ${mealName} (${calories} kcal)! 🍏`, {
+        description: `Macros: P:${protein}g C:${carbs}g F:${fats}g`
       });
       fetchNutritionLogs();
-    } catch (err) {
+    } catch (err: any) {
       console.error("Log scanned meal error:", err);
-      toast.error("Failed to log nutrition.");
+      toast.error(err.message || "Failed to log nutrition.");
     } finally {
       setIsLogging(false);
     }
