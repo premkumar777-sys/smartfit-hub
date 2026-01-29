@@ -1,12 +1,36 @@
 -- =====================================================
--- COMPREHENSIVE PROFILES TABLE FIX
+-- COMPREHENSIVE FIX: PROFILES & SUBSCRIPTIONS
 -- =====================================================
--- This script ensures the profiles table has EVERY SINGLE COLUMN
--- used across the entire application, including gamification,
--- nutrition, and profile/settings pages.
+-- This script fixes the missing 'subscriptions' table error
+-- and ensures 'profiles' has all columns and correct RLS.
 -- =====================================================
 
--- 1. Ensure all columns exist in public.profiles
+-- 1. Create subscriptions table if missing
+CREATE TABLE IF NOT EXISTS public.subscriptions (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    email TEXT,
+    plan_id TEXT DEFAULT 'free',
+    plan_name TEXT DEFAULT 'Free',
+    status TEXT DEFAULT 'active',
+    billing_cycle TEXT DEFAULT 'free',
+    payment_provider TEXT,
+    payment_id TEXT,
+    starts_at TIMESTAMPTZ DEFAULT NOW(),
+    expires_at TIMESTAMPTZ,
+    current_period_end TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Enable RLS for subscriptions
+ALTER TABLE public.subscriptions ENABLE ROW LEVEL SECURITY;
+
+-- Subscriptions RLS Policies
+DROP POLICY IF EXISTS "Users can view own subscriptions" ON public.subscriptions;
+CREATE POLICY "Users can view own subscriptions" ON public.subscriptions 
+    FOR SELECT USING (auth.uid() = user_id);
+
+-- 2. Sync Profiles Table Columns
 DO $$ 
 BEGIN 
     -- Basic Profile Info
@@ -79,29 +103,35 @@ BEGIN
         ALTER TABLE public.profiles ADD COLUMN updated_at TIMESTAMPTZ DEFAULT NOW();
     END IF;
 
-    -- user_id (Backwards compatibility / Linkage)
+    -- user_id (Consistency check)
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='profiles' AND column_name='user_id') THEN
         ALTER TABLE public.profiles ADD COLUMN user_id UUID;
         UPDATE public.profiles SET user_id = id WHERE user_id IS NULL;
     END IF;
 END $$;
 
--- 2. Update RLS policies to be robust and allow leaderboard viewing
+-- 3. Update Profiles RLS Policies (Crucial for UPSERT)
+-- UPSERT requires both INSERT and UPDATE permissions
+
 DROP POLICY IF EXISTS "Users can view own profile" ON public.profiles;
 CREATE POLICY "Users can view own profile" ON public.profiles
   FOR SELECT USING (auth.uid() = id);
+
+DROP POLICY IF EXISTS "Users can insert own profile" ON public.profiles;
+CREATE POLICY "Users can insert own profile" ON public.profiles
+  FOR INSERT WITH CHECK (auth.uid() = id);
 
 DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
 CREATE POLICY "Users can update own profile" ON public.profiles
   FOR UPDATE USING (auth.uid() = id);
 
--- Allow all authenticated users to see leaderboard stats for others
+-- Allow leaderboard viewing for authenticated users
 DROP POLICY IF EXISTS "Users can view leaderboard info" ON public.profiles;
 CREATE POLICY "Users can view leaderboard info" ON public.profiles
   FOR SELECT TO authenticated
   USING (true);
 
--- 3. Ensure trigger for updated_at
+-- 4. Ensure updated_at trigger exists
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -116,4 +146,7 @@ CREATE TRIGGER update_profiles_updated_at
     FOR EACH ROW
     EXECUTE PROCEDURE update_updated_at_column();
 
-RAISE NOTICE 'Profiles table schema fully synchronized!';
+DO $$ 
+BEGIN 
+    RAISE NOTICE 'Database schema synchronized: Subscriptions table created and Profiles policies updated!';
+END $$;
