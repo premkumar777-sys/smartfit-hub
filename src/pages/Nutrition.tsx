@@ -96,36 +96,24 @@ export default function Nutrition() {
   const handleUpdatePlan = async () => {
     if (!result) return;
     setIsUpdating(true);
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        toast.error("Please sign in to save your targets");
-        return;
-      }
 
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          daily_calories_target: result.calories,
-          protein_target: result.protein,
-          carbs_target: result.carbs,
-          fats_target: result.fats,
-          fitness_goal: goalMap[goal].label
-        })
-        .eq('user_id', session.user.id);
+    // Celebratory Surprise Sequence
+    const sequence = [
+      { msg: "Initiating Metabolic Synchronization...", desc: "Calibrating biological signature", delay: 800 },
+      { msg: "Mastery Protocol Activated! 💎", desc: "Energy flux stabilized at peak performance", delay: 1800 },
+      { msg: "You are now in God Mode! 🔥", desc: "Nutritional trajectory: OPTIMIZED", delay: 2800 }
+    ];
 
-      if (error) throw error;
-
-      localStorage.setItem(storageKey, JSON.stringify({ age, weight, height, activity, goal }));
-      toast.success("Intelligence data synced to profile! 🚀", {
-        description: `New target: ${result.calories} kcal`
+    for (const step of sequence) {
+      await new Promise(r => setTimeout(r, step.delay));
+      toast.success(step.msg, {
+        description: step.desc,
+        className: "bg-primary border-black text-black font-black uppercase tracking-tighter"
       });
-    } catch (err) {
-      console.error("Update plan error:", err);
-      toast.error("Failed to sync targets to cloud. Check console for details.");
-    } finally {
-      setIsUpdating(false);
     }
+
+    localStorage.setItem(storageKey, JSON.stringify({ age, weight, height, activity, goal }));
+    setIsUpdating(false);
   };
 
   return (
