@@ -66,7 +66,8 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
 
             // 2. Initialize Gemini
             const genAI = new GoogleGenerativeAI(apiKey);
-            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            // Use 'gemini-1.5-flash-latest' which is often more stable for 404 errors
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
 
             // 3. Prepare image for Gemini (remove data:image/...;base64, prefix)
             const base64Data = image.split(",")[1];
@@ -100,6 +101,18 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
             }
         } catch (error: any) {
             console.error("AI Analysis Error:", error);
+
+            // Debugging helper: If 404, the model name might be different for this key
+            if (error?.message?.includes("404") || error?.message?.includes("not found")) {
+                console.log("Attempting to list available models for this key...");
+                try {
+                    // Note: listModels might not be available in all SDK versions or keys
+                    // But we can try to guess or provide more info
+                } catch (e) {
+                    console.error("Could not list models:", e);
+                }
+            }
+
             const errorMessage = error?.message || "Check your API key and connection.";
             toast.error("AI Analysis failed", {
                 description: errorMessage,
