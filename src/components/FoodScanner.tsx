@@ -60,27 +60,42 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
             if (!apiKey) return;
 
             const genAI = new GoogleGenerativeAI(apiKey);
-            const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+            const possibleModels = ["gemini-2.0-flash-lite", "gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-flash-latest", "gemini-2.5-flash"];
+            let success = false;
+            let lastError = null;
 
             const prompt = `Analyze this food description: "${query}". 
             Identify the food and provide estimated Calories, Protein (g), Carbs (g), and Fats (g). 
             Return ONLY a JSON object: { "name": "food name", "calories": 123, "protein": 12, "carbs": 34, "fats": 5 }.
             If the description is not food, return { "error": "Please describe a valid meal." }.`;
 
-            const result = await model.generateContent(prompt);
-            const response = await result.response;
-            const text = response.text();
+            for (const modelName of possibleModels) {
+                try {
+                    console.log(`SmartFit AI: Trying text search with ${modelName}...`);
+                    const model = genAI.getGenerativeModel({ model: modelName });
+                    const result = await model.generateContent(prompt);
+                    const response = await result.response;
+                    const text = response.text();
 
-            const jsonMatch = text.match(/\{.*\}/s);
-            if (!jsonMatch) throw new Error("Could not parse AI response");
-            const data = JSON.parse(jsonMatch[0]);
+                    const jsonMatch = text.match(/\{.*\}/s);
+                    if (!jsonMatch) throw new Error("Invalid response format");
+                    const data = JSON.parse(jsonMatch[0]);
 
-            if (data.error) {
-                toast.error(data.error);
-            } else {
-                setResult(data);
-                toast.success("AI Search Success!");
+                    if (data.error) {
+                        toast.error(data.error);
+                    } else {
+                        setResult(data);
+                        toast.success(`Search Success! (${modelName})`);
+                        success = true;
+                    }
+                    if (success) break;
+                } catch (err: any) {
+                    console.warn(`SmartFit AI: Text model ${modelName} failed:`, err.message);
+                    lastError = err;
+                }
             }
+
+            if (!success && lastError) throw lastError;
         } catch (error: any) {
             console.error("AI Search Error:", error);
             toast.error("AI Search failed", { description: error.message });
@@ -135,14 +150,14 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
 
             // Try possible models in order of performance
             const possibleModels = [
-                "gemini-2.0-flash",
                 "gemini-2.0-flash-lite",
+                "gemini-2.0-flash",
                 "gemini-1.5-flash",
                 "gemini-1.5-flash-latest",
+                "gemini-1.5-flash-8b",
                 "gemini-2.0-flash-exp",
                 "gemini-2.5-flash",
-                "gemini-1.5-pro",
-                "gemini-pro-vision"
+                "gemini-1.5-pro"
             ];
             let success = false;
             let lastError = null;
