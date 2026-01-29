@@ -173,50 +173,73 @@ export default function Nutrition() {
           >
             <div className="grid lg:grid-cols-12 gap-8 mt-12">
               {/* Inputs Column */}
+              {/* Inputs Column - Biological Signature UI */}
               <div className="lg:col-span-12">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-1 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-md">
-                  <div className="p-4 space-y-2">
-                    <Label className="text-[10px] uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                      <User className="w-3 h-3 text-primary" /> Current Age
-                    </Label>
-                    <Input
-                      type="number"
-                      value={age}
-                      onChange={(e) => setAge(e.target.value)}
-                      className="bg-transparent border-none text-xl font-bold p-0 h-auto focus-visible:ring-0"
-                    />
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between px-2">
+                    <div className="space-y-1">
+                      <h3 className="text-sm font-black uppercase tracking-[0.3em] text-white">Biological Signature</h3>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-widest opacity-60">Configure physiological baseline</p>
+                    </div>
                   </div>
-                  <div className="p-4 space-y-2 border-l border-white/10">
-                    <Label className="text-[10px] uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                      <Scale className="w-3 h-3 text-primary" /> Body Weight (kg)
-                    </Label>
-                    <Input
-                      type="number"
-                      value={weight}
-                      onChange={(e) => setWeight(e.target.value)}
-                      className="bg-transparent border-none text-xl font-bold p-0 h-auto focus-visible:ring-0"
-                    />
-                  </div>
-                  <div className="p-4 space-y-2 border-l border-white/10">
-                    <Label className="text-[10px] uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                      <Ruler className="w-3 h-3 text-primary" /> Stature (cm)
-                    </Label>
-                    <Input
-                      type="number"
-                      value={height}
-                      onChange={(e) => setHeight(e.target.value)}
-                      className="bg-transparent border-none text-xl font-bold p-0 h-auto focus-visible:ring-0"
-                    />
-                  </div>
-                  <div className="p-4 flex items-center justify-center border-l border-white/10">
-                    <Button
+
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div className="group relative bg-white/5 border border-white/10 rounded-3xl p-6 transition-all hover:bg-white/10 hover:border-primary/30">
+                      <div className="absolute top-4 right-4 text-primary/20 group-hover:text-primary transition-colors">
+                        <User className="w-5 h-5" />
+                      </div>
+                      <Label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-bold mb-2 block">Years / Age</Label>
+                      <Input
+                        type="number"
+                        value={age}
+                        onChange={(e) => setAge(e.target.value)}
+                        className="bg-transparent border-none text-4xl font-black p-0 h-auto focus-visible:ring-0 text-white tabular-nums"
+                      />
+                    </div>
+
+                    <div className="group relative bg-white/5 border border-white/10 rounded-3xl p-6 transition-all hover:bg-white/10 hover:border-primary/30">
+                      <div className="absolute top-4 right-4 text-primary/20 group-hover:text-primary transition-colors">
+                        <Scale className="w-5 h-5" />
+                      </div>
+                      <Label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-bold mb-2 block">Mass / Weight (kg)</Label>
+                      <Input
+                        type="number"
+                        value={weight}
+                        onChange={(e) => setWeight(e.target.value)}
+                        className="bg-transparent border-none text-4xl font-black p-0 h-auto focus-visible:ring-0 text-white tabular-nums"
+                      />
+                    </div>
+
+                    <div className="group relative bg-white/5 border border-white/10 rounded-3xl p-6 transition-all hover:bg-white/10 hover:border-primary/30">
+                      <div className="absolute top-4 right-4 text-primary/20 group-hover:text-primary transition-colors">
+                        <Ruler className="w-5 h-5" />
+                      </div>
+                      <Label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-bold mb-2 block">Stature / Height (cm)</Label>
+                      <Input
+                        type="number"
+                        value={height}
+                        onChange={(e) => setHeight(e.target.value)}
+                        className="bg-transparent border-none text-4xl font-black p-0 h-auto focus-visible:ring-0 text-white tabular-nums"
+                      />
+                    </div>
+
+                    <button
                       onClick={handleUpdatePlan}
                       disabled={isUpdating}
-                      variant="hero"
-                      className="w-full h-full rounded-xl bg-primary text-black font-black uppercase tracking-tighter hover:scale-[1.02] transition-transform active:scale-95"
+                      className="group relative h-full min-h-[100px] flex flex-col items-center justify-center bg-primary rounded-3xl transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50 overflow-hidden shadow-[0_0_30px_rgba(var(--primary),0.2)]"
                     >
-                      {isUpdating ? <Loader2 className="animate-spin w-5 h-5" /> : "Recalculate Protocols"}
-                    </Button>
+                      <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent pointer-events-none" />
+                      <div className="relative z-10 flex flex-col items-center gap-2">
+                        {isUpdating ? (
+                          <Loader2 className="animate-spin w-8 h-8 text-black" />
+                        ) : (
+                          <>
+                            <Zap className="w-6 h-6 text-black group-hover:animate-pulse" />
+                            <span className="text-sm font-black text-black uppercase tracking-tighter">Sync & Recalculate</span>
+                          </>
+                        )}
+                      </div>
+                    </button>
                   </div>
                 </div>
               </div>
