@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Camera, Upload, Check, X, Info } from "lucide-react";
+import { Loader2, Camera, Upload, Check, X, Info, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -112,7 +112,7 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
             if (!apiKey) return;
 
             const genAI = new GoogleGenerativeAI(apiKey);
-            const possibleModels = ["gemini-2.0-flash-lite", "gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-flash-latest", "gemini-2.5-flash"];
+            const possibleModels = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-flash-latest", "gemini-2.0-flash-exp"];
             let success = false;
             let lastError = null;
 
@@ -202,13 +202,11 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
 
             // Try possible models in order of performance
             const possibleModels = [
-                "gemini-2.0-flash-lite",
                 "gemini-2.0-flash",
                 "gemini-1.5-flash",
                 "gemini-1.5-flash-latest",
-                "gemini-1.5-flash-8b",
                 "gemini-2.0-flash-exp",
-                "gemini-2.5-flash",
+                "gemini-1.5-flash-8b",
                 "gemini-1.5-pro"
             ];
             let success = false;
@@ -297,7 +295,7 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
             <CardHeader className="pb-4">
                 <div className="flex items-center justify-between mb-2">
                     <CardTitle className="text-xl flex items-center gap-2">
-                        <SparklesIcon className="w-5 h-5 text-primary animate-pulse" />
+                        <Sparkles className="w-5 h-5 text-primary animate-pulse" />
                         Smart AI Tracker
                     </CardTitle>
                     <div className="flex bg-black/40 p-1 rounded-lg border border-white/5">
