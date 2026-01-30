@@ -1,8 +1,9 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import { MessageCircle, X, Send, Bot, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 type Message = {
   role: "user" | "assistant";
@@ -70,30 +71,26 @@ export const FloatingChatbot = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/smartfit-chatbot`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          },
-          body: JSON.stringify({
-            message: text,
-            conversationHistory: messages,
-          }),
-        }
-      );
+      // Build conversation history for context
+      const conversationHistory = messages
+        .slice(-10)
+        .map((m) => ({ role: m.role, content: m.content }));
 
-      const data = await response.json();
+      // Use Supabase client to invoke the Edge Function
+      const { data, error } = await supabase.functions.invoke("smartfit-chatbot", {
+        body: {
+          message: text,
+          conversationHistory: conversationHistory,
+        },
+      });
 
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to get response");
+      if (error) {
+        throw new Error(error.message || "Failed to get response");
       }
 
       const assistantMessage: Message = {
         role: "assistant",
-        content: data.reply,
+        content: data?.reply || "I'm having trouble processing your message right now. Please try again in a moment! 🙏",
       };
       setMessages((prev) => [...prev, assistantMessage]);
       playNotificationSound();
