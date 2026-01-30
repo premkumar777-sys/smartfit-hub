@@ -5,7 +5,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Container } from "@/components/Container";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Home, Calendar, Dumbbell, Heart, Flame, Clock, ChevronDown, ChevronUp } from "lucide-react";
-import { PremiumLock } from "@/components/PremiumLock";
 
 type DayWorkout = {
     day: string;
@@ -149,29 +148,18 @@ export default function HomeWorkouts() {
                             />
                         ))}
 
-                        {/* Premium Workouts */}
-                        <PremiumLock
-                            title="Unlock Full 6-Day Program"
-                            description="Get the complete weekly schedule including Pull, Legs, and Recovery routines."
-                            features={[
-                                "Full 6-Day Split",
-                                "Targeted Muscle Groups",
-                                "Recovery Protocols",
-                                "Progressive Overload Tips"
-                            ]}
-                        >
-                            <div className="space-y-4">
-                                {workoutPlan.slice(1).map((day, index) => (
-                                    <DayWorkoutCard
-                                        key={day.day}
-                                        day={day}
-                                        index={index + 1}
-                                        expandedDay={expandedDay}
-                                        toggleDay={toggleDay}
-                                    />
-                                ))}
-                            </div>
-                        </PremiumLock>
+                        {/* Full 6-Day Program */}
+                        <div className="space-y-4">
+                            {workoutPlan.slice(1).map((day, index) => (
+                                <DayWorkoutCard
+                                    key={day.day}
+                                    day={day}
+                                    index={index + 1}
+                                    expandedDay={expandedDay}
+                                    toggleDay={toggleDay}
+                                />
+                            ))}
+                        </div>
                     </div>
 
                     {/* Tips Section */}

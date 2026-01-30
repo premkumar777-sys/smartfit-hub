@@ -28,10 +28,11 @@ import {
     Save,
     Loader2,
     Trash2,
-    BrainCircuit
+    Check
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useTheme } from "@/components/ThemeProvider";
 
 interface UserPreferences {
     notifications: {
@@ -40,9 +41,8 @@ interface UserPreferences {
     };
     units: "metric" | "imperial";
     privacy: "public" | "private";
-    theme: "dark" | "light" | "system";
+    theme: "dark" | "light";
     language: string;
-    gemini_api_key?: string;
 }
 
 const DEFAULT_PREFERENCES: UserPreferences = {
@@ -53,16 +53,17 @@ const DEFAULT_PREFERENCES: UserPreferences = {
     units: "metric",
     privacy: "public",
     theme: "dark",
-    language: "english",
-    gemini_api_key: ""
+    language: "english"
 };
 
 export default function Settings() {
     const navigate = useNavigate();
+    const { theme: currentTheme, setTheme } = useTheme();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [user, setUser] = useState<any>(null);
     const [preferences, setPreferences] = useState<UserPreferences>(DEFAULT_PREFERENCES);
+    const [hasChanges, setHasChanges] = useState(false);
 
     useEffect(() => {
         const loadSettings = async () => {
@@ -81,10 +82,16 @@ export default function Settings() {
                     .single();
 
                 if (profile?.preferences) {
-                    setPreferences({
+                    const loadedPrefs = {
                         ...DEFAULT_PREFERENCES,
                         ...(profile.preferences as any)
-                    });
+                    };
+                    setPreferences(loadedPrefs);
+
+                    // Sync theme if different
+                    if (loadedPrefs.theme !== currentTheme) {
+                        setTheme(loadedPrefs.theme);
+                    }
                 }
             } catch (error) {
                 console.error("Error loading settings:", error);
@@ -95,36 +102,36 @@ export default function Settings() {
         };
 
         loadSettings();
-    }, [navigate]);
+    }, [navigate, setTheme]);
 
-    const handleSavePreferences = async (updater: (prev: UserPreferences) => UserPreferences) => {
-        const nextPreferences = updater(preferences);
-        setPreferences(nextPreferences);
+    const handlePreferenceChange = (updater: (prev: UserPreferences) => UserPreferences) => {
+        setPreferences(prev => {
+            const next = updater(prev);
+            setHasChanges(true);
+            return next;
+        });
+    };
+
+    const handleSaveSettings = async () => {
+        if (!user) return;
 
         setSaving(true);
         try {
-            const updateData = {
-                id: user?.id,
-                preferences: nextPreferences,
-                updated_at: new Date().toISOString()
-            };
-
-            console.log("Saving settings with data:", updateData);
-
             const { error } = await supabase
                 .from("profiles")
-                .upsert({ id: user.id, ...updateData }, { onConflict: 'id' });
+                .upsert({
+                    id: user.id,
+                    preferences: preferences,
+                    updated_at: new Date().toISOString()
+                }, { onConflict: 'id' });
 
-            if (error) {
-                console.error("Supabase error saving settings:", error);
-                toast.error(`Failed to save settings: ${error.message}`);
-                return;
-            }
-            toast.success("Settings updated");
-        } catch (error) {
+            if (error) throw error;
+
+            toast.success("Settings saved successfully");
+            setHasChanges(false);
+        } catch (error: any) {
             console.error("Error saving settings:", error);
-            toast.error("Failed to save settings");
-            // Revert optimization: In a real app we might revert state here
+            toast.error(error.message || "Failed to save settings");
         } finally {
             setSaving(false);
         }
@@ -150,22 +157,35 @@ export default function Settings() {
     return (
         <div className="min-h-screen py-12">
             <Container>
-                <Link
-                    to="/profile"
-                    className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6"
-                >
-                    <ArrowLeft className="w-4 h-4 mr-2" />
-                    Back to Profile
-                </Link>
-
-                <div className="flex items-center gap-3 mb-8">
-                    <div className="p-3 rounded-2xl bg-primary/10 border border-primary/20">
-                        <SettingsIcon className="w-6 h-6 text-primary" />
-                    </div>
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                     <div>
-                        <h1 className="text-3xl font-bold">Settings</h1>
-                        <p className="text-muted-foreground">Manage your account and app preferences</p>
+                        <Link
+                            to="/profile"
+                            className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4"
+                        >
+                            <ArrowLeft className="w-4 h-4 mr-2" />
+                            Back to Profile
+                        </Link>
+                        <div className="flex items-center gap-3">
+                            <div className="p-3 rounded-2xl bg-primary/10 border border-primary/20">
+                                <SettingsIcon className="w-6 h-6 text-primary" />
+                            </div>
+                            <div>
+                                <h1 className="text-3xl font-bold">Settings</h1>
+                                <p className="text-muted-foreground">Manage your account and app preferences</p>
+                            </div>
+                        </div>
                     </div>
+
+                    {hasChanges && (
+                        <div className="flex items-center gap-4 p-4 rounded-xl bg-primary/5 border border-primary/20 animate-in fade-in slide-in-from-right-4">
+                            <span className="text-sm font-medium text-primary">You have unsaved changes</span>
+                            <Button onClick={handleSaveSettings} disabled={saving} size="sm" className="bg-primary text-black">
+                                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+                                Save Changes
+                            </Button>
+                        </div>
+                    )}
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -183,12 +203,12 @@ export default function Settings() {
                             <CardContent className="space-y-6">
                                 <div className="flex items-center justify-between">
                                     <div className="space-y-0.5">
-                                        <Label className="text-base">Measurement Units</Label>
+                                        <Label className="text-base font-semibold">Measurement Units</Label>
                                         <p className="text-sm text-muted-foreground">Choose between Metric and Imperial units</p>
                                     </div>
                                     <Select
                                         value={preferences.units}
-                                        onValueChange={(val: any) => handleSavePreferences(p => ({ ...p, units: val }))}
+                                        onValueChange={(val: any) => handlePreferenceChange(p => ({ ...p, units: val }))}
                                     >
                                         <SelectTrigger className="w-32">
                                             <SelectValue />
@@ -202,39 +222,41 @@ export default function Settings() {
 
                                 <div className="flex items-center justify-between">
                                     <div className="space-y-0.5">
-                                        <Label className="text-base">Interface Theme</Label>
+                                        <Label className="text-base font-semibold">Interface Theme</Label>
                                         <p className="text-sm text-muted-foreground">Select your preferred color theme</p>
                                     </div>
                                     <div className="flex bg-black/40 p-1 rounded-lg border border-white/10">
                                         <button
-                                            onClick={() => handleSavePreferences(p => ({ ...p, theme: 'dark' }))}
-                                            className={`p-2 rounded-md transition-all ${preferences.theme === 'dark' ? 'bg-primary text-black' : 'text-muted-foreground hover:text-white'}`}
+                                            onClick={() => {
+                                                setTheme('dark');
+                                                handlePreferenceChange(p => ({ ...p, theme: 'dark' }));
+                                            }}
+                                            className={`p-2 rounded-md transition-all flex items-center gap-2 ${currentTheme === 'dark' ? 'bg-primary text-black font-bold' : 'text-muted-foreground hover:text-white'}`}
                                         >
                                             <Moon className="w-4 h-4" />
+                                            <span className="text-xs">Dark</span>
                                         </button>
                                         <button
-                                            onClick={() => handleSavePreferences(p => ({ ...p, theme: 'light' }))}
-                                            className={`p-2 rounded-md transition-all ${preferences.theme === 'light' ? 'bg-primary text-black' : 'text-muted-foreground hover:text-white'}`}
+                                            onClick={() => {
+                                                setTheme('light');
+                                                handlePreferenceChange(p => ({ ...p, theme: 'light' }));
+                                            }}
+                                            className={`p-2 rounded-md transition-all flex items-center gap-2 ${currentTheme === 'light' ? 'bg-primary text-black font-bold' : 'text-muted-foreground hover:text-white'}`}
                                         >
                                             <Sun className="w-4 h-4" />
-                                        </button>
-                                        <button
-                                            onClick={() => handleSavePreferences(p => ({ ...p, theme: 'system' }))}
-                                            className={`p-2 rounded-md transition-all ${preferences.theme === 'system' ? 'bg-primary text-black' : 'text-muted-foreground hover:text-white'}`}
-                                        >
-                                            <SettingsIcon className="w-4 h-4" />
+                                            <span className="text-xs">Light</span>
                                         </button>
                                     </div>
                                 </div>
 
                                 <div className="flex items-center justify-between">
                                     <div className="space-y-0.5">
-                                        <Label className="text-base">Display Language</Label>
+                                        <Label className="text-base font-semibold">Display Language</Label>
                                         <p className="text-sm text-muted-foreground">Select your interface language</p>
                                     </div>
                                     <Select
                                         value={preferences.language}
-                                        onValueChange={(val: any) => handleSavePreferences(p => ({ ...p, language: val }))}
+                                        onValueChange={(val: any) => handlePreferenceChange(p => ({ ...p, language: val }))}
                                     >
                                         <SelectTrigger className="w-32">
                                             <SelectValue />
@@ -262,22 +284,22 @@ export default function Settings() {
                             <CardContent className="space-y-6">
                                 <div className="flex items-center justify-between">
                                     <div className="space-y-0.5">
-                                        <Label className="text-base">Email Notifications</Label>
+                                        <Label className="text-base font-semibold">Email Notifications</Label>
                                         <p className="text-sm text-muted-foreground">Receive workout summaries and progress reports via email</p>
                                     </div>
                                     <Switch
                                         checked={preferences.notifications.email}
-                                        onCheckedChange={(val) => handleSavePreferences(p => ({ ...p, notifications: { ...p.notifications, email: val } }))}
+                                        onCheckedChange={(val) => handlePreferenceChange(p => ({ ...p, notifications: { ...p.notifications, email: val } }))}
                                     />
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <div className="space-y-0.5">
-                                        <Label className="text-base">Push Notifications</Label>
+                                        <Label className="text-base font-semibold">Push Notifications</Label>
                                         <p className="text-sm text-muted-foreground">Get real-time alerts for challenges and streak reminders</p>
                                     </div>
                                     <Switch
                                         checked={preferences.notifications.push}
-                                        onCheckedChange={(val) => handleSavePreferences(p => ({ ...p, notifications: { ...p.notifications, push: val } }))}
+                                        onCheckedChange={(val) => handlePreferenceChange(p => ({ ...p, notifications: { ...p.notifications, push: val } }))}
                                     />
                                 </div>
                             </CardContent>
@@ -295,12 +317,12 @@ export default function Settings() {
                             <CardContent className="space-y-6">
                                 <div className="flex items-center justify-between">
                                     <div className="space-y-0.5">
-                                        <Label className="text-base">Profile Visibility</Label>
+                                        <Label className="text-base font-semibold">Profile Visibility</Label>
                                         <p className="text-sm text-muted-foreground">Public profiles are visible on leaderboards</p>
                                     </div>
                                     <Select
                                         value={preferences.privacy}
-                                        onValueChange={(val: any) => handleSavePreferences(p => ({ ...p, privacy: val }))}
+                                        onValueChange={(val: any) => handlePreferenceChange(p => ({ ...p, privacy: val }))}
                                     >
                                         <SelectTrigger className="w-32">
                                             <SelectValue />
@@ -314,34 +336,16 @@ export default function Settings() {
                             </CardContent>
                         </Card>
 
-                        {/* AI Settings */}
-                        <Card className="glass border-primary/10">
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <BrainCircuit className="w-5 h-5 text-primary" />
-                                    AI Settings (Developer)
-                                </CardTitle>
-                                <CardDescription>Configure your API keys for advanced AI features</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-6">
-                                <div className="space-y-2">
-                                    <div className="flex items-center justify-between">
-                                        <Label className="text-base">Google Gemini API Key</Label>
-                                        <a href="https://aistudio.google.com/" target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">Get Free Key</a>
-                                    </div>
-                                    <p className="text-sm text-muted-foreground mb-4">Needed for the AI Meal Scanner. Your key is stored locally and sent only to Google.</p>
-                                    <div className="relative">
-                                        <Input
-                                            type="password"
-                                            placeholder="Paste your API key here..."
-                                            value={preferences.gemini_api_key || ""}
-                                            onChange={(e) => handleSavePreferences(p => ({ ...p, gemini_api_key: e.target.value }))}
-                                            className="bg-black/20 border-primary/20"
-                                        />
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
+                        {/* Final Save Action for Mobile/Bottom */}
+                        {hasChanges && (
+                            <div className="lg:hidden p-4 rounded-xl bg-primary/10 border border-primary/20 space-y-3">
+                                <p className="text-sm text-center">You have unsaved changes</p>
+                                <Button onClick={handleSaveSettings} disabled={saving} className="w-full bg-primary text-black font-bold">
+                                    {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+                                    Save All Settings
+                                </Button>
+                            </div>
+                        )}
                     </div>
 
                     {/* Right Column: Account Info & Logout */}
@@ -359,7 +363,7 @@ export default function Settings() {
                                     <p className="text-sm font-medium">{user?.email}</p>
                                 </div>
                                 <div className="pt-4 space-y-3">
-                                    <Button variant="outline" className="w-full justify-start" onClick={handleLogout}>
+                                    <Button variant="outline" className="w-full justify-start border-white/10 hover:bg-white/5" onClick={handleLogout}>
                                         <LogOut className="w-4 h-4 mr-2" />
                                         Sign Out
                                     </Button>
