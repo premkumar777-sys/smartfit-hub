@@ -42,7 +42,6 @@ interface UserPreferences {
     units: "metric" | "imperial";
     privacy: "public" | "private";
     theme: "dark" | "light";
-    language: string;
 }
 
 const DEFAULT_PREFERENCES: UserPreferences = {
@@ -52,8 +51,7 @@ const DEFAULT_PREFERENCES: UserPreferences = {
     },
     units: "metric",
     privacy: "public",
-    theme: "dark",
-    language: "english"
+    theme: "dark"
 };
 
 export default function Settings() {
@@ -248,58 +246,42 @@ export default function Settings() {
                                         </button>
                                     </div>
                                 </div>
-
-                                <div className="flex items-center justify-between">
-                                    <div className="space-y-0.5">
-                                        <Label className="text-base font-semibold">Display Language</Label>
-                                        <p className="text-sm text-muted-foreground">Select your interface language</p>
-                                    </div>
-                                    <Select
-                                        value={preferences.language}
-                                        onValueChange={(val: any) => handlePreferenceChange(p => ({ ...p, language: val }))}
-                                    >
-                                        <SelectTrigger className="w-32">
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="english">English</SelectItem>
-                                            <SelectItem value="spanish">Spanish</SelectItem>
-                                            <SelectItem value="french">French</SelectItem>
-                                            <SelectItem value="german">German</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
                             </CardContent>
                         </Card>
 
                         {/* Notifications */}
-                        <Card className="glass border-primary/10">
+                        <Card className="glass border-primary/10 opacity-80">
                             <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <Bell className="w-5 h-5 text-primary" />
-                                    Notifications
-                                </CardTitle>
-                                <CardDescription>Manage how you receive updates and alerts</CardDescription>
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <Bell className="w-5 h-5 text-primary" />
+                                        <CardTitle>Notifications</CardTitle>
+                                    </div>
+                                    <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest bg-primary/20 text-primary border border-primary/20">
+                                        Coming Soon
+                                    </span>
+                                </div>
+                                <CardDescription>Manage how you receive updates and alerts (Currently in development)</CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-6">
-                                <div className="flex items-center justify-between">
+                                <div className="flex items-center justify-between opacity-50 cursor-not-allowed">
                                     <div className="space-y-0.5">
                                         <Label className="text-base font-semibold">Email Notifications</Label>
                                         <p className="text-sm text-muted-foreground">Receive workout summaries and progress reports via email</p>
                                     </div>
                                     <Switch
-                                        checked={preferences.notifications.email}
-                                        onCheckedChange={(val) => handlePreferenceChange(p => ({ ...p, notifications: { ...p.notifications, email: val } }))}
+                                        checked={false}
+                                        disabled
                                     />
                                 </div>
-                                <div className="flex items-center justify-between">
+                                <div className="flex items-center justify-between opacity-50 cursor-not-allowed">
                                     <div className="space-y-0.5">
                                         <Label className="text-base font-semibold">Push Notifications</Label>
                                         <p className="text-sm text-muted-foreground">Get real-time alerts for challenges and streak reminders</p>
                                     </div>
                                     <Switch
-                                        checked={preferences.notifications.push}
-                                        onCheckedChange={(val) => handlePreferenceChange(p => ({ ...p, notifications: { ...p.notifications, push: val } }))}
+                                        checked={false}
+                                        disabled
                                     />
                                 </div>
                             </CardContent>
