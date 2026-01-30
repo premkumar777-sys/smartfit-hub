@@ -27,6 +27,7 @@ export type GamificationData = {
     unlockedAchievements: AchievementId[];
     chatSessions: number;
     progressLogs: number;
+    lastProgressLogDate: string | null;
 };
 
 const STORAGE_KEY = "smartfit-gamification";
@@ -40,6 +41,7 @@ const defaultData: GamificationData = {
     unlockedAchievements: [],
     chatSessions: 0,
     progressLogs: 0,
+    lastProgressLogDate: null,
 };
 
 // XP rewards for different actions
@@ -314,13 +316,21 @@ export function useGamification() {
     const recordProgressLog = useCallback(() => {
         updateStreak();
         logActivity('progress');
+
+        const today = new Date().toDateString();
+
         setData(prev => {
+            const isAlreadyLoggedToday = prev.lastProgressLogDate === today;
             const newLogs = prev.progressLogs + 1;
+
+            // Only award XP if not already logged today
+            const xpToAdd = isAlreadyLoggedToday ? 0 : XP_REWARDS.PROGRESS_LOG;
 
             const updatedData = {
                 ...prev,
                 progressLogs: newLogs,
-                xp: prev.xp + XP_REWARDS.PROGRESS_LOG,
+                xp: prev.xp + xpToAdd,
+                lastProgressLogDate: today,
             };
 
             // Check for progress achievement
@@ -335,7 +345,11 @@ export function useGamification() {
                 updatedData.unlockedAchievements = [...prev.unlockedAchievements, ...newAchievements];
             }
 
-            console.log(`[Gamification] Progress log recorded. Total: ${newLogs}`);
+            if (xpToAdd > 0) {
+                console.log(`[Gamification] Progress log recorded. XP awarded: ${xpToAdd}. Total XP: ${updatedData.xp}`);
+            } else {
+                console.log(`[Gamification] Progress log recorded. Daily XP limit reached.`);
+            }
             return updatedData;
         });
     }, [updateStreak, checkAchievements, logActivity]);

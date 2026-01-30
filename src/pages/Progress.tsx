@@ -681,13 +681,35 @@ function StatCard({ icon: Icon, label, value, accent }: { icon: React.ElementTyp
 // Calculate streak helper
 function calcStreak(sorted: ProgressLog[]) {
   if (!sorted.length) return 0;
-  let streak = 1;
-  for (let i = sorted.length - 1; i > 0; i--) {
-    const curr = new Date(sorted[i].date).getTime();
-    const prev = new Date(sorted[i - 1].date).getTime();
+
+  // Get unique dates in YYYY-MM-DD format, sorted newest first
+  const uniqueDates = Array.from(new Set(sorted.map(l => l.date)))
+    .sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+
+  if (!uniqueDates.length) return 0;
+
+  let streak = 0;
+  const today = new Date().toISOString().slice(0, 10);
+  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+
+  // If the last entry isn't today or yesterday, the streak is broken
+  const latestDate = uniqueDates[0];
+  if (latestDate !== today && latestDate !== yesterday) {
+    return 0;
+  }
+
+  streak = 1;
+  for (let i = 0; i < uniqueDates.length - 1; i++) {
+    const curr = new Date(uniqueDates[i]).getTime();
+    const prev = new Date(uniqueDates[i + 1]).getTime();
     const diff = (curr - prev) / (1000 * 60 * 60 * 24);
-    if (diff <= 1.5) streak += 1;
-    else break;
+
+    // Allow up to 1.5 days difference to account for small timing variations
+    if (diff <= 1.5) {
+      streak += 1;
+    } else {
+      break;
+    }
   }
   return streak;
 }
