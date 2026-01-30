@@ -119,7 +119,8 @@ export default function Nutrition() {
       try {
         const { error } = await supabase
           .from('profiles')
-          .update({
+          .upsert({
+            id: session.user.id,
             age: parseInt(age),
             weight: parseFloat(weight),
             height: parseFloat(height),
@@ -127,13 +128,18 @@ export default function Nutrition() {
             daily_calories_target: result.calories,
             fitness_goal: goalMap[goal].label,
             updated_at: new Date().toISOString()
-          })
-          .eq('id', session.user.id);
+          }, { onConflict: 'id' });
 
-        if (error) throw error;
-      } catch (err) {
+        if (error) {
+          console.error("Supabase error syncing nutrition:", error);
+          toast.error(`Sync failed: ${error.message}`);
+          throw error;
+        }
+      } catch (err: any) {
         console.error("Error syncing nutrition to DB:", err);
-        toast.error("Failed to sync targets to cloud");
+        if (!err.message?.includes("Sync failed")) {
+          toast.error("Failed to sync targets to cloud");
+        }
       }
     }
 

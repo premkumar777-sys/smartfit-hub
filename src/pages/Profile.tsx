@@ -196,8 +196,7 @@ export default function Profile() {
             if (authUser) {
                 await supabase
                     .from('profiles')
-                    .update({ streak: newStreak.currentStreak })
-                    .eq('id', authUser.id);
+                    .upsert({ id: authUser.id, streak: newStreak.currentStreak }, { onConflict: 'id' });
             }
         };
 
