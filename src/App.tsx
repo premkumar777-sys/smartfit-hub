@@ -41,74 +41,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 
 const queryClient = new QueryClient();
 
-// Loading component with Supabase-style circular spinner
-const LoadingScreen = () => (
-  <div className="min-h-screen flex items-center justify-center overflow-hidden" style={{ background: '#0a0a0a' }}>
-    <div className="text-center relative">
-      {/* Supabase-style circular spinner ring */}
-      <div className="relative w-28 h-28 mx-auto mb-4">
-        {/* Rotating border ring */}
-        <div
-          className="absolute inset-0 rounded-full"
-          style={{
-            border: '3px solid transparent',
-            borderTopColor: '#00FF9C',
-            borderRightColor: '#00FF9C',
-            animation: 'spin 1s linear infinite',
-            filter: 'drop-shadow(0 0 8px rgba(0, 255, 156, 0.5))'
-          }}
-        />
-        {/* Second ring with delay for effect */}
-        <div
-          className="absolute inset-1 rounded-full"
-          style={{
-            border: '2px solid transparent',
-            borderTopColor: 'rgba(0, 255, 156, 0.3)',
-            animation: 'spin 1.5s linear infinite reverse'
-          }}
-        />
-        {/* Runner icon in center */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <img
-            src="/favicon.png"
-            alt="SmartFit"
-            className="w-16 h-16"
-            style={{
-              filter: 'drop-shadow(0 0 15px rgba(0, 255, 156, 0.4))'
-            }}
-          />
-        </div>
-      </div>
-
-      <p className="text-muted-foreground">Loading SmartFit...</p>
-
-      {/* Custom keyframes */}
-      <style>{`
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-      `}</style>
-    </div>
-  </div>
-);
-
 const App = () => {
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    // Simulate loading time to show the loading screen
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (isLoading) {
-    return <LoadingScreen />;
-  }
-
   return (
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
