@@ -138,24 +138,39 @@ export default function Profile() {
 
             let currentStreakData: StreakData;
 
-            if (stored) {
-                currentStreakData = JSON.parse(stored);
-            } else if (authUser) {
-                // Try to load from Supabase if local is empty
+            let currentStreakData: StreakData | null = null;
+
+            // Priority 1: Load from Supabase (Source of Truth)
+            if (authUser) {
                 const { data: profileData } = await supabase
                     .from('profiles')
                     .select('streak, updated_at')
                     .eq('id', authUser.id)
                     .single();
 
+                if (profileData) {
+                    currentStreakData = {
+                        currentStreak: profileData.streak || 0,
+                        bestStreak: profileData.streak || 0, // Fallback to current if best not in schema yet
+                        lastActiveDate: profileData.updated_at?.split('T')[0] || "",
+                        totalActiveDays: profileData.streak || 0
+                    };
+                }
+            }
+
+            // Priority 2: Fallback to LocalStorage if not logged in or profile missing
+            if (!currentStreakData && stored) {
+                currentStreakData = JSON.parse(stored);
+            }
+
+            if (!currentStreakData) {
+                // Initialize new user if no data found
                 currentStreakData = {
-                    currentStreak: profileData?.streak || 0,
-                    bestStreak: profileData?.streak || 0,
-                    lastActiveDate: profileData?.updated_at?.split('T')[0] || "",
-                    totalActiveDays: profileData?.streak || 0
+                    currentStreak: 0,
+                    bestStreak: 0,
+                    lastActiveDate: "",
+                    totalActiveDays: 0
                 };
-            } else {
-                return;
             }
 
             const lastDate = currentStreakData.lastActiveDate;
