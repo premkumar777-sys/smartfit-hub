@@ -90,54 +90,73 @@ export default function Profile() {
 
     // Load and update streak
     useEffect(() => {
-        const loadStreak = () => {
+        const loadStreak = async () => {
+            const { data: { user: authUser } } = await supabase.auth.getUser();
             const stored = localStorage.getItem(STREAK_STORAGE_KEY);
             const today = new Date().toISOString().split('T')[0];
 
+            let currentStreakData: StreakData;
+
             if (stored) {
-                const data: StreakData = JSON.parse(stored);
-                const lastDate = data.lastActiveDate;
+                currentStreakData = JSON.parse(stored);
+            } else if (authUser) {
+                // Try to load from Supabase if local is empty
+                const { data: profileData } = await supabase
+                    .from('profiles')
+                    .select('streak, updated_at')
+                    .eq('id', authUser.id)
+                    .single();
 
-                if (lastDate === today) {
-                    // Already logged in today
-                    setStreak(data);
-                } else {
-                    const yesterday = new Date();
-                    yesterday.setDate(yesterday.getDate() - 1);
-                    const yesterdayStr = yesterday.toISOString().split('T')[0];
-
-                    if (lastDate === yesterdayStr) {
-                        // Consecutive day - increment streak
-                        const newStreak: StreakData = {
-                            currentStreak: data.currentStreak + 1,
-                            bestStreak: Math.max(data.bestStreak, data.currentStreak + 1),
-                            lastActiveDate: today,
-                            totalActiveDays: data.totalActiveDays + 1
-                        };
-                        localStorage.setItem(STREAK_STORAGE_KEY, JSON.stringify(newStreak));
-                        setStreak(newStreak);
-                    } else {
-                        // Missed days - reset streak
-                        const newStreak: StreakData = {
-                            currentStreak: 1,
-                            bestStreak: data.bestStreak,
-                            lastActiveDate: today,
-                            totalActiveDays: data.totalActiveDays + 1
-                        };
-                        localStorage.setItem(STREAK_STORAGE_KEY, JSON.stringify(newStreak));
-                        setStreak(newStreak);
-                    }
-                }
-            } else {
-                // First time - start streak
-                const newStreak: StreakData = {
-                    currentStreak: 1,
-                    bestStreak: 1,
-                    lastActiveDate: today,
-                    totalActiveDays: 1
+                currentStreakData = {
+                    currentStreak: profileData?.streak || 0,
+                    bestStreak: profileData?.streak || 0,
+                    lastActiveDate: profileData?.updated_at?.split('T')[0] || "",
+                    totalActiveDays: profileData?.streak || 0
                 };
-                localStorage.setItem(STREAK_STORAGE_KEY, JSON.stringify(newStreak));
-                setStreak(newStreak);
+            } else {
+                return;
+            }
+
+            const lastDate = currentStreakData.lastActiveDate;
+            let newStreak: StreakData;
+
+            if (lastDate === today) {
+                // Already logged in today
+                setStreak(currentStreakData);
+                return;
+            } else {
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+                if (lastDate === yesterdayStr) {
+                    // Consecutive day - increment streak
+                    newStreak = {
+                        currentStreak: currentStreakData.currentStreak + 1,
+                        bestStreak: Math.max(currentStreakData.bestStreak, currentStreakData.currentStreak + 1),
+                        lastActiveDate: today,
+                        totalActiveDays: currentStreakData.totalActiveDays + 1
+                    };
+                } else {
+                    // Missed days - reset streak
+                    newStreak = {
+                        currentStreak: 1,
+                        bestStreak: currentStreakData.bestStreak,
+                        lastActiveDate: today,
+                        totalActiveDays: currentStreakData.totalActiveDays + 1
+                    };
+                }
+            }
+
+            localStorage.setItem(STREAK_STORAGE_KEY, JSON.stringify(newStreak));
+            setStreak(newStreak);
+
+            // Sync to Supabase if logged in
+            if (authUser) {
+                await supabase
+                    .from('profiles')
+                    .update({ streak: newStreak.currentStreak })
+                    .eq('id', authUser.id);
             }
         };
 
@@ -214,7 +233,8 @@ export default function Profile() {
 
             const { error } = await supabase
                 .from('profiles')
-                .upsert(updateData, { onConflict: 'id' });
+                .update(updateData)
+                .eq('id', user.id);
 
             if (error) {
                 console.error("Supabase error updating profile:", error);

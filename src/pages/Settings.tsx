@@ -113,7 +113,8 @@ export default function Settings() {
 
             const { error } = await supabase
                 .from("profiles")
-                .upsert(updateData, { onConflict: 'id' });
+                .update(updateData)
+                .eq("id", user.id);
 
             if (error) {
                 console.error("Supabase error saving settings:", error);

@@ -48,14 +48,19 @@ export default function Nutrition() {
       if (session) {
         const { data } = await supabase
           .from('profiles')
-          .select('daily_calories_target, fitness_goal')
+          .select('daily_calories_target, fitness_goal, age, weight, height, activity_level')
           .eq('id', session.user.id)
           .single();
 
-        if (data?.fitness_goal) {
-          // Find key from label
-          const goalKey = Object.keys(goalMap).find(key => goalMap[key as Goal].label === data.fitness_goal) as Goal;
-          if (goalKey) setGoal(goalKey);
+        if (data) {
+          if (data.fitness_goal) {
+            const goalKey = Object.keys(goalMap).find(key => goalMap[key as Goal].label === data.fitness_goal) as Goal;
+            if (goalKey) setGoal(goalKey);
+          }
+          if (data.age) setAge(data.age.toString());
+          if (data.weight) setWeight(data.weight.toString());
+          if (data.height) setHeight(data.height.toString());
+          if (data.activity_level) setActivity(data.activity_level as Activity);
         }
       }
     };
@@ -109,9 +114,33 @@ export default function Nutrition() {
       await new Promise(r => setTimeout(r, 2000));
     }
 
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      try {
+        const { error } = await supabase
+          .from('profiles')
+          .update({
+            age: parseInt(age),
+            weight: parseFloat(weight),
+            height: parseFloat(height),
+            activity_level: activity,
+            daily_calories_target: result.calories,
+            fitness_goal: goalMap[goal].label,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', session.user.id);
+
+        if (error) throw error;
+      } catch (err) {
+        console.error("Error syncing nutrition to DB:", err);
+        toast.error("Failed to sync targets to cloud");
+      }
+    }
+
     localStorage.setItem(storageKey, JSON.stringify({ age, weight, height, activity, goal }));
     setShowOverlay(false);
     setIsUpdating(false);
+    toast.success("Nutritional protocol updated and synced!");
   };
 
   return (
