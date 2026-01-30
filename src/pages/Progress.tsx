@@ -184,9 +184,13 @@ export default function Progress() {
     const currentNotes = notes; // Capture before clearing
 
     const entry: ProgressLog = {
-      id: typeof crypto.randomUUID === "function"
+      id: typeof crypto !== 'undefined' && typeof crypto.randomUUID === "function"
         ? crypto.randomUUID()
-        : Math.random().toString(36).substring(2, 11),
+        : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+          const r = Math.random() * 16 | 0;
+          const v = c === 'x' ? r : (r & 0x3 | 0x8);
+          return v.toString(16);
+        }),
       user_id: userId || '',
       date: dateStr,
       weight: w,
@@ -223,9 +227,19 @@ export default function Progress() {
   const deleteLog = async (logId: string) => {
     try {
       if (userId) {
-        const { error } = await supabase.from('progress_logs').delete().eq('id', logId);
-        if (error) throw error;
+        // Attempt Supabase delete - use eq if it's a valid UUID, otherwise skip remote delete
+        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(logId);
+
+        if (isUUID) {
+          const { error } = await supabase.from('progress_logs').delete().eq('id', logId);
+          // If error is not "Not Found", log it but proceed with local deletion
+          if (error && error.code !== 'PGRST116') {
+            console.warn("Supabase delete failed:", error.message);
+          }
+        }
       }
+
+      // Always remove from local state and storage
       setLogs(prev => {
         const newLogs = prev.filter((l) => l.id !== logId);
         localStorage.setItem(STORAGE_KEYS.PROGRESS, JSON.stringify(newLogs));
