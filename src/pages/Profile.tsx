@@ -136,8 +136,6 @@ export default function Profile() {
             const stored = localStorage.getItem(STREAK_STORAGE_KEY);
             const today = new Date().toISOString().split('T')[0];
 
-            let currentStreakData: StreakData;
-
             let currentStreakData: StreakData | null = null;
 
             // Priority 1: Load from Supabase (Source of Truth)
