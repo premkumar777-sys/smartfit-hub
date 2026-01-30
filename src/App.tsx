@@ -38,6 +38,7 @@ import NotFound from "./pages/NotFound";
 import { FloatingChatbot } from "@/components/FloatingChatbot";
 import { Footer } from "@/components/Footer";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { ScrollToTop } from "@/components/ScrollToTop";
 
 const queryClient = new QueryClient();
 
@@ -49,6 +50,7 @@ const App = () => {
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <ScrollToTop />
             <ErrorBoundary>
               <FloatingChatbot />
               <Header />
