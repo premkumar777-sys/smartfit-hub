@@ -11,6 +11,7 @@ import NeonButton from "@/components/NeonButton";
 import { Menu, X } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
+import { cn } from "@/lib/utils";
 
 // Lazy load dropdown content
 const FeaturesDropdown = lazy(() => import("./dropdowns/FeaturesDropdown"));
@@ -320,9 +321,59 @@ export function Header() {
               <AuthMenu />
             </div>
 
+            {/* Mobile Navigation Toggle */}
+            <div className="flex lg:hidden items-center space-x-2">
+              <AuthMenu />
+              <MobileMenu>
+                <div className="flex flex-col space-y-6 pt-4">
+                  {menuStructure.map((item) => (
+                    <div key={item.label} className="space-y-4">
+                      {item.hasDropdown ? (
+                        <div className="space-y-4">
+                          <div className="text-sm font-semibold text-gray-400 uppercase tracking-wider px-2">
+                            {item.label}
+                          </div>
+                          <div className="grid grid-cols-1 gap-2 pl-2">
+                            {renderDropdown(item.dropdown!)}
+                          </div>
+                        </div>
+                      ) : (
+                        <Link
+                          to={item.href || "#"}
+                          className={cn(
+                            "text-xl font-medium transition-colors hover:text-primary px-2",
+                            isActive(item.href || "") ? "text-primary" : "text-gray-300"
+                          )}
+                        >
+                          {item.label}
+                          {item.badge && (
+                            <span className="ml-2 px-1.5 py-0.5 text-[10px] bg-primary/20 text-primary border border-primary/30 rounded-md font-bold uppercase">
+                              {item.badge}
+                            </span>
+                          )}
+                        </Link>
+                      )}
+                    </div>
+                  ))}
+
+                  <div className="pt-4 border-t border-gray-800 space-y-4">
+                    {isAuthenticated && !isLoading ? (
+                      <Button
+                        variant="outline"
+                        onClick={() => navigate("/dashboard")}
+                        className="w-full border-primary/50 text-primary hover:bg-primary/10"
+                      >
+                        My Dashboard
+                      </Button>
+                    ) : !isLoading && (
+                      <NeonButton href="/auth" className="w-full">Get Started</NeonButton>
+                    )}
+                  </div>
+                </div>
+              </MobileMenu>
+            </div>
           </div>
         </nav>
-
       </header>
     </>
   );
