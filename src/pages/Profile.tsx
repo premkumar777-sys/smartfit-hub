@@ -220,7 +220,6 @@ export default function Profile() {
         setSaving(true);
         try {
             const updateData = {
-                id: user.id,
                 username: editUsername,
                 full_name: editFullName,
                 bio: editBio,
@@ -233,12 +232,12 @@ export default function Profile() {
 
             const { error } = await supabase
                 .from('profiles')
-                .update(updateData)
-                .eq('id', user.id);
+                .upsert({ id: user.id, ...updateData }, { onConflict: 'id' });
 
             if (error) {
                 console.error("Supabase error updating profile:", error);
-                throw error;
+                toast.error(`Failed to update profile: ${error.message}`);
+                return;
             }
 
             setProfile(prev => prev ? {

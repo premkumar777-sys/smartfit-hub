@@ -113,12 +113,12 @@ export default function Settings() {
 
             const { error } = await supabase
                 .from("profiles")
-                .update(updateData)
-                .eq("id", user.id);
+                .upsert({ id: user.id, ...updateData }, { onConflict: 'id' });
 
             if (error) {
                 console.error("Supabase error saving settings:", error);
-                throw error;
+                toast.error(`Failed to save settings: ${error.message}`);
+                return;
             }
             toast.success("Settings updated");
         } catch (error) {
