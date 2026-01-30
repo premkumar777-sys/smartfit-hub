@@ -693,8 +693,8 @@ export default function Profile() {
 
             {/* EDIT PROFILE SHEET */}
             <Sheet open={isEditing} onOpenChange={setIsEditing}>
-                <SheetContent side="right" className="sm:max-w-md border-border glass-strong p-0">
-                    <div className="p-8 space-y-8 h-full flex flex-col">
+                <SheetContent side="right" className="sm:max-w-md border-border glass-strong p-0 flex flex-col">
+                    <div className="p-8 space-y-8 flex-1 overflow-y-auto custom-scrollbar">
                         <SheetHeader className="text-left">
                             <SheetTitle className="text-3xl font-black uppercase tracking-tighter italic">Edit Identity</SheetTitle>
                             <SheetDescription className="text-muted-foreground">
@@ -722,12 +722,12 @@ export default function Profile() {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label className="text-[10px] font-black uppercase tracking-widest text-primary">Deployment Hub</Label>
+                                <Label className="text-[10px] font-black uppercase tracking-widest text-primary">Location</Label>
                                 <Input
                                     value={editLocation}
                                     onChange={(e) => setEditLocation(e.target.value)}
                                     className="bg-muted/30 border-primary/10 h-12 rounded-xl"
-                                    placeholder="Silicon Valley, CA"
+                                    placeholder="City, Country"
                                 />
                             </div>
                             <div className="space-y-2">
