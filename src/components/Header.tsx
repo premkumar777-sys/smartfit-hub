@@ -325,7 +325,7 @@ export function Header() {
             <div className="flex lg:hidden items-center space-x-2">
               <AuthMenu />
               <MobileMenu>
-                <div className="flex flex-col space-y-6 pt-4">
+                <div className="flex flex-col space-y-8 pt-4">
                   {menuStructure.map((item) => (
                     <div key={item.label} className="space-y-4">
                       {item.hasDropdown ? (
@@ -333,7 +333,7 @@ export function Header() {
                           <div className="text-sm font-semibold text-gray-400 uppercase tracking-wider px-2">
                             {item.label}
                           </div>
-                          <div className="grid grid-cols-1 gap-2 pl-2">
+                          <div>
                             {renderDropdown(item.dropdown!)}
                           </div>
                         </div>
@@ -341,13 +341,13 @@ export function Header() {
                         <Link
                           to={item.href || "#"}
                           className={cn(
-                            "text-xl font-medium transition-colors hover:text-primary px-2",
-                            isActive(item.href || "") ? "text-primary" : "text-gray-300"
+                            "text-2xl font-bold transition-colors hover:text-primary px-2 block",
+                            isActive(item.href || "") ? "text-primary" : "text-gray-100"
                           )}
                         >
                           {item.label}
                           {item.badge && (
-                            <span className="ml-2 px-1.5 py-0.5 text-[10px] bg-primary/20 text-primary border border-primary/30 rounded-md font-bold uppercase">
+                            <span className="ml-2 px-1.5 py-0.5 text-[10px] bg-primary/20 text-primary border border-primary/30 rounded-md font-bold uppercase align-middle">
                               {item.badge}
                             </span>
                           )}

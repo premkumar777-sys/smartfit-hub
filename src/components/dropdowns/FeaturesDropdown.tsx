@@ -53,7 +53,7 @@ const quickLinks = [
 
 export default function FeaturesDropdown() {
   return (
-    <div className="p-6" role="menu">
+    <div className="p-4 sm:p-6" role="menu">
       <div className="mb-6">
         <h3 className="text-xl font-bold text-white mb-2">AI-Powered Features</h3>
         <p className="text-sm text-gray-400 leading-relaxed">
@@ -61,7 +61,7 @@ export default function FeaturesDropdown() {
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Main Features Column */}
         <div className="space-y-3">
           <h4 className="text-sm font-semibold text-gray-200 uppercase tracking-wide mb-3">
