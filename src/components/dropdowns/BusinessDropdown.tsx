@@ -26,17 +26,20 @@ const businessSolutions = [
   {
     icon: Settings,
     title: "Equipment Integration",
-    description: "Connect with smart gym equipment for real-time performance tracking"
+    description: "Connect with smart gym equipment for real-time performance tracking",
+    href: "/business/equipment"
   },
   {
     icon: Shield,
     title: "Security & Access",
-    description: "Advanced security features and contactless entry systems"
+    description: "Advanced security features and contactless entry systems",
+    href: "/business/security"
   },
   {
     icon: CreditCard,
     title: "Payment Solutions",
-    description: "Integrated billing, memberships, and payment processing"
+    description: "Integrated billing, memberships, and payment processing",
+    href: "/business/payments"
   }
 ];
 

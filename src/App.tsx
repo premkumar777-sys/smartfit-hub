@@ -34,6 +34,12 @@ import RefundPolicy from "./pages/RefundPolicy";
 import BMICalculator from "./pages/BMICalculator";
 import ShippingPolicy from "./pages/ShippingPolicy";
 import ContactUs from "./pages/ContactUs";
+
+import BusinessLanding from "./pages/business/BusinessLanding";
+import PaymentSolutions from "./pages/business/PaymentSolutions";
+import SecurityAccess from "./pages/business/SecurityAccess";
+import EquipmentIntegration from "./pages/business/EquipmentIntegration";
+
 import NotFound from "./pages/NotFound";
 import { FloatingChatbot } from "@/components/FloatingChatbot";
 import { Footer } from "@/components/Footer";
@@ -71,6 +77,11 @@ const App = () => {
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/pricing" element={<Pricing />} />
+
+                <Route path="/business" element={<BusinessLanding />} />
+                <Route path="/business/payments" element={<PaymentSolutions />} />
+                <Route path="/business/security" element={<SecurityAccess />} />
+                <Route path="/business/equipment" element={<EquipmentIntegration />} />
 
                 <Route path="/gym-analytics" element={<GymAnalytics />} />
                 <Route path="/gym-analytics/ai" element={<GymAnalytics />} />
