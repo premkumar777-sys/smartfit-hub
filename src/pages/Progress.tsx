@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   Loader2, Trash2, TrendingUp, TrendingDown, Target, Scale,
-  Ruler, Trophy, Flame, Calendar, ArrowLeft, Zap, ChevronRight
+  Ruler, Trophy, Flame, Calendar, ArrowLeft, Zap, ChevronRight, AlertTriangle, RefreshCcw
 } from "lucide-react";
 import { useGamification, XP_REWARDS } from "@/hooks/useGamification";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from "recharts";
@@ -289,6 +289,42 @@ export default function Progress() {
     localStorage.setItem(STORAGE_KEYS.GOALS, JSON.stringify(goalData));
     setNewGoal({ targetWeight: "", targetDate: "" });
     toast.success("Goal set!");
+  };
+
+  const resetAllData = async () => {
+    if (!window.confirm("ARE YOU SURE? This will permanently delete all your weight logs, measurements, goals, XP, and streaks. This cannot be undone.")) {
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+
+      // 1. Reset Gamification (XP, Streak, Levels)
+      await gamification.resetData();
+
+      // 2. Clear Supabase progress logs
+      if (userId) {
+        const { error } = await supabase.from('progress_logs').delete().eq('user_id', userId);
+        if (error) console.error("Error clearing logs from Supabase:", error);
+      }
+
+      // 3. Clear all LocalStorage items
+      localStorage.removeItem(STORAGE_KEYS.PROGRESS);
+      localStorage.removeItem(STORAGE_KEYS.MEASUREMENTS);
+      localStorage.removeItem(STORAGE_KEYS.GOALS);
+
+      // 4. Update local state
+      setLogs([]);
+      setMeasurements([]);
+      setGoal(null);
+
+      toast.success("All data has been reset to zero.");
+    } catch (err) {
+      console.error("Error during reset:", err);
+      toast.error("Failed to reset data");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (isLoading) {
@@ -643,7 +679,18 @@ export default function Progress() {
                 <CardTitle>Weight History</CardTitle>
                 <CardDescription>All your weight entries (newest first)</CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-6">
+                <div className="flex justify-end pb-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-red-500 border-red-500/30 hover:bg-red-500/10 gap-2"
+                    onClick={resetAllData}
+                  >
+                    <RefreshCcw className="w-4 h-4" />
+                    Reset All My Stats
+                  </Button>
+                </div>
                 {logs.length === 0 ? (
                   <p className="text-sm text-muted-foreground">No entries yet.</p>
                 ) : (

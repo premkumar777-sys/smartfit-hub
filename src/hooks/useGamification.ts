@@ -374,6 +374,33 @@ export function useGamification() {
         return data || [];
     }, []);
 
+    // Reset all data
+    const resetData = useCallback(async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+
+        // Reset state
+        setData(defaultData);
+
+        // Clear localStorage
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultData));
+
+        if (session) {
+            // Update Supabase profiles table
+            await supabase
+                .from("profiles")
+                .update({
+                    xp: 0,
+                    level: 1,
+                    streak: 0,
+                    total_workouts: 0,
+                    chat_sessions: 0,
+                    progress_logs: 0,
+                    lastActivityDate: null
+                })
+                .eq("id", session.user.id);
+        }
+    }, []);
+
     // Get current level
     const level = getLevelFromXP(data.xp);
     const xpProgress = getXPProgress(data.xp);
@@ -399,6 +426,7 @@ export function useGamification() {
         recordChatSession,
         recordProgressLog,
         updateStreak,
+        resetData,
         getWeeklyActivity,
         logActivity
     };
