@@ -388,13 +388,15 @@ export default function Profile() {
                 >
                     {/* Navigation & Actions Header */}
                     <motion.div variants={itemVariants} className="flex items-center justify-between mb-2">
-                        <Link
-                            to="/dashboard"
-                            className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-primary transition-colors group"
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="bg-transparent hover:bg-transparent p-0 inline-flex items-center text-sm font-medium text-muted-foreground hover:text-primary transition-colors group"
+                            onClick={() => navigate(-1)}
                         >
                             <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
-                            Back to Dashboard
-                        </Link>
+                            Back
+                        </Button>
                         <div className="flex items-center gap-2">
                             <Button
                                 variant="ghost"

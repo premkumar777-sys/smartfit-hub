@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Container } from "@/components/Container";
@@ -49,6 +49,7 @@ const STORAGE_KEYS = {
 };
 
 export default function Progress() {
+  const navigate = useNavigate();
   const [logs, setLogs] = useState<ProgressLog[]>([]);
   const [weight, setWeight] = useState("");
   const [notes, setNotes] = useState("");
@@ -349,10 +350,15 @@ export default function Progress() {
     <div className="min-h-screen py-16 relative overflow-hidden">
       <div className="absolute inset-0 gradient-hero opacity-15" />
       <Container className="relative z-10">
-        <Link to="/" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="bg-transparent hover:bg-transparent p-0 inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6"
+          onClick={() => navigate(-1)}
+        >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back
-        </Link>
+        </Button>
 
         {/* Header */}
         <div className="text-center space-y-3 mb-8">
