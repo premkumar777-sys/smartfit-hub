@@ -206,10 +206,15 @@ export default function Progress() {
     });
 
     // Award XP and clear form instantly
-    gamification.recordProgressLog();
+    const xpGained = gamification.recordProgressLog();
     setWeight("");
     setNotes("");
-    toast.success("Progress logged! +25 XP 💪");
+
+    if (xpGained > 0) {
+      toast.success(`Progress logged! +${xpGained} XP 💪`);
+    } else {
+      toast.success("Progress logged!");
+    }
 
     // Sync to Supabase in background (fire and forget)
     if (userId) {
@@ -267,8 +272,13 @@ export default function Progress() {
     setMeasurements(updated);
     localStorage.setItem(STORAGE_KEYS.MEASUREMENTS, JSON.stringify(updated));
     setNewMeasurement({});
-    gamification.recordProgressLog();
-    toast.success("Measurements saved! +25 XP");
+    const xpGained = gamification.recordProgressLog();
+
+    if (xpGained > 0) {
+      toast.success(`Measurements saved! +${xpGained} XP`);
+    } else {
+      toast.success("Measurements saved!");
+    }
   };
 
   const saveGoal = () => {

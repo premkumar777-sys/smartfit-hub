@@ -352,7 +352,40 @@ export function useGamification() {
             }
             return updatedData;
         });
+
+        // Return the XP that WILL be awarded (approximate since state is async, but logic holds)
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+            const parsed = JSON.parse(stored);
+            if (parsed.lastProgressLogDate === today) return 0;
+        }
+        return XP_REWARDS.PROGRESS_LOG;
     }, [updateStreak, checkAchievements, logActivity]);
+
+    // Record daily login
+    const recordDailyLogin = useCallback(() => {
+        const today = new Date().toDateString();
+
+        setData(prev => {
+            if (prev.lastActivityDate === today) return prev;
+
+            const updatedData = {
+                ...prev,
+                xp: prev.xp + XP_REWARDS.DAILY_LOGIN,
+                lastActivityDate: today,
+            };
+
+            console.log(`[Gamification] Daily login recorded. XP awarded: ${XP_REWARDS.DAILY_LOGIN}`);
+            return updatedData;
+        });
+    }, []);
+
+    // Handle daily login XP award
+    useEffect(() => {
+        if (isLoaded) {
+            recordDailyLogin();
+        }
+    }, [isLoaded, recordDailyLogin]);
 
     /**
      * Helper to fetch activity logs for the last 7 days
@@ -427,6 +460,7 @@ export function useGamification() {
         recordProgressLog,
         updateStreak,
         resetData,
+        recordDailyLogin,
         getWeeklyActivity,
         logActivity
     };
