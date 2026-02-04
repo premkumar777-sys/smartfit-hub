@@ -1,6 +1,17 @@
 import { useState, useRef, useEffect } from "react";
-import { MessageCircle, X, Send, Bot, Sparkles } from "lucide-react";
+import { MessageCircle, X, Send, Bot, Sparkles, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -122,6 +133,10 @@ export const FloatingChatbot = () => {
     sendMessage(input);
   };
 
+  const handleClearHistory = () => {
+    setMessages([]);
+  };
+
   const handleSuggestion = (question: string) => {
     sendMessage(question);
   };
@@ -175,14 +190,46 @@ export const FloatingChatbot = () => {
                   </p>
                 </div>
               </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setIsOpen(false)}
-                className="hover:bg-destructive/10 hover:text-destructive"
-              >
-                <X className="w-5 h-5" />
-              </Button>
+              <div className="flex items-center gap-1">
+                {messages.length > 0 && (
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="hover:bg-destructive/10 hover:text-destructive h-8 w-8"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent className="w-[90vw] max-w-[340px] rounded-2xl">
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Clear chat history?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This will permanently delete all messages in this conversation.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter className="flex-row gap-2 sm:justify-end">
+                        <AlertDialogCancel className="mt-0 rounded-full">Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={handleClearHistory}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-full"
+                        >
+                          Clear
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                )}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsOpen(false)}
+                  className="hover:bg-destructive/10 hover:text-destructive"
+                >
+                  <X className="w-5 h-5" />
+                </Button>
+              </div>
             </div>
 
             {/* Messages */}
