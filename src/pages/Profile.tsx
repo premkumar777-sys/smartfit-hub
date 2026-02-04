@@ -66,14 +66,25 @@ const itemVariants = {
         y: 0,
         opacity: 1,
         transition: {
-            type: "spring",
+            type: "spring" as const,
             stiffness: 100,
             damping: 15
         }
     }
 };
 
-type Profile = Tables<"profiles">;
+type ProfileBase = Tables<"profiles">;
+type Profile = ProfileBase & {
+    full_name?: string;
+    bio?: string;
+    location?: string;
+    preferences?: Record<string, unknown>;
+    age?: number;
+    weight?: number;
+    height?: number;
+    streak?: number;
+    xp?: number;
+};
 type Workout = Tables<"workouts">;
 
 interface StreakData {
