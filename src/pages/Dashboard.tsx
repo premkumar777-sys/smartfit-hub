@@ -10,7 +10,14 @@ import type { Tables } from "@/integrations/supabase/types";
 import { useAuth } from "@/hooks/use-auth";
 import { useGamification } from "@/hooks/useGamification";
 
-type Profile = Tables<"profiles">;
+type ProfileBase = Tables<"profiles">;
+type Profile = ProfileBase & {
+  preferences?: Record<string, unknown>;
+  daily_calories_target?: number;
+  protein_target?: number;
+  carbs_target?: number;
+  fats_target?: number;
+};
 
 interface Workout {
   id: string;
@@ -215,11 +222,12 @@ const Dashboard = () => {
   }
 
   // Fallback targets if profile hasn't set them
+  const preferences = profile?.preferences as Record<string, unknown> | null;
   const targets = {
-    calories: profile?.daily_calories_target || 2000,
-    protein: profile?.protein_target || 150,
-    carbs: profile?.carbs_target || 200,
-    fats: profile?.fats_target || 65
+    calories: (preferences?.daily_calories_target as number) || 2000,
+    protein: (preferences?.protein_target as number) || 150,
+    carbs: (preferences?.carbs_target as number) || 200,
+    fats: (preferences?.fats_target as number) || 65
   };
 
   return (

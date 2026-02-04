@@ -136,15 +136,18 @@ export default function VerifyPayment() {
             }
 
             // Save the payment ID to prevent reuse
-            await supabase
+            const { error: paymentError } = await supabase
                 .from("used_payments")
                 .insert({
                     payment_id: trimmedPaymentId,
                     user_id: user.id,
                     amount: parseFloat(selectedPlan.price.replace("₹", "")),
                     plan_name: selectedPlan.name,
-                })
-                .catch(err => console.log("Could not save payment ID:", err));
+                });
+            
+            if (paymentError) {
+                console.log("Could not save payment ID:", paymentError);
+            }
 
             setIsSuccess(true);
             toast.success("🎉 Pro subscription activated!");
