@@ -169,35 +169,6 @@ export function useGamification() {
         });
     }, []);
 
-    // Check and update streak
-    const updateStreak = useCallback(() => {
-        const today = new Date().toDateString();
-        const yesterday = new Date(Date.now() - 86400000).toDateString();
-
-        setData(prev => {
-            if (prev.lastActivityDate === today) {
-                // Already logged activity today
-                return prev;
-            }
-
-            let newStreak = prev.currentStreak;
-
-            if (prev.lastActivityDate === yesterday) {
-                // Consecutive day - increase streak
-                newStreak = prev.currentStreak + 1;
-            } else if (prev.lastActivityDate !== today) {
-                // Streak broken - reset to 1
-                newStreak = 1;
-            }
-
-            return {
-                ...prev,
-                currentStreak: newStreak,
-                longestStreak: Math.max(newStreak, prev.longestStreak),
-                lastActivityDate: today,
-            };
-        });
-    }, []);
 
     // Check for new achievements to unlock
     const checkAchievements = useCallback((updatedData: GamificationData): AchievementId[] => {
@@ -252,16 +223,36 @@ export function useGamification() {
 
     // Record a workout completion
     const recordWorkout = useCallback((durationMinutes: number = 45) => {
-        updateStreak();
         logActivity('workout', durationMinutes);
 
+        const today = new Date().toDateString();
+        const yesterday = new Date(Date.now() - 86400000).toDateString();
+
         setData(prev => {
+            let streakData = {};
+            let currentStreak = prev.currentStreak;
+
+            // Update streak if it's a new day
+            if (prev.lastActivityDate !== today) {
+                if (prev.lastActivityDate === yesterday) {
+                    currentStreak = prev.currentStreak + 1;
+                } else {
+                    currentStreak = 1;
+                }
+                streakData = {
+                    currentStreak,
+                    longestStreak: Math.max(currentStreak, prev.longestStreak),
+                    lastActivityDate: today,
+                };
+            }
+
             const newWorkouts = prev.totalWorkouts + 1;
-            const streakBonus = prev.currentStreak * XP_REWARDS.STREAK_BONUS;
+            const streakBonus = currentStreak * XP_REWARDS.STREAK_BONUS;
             const totalXP = XP_REWARDS.WORKOUT_GENERATED + streakBonus;
 
             const updatedData = {
                 ...prev,
+                ...streakData,
                 totalWorkouts: newWorkouts,
                 xp: prev.xp + totalXP,
             };
@@ -278,19 +269,39 @@ export function useGamification() {
                 updatedData.unlockedAchievements = [...prev.unlockedAchievements, ...newAchievements];
             }
 
-            console.log(`[Gamification] Workout recorded. Total: ${newWorkouts}, XP: ${updatedData.xp}`);
+            console.log(`[Gamification] Workout recorded. Total: ${newWorkouts}, Streak: ${currentStreak}, XP: ${updatedData.xp}`);
             return updatedData;
         });
-    }, [updateStreak, checkAchievements, logActivity]);
+    }, [checkAchievements, logActivity]);
 
     // Record a chat session
     const recordChatSession = useCallback(() => {
         logActivity('chat');
+
+        const today = new Date().toDateString();
+        const yesterday = new Date(Date.now() - 86400000).toDateString();
+
         setData(prev => {
+            let streakData = {};
+            if (prev.lastActivityDate !== today) {
+                let newStreak = prev.currentStreak;
+                if (prev.lastActivityDate === yesterday) {
+                    newStreak = prev.currentStreak + 1;
+                } else {
+                    newStreak = 1;
+                }
+                streakData = {
+                    currentStreak: newStreak,
+                    longestStreak: Math.max(newStreak, prev.longestStreak),
+                    lastActivityDate: today,
+                };
+            }
+
             const newSessions = prev.chatSessions + 1;
 
             const updatedData = {
                 ...prev,
+                ...streakData,
                 chatSessions: newSessions,
                 xp: prev.xp + XP_REWARDS.CHAT_SESSION,
             };
@@ -307,19 +318,34 @@ export function useGamification() {
                 updatedData.unlockedAchievements = [...prev.unlockedAchievements, ...newAchievements];
             }
 
-            console.log(`[Gamification] Chat session recorded. Total: ${newSessions}`);
+            console.log(`[Gamification] Chat session recorded. Total: ${newSessions}, Streak: ${updatedData.currentStreak}`);
             return updatedData;
         });
     }, [checkAchievements, logActivity]);
 
     // Record a progress log
     const recordProgressLog = useCallback(() => {
-        updateStreak();
         logActivity('progress');
 
         const today = new Date().toDateString();
+        const yesterday = new Date(Date.now() - 86400000).toDateString();
 
         setData(prev => {
+            let streakData = {};
+            if (prev.lastActivityDate !== today) {
+                let newStreak = prev.currentStreak;
+                if (prev.lastActivityDate === yesterday) {
+                    newStreak = prev.currentStreak + 1;
+                } else {
+                    newStreak = 1;
+                }
+                streakData = {
+                    currentStreak: newStreak,
+                    longestStreak: Math.max(newStreak, prev.longestStreak),
+                    lastActivityDate: today,
+                };
+            }
+
             const isAlreadyLoggedToday = prev.lastProgressLogDate === today;
             const newLogs = prev.progressLogs + 1;
 
@@ -328,6 +354,7 @@ export function useGamification() {
 
             const updatedData = {
                 ...prev,
+                ...streakData,
                 progressLogs: newLogs,
                 xp: prev.xp + xpToAdd,
                 lastProgressLogDate: today,
@@ -353,32 +380,51 @@ export function useGamification() {
             return updatedData;
         });
 
-        // Return the XP that WILL be awarded (approximate since state is async, but logic holds)
-        const stored = localStorage.getItem(STORAGE_KEY);
-        if (stored) {
-            const parsed = JSON.parse(stored);
-            if (parsed.lastProgressLogDate === today) return 0;
-        }
         return XP_REWARDS.PROGRESS_LOG;
-    }, [updateStreak, checkAchievements, logActivity]);
+    }, [checkAchievements, logActivity]);
 
     // Record daily login
     const recordDailyLogin = useCallback(() => {
         const today = new Date().toDateString();
+        const yesterday = new Date(Date.now() - 86400000).toDateString();
 
         setData(prev => {
             if (prev.lastActivityDate === today) return prev;
 
+            let newStreak = prev.currentStreak;
+
+            if (prev.lastActivityDate === yesterday) {
+                // Consecutive day - increase streak
+                newStreak = prev.currentStreak + 1;
+            } else {
+                // Streak broken - reset to 1
+                newStreak = 1;
+            }
+
             const updatedData = {
                 ...prev,
+                currentStreak: newStreak,
+                longestStreak: Math.max(newStreak, prev.longestStreak),
                 xp: prev.xp + XP_REWARDS.DAILY_LOGIN,
                 lastActivityDate: today,
             };
 
-            console.log(`[Gamification] Daily login recorded. XP awarded: ${XP_REWARDS.DAILY_LOGIN}`);
+            // Check for achievements (like "On Fire", "Week Warrior")
+            const newAchievements = checkAchievements(updatedData);
+            if (newAchievements.length > 0) {
+                const achievementXP = newAchievements.reduce((sum, id) => {
+                    const achievement = ACHIEVEMENTS.find(a => a.id === id);
+                    return sum + (achievement?.xpReward || 0);
+                }, 0);
+
+                updatedData.xp += achievementXP;
+                updatedData.unlockedAchievements = [...prev.unlockedAchievements, ...newAchievements];
+            }
+
+            console.log(`[Gamification] Daily login recorded. Streak: ${newStreak}, XP awarded: ${XP_REWARDS.DAILY_LOGIN}`);
             return updatedData;
         });
-    }, []);
+    }, [checkAchievements]);
 
     // Handle daily login XP award
     useEffect(() => {
@@ -458,7 +504,6 @@ export function useGamification() {
         recordWorkout,
         recordChatSession,
         recordProgressLog,
-        updateStreak,
         resetData,
         recordDailyLogin,
         getWeeklyActivity,
