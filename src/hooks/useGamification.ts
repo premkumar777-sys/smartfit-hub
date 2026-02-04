@@ -28,6 +28,7 @@ export type GamificationData = {
     chatSessions: number;
     progressLogs: number;
     lastProgressLogDate: string | null;
+    lastWorkoutDate: string | null;
 };
 
 const STORAGE_KEY = "smartfit-gamification";
@@ -42,6 +43,7 @@ const defaultData: GamificationData = {
     chatSessions: 0,
     progressLogs: 0,
     lastProgressLogDate: null,
+    lastWorkoutDate: null,
 };
 
 // XP rewards for different actions
@@ -246,15 +248,17 @@ export function useGamification() {
                 };
             }
 
+            const isAlreadyWorkoutToday = prev.lastWorkoutDate === today;
             const newWorkouts = prev.totalWorkouts + 1;
             const streakBonus = currentStreak * XP_REWARDS.STREAK_BONUS;
-            const totalXP = XP_REWARDS.WORKOUT_GENERATED + streakBonus;
+            const xpToAdd = isAlreadyWorkoutToday ? 0 : (XP_REWARDS.WORKOUT_GENERATED + streakBonus);
 
             const updatedData = {
                 ...prev,
                 ...streakData,
                 totalWorkouts: newWorkouts,
-                xp: prev.xp + totalXP,
+                xp: prev.xp + xpToAdd,
+                lastWorkoutDate: today,
             };
 
             // Check for new achievements
