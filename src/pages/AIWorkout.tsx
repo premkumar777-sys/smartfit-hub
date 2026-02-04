@@ -40,6 +40,18 @@ const AIWorkout = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Explicit validation for goal and gender since they are custom Selects
+    if (!formData.goal) {
+      toast.error("Please select a fitness goal");
+      return;
+    }
+
+    if (!formData.gender) {
+      toast.error("Please select your gender");
+      return;
+    }
+
     setIsLoading(true);
     setWorkoutPlan("");
 
@@ -53,7 +65,7 @@ const AIWorkout = () => {
           weight: parseFloat(formData.weight),
           height: parseFloat(formData.height),
           bmi: bmi ? parseFloat(bmi) : null,
-          goal: formData.goal || "general-fitness",
+          goal: formData.goal,
         },
       });
 
