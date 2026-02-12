@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Container } from "@/components/Container";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, Send, Bot, User, Dumbbell, Heart, Flame, Apple, Target, Loader2, Zap } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { streamChat } from "@/lib/streamChat";
 import { toast } from "sonner";
 import { useGamification, XP_REWARDS } from "@/hooks/useGamification";
 import { PremiumLock } from "@/components/PremiumLock";
@@ -64,51 +64,47 @@ export default function AITrainer() {
         setInput("");
         setIsLoading(true);
 
-        try {
-            // Build conversation history for context
-            const conversationHistory = messages
-                .slice(-6)
-                .map((m) => ({ role: m.role, content: m.content }));
+        const conversationHistory = messages
+            .slice(-6)
+            .map((m) => ({ role: m.role, content: m.content }));
 
-            // Call dedicated chat Edge Function
-            const { data, error } = await supabase.functions.invoke("ai-chat", {
-                body: {
-                    message: content,
-                    conversationHistory: conversationHistory,
-                },
-            });
+        let assistantSoFar = "";
+        const assistantId = (Date.now() + 1).toString();
 
-            console.log("Supabase function response:", { data, error });
-
-            let aiResponse = "I'm having a moment! Please try again. 💪";
-
-            if (data?.reply) {
-                aiResponse = data.reply;
-                // Award XP for chat session
-                gamification.recordChatSession();
-            } else if (data?.error) {
-                aiResponse = data.error;
-            } else if (error) {
-                console.error("AI Error:", error);
-                aiResponse = error.message || "Something went wrong. Please check your connection or try again.";
-                toast.error("Failed to get response.");
-            }
-
-            const assistantMessage: Message = {
-                id: (Date.now() + 1).toString(),
+        const upsertAssistant = (chunk: string) => {
+            assistantSoFar += chunk;
+            const msg: Message = {
+                id: assistantId,
                 role: "assistant",
-                content: aiResponse,
+                content: assistantSoFar,
                 timestamp: new Date(),
             };
+            setMessages((prev) => {
+                const last = prev[prev.length - 1];
+                if (last?.id === assistantId) {
+                    return prev.map((m, i) => (i === prev.length - 1 ? msg : m));
+                }
+                return [...prev, msg];
+            });
+        };
 
-            setMessages((prev) => [...prev, assistantMessage]);
-        } catch (err) {
-            console.error("Chat error:", err);
-            toast.error("Something went wrong. Please try again.");
-        } finally {
-            setIsLoading(false);
-            inputRef.current?.focus();
-        }
+        await streamChat({
+            functionName: "ai-chat",
+            message: content,
+            conversationHistory,
+            onDelta: (chunk) => upsertAssistant(chunk),
+            onDone: () => {
+                setIsLoading(false);
+                gamification.recordChatSession();
+                inputRef.current?.focus();
+            },
+            onError: (err) => {
+                console.error("Chat error:", err);
+                setIsLoading(false);
+                toast.error("Something went wrong. Please try again.");
+                inputRef.current?.focus();
+            },
+        });
     };
 
     const handleSubmit = (e: React.FormEvent) => {
