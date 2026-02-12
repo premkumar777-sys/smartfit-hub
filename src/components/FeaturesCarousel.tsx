@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Brain, Eye, Sparkles, BarChart3, Utensils, ChevronLeft, ChevronRight } from "lucide-react";
+import { Brain, Eye, Sparkles, BarChart3, Utensils, ChevronLeft, ChevronRight, Bot, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
 import {
     Carousel,
@@ -13,17 +13,25 @@ import { cn } from "@/lib/utils";
 
 const features = [
     {
-        icon: Brain,
+        icon: Bot,
         title: "AI Personal Trainer",
-        description: "Get intelligent workout recommendations powered by advanced AI algorithms that adapt to your progress and goals.",
+        description: "Your 24/7 fitness expert for instant advice on workouts, nutrition, and proper form techniques.",
         gradient: "from-purple-500 to-indigo-600",
         bgGlow: "rgba(139, 92, 246, 0.15)",
         link: "/ai-trainer",
     },
     {
+        icon: Zap,
+        title: "AI Workout Generator",
+        description: "Get professional, data-driven workout programs tailored precisely to your goals and performance.",
+        gradient: "from-orange-500 to-red-600",
+        bgGlow: "rgba(249, 115, 22, 0.15)",
+        link: "/ai-workout",
+    },
+    {
         icon: Eye,
         title: "Real-Time Form Detection",
-        description: "Computer vision technology analyzes your form in real-time and provides instant feedback to prevent injuries.",
+        description: "Advanced computer vision analyzes your movement in real-time to ensure perfect safety and form.",
         gradient: "from-cyan-500 to-blue-600",
         bgGlow: "rgba(6, 182, 212, 0.15)",
         link: "/workout-session",

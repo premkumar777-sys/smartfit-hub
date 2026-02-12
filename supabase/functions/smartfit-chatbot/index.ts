@@ -56,12 +56,12 @@ serve(async (req) => {
     console.log("Processing chatbot message:", message?.substring(0, 50));
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    
+
     if (!LOVABLE_API_KEY) {
       console.error("LOVABLE_API_KEY is not configured");
       return new Response(
-        JSON.stringify({ 
-          reply: "I'm having trouble connecting right now. Please try again in a moment! 🙏" 
+        JSON.stringify({
+          reply: "I'm having trouble connecting right now. Please try again in a moment! 🙏"
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
@@ -97,7 +97,7 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-2.0-flash",
         messages: messages,
         max_tokens: 500,
         temperature: 0.7,
@@ -107,20 +107,20 @@ serve(async (req) => {
     if (!response.ok) {
       const errorText = await response.text();
       console.error("Lovable AI error:", response.status, errorText);
-      
+
       if (response.status === 429) {
         return new Response(
-          JSON.stringify({ 
-            reply: "I'm getting a lot of questions right now! Please try again in a moment. 💪" 
+          JSON.stringify({
+            reply: "I'm getting a lot of questions right now! Please try again in a moment. 💪"
           }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      
+
       if (response.status === 402) {
         return new Response(
-          JSON.stringify({ 
-            reply: "The AI service needs attention from the admin. Please try again later! 🙏" 
+          JSON.stringify({
+            reply: "The AI service needs attention from the admin. Please try again later! 🙏"
           }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );

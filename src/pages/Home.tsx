@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Zap, Brain, Eye, BarChart3, Utensils, Calendar, QrCode, Trophy, Wrench, Sparkles, LineChart, Laptop, Calculator } from "lucide-react";
+import { ArrowRight, Zap, Bot, Brain, Eye, BarChart3, Utensils, Calendar, QrCode, Trophy, Wrench, Sparkles, LineChart, Laptop, Calculator } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Suspense, lazy } from "react";
@@ -189,10 +189,18 @@ const Home = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
               {
-                icon: Brain,
+                icon: Bot,
                 title: "AI Personal Trainer",
-                description: "Intelligent workout recommendations powered by advanced AI algorithms",
+                description: "24/7 AI Chat expert for personalized fitness advice, form tips, and nutrition guidance",
                 link: "/ai-trainer",
+                badge: "PRO",
+                isPremium: true
+              },
+              {
+                icon: Zap,
+                title: "AI Workout Generator",
+                description: "Professional, AI-crafted training programs tailored to your goals and fitness level",
+                link: "/ai-workout",
                 badge: "PRO",
                 isPremium: true
               },
