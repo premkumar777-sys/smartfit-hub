@@ -84,11 +84,10 @@ export default function AITrainer() {
                 aiResponse = data.reply;
                 // Award XP for chat session
                 gamification.recordChatSession();
-            } else if (data?.error) {
-                aiResponse = data.error;
             } else if (error) {
                 console.error("AI Error:", error);
-                toast.error("Failed to get response. Please try again.");
+                aiResponse = error.message || "Something went wrong. Please check your connection or try again.";
+                toast.error("Failed to get response.");
             }
 
             const assistantMessage: Message = {
