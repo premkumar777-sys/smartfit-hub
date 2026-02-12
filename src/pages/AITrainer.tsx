@@ -78,6 +78,8 @@ export default function AITrainer() {
                 },
             });
 
+            console.log("Supabase function response:", { data, error });
+
             let aiResponse = "I'm having a moment! Please try again. 💪";
 
             if (data?.reply) {
