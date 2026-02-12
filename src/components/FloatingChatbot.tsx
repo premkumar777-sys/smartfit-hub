@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { supabase } from "@/integrations/supabase/client";
+import { streamChat } from "@/lib/streamChat";
 
 type Message = {
   role: "user" | "assistant";
@@ -81,51 +81,48 @@ export const FloatingChatbot = () => {
     setInput("");
     setIsLoading(true);
 
-    try {
-      // Build conversation history for context
-      const conversationHistory = messages
-        .slice(-10)
-        .map((m) => ({ role: m.role, content: m.content }));
+    const conversationHistory = messages
+      .slice(-10)
+      .map((m) => ({ role: m.role, content: m.content }));
 
-      // Use Supabase client to invoke the Edge Function
-      const { data, error } = await supabase.functions.invoke("smartfit-chatbot", {
-        body: {
-          message: text,
-          conversationHistory: conversationHistory,
-        },
+    let assistantSoFar = "";
+
+    const upsertAssistant = (chunk: string) => {
+      assistantSoFar += chunk;
+      setMessages((prev) => {
+        const last = prev[prev.length - 1];
+        if (last?.role === "assistant" && prev.length > 0 && prev[prev.length - 2]?.content === text) {
+          return prev.map((m, i) => (i === prev.length - 1 ? { ...m, content: assistantSoFar } : m));
+        }
+        return [...prev, { role: "assistant", content: assistantSoFar }];
       });
-      if (error) {
-        throw new Error(error.message || "Failed to get response");
-      }
+    };
 
-      const assistantMessage: Message = {
-        role: "assistant",
-        content: data?.reply || "I'm having trouble processing your message right now. Please try again in a moment! 🙏",
-      };
-      setMessages((prev) => [...prev, assistantMessage]);
-      playNotificationSound();
-    } catch (error) {
-      console.error("Chat error:", error);
-
-      // Fallback responses when API fails
-      const fallbackResponses = [
-        "Hi! I'm here to help with your fitness journey. Try asking about workouts, nutrition, or SmartFit features! 💪",
-        "Hello! SmartFit AI is designed to help you achieve your fitness goals. What would you like to know?",
-        "Hey there! I'm your AI fitness assistant. Ask me anything about workouts, nutrition, or how to use SmartFit! 🏋️‍♀️",
-        "Welcome! I'm here to support your fitness goals. Try asking about exercise tips or nutrition advice!",
-        "Hi! Let's work together on your fitness journey. What fitness questions can I help you with today?"
-      ];
-
-      const fallbackMessage = fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
-
-      const errorMessage: Message = {
-        role: "assistant",
-        content: fallbackMessage,
-      };
-      setMessages((prev) => [...prev, errorMessage]);
-    } finally {
-      setIsLoading(false);
-    }
+    await streamChat({
+      functionName: "smartfit-chatbot",
+      message: text,
+      conversationHistory,
+      onDelta: (chunk) => upsertAssistant(chunk),
+      onDone: () => {
+        setIsLoading(false);
+        playNotificationSound();
+      },
+      onError: (error) => {
+        console.error("Chat error:", error);
+        setIsLoading(false);
+        const fallback: Message = {
+          role: "assistant",
+          content: "I'm having a moment! Please try again. 💪",
+        };
+        setMessages((prev) => {
+          const last = prev[prev.length - 1];
+          if (last?.role === "assistant" && !last.content) {
+            return prev.map((m, i) => (i === prev.length - 1 ? fallback : m));
+          }
+          return [...prev, fallback];
+        });
+      },
+    });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
