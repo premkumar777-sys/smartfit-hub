@@ -9,7 +9,7 @@ const systemMessage = `You are SmartFit AI, a friendly and knowledgeable fitness
 
 Your personality:
 - Be warm, friendly, and encouraging
-- Respond to greetings naturally ("Hey! Great to hear from you!", "Hi there! How can I help you today?")
+- Respond to greetings naturally
 - Use casual, conversational language with occasional emojis 💪
 - Keep responses concise (2-3 short paragraphs max)
 - Be motivating and positive
@@ -28,7 +28,6 @@ IMPORTANT RULES:
 - You're a helpful fitness friend, NOT a form that needs to be filled out`;
 
 serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -40,14 +39,12 @@ serve(async (req) => {
     if (!LOVABLE_API_KEY) {
       console.error("LOVABLE_API_KEY is not configured");
       return new Response(
-        JSON.stringify({ error: "AI service not configured." }),
+        JSON.stringify({ error: "AI service not configured" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const messages = [
-      { role: "system", content: systemMessage }
-    ];
+    const messages = [{ role: "system", content: systemMessage }];
 
     if (conversationHistory && Array.isArray(conversationHistory)) {
       for (const msg of conversationHistory.slice(-6)) {
@@ -60,41 +57,37 @@ serve(async (req) => {
 
     messages.push({ role: "user", content: message || "Hi" });
 
-    console.log("Calling Lovable AI Gateway (Streaming)...");
-
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-1.5-flash",
-        messages: messages,
+        model: "google/gemini-3-flash-preview",
+        messages,
         stream: true,
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Lovable AI Gateway error:", response.status, errorText);
+      console.error("AI gateway error:", response.status, errorText);
 
       if (response.status === 429) {
         return new Response(
-          JSON.stringify({ error: "Taking a quick breather! Try again in a moment. 💪" }),
+          JSON.stringify({ error: "Rate limited. Please try again in a moment." }),
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-
       if (response.status === 402) {
         return new Response(
           JSON.stringify({ error: "AI credits needed. Please add funds." }),
           { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-
       return new Response(
-        JSON.stringify({ error: "Oops! I'm having a moment. Try again?" }),
+        JSON.stringify({ error: "AI service error" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -102,11 +95,10 @@ serve(async (req) => {
     return new Response(response.body, {
       headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
     });
-
   } catch (error) {
-    console.error("Error in chat function:", error);
+    console.error("Error in ai-chat:", error);
     return new Response(
-      JSON.stringify({ error: "Something went wrong. Let's try that again!" }),
+      JSON.stringify({ error: "Something went wrong. Please try again." }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
