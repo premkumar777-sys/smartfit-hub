@@ -17,13 +17,13 @@ serve(async (req) => {
     try {
         const { age, weight, height, bmi, goal, customPrompt } = await req.json();
 
-        // Get Lovable API key (auto-provisioned)
-        const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+        // Get Groq API key
+        const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
 
-        if (!LOVABLE_API_KEY) {
-            console.error("LOVABLE_API_KEY is not configured");
+        if (!GROQ_API_KEY) {
+            console.error("GROQ_API_KEY is not configured");
             return new Response(
-                JSON.stringify({ error: "AI service not configured. Please ensure Lovable Cloud is enabled." }),
+                JSON.stringify({ error: "AI service not configured. Please add GROQ_API_KEY to secrets." }),
                 { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
             );
         }
@@ -80,15 +80,15 @@ Format the plan clearly with markdown headings and bullet points.
 Keep it practical, achievable, and motivating.`;
         }
 
-        // Call Lovable AI Gateway
-        const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        // Call Groq API
+        const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
             method: "POST",
             headers: {
-                "Authorization": `Bearer ${LOVABLE_API_KEY}`,
+                "Authorization": `Bearer ${GROQ_API_KEY}`,
                 "Content-Type": "application/json",
             },
             body: JSON.stringify({
-                model: "google/gemini-1.5-flash",
+                model: "llama-3.3-70b-versatile",
                 messages: [
                     { role: "system", content: systemMessage },
                     { role: "user", content: prompt }
