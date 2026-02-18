@@ -178,21 +178,40 @@ export default function Auth() {
   const handleGoogleLogin = async () => {
     setIsGoogleLoading(true);
     try {
+      // Use window.location.origin to ensure it works on both dev and production
+      const redirectUrl = `${window.location.origin}${returnUrl}`;
+      console.log("Auth: Initiating Google login with redirect:", redirectUrl);
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}${returnUrl}`,
+          redirectTo: redirectUrl,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
         },
       });
 
       if (error) {
+        console.error("Google Auth Error:", error);
+        let description = error.message;
+
+        // Provide clearer feedback for common configuration errors
+        if (error.message.includes("provider") || error.message.includes("not enabled") || error.message.includes("disabled")) {
+          description = "Google sign-in is not yet enabled in your Supabase Dashboard. Please follow the implementation plan to enable it.";
+        } else if (error.message.includes("client_id") || error.message.includes("client_secret")) {
+          description = "Invalid Google Client ID or Secret in Supabase settings. Please check your Dashboard.";
+        }
+
         toast({
           title: "Google login failed",
-          description: error.message,
+          description: description,
           variant: "destructive",
         });
       }
     } catch (error: any) {
+      console.error("Google Auth Exception:", error);
       toast({
         title: "Google login failed",
         description: error.message || "Please try again.",
