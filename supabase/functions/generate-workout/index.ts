@@ -115,7 +115,7 @@ Keep it practical, achievable, and motivating.`;
             }
 
             return new Response(
-                JSON.stringify({ error: "Failed to generate workout plan. Please try again." }),
+                JSON.stringify({ error: "Failed to generate workout plan. Please try again.", details: errorText }),
                 { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
             );
         }
