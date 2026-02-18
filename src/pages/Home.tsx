@@ -48,9 +48,9 @@ const Home = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
-              {isAuthenticated ? "Continue Your" : "Transform Your Body with"}
+              {isAuthenticated ? "Your Journey with" : "Transform Your Body with"}
               <span className="text-gradient block mt-2 pb-1">
-                {isAuthenticated ? "Fitness Journey" : "AI-Powered Training"}
+                {isAuthenticated ? "SmartFit AI" : "SmartFit AI Training"}
               </span>
             </motion.h1>
 

@@ -79,7 +79,7 @@ export default function Pricing() {
                         transition={{ duration: 0.5 }}
                     >
                         <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4 text-white">
-                            Choose Your <span className="text-gradient">Fitness Level</span>
+                            Choose Your <span className="text-gradient">SmartFit AI Level</span>
                         </h1>
                         <p className="text-lg md:text-xl text-muted-foreground">
                             Unlock the full potential of AI-powered training with our flexible plans designed for every stage of your journey.
