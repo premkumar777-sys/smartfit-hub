@@ -16,9 +16,9 @@ const Home = () => {
   const { user, isAuthenticated } = useAuth();
 
   return (
-    <div className="min-h-screen grain-overlay">
+    <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative overflow-hidden py-24 md:py-32">
+      <section className="relative overflow-hidden py-20">
         <div className="absolute inset-0 z-0 opacity-30 pointer-events-none hero-3d-scene">
           <Suspense fallback={null}>
             <HeroBackground />
@@ -32,43 +32,25 @@ const Home = () => {
             transition={{ duration: 0.8 }}
           >
             {isAuthenticated && user && (
-              <motion.div
+              <motion.p
+                className="text-lg md:text-xl text-primary font-medium"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
-                className="space-y-2"
               >
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-[10px] font-bold tracking-[0.2em] text-primary uppercase mb-4">
-                  <Sparkles className="w-3 h-3" />
-                  Powered by SmartFit AI 2.0
-                </div>
-                <p className="text-lg md:text-xl text-primary font-medium">
-                  Welcome back, {user.username || user.email?.split('@')[0]}! 👋
-                </p>
-              </motion.div>
-            )}
-
-            {!isAuthenticated && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-[10px] font-bold tracking-[0.2em] text-primary uppercase mb-8"
-              >
-                <Sparkles className="w-3 h-3" />
-                Next-Gen AI Fitness Platform
-              </motion.div>
+                Welcome back, {user.username || user.email?.split('@')[0]}! 👋
+              </motion.p>
             )}
 
             <motion.h1
-              className="text-5xl md:text-6xl lg:text-8xl font-black tracking-tight leading-[1.1] pb-4"
+              className="text-4xl md:text-5xl lg:text-6xl font-bold leading-normal pb-2"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
               {isAuthenticated ? "Your Journey with" : "Transform Your Body with"}
-              <span className="text-gradient block mt-2 pb-1 text-glow">
-                {isAuthenticated ? "SmartFit AI" : "SmartFit AI"}
+              <span className="text-gradient block mt-2 pb-1">
+                {isAuthenticated ? "SmartFit AI" : "SmartFit AI Training"}
               </span>
             </motion.h1>
 
@@ -330,11 +312,11 @@ const Home = () => {
       <section className="py-16 relative overflow-hidden">
         <div className="absolute inset-0 gradient-hero opacity-50"></div>
         <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 relative z-10">
-          <div className="glass-strong max-w-4xl mx-auto p-12 rounded-[2rem] text-center premium-border">
-            <h2 className="text-4xl md:text-5xl lg:text-7xl font-black tracking-tight leading-tight mb-6">
+          <div className="glass max-w-4xl mx-auto p-12 rounded-3xl text-center">
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6">
               Ready to Transform Your Life?
             </h2>
-            <p className="text-lg md:text-xl leading-relaxed text-gray-300 mb-10 max-w-prose mx-auto">
+            <p className="text-lg md:text-xl leading-relaxed text-gray-300 mb-8 max-w-prose mx-auto">
               Start your fitness journey today with personalized AI-powered training and nutrition plans
             </p>
             <Button asChild variant="hero" size="xl">
