@@ -12,13 +12,41 @@ import { toast } from "sonner";
 
 const HeroBackground = lazy(() => import("@/components/Hero3DScene"));
 
-const Home = () => {
-  const { user, isAuthenticated } = useAuth();
+const TypewriterText = ({ text, delay = 80 }: { text: string; delay?: number }) => {
+  const [displayText, setDisplayText] = useState("");
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    if (currentIndex < text.length) {
+      const timeout = setTimeout(() => {
+        setDisplayText((prev) => prev + text[currentIndex]);
+        setCurrentIndex((prev) => prev + 1);
+      }, delay);
+      return () => clearTimeout(timeout);
+    }
+  }, [currentIndex, delay, text]);
 
   return (
-    <div className="min-h-screen">
+    <span className="inline-block min-h-[1.2em]">
+      {displayText}
+      <span className="ml-1 inline-block w-[2px] h-[0.8em] bg-primary cursor-blink align-middle" />
+    </span>
+  );
+};
+
+const Home = () => {
+  const [key, setKey] = useState(0);
+  const { user, isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    // Restart animation on mount
+    setKey(prev => prev + 1);
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-black">
       {/* Hero Section */}
-      <section className="relative overflow-hidden py-20">
+      <section className="relative overflow-hidden py-24 md:py-32">
         <div className="absolute inset-0 z-0 opacity-30 pointer-events-none hero-3d-scene">
           <Suspense fallback={null}>
             <HeroBackground />
@@ -43,25 +71,29 @@ const Home = () => {
             )}
 
             <motion.h1
-              className="text-4xl md:text-5xl lg:text-6xl font-bold leading-normal pb-2"
+              className="text-6xl md:text-7xl lg:text-9xl font-black tracking-tighter leading-none pb-4 uppercase"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
-              {isAuthenticated ? "Your Journey with" : "Transform Your Body with"}
-              <span className="text-gradient block mt-2 pb-1">
-                {isAuthenticated ? "SmartFit AI" : "SmartFit AI Training"}
-              </span>
+              {isAuthenticated ? (
+                <>SmartFit <span className="text-primary drop-shadow-[0_0_20px_rgba(0,255,156,0.5)]">AI</span></>
+              ) : (
+                <>SmartFit <span className="text-primary drop-shadow-[0_0_20px_rgba(0,255,156,0.5)]">AI</span></>
+              )}
             </motion.h1>
 
-            <motion.p
-              className="text-lg md:text-xl leading-relaxed text-gray-300 max-w-prose mx-auto"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
+            <motion.div
+              className="text-xl md:text-2xl font-bold tracking-tight text-white/90 max-w-prose mx-auto"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.8, delay: 0.8 }}
             >
-              Experience the future of fitness with personalized workouts, smart nutrition plans, and real-time AI coaching
-            </motion.p>
+              <TypewriterText
+                key={key}
+                text="Train Smarter. Become Stronger. Live Better."
+              />
+            </motion.div>
 
             <motion.div
               className="flex flex-col sm:flex-row gap-4 justify-center pt-4"
