@@ -10,6 +10,7 @@ function NeuralNetwork({ isMobile }: { isMobile: boolean }) {
   const count = isMobile ? 40 : 120;
   const connectionDistance = 3.5;
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const mouseLerp = useRef({ x: 0, y: 0 });
 
   useEffect(() => {
     const handleMouseMove = (event: MouseEvent) => {
@@ -32,11 +33,11 @@ function NeuralNetwork({ isMobile }: { isMobile: boolean }) {
       pos[i * 3 + 1] = (Math.random() - 0.5) * 10;
       pos[i * 3 + 2] = (Math.random() - 0.5) * 5;
 
-      vel[i * 3] = (Math.random() - 0.5) * 0.008;
-      vel[i * 3 + 1] = (Math.random() - 0.5) * 0.008;
-      vel[i * 3 + 2] = (Math.random() - 0.5) * 0.008;
+      vel[i * 3] = (Math.random() - 0.5) * 0.012;
+      vel[i * 3 + 1] = (Math.random() - 0.5) * 0.012;
+      vel[i * 3 + 2] = (Math.random() - 0.5) * 0.012;
 
-      // Colors: primarily #00FF9C (green) and #4CC9F0 (cyan)
+      // Brighter colors for "thickness" feel
       const color = new THREE.Color(Math.random() > 0.5 ? "#00FF9C" : "#4CC9F0");
       cols[i * 3] = color.r;
       cols[i * 3 + 1] = color.g;
@@ -47,6 +48,10 @@ function NeuralNetwork({ isMobile }: { isMobile: boolean }) {
 
   useFrame((state) => {
     if (!pointsRef.current || !linesRef.current) return;
+
+    // Smooth mouse lerping
+    mouseLerp.current.x += (mousePosition.x - mouseLerp.current.x) * 0.05;
+    mouseLerp.current.y += (mousePosition.y - mouseLerp.current.y) * 0.05;
 
     const pointsAttr = pointsRef.current.geometry.attributes.position;
     const linePositions = [];
@@ -62,15 +67,15 @@ function NeuralNetwork({ isMobile }: { isMobile: boolean }) {
       if (Math.abs(pointsAttr.array[i * 3 + 1]) > 7) velocities[i * 3 + 1] *= -1;
       if (Math.abs(pointsAttr.array[i * 3 + 2]) > 5) velocities[i * 3 + 2] *= -1;
 
-      // Mouse interactivity - nodes move away from cursor
+      // Mouse interactivity - smooth drift
       if (!isMobile) {
-        const dx = pointsAttr.array[i * 3] - mousePosition.x * 10;
-        const dy = pointsAttr.array[i * 3 + 1] - mousePosition.y * 7;
+        const dx = pointsAttr.array[i * 3] - mouseLerp.current.x * 12;
+        const dy = pointsAttr.array[i * 3 + 1] - mouseLerp.current.y * 8;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < 4) {
-          const force = (4 - dist) / 4;
-          pointsAttr.array[i * 3] += dx * force * 0.05;
-          pointsAttr.array[i * 3 + 1] += dy * force * 0.05;
+        if (dist < 5) {
+          const force = (5 - dist) / 5;
+          pointsAttr.array[i * 3] += dx * force * 0.02;
+          pointsAttr.array[i * 3 + 1] += dy * force * 0.02;
         }
       }
     }
@@ -108,7 +113,7 @@ function NeuralNetwork({ isMobile }: { isMobile: boolean }) {
         <lineBasicMaterial
           color="#4CC9F0"
           transparent
-          opacity={0.15}
+          opacity={0.3}
           blending={THREE.AdditiveBlending}
           depthWrite={false}
         />
@@ -117,7 +122,7 @@ function NeuralNetwork({ isMobile }: { isMobile: boolean }) {
   );
 }
 
-// Separate component for points to optimize rendering
+// Separate component for points with increased size for "thickness"
 function PointsComponent({ count, positions, colors, pointsRef }: any) {
   return (
     <points ref={pointsRef}>
@@ -136,10 +141,10 @@ function PointsComponent({ count, positions, colors, pointsRef }: any) {
         />
       </bufferGeometry>
       <pointsMaterial
-        size={0.12}
+        size={0.25}
         vertexColors
         transparent
-        opacity={0.6}
+        opacity={0.8}
         sizeAttenuation
         blending={THREE.AdditiveBlending}
         depthWrite={false}
