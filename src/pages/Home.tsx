@@ -10,7 +10,7 @@ import { FeaturesCarousel } from "@/components/FeaturesCarousel";
 import { HowItWorksCarousel } from "@/components/HowItWorksCarousel";
 import { toast } from "sonner";
 
-const HeroDumbbellScene = lazy(() => import("@/components/Hero3DScene"));
+const HeroBackground = lazy(() => import("@/components/Hero3DScene"));
 
 const Home = () => {
   const { user, isAuthenticated } = useAuth();
@@ -21,7 +21,7 @@ const Home = () => {
       <section className="relative overflow-hidden py-20">
         <div className="absolute inset-0 z-0 opacity-30 pointer-events-none hero-3d-scene">
           <Suspense fallback={null}>
-            <HeroDumbbellScene />
+            <HeroBackground />
           </Suspense>
         </div>
         <div className="relative z-10 max-w-4xl mx-auto px-6">
