@@ -1,175 +1,184 @@
 import { Canvas, useFrame } from "@react-three/fiber";
-import { Float } from "@react-three/drei";
+import { OrbitControls, PerspectiveCamera, Float, MeshReflectorMaterial } from "@react-three/drei";
 import { useRef, useState, useEffect, useMemo } from "react";
 import * as THREE from "three";
 
-// Dynamic Neural Network component
-function NeuralNetwork({ isMobile }: { isMobile: boolean }) {
-  const pointsRef = useRef<THREE.Points>(null);
-  const linesRef = useRef<THREE.LineSegments>(null);
-  const count = isMobile ? 40 : 120;
-  const connectionDistance = 3.5;
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-
-  useEffect(() => {
-    const handleMouseMove = (event: MouseEvent) => {
-      setMousePosition({
-        x: (event.clientX / window.innerWidth) * 2 - 1,
-        y: -(event.clientY / window.innerHeight) * 2 + 1,
-      });
-    };
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
-
-  const { positions, velocities, colors } = useMemo(() => {
-    const pos = new Float32Array(count * 3);
-    const vel = new Float32Array(count * 3);
-    const cols = new Float32Array(count * 3);
-
-    for (let i = 0; i < count; i++) {
-      pos[i * 3] = (Math.random() - 0.5) * 15;
-      pos[i * 3 + 1] = (Math.random() - 0.5) * 10;
-      pos[i * 3 + 2] = (Math.random() - 0.5) * 5;
-
-      vel[i * 3] = (Math.random() - 0.5) * 0.008;
-      vel[i * 3 + 1] = (Math.random() - 0.5) * 0.008;
-      vel[i * 3 + 2] = (Math.random() - 0.5) * 0.008;
-
-      // Colors: primarily #00FF9C (green) and #4CC9F0 (cyan)
-      const color = new THREE.Color(Math.random() > 0.5 ? "#00FF9C" : "#4CC9F0");
-      cols[i * 3] = color.r;
-      cols[i * 3 + 1] = color.g;
-      cols[i * 3 + 2] = color.b;
-    }
-    return { positions: pos, velocities: vel, colors: cols };
-  }, [count]);
-
-  useFrame((state) => {
-    if (!pointsRef.current || !linesRef.current) return;
-
-    const pointsAttr = pointsRef.current.geometry.attributes.position;
-    const linePositions = [];
-
-    for (let i = 0; i < count; i++) {
-      // Update positions based on velocity
-      pointsAttr.array[i * 3] += velocities[i * 3];
-      pointsAttr.array[i * 3 + 1] += velocities[i * 3 + 1];
-      pointsAttr.array[i * 3 + 2] += velocities[i * 3 + 2];
-
-      // Boundary bouncing
-      if (Math.abs(pointsAttr.array[i * 3]) > 10) velocities[i * 3] *= -1;
-      if (Math.abs(pointsAttr.array[i * 3 + 1]) > 7) velocities[i * 3 + 1] *= -1;
-      if (Math.abs(pointsAttr.array[i * 3 + 2]) > 5) velocities[i * 3 + 2] *= -1;
-
-      // Mouse interactivity - nodes move away from cursor
-      if (!isMobile) {
-        const dx = pointsAttr.array[i * 3] - mousePosition.x * 10;
-        const dy = pointsAttr.array[i * 3 + 1] - mousePosition.y * 7;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < 4) {
-          const force = (4 - dist) / 4;
-          pointsAttr.array[i * 3] += dx * force * 0.05;
-          pointsAttr.array[i * 3 + 1] += dy * force * 0.05;
-        }
-      }
-    }
-
-    pointsAttr.needsUpdate = true;
-
-    // Generate connections
-    for (let i = 0; i < count; i++) {
-      for (let j = i + 1; j < count; j++) {
-        const dx = pointsAttr.array[i * 3] - pointsAttr.array[j * 3];
-        const dy = pointsAttr.array[i * 3 + 1] - pointsAttr.array[j * 3 + 1];
-        const dz = pointsAttr.array[i * 3 + 2] - pointsAttr.array[j * 3 + 2];
-        const distSq = dx * dx + dy * dy + dz * dz;
-
-        if (distSq < connectionDistance * connectionDistance) {
-          linePositions.push(
-            pointsAttr.array[i * 3], pointsAttr.array[i * 3 + 1], pointsAttr.array[i * 3 + 2],
-            pointsAttr.array[j * 3], pointsAttr.array[j * 3 + 1], pointsAttr.array[j * 3 + 2]
-          );
-        }
-      }
-    }
-
-    linesRef.current.geometry.setAttribute(
-      'position',
-      new THREE.Float32BufferAttribute(linePositions, 3)
-    );
+// Stylized Squat Rack
+function SquatRack({ position = [0, 0, 0] as [number, number, number] }) {
+  const material = new THREE.MeshStandardMaterial({
+    color: "#1a1a1f",
+    metalness: 0.9,
+    roughness: 0.1
+  });
+  const glowMaterial = new THREE.MeshStandardMaterial({
+    color: "#00FF9C",
+    emissive: "#00FF9C",
+    emissiveIntensity: 2
   });
 
   return (
-    <group>
-      <PointsComponent count={count} positions={positions} colors={colors} pointsRef={pointsRef} />
-      <lineSegments ref={linesRef}>
-        <bufferGeometry />
-        <lineBasicMaterial
-          color="#4CC9F0"
-          transparent
-          opacity={0.15}
-          blending={THREE.AdditiveBlending}
-          depthWrite={false}
-        />
-      </lineSegments>
+    <group position={position}>
+      {/* Vertical Posts */}
+      <mesh position={[-0.8, 1.2, 0]}>
+        <boxGeometry args={[0.1, 2.4, 0.1]} />
+        <primitive object={material} attach="material" />
+      </mesh>
+      <mesh position={[0.8, 1.2, 0]}>
+        <boxGeometry args={[0.1, 2.4, 0.1]} />
+        <primitive object={material} attach="material" />
+      </mesh>
+
+      {/* Top Crossbar */}
+      <mesh position={[0, 2.3, 0]}>
+        <boxGeometry args={[1.7, 0.08, 0.08]} />
+        <primitive object={material} attach="material" />
+      </mesh>
+
+      {/* J-Hooks (Glow) */}
+      <mesh position={[-0.8, 1.5, 0.1]}>
+        <boxGeometry args={[0.15, 0.05, 0.2]} />
+        <primitive object={glowMaterial} attach="material" />
+      </mesh>
+      <mesh position={[0.8, 1.5, 0.1]}>
+        <boxGeometry args={[0.15, 0.05, 0.2]} />
+        <primitive object={glowMaterial} attach="material" />
+      </mesh>
+
+      {/* Barbell */}
+      <mesh position={[0, 1.55, 0.15]} rotation={[0, 0, Math.PI / 2]}>
+        <cylinderGeometry args={[0.03, 0.03, 2.2, 16]} />
+        <meshStandardMaterial color="#444" metalness={1} roughness={0.1} />
+      </mesh>
+
+      {/* Weight Plates */}
+      <mesh position={[-0.8, 1.55, 0.15]} rotation={[0, 0, Math.PI / 2]}>
+        <cylinderGeometry args={[0.3, 0.3, 0.1, 32]} />
+        <meshStandardMaterial color="#111" metalness={0.5} roughness={0.5} />
+      </mesh>
+      <mesh position={[0.8, 1.55, 0.15]} rotation={[0, 0, Math.PI / 2]}>
+        <cylinderGeometry args={[0.3, 0.3, 0.1, 32]} />
+        <meshStandardMaterial color="#111" metalness={0.5} roughness={0.5} />
+      </mesh>
     </group>
   );
 }
 
-// Separate component for points to optimize rendering
-function PointsComponent({ count, positions, colors, pointsRef }: any) {
+// Stylized Weight Bench
+function WeightBench({ position = [0, 0, 0] as [number, number, number] }) {
   return (
-    <points ref={pointsRef}>
-      <bufferGeometry>
-        <bufferAttribute
-          attach="attributes-position"
-          count={count}
-          array={positions}
-          itemSize={3}
-        />
-        <bufferAttribute
-          attach="attributes-color"
-          count={count}
-          array={colors}
-          itemSize={3}
-        />
-      </bufferGeometry>
-      <pointsMaterial
-        size={0.12}
-        vertexColors
-        transparent
-        opacity={0.6}
-        sizeAttenuation
-        blending={THREE.AdditiveBlending}
-        depthWrite={false}
-      />
-    </points>
+    <group position={position}>
+      {/* Pad */}
+      <mesh position={[0, 0.45, 0]}>
+        <boxGeometry args={[0.4, 0.1, 1.4]} />
+        <meshStandardMaterial color="#111" roughness={0.8} />
+      </mesh>
+      {/* Frame */}
+      <mesh position={[0, 0.2, 0]}>
+        <boxGeometry args={[0.3, 0.4, 1.2]} />
+        <meshStandardMaterial color="#1a1a1f" metalness={0.9} roughness={0.1} />
+      </mesh>
+      {/* Neon Detail */}
+      <mesh position={[0, 0.45, 0.71]}>
+        <boxGeometry args={[0.42, 0.02, 0.02]} />
+        <meshStandardMaterial color="#4CC9F0" emissive="#4CC9F0" emissiveIntensity={2} />
+      </mesh>
+    </group>
   );
 }
 
-function Scene({ isMobile }: { isMobile: boolean }) {
+// Dumbbell Rack
+function DumbbellRack({ position = [0, 0, 0] as [number, number, number] }) {
+  return (
+    <group position={position} rotation={[0, -Math.PI / 4, 0]}>
+      <mesh position={[0, 0.4, 0]}>
+        <boxGeometry args={[1.5, 0.8, 0.4]} />
+        <meshStandardMaterial color="#1a1a1f" metalness={0.8} roughness={0.2} />
+      </mesh>
+      {/* Dumbbells */}
+      {[...Array(5)].map((_, i) => (
+        <mesh key={i} position={[-0.6 + i * 0.3, 0.85, 0]} rotation={[Math.PI / 2, 0, 0]}>
+          <cylinderGeometry args={[0.1, 0.1, 0.25, 16]} />
+          <meshStandardMaterial color="#111" metalness={0.5} />
+        </mesh>
+      ))}
+      {/* Glow */}
+      <mesh position={[0, 0.81, 0]}>
+        <boxGeometry args={[1.52, 0.02, 0.42]} />
+        <meshStandardMaterial color="#00FF9C" emissive="#00FF9C" emissiveIntensity={1} />
+      </mesh>
+    </group>
+  );
+}
+
+function GymEnvironment({ isMobile }: { isMobile: boolean }) {
   const groupRef = useRef<THREE.Group>(null);
 
   useFrame((state) => {
     if (groupRef.current) {
-      // Subtle group rotation
-      groupRef.current.rotation.y = state.clock.elapsedTime * 0.05;
-      groupRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.1) * 0.1;
+      // Very slow rotation to show off the 3D space
+      groupRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.1) * 0.1;
     }
   });
 
   return (
-    <>
-      <ambientLight intensity={0.4} />
-      <pointLight position={[10, 10, 10]} intensity={1} color="#00FF9C" />
-      <pointLight position={[-10, -10, -10]} intensity={0.5} color="#4CC9F0" />
+    <group ref={groupRef}>
+      {/* Centerpiece Squat Rack */}
+      <SquatRack position={[0, -1.2, -1]} />
 
-      <Float speed={2} rotationIntensity={0.5} floatIntensity={0.5}>
-        <group ref={groupRef}>
-          <NeuralNetwork isMobile={isMobile} />
-        </group>
+      {/* Bench in front */}
+      <WeightBench position={[0, -1.2, 0.5]} />
+
+      {/* Side Equipment */}
+      {!isMobile && (
+        <>
+          <DumbbellRack position={[-2.5, -1.2, -0.5]} />
+          <SquatRack position={[2.8, -1.2, -1.5]} />
+        </>
+      )}
+
+      {/* Reflective Floor */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.2, 0]}>
+        <planeGeometry args={[20, 20]} />
+        <MeshReflectorMaterial
+          blur={[300, 100]}
+          resolution={1024}
+          mixBlur={1}
+          mixStrength={40}
+          roughness={1}
+          depthScale={1.2}
+          minDepthThreshold={0.4}
+          maxDepthThreshold={1.4}
+          color="#101010"
+          metalness={0.5}
+          mirror={1}
+        />
+      </mesh>
+
+      {/* Ceiling / Lights */}
+      <gridHelper args={[20, 20, 0x00FF9C, 0x222222]} position={[0, 3, 0]} rotation={[Math.PI, 0, 0]} />
+    </group>
+  );
+}
+
+function Scene({ isMobile }: { isMobile: boolean }) {
+  return (
+    <>
+      <PerspectiveCamera makeDefault position={[0, 0.5, 6]} fov={isMobile ? 50 : 40} />
+
+      <ambientLight intensity={0.2} />
+      <pointLight position={[10, 10, 10]} intensity={1} color="#00FF9C" />
+      <pointLight position={[-10, 5, 5]} intensity={0.5} color="#4CC9F0" />
+
+      {/* Volumetric-like glow lights */}
+      <pointLight position={[0, 2, -2]} intensity={2} distance={10} color="#00FF9C" />
+      <pointLight position={[-2, 1, 1]} intensity={1.5} distance={8} color="#4CC9F0" />
+
+      <Float speed={1.5} rotationIntensity={0.1} floatIntensity={0.1}>
+        <GymEnvironment isMobile={isMobile} />
       </Float>
+
+      {/* Fog for depth */}
+      <fog attach="fog" args={["#000", 5, 15]} />
     </>
   );
 }
@@ -185,13 +194,12 @@ export default function Hero3DScene() {
   }, []);
 
   return (
-    <div className="w-full h-full">
+    <div className="w-full h-full bg-black">
       <Canvas
-        camera={{ position: [0, 0, 12], fov: 45 }}
         gl={{
-          antialias: !isMobile,
+          antialias: true,
           alpha: true,
-          powerPreference: isMobile ? "low-power" : "high-performance"
+          powerPreference: "high-performance"
         }}
         dpr={isMobile ? [1, 1] : [1, 2]}
       >
