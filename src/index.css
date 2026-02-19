@@ -7,6 +7,7 @@ All colors MUST be HSL.
 */
 
 @layer base {
+
   /* BRIGHT/LIGHT THEME (Default) */
   :root {
     --background: 0 0% 100%;
@@ -43,16 +44,16 @@ All colors MUST be HSL.
     --neon-green: 142 76% 36%;
     --electric-blue: 204 100% 45%;
     --energy-orange: 25 95% 53%;
-    
+
     /* Gradients - Light theme versions */
     --gradient-primary: linear-gradient(135deg, hsl(204 100% 45%) 0%, hsl(142 76% 36%) 100%);
     --gradient-hero: linear-gradient(135deg, hsl(210 40% 98%) 0%, hsl(210 40% 96%) 50%, hsl(204 60% 95%) 100%);
     --gradient-card: linear-gradient(135deg, hsl(0 0% 100% / 0.9) 0%, hsl(210 40% 98% / 0.8) 100%);
-    
+
     /* Shadows - Light theme versions */
     --shadow-glow: 0 0 40px hsl(204 100% 45% / 0.2);
     --shadow-card: 0 10px 30px -10px hsl(0 0% 0% / 0.1);
-    
+
     /* Animations */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
@@ -100,12 +101,12 @@ All colors MUST be HSL.
     --neon-green: 142 76% 36%;
     --electric-blue: 204 100% 50%;
     --energy-orange: 25 95% 53%;
-    
+
     /* Gradients - Dark theme versions */
     --gradient-primary: linear-gradient(135deg, hsl(204 100% 50%) 0%, hsl(142 76% 36%) 100%);
     --gradient-hero: linear-gradient(135deg, hsl(220 15% 8%) 0%, hsl(220 15% 12%) 50%, hsl(204 100% 15%) 100%);
     --gradient-card: linear-gradient(135deg, hsl(220 15% 10% / 0.8) 0%, hsl(220 15% 12% / 0.6) 100%);
-    
+
     /* Shadows - Dark theme versions */
     --shadow-glow: 0 0 40px hsl(204 100% 50% / 0.3);
     --shadow-card: 0 10px 30px -10px hsl(0 0% 0% / 0.5);
@@ -130,7 +131,12 @@ All colors MUST be HSL.
     @apply bg-background text-foreground font-sans antialiased;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-bold tracking-tight;
   }
 }
@@ -176,16 +182,20 @@ All colors MUST be HSL.
   .custom-scrollbar::-webkit-scrollbar {
     width: 6px;
   }
+
   .custom-scrollbar::-webkit-scrollbar-track {
     background: transparent;
   }
+
   .custom-scrollbar::-webkit-scrollbar-thumb {
     background: hsl(var(--primary) / 0.2);
     border-radius: 10px;
   }
+
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: hsl(var(--primary) / 0.4);
   }
+
   .custom-scrollbar {
     scrollbar-width: thin;
     scrollbar-color: hsl(var(--primary) / 0.2) transparent;
@@ -196,12 +206,20 @@ All colors MUST be HSL.
   }
 
   @keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-20px); }
+
+    0%,
+    100% {
+      transform: translateY(0px);
+    }
+
+    50% {
+      transform: translateY(-20px);
+    }
   }
 }
 
 @layer base {
+
   /* Disable pointer events on hero when mobile menu is open */
   [data-mobile-menu-open="true"] .hero-3d-scene {
     pointer-events: none;
@@ -209,10 +227,36 @@ All colors MUST be HSL.
 }
 
 @layer utilities {
+
   /* Flash animation for navbar indicator */
   @keyframes flash {
-    0%, 100% { opacity: 1; transform: scaleY(1); }
-    50% { opacity: 0.7; transform: scaleY(1.2); }
+
+    0%,
+    100% {
+      opacity: 1;
+      transform: scaleY(1);
+    }
+
+    50% {
+      opacity: 0.7;
+      transform: scaleY(1.2);
+    }
+  }
+
+  @keyframes typewriter-blink {
+
+    from,
+    to {
+      opacity: 1;
+    }
+
+    50% {
+      opacity: 0;
+    }
+  }
+
+  .cursor-blink {
+    animation: typewriter-blink 1s step-end infinite;
   }
 
 }
