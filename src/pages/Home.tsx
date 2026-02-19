@@ -65,12 +65,15 @@ const Home = () => {
             )}
 
             <motion.h1
-              className="text-4xl md:text-5xl lg:text-7xl font-black leading-tight pb-2"
+              className="text-4xl md:text-5xl lg:text-6xl font-bold leading-normal pb-2"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
-              <TypewriterText text="SmartFit AI Training" />
+              {isAuthenticated ? "Your Journey with" : "Transform Your Body with"}
+              <span className="text-gradient block mt-2 pb-1">
+                <TypewriterText text={isAuthenticated ? "SmartFit AI" : "SmartFit AI Training"} />
+              </span>
             </motion.h1>
 
             <motion.p
