@@ -7,6 +7,7 @@ All colors MUST be HSL.
 */
 
 @layer base {
+
   /* BRIGHT/LIGHT THEME (Default) */
   :root {
     --background: 0 0% 100%;
@@ -43,16 +44,16 @@ All colors MUST be HSL.
     --neon-green: 142 76% 36%;
     --electric-blue: 204 100% 45%;
     --energy-orange: 25 95% 53%;
-    
+
     /* Gradients - Light theme versions */
     --gradient-primary: linear-gradient(135deg, hsl(204 100% 45%) 0%, hsl(142 76% 36%) 100%);
     --gradient-hero: linear-gradient(135deg, hsl(210 40% 98%) 0%, hsl(210 40% 96%) 50%, hsl(204 60% 95%) 100%);
     --gradient-card: linear-gradient(135deg, hsl(0 0% 100% / 0.9) 0%, hsl(210 40% 98% / 0.8) 100%);
-    
+
     /* Shadows - Light theme versions */
     --shadow-glow: 0 0 40px hsl(204 100% 45% / 0.2);
     --shadow-card: 0 10px 30px -10px hsl(0 0% 0% / 0.1);
-    
+
     /* Animations */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
@@ -68,22 +69,22 @@ All colors MUST be HSL.
 
   /* DARK THEME */
   .dark {
-    --background: 220 15% 8%;
+    --background: 220 25% 4%;
     --foreground: 210 40% 98%;
 
-    --card: 220 15% 10%;
+    --card: 220 25% 6%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 220 15% 10%;
+    --popover: 220 25% 6%;
     --popover-foreground: 210 40% 98%;
 
     --primary: 204 100% 50%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 15% 15%;
+    --secondary: 220 20% 10%;
     --secondary-foreground: 210 40% 98%;
 
-    --muted: 220 15% 15%;
+    --muted: 220 20% 10%;
     --muted-foreground: 215 20% 65%;
 
     --accent: 142 76% 36%;
@@ -92,31 +93,31 @@ All colors MUST be HSL.
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 15% 18%;
-    --input: 220 15% 18%;
+    --border: 220 20% 12%;
+    --input: 220 20% 12%;
     --ring: 204 100% 50%;
 
     /* Gym-specific colors - Dark theme */
     --neon-green: 142 76% 36%;
     --electric-blue: 204 100% 50%;
     --energy-orange: 25 95% 53%;
-    
+
     /* Gradients - Dark theme versions */
     --gradient-primary: linear-gradient(135deg, hsl(204 100% 50%) 0%, hsl(142 76% 36%) 100%);
-    --gradient-hero: linear-gradient(135deg, hsl(220 15% 8%) 0%, hsl(220 15% 12%) 50%, hsl(204 100% 15%) 100%);
-    --gradient-card: linear-gradient(135deg, hsl(220 15% 10% / 0.8) 0%, hsl(220 15% 12% / 0.6) 100%);
-    
+    --gradient-hero: linear-gradient(180deg, hsl(220 25% 4%) 0%, hsl(220 25% 8%) 50%, hsl(204 100% 10%) 100%);
+    --gradient-card: linear-gradient(135deg, hsl(220 25% 8% / 0.8) 0%, hsl(220 25% 10% / 0.6) 100%);
+
     /* Shadows - Dark theme versions */
     --shadow-glow: 0 0 40px hsl(204 100% 50% / 0.3);
-    --shadow-card: 0 10px 30px -10px hsl(0 0% 0% / 0.5);
+    --shadow-card: 0 20px 40px -15px hsl(0 0% 0% / 0.7);
 
-    --sidebar-background: 220 15% 9%;
+    --sidebar-background: 220 25% 5%;
     --sidebar-foreground: 210 40% 98%;
     --sidebar-primary: 204 100% 50%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 15% 15%;
+    --sidebar-accent: 220 25% 8%;
     --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 220 15% 18%;
+    --sidebar-border: 220 25% 10%;
     --sidebar-ring: 204 100% 50%;
   }
 }
@@ -130,23 +131,50 @@ All colors MUST be HSL.
     @apply bg-background text-foreground font-sans antialiased;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-bold tracking-tight;
   }
 }
 
 @layer utilities {
   .glass {
-    background: linear-gradient(135deg, hsl(var(--card) / 0.8) 0%, hsl(var(--card) / 0.6) 100%);
+    background: linear-gradient(135deg, hsl(var(--card) / 0.7) 0%, hsl(var(--card) / 0.4) 100%);
     backdrop-filter: blur(12px);
-    border: 1px solid hsl(var(--border) / 0.5);
+    border: 1px solid hsl(var(--border) / 0.3);
+    box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.2);
   }
 
   .glass-strong {
-    background: linear-gradient(135deg, hsl(var(--card) / 0.95) 0%, hsl(var(--card) / 0.85) 100%);
-    backdrop-filter: blur(20px);
-    border: 1px solid hsl(var(--border) / 0.8);
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    background: linear-gradient(135deg, hsl(var(--card) / 0.9) 0%, hsl(var(--card) / 0.7) 100%);
+    backdrop-filter: blur(24px);
+    border: 1px solid hsl(var(--border) / 0.5);
+    box-shadow: 0 12px 40px -5px rgba(0, 0, 0, 0.5);
+  }
+
+  .premium-border {
+    position: relative;
+    border-radius: inherit;
+  }
+
+  .premium-border::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    background: linear-gradient(135deg,
+        hsl(var(--primary) / 0.5) 0%,
+        transparent 25%,
+        transparent 75%,
+        hsl(var(--accent) / 0.5) 100%);
+    border-radius: inherit;
+    z-index: -1;
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    pointer-events: none;
   }
 
   .gradient-primary {
@@ -176,16 +204,20 @@ All colors MUST be HSL.
   .custom-scrollbar::-webkit-scrollbar {
     width: 6px;
   }
+
   .custom-scrollbar::-webkit-scrollbar-track {
     background: transparent;
   }
+
   .custom-scrollbar::-webkit-scrollbar-thumb {
     background: hsl(var(--primary) / 0.2);
     border-radius: 10px;
   }
+
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: hsl(var(--primary) / 0.4);
   }
+
   .custom-scrollbar {
     scrollbar-width: thin;
     scrollbar-color: hsl(var(--primary) / 0.2) transparent;
@@ -195,13 +227,44 @@ All colors MUST be HSL.
     animation: float 6s ease-in-out infinite;
   }
 
+  .text-glow {
+    text-shadow: 0 0 15px hsl(var(--primary) / 0.4);
+  }
+
+  .surface-glow {
+    background: radial-gradient(circle at center, hsl(var(--primary) / 0.1) 0%, transparent 70%);
+  }
+
+  .grain-overlay {
+    position: relative;
+  }
+
+  .grain-overlay::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: url("https://grainy-gradients.vercel.app/noise.svg");
+    opacity: 0.03;
+    mix-blend-mode: overlay;
+    pointer-events: none;
+    z-index: 10;
+  }
+
   @keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-20px); }
+
+    0%,
+    100% {
+      transform: translateY(0px);
+    }
+
+    50% {
+      transform: translateY(-20px);
+    }
   }
 }
 
 @layer base {
+
   /* Disable pointer events on hero when mobile menu is open */
   [data-mobile-menu-open="true"] .hero-3d-scene {
     pointer-events: none;
@@ -209,10 +272,20 @@ All colors MUST be HSL.
 }
 
 @layer utilities {
+
   /* Flash animation for navbar indicator */
   @keyframes flash {
-    0%, 100% { opacity: 1; transform: scaleY(1); }
-    50% { opacity: 0.7; transform: scaleY(1.2); }
+
+    0%,
+    100% {
+      opacity: 1;
+      transform: scaleY(1);
+    }
+
+    50% {
+      opacity: 0.7;
+      transform: scaleY(1.2);
+    }
   }
 
 }

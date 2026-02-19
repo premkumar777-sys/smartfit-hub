@@ -140,19 +140,19 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index, badge
     <motion.div
       ref={cardRef}
       className={cn(
-        "feature-card-3d group relative p-8 rounded-2xl",
-        "bg-gradient-to-br from-gray-900/90 to-gray-800/70",
-        "backdrop-blur-md border-2 border-transparent",
-        "transition-all duration-300 ease-out",
-        "focus:outline-none focus:ring-2 focus:ring-[#00FF9C] focus:ring-offset-2 focus:ring-offset-gray-900",
-        "cursor-pointer select-none overflow-hidden",
-        isHovered && (isPremium ? "border-blue-400/50 shadow-[0_0_20px_rgba(59,130,246,0.3)]" : "border-[#00FF9C]/40"),
+        "feature-card-3d group relative p-8 rounded-[2rem]",
+        "bg-gradient-to-br from-gray-900/95 to-gray-800/80",
+        "backdrop-blur-xl border border-white/5",
+        "transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]",
+        "focus:outline-none focus:ring-2 focus:ring-[#00FF9C] focus:ring-offset-2 focus:ring-offset-black",
+        "cursor-pointer select-none overflow-hidden hover:z-50",
+        isHovered && (isPremium ? "shadow-[0_0_40px_rgba(59,130,246,0.3)] border-blue-400/30" : "shadow-[0_0_40px_rgba(0,255,156,0.2)] border-[#00FF9C]/30"),
         isFocused && "ring-2 ring-[#00FF9C] border-[#00FF9C]/40"
       )}
       style={{
         transformStyle: 'preserve-3d',
-        perspective: '1000px',
-        transform: prefersReducedMotion ? undefined : `perspective(1000px) rotateX(${rotation.x}deg) rotateY(${rotation.y}deg) rotateZ(${rotation.z}deg)`,
+        perspective: '1200px',
+        transform: prefersReducedMotion ? undefined : `perspective(1200px) rotateX(${rotation.x}deg) rotateY(${rotation.y}deg)`,
         willChange: 'transform'
       }}
       onMouseMove={handleMouseMove}
@@ -200,7 +200,7 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index, badge
         ref={innerRef}
         className="relative z-10"
         style={{
-          transform: prefersReducedMotion ? undefined : `translateZ(20px) translate(${mousePosition.x * 0.02}px, ${mousePosition.y * 0.02}px)`,
+          transform: prefersReducedMotion ? undefined : `translateZ(60px) translate(${mousePosition.x * 0.05}px, ${mousePosition.y * 0.05}px)`,
           transformStyle: 'preserve-3d',
           willChange: 'transform'
         }}
@@ -209,7 +209,7 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index, badge
         <motion.div
           className="flex justify-center mb-6"
           style={{
-            transform: prefersReducedMotion ? undefined : `translateZ(30px) rotateY(${rotation.y * 0.25}deg)`,
+            transform: prefersReducedMotion ? undefined : `translateZ(100px) rotateY(${rotation.y * 0.4}deg)`,
             transformStyle: 'preserve-3d'
           }}
         >
@@ -246,7 +246,7 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index, badge
         <motion.h3
           className="text-xl font-bold mb-4 text-center text-white leading-relaxed"
           style={{
-            transform: prefersReducedMotion ? undefined : `translateZ(25px)`,
+            transform: prefersReducedMotion ? undefined : `translateZ(80px)`,
             transformStyle: 'preserve-3d'
           }}
           animate={isHovered ? {
@@ -265,7 +265,7 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index, badge
         <motion.p
           className="text-gray-300 text-center leading-relaxed"
           style={{
-            transform: prefersReducedMotion ? undefined : `translateZ(15px)`,
+            transform: prefersReducedMotion ? undefined : `translateZ(50px)`,
             transformStyle: 'preserve-3d'
           }}
           animate={isHovered ? { opacity: 0.95 } : { opacity: 1 }}
