@@ -19,7 +19,7 @@ const Home = () => {
     <div className="min-h-screen">
       {/* Hero Section */}
       <section className="relative overflow-hidden py-20">
-        <div className="absolute inset-0 z-0 opacity-50 pointer-events-none hero-3d-scene">
+        <div className="absolute inset-0 z-0 opacity-30 pointer-events-none hero-3d-scene">
           <Suspense fallback={null}>
             <HeroBackground />
           </Suspense>
@@ -27,7 +27,7 @@ const Home = () => {
         <div className="relative z-10 max-w-4xl mx-auto px-6">
           <motion.div
             className="text-center space-y-8"
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
@@ -43,34 +43,24 @@ const Home = () => {
             )}
 
             <motion.h1
-              className="text-5xl md:text-6xl lg:text-8xl font-black leading-tight tracking-tighter"
-              initial={{ opacity: 0, y: 30 }}
+              className="text-4xl md:text-5xl lg:text-6xl font-bold leading-normal pb-2"
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
-              <span className="text-white">SMARTFIT</span>
-              <span className="text-gradient block mt-1">AI</span>
+              {isAuthenticated ? "Your Journey with" : "Transform Your Body with"}
+              <span className="text-gradient block mt-2 pb-1">
+                {isAuthenticated ? "SmartFit AI" : "SmartFit AI Training"}
+              </span>
             </motion.h1>
 
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 1, delay: 0.4 }}
-              className="relative py-2 px-6 inline-block"
-            >
-              <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full" />
-              <p className="relative text-xl md:text-2xl font-bold tracking-[0.2em] uppercase text-primary">
-                Train Smarter. Become Stronger.
-              </p>
-            </motion.div>
-
             <motion.p
-              className="text-lg md:text-xl leading-relaxed text-gray-400 max-w-2xl mx-auto font-medium"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 1, delay: 0.6 }}
+              className="text-lg md:text-xl leading-relaxed text-gray-300 max-w-prose mx-auto"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
             >
-              The world's most advanced AI-powered personal trainer. Real-time form detection, personalized nutrition, and 24/7 coaching.
+              Experience the future of fitness with personalized workouts, smart nutrition plans, and real-time AI coaching
             </motion.p>
 
             <motion.div
