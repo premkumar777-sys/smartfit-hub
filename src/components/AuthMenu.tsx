@@ -76,14 +76,7 @@ export function AuthMenu() {
   };
 
   if (!user) {
-    return (
-      <Link
-        to="/auth"
-        className="text-gray-300 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4CC9F0] rounded-lg px-3 py-2"
-      >
-        Login
-      </Link>
-    );
+    return null;
   }
 
   const initials = user.username

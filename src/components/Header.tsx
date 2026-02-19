@@ -46,6 +46,10 @@ const menuStructure = [
   {
     label: "Pricing",
     href: "/pricing"
+  },
+  {
+    label: "Contact Us",
+    href: "/contact"
   }
 ];
 
@@ -312,10 +316,7 @@ export function Header() {
                 </Button>
               )}
 
-              {/* Get Started Button - Only for non-authenticated users */}
-              {!isAuthenticated && !isLoading && (
-                <NeonButton href="/auth">Get Started</NeonButton>
-              )}
+              {/* Get Started Button removed per user request */}
 
               {/* Auth Menu */}
               <AuthMenu />
@@ -365,9 +366,7 @@ export function Header() {
                       >
                         My Dashboard
                       </Button>
-                    ) : !isLoading && (
-                      <NeonButton href="/auth" className="w-full">Get Started</NeonButton>
-                    )}
+                    ) : null}
                   </div>
                 </div>
               </MobileMenu>
