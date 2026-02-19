@@ -220,106 +220,106 @@ export function Header() {
               <Logo />
             </div>
 
-            {/* Desktop Navigation */}
-            <div
-              ref={navRef}
-              className="hidden lg:flex items-center space-x-1 relative nav-container"
-              onMouseLeave={handleNavLeave}
-            >
-              {menuStructure.map((item) => {
-                const navKey = item.label.toLowerCase().replace(/\s+/g, '-');
-                const isHovered = hoveredItem === navKey;
-
-                return (
-                  <div key={item.label} className="relative">
-                    {item.hasDropdown ? (
-                      <div
-                        data-nav={navKey}
-                        className={`nav-item-hover ${isHovered ? 'transform scale-105' : ''
-                          }`}
-                        onMouseEnter={(e) => handleItemHover(e.currentTarget)}
-                        onFocus={(e) => handleItemFocus(e.currentTarget)}
-                      >
-                        <div className={`transition-all duration-300 ease-out ${isHovered ? 'drop-shadow-[0_0_8px_rgba(0,255,156,0.4)]' : ''
-                          }`}>
-                          <MegaDropdown
-                            trigger={item.label}
-                            isMega={item.isMega}
-                          >
-                            {renderDropdown(item.dropdown!)}
-                          </MegaDropdown>
-                        </div>
-                      </div>
-                    ) : (
-                      <div
-                        data-nav={navKey}
-                        className={`nav-item-hover ${isHovered ? 'transform scale-105' : ''
-                          }`}
-                        onMouseEnter={(e) => handleItemHover(e.currentTarget)}
-                        onFocus={(e) => handleItemFocus(e.currentTarget)}
-                      >
-                        <div className={`transition-all duration-300 ease-out ${isHovered ? 'drop-shadow-[0_0_8px_rgba(0,255,156,0.4)]' : ''
-                          }`}>
-                          <NavItem
-                            href={item.href}
-                            badge={item.badge}
-                            isActive={item.href ? isActive(item.href) : false}
-                          >
-                            {item.label}
-                          </NavItem>
-                        </div>
-                      </div>
-                    )}
-
-                  </div>
-                );
-              })}
-
-              {/* Sliding Indicator */}
+            {/* Desktop Navigation & Right Side grouped to the right */}
+            <div className="hidden lg:flex items-center space-x-8 ml-auto">
               <div
-                ref={indicatorRef}
-                aria-hidden="true"
-                className={`absolute bottom-0 h-1 rounded-full bg-gradient-to-r from-[#00FF9C] via-[#4CC9F0] to-[#7B2CBF] nav-indicator-enhanced pointer-events-none ${isIndicatorVisible ? 'show' : ''
-                  }`}
-                style={{
-                  left: `${indicatorStyle.left}px`,
-                  width: `${indicatorStyle.width}px`,
-                  transform: indicatorStyle.transform,
-                  boxShadow: isIndicatorVisible ? '0 0 20px rgba(0, 255, 156, 0.6), 0 0 40px rgba(76, 201, 240, 0.4), 0 0 60px rgba(123, 44, 191, 0.3)' : 'none'
-                }}
-              />
+                ref={navRef}
+                className="flex items-center space-x-1 relative nav-container"
+                onMouseLeave={handleNavLeave}
+              >
+                {menuStructure.map((item) => {
+                  const navKey = item.label.toLowerCase().replace(/\s+/g, '-');
+                  const isHovered = hoveredItem === navKey;
 
-              {/* Secondary glow indicator for smoother transitions */}
-              <div
-                aria-hidden="true"
-                className={`absolute bottom-0 h-0.5 rounded-full bg-gradient-to-r from-[#00FF9C]/50 via-[#4CC9F0]/50 to-[#7B2CBF]/50 transition-all pointer-events-none blur-sm ${prefersReducedMotion ? 'duration-0' : isTransitioning ? 'duration-500 ease-out' : 'duration-400 ease-out'
-                  } ${isIndicatorVisible ? 'opacity-60 scale-110' : 'opacity-0 scale-100'}`}
-                style={{
-                  left: `${indicatorStyle.left}px`,
-                  width: `${indicatorStyle.width}px`,
-                  transform: indicatorStyle.transform
-                }}
-              />
-            </div>
+                  return (
+                    <div key={item.label} className="relative">
+                      {item.hasDropdown ? (
+                        <div
+                          data-nav={navKey}
+                          className={`nav-item-hover ${isHovered ? 'transform scale-105' : ''
+                            }`}
+                          onMouseEnter={(e) => handleItemHover(e.currentTarget)}
+                          onFocus={(e) => handleItemFocus(e.currentTarget)}
+                        >
+                          <div className={`transition-all duration-300 ease-out ${isHovered ? 'drop-shadow-[0_0_8px_rgba(0,255,156,0.4)]' : ''
+                            }`}>
+                            <MegaDropdown
+                              trigger={item.label}
+                              isMega={item.isMega}
+                            >
+                              {renderDropdown(item.dropdown!)}
+                            </MegaDropdown>
+                          </div>
+                        </div>
+                      ) : (
+                        <div
+                          data-nav={navKey}
+                          className={`nav-item-hover ${isHovered ? 'transform scale-105' : ''
+                            }`}
+                          onMouseEnter={(e) => handleItemHover(e.currentTarget)}
+                          onFocus={(e) => handleItemFocus(e.currentTarget)}
+                        >
+                          <div className={`transition-all duration-300 ease-out ${isHovered ? 'drop-shadow-[0_0_8px_rgba(0,255,156,0.4)]' : ''
+                            }`}>
+                            <NavItem
+                              href={item.href}
+                              badge={item.badge}
+                              isActive={item.href ? isActive(item.href) : false}
+                            >
+                              {item.label}
+                            </NavItem>
+                          </div>
+                        </div>
+                      )}
 
-            {/* Desktop Right Side */}
-            <div className="hidden lg:flex items-center space-x-4">
+                    </div>
+                  );
+                })}
 
-              {/* My Dashboard Button - Only for logged-in users */}
-              {isAuthenticated && !isLoading && (
-                <Button
-                  variant="outline"
-                  onClick={() => navigate("/dashboard")}
-                  className="border-primary/50 text-primary hover:bg-primary/10 hover:border-primary"
-                >
-                  My Dashboard
-                </Button>
-              )}
+                {/* Sliding Indicator */}
+                <div
+                  ref={indicatorRef}
+                  aria-hidden="true"
+                  className={`absolute bottom-0 h-1 rounded-full bg-gradient-to-r from-[#00FF9C] via-[#4CC9F0] to-[#7B2CBF] nav-indicator-enhanced pointer-events-none ${isIndicatorVisible ? 'show' : ''
+                    }`}
+                  style={{
+                    left: `${indicatorStyle.left}px`,
+                    width: `${indicatorStyle.width}px`,
+                    transform: indicatorStyle.transform,
+                    boxShadow: isIndicatorVisible ? '0 0 20px rgba(0, 255, 156, 0.6), 0 0 40px rgba(76, 201, 240, 0.4), 0 0 60px rgba(123, 44, 191, 0.3)' : 'none'
+                  }}
+                />
 
-              {/* Get Started Button removed per user request */}
+                {/* Secondary glow indicator for smoother transitions */}
+                <div
+                  aria-hidden="true"
+                  className={`absolute bottom-0 h-0.5 rounded-full bg-gradient-to-r from-[#00FF9C]/50 via-[#4CC9F0]/50 to-[#7B2CBF]/50 transition-all pointer-events-none blur-sm ${prefersReducedMotion ? 'duration-0' : isTransitioning ? 'duration-500 ease-out' : 'duration-400 ease-out'
+                    } ${isIndicatorVisible ? 'opacity-60 scale-110' : 'opacity-0 scale-100'}`}
+                  style={{
+                    left: `${indicatorStyle.left}px`,
+                    width: `${indicatorStyle.width}px`,
+                    transform: indicatorStyle.transform
+                  }}
+                />
+              </div>
 
-              {/* Auth Menu */}
-              <AuthMenu />
+              <div className="flex items-center space-x-4">
+                {/* My Dashboard Button - Only for logged-in users */}
+                {isAuthenticated && !isLoading && (
+                  <Button
+                    variant="outline"
+                    onClick={() => navigate("/dashboard")}
+                    className="border-primary/50 text-primary hover:bg-primary/10 hover:border-primary"
+                  >
+                    My Dashboard
+                  </Button>
+                )}
+
+                {/* Get Started Button removed per user request */}
+
+                {/* Auth Menu */}
+                <AuthMenu />
+              </div>
             </div>
 
             {/* Mobile Navigation Toggle */}
