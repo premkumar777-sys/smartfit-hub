@@ -224,7 +224,7 @@ export function Header() {
             <div className="hidden lg:flex items-center space-x-8 ml-auto">
               <div
                 ref={navRef}
-                className="flex items-center space-x-6 relative nav-container"
+                className="flex items-center space-x-1 relative nav-container"
                 onMouseLeave={handleNavLeave}
               >
                 {menuStructure.map((item) => {
@@ -303,9 +303,9 @@ export function Header() {
                 />
               </div>
 
-              {(isAuthenticated && !isLoading) && (
-                <div className="flex items-center space-x-4">
-                  {/* My Dashboard Button - Only for logged-in users */}
+              <div className="flex items-center space-x-4">
+                {/* My Dashboard Button - Only for logged-in users */}
+                {isAuthenticated && !isLoading && (
                   <Button
                     variant="outline"
                     onClick={() => navigate("/dashboard")}
@@ -313,21 +313,13 @@ export function Header() {
                   >
                     My Dashboard
                   </Button>
+                )}
 
-                  {/* Auth Menu */}
-                  <AuthMenu />
+                {/* Get Started Button removed per user request */}
 
-                  {/* Theme Toggle */}
-                  <ThemeToggle />
-                </div>
-              )}
-
-              {/* Theme Toggle for logged out state to cover space */}
-              {!isAuthenticated && (
-                <div className="flex items-center">
-                  <ThemeToggle />
-                </div>
-              )}
+                {/* Auth Menu */}
+                <AuthMenu />
+              </div>
             </div>
 
             {/* Mobile Navigation Toggle */}
