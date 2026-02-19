@@ -1,198 +1,146 @@
 import { Canvas, useFrame } from "@react-three/fiber";
-import { Float, Points, PointMaterial } from "@react-three/drei";
+import { Float } from "@react-three/drei";
 import { useRef, useState, useEffect, useMemo } from "react";
 import * as THREE from "three";
 
-// Dynamic Digital Runner component
-function DigitalRunner({ isMobile }: { isMobile: boolean }) {
-  const groupRef = useRef<THREE.Group>(null);
-  const lineRef = useRef<THREE.LineSegments>(null);
-  const trailsRef = useRef<THREE.Group>(null);
+// Dynamic Neural Network component
+function NeuralNetwork({ isMobile }: { isMobile: boolean }) {
+  const pointsRef = useRef<THREE.Points>(null);
+  const linesRef = useRef<THREE.LineSegments>(null);
+  const count = isMobile ? 40 : 120;
+  const connectionDistance = 3.5;
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
-  // Running animation state
-  const strideRef = useRef(0);
-
-  // Create joints for the silhouette
-  const joints = useMemo(() => {
-    return {
-      head: new THREE.Vector3(0, 1.8, 0),
-      neck: new THREE.Vector3(0, 1.5, 0),
-      shoulderL: new THREE.Vector3(-0.4, 1.4, 0),
-      shoulderR: new THREE.Vector3(0.4, 1.4, 0),
-      elbowL: new THREE.Vector3(-0.6, 1.0, 0),
-      elbowR: new THREE.Vector3(0.6, 1.0, 0),
-      handL: new THREE.Vector3(-0.7, 0.6, 0),
-      handR: new THREE.Vector3(0.7, 0.6, 0),
-      hipL: new THREE.Vector3(-0.2, 0.8, 0),
-      hipR: new THREE.Vector3(0.2, 0.8, 0),
-      kneeL: new THREE.Vector3(-0.25, 0.4, 0),
-      kneeR: new THREE.Vector3(0.25, 0.4, 0),
-      footL: new THREE.Vector3(-0.3, 0, 0),
-      footR: new THREE.Vector3(0.3, 0, 0)
+  useEffect(() => {
+    const handleMouseMove = (event: MouseEvent) => {
+      setMousePosition({
+        x: (event.clientX / window.innerWidth) * 2 - 1,
+        y: -(event.clientY / window.innerHeight) * 2 + 1,
+      });
     };
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
-  const pointPositions = useMemo(() => new Float32Array(Object.keys(joints).length * 3), [joints]);
+  const { positions, velocities, colors } = useMemo(() => {
+    const pos = new Float32Array(count * 3);
+    const vel = new Float32Array(count * 3);
+    const cols = new Float32Array(count * 3);
 
-  useFrame((state, delta) => {
-    strideRef.current += delta * 6; // Running speed
-    const t = strideRef.current;
+    for (let i = 0; i < count; i++) {
+      pos[i * 3] = (Math.random() - 0.5) * 15;
+      pos[i * 3 + 1] = (Math.random() - 0.5) * 10;
+      pos[i * 3 + 2] = (Math.random() - 0.5) * 5;
 
-    // Animation logic - Sine waves to simulate running motion
-    const bounce = Math.abs(Math.sin(t)) * 0.1;
-    const bodyLean = 0.2;
+      vel[i * 3] = (Math.random() - 0.5) * 0.008;
+      vel[i * 3 + 1] = (Math.random() - 0.5) * 0.008;
+      vel[i * 3 + 2] = (Math.random() - 0.5) * 0.008;
 
-    // Update joints based on running cycle
-    // Left side leads when sin(t) is positive
-    const cycleL = Math.sin(t);
-    const cycleR = Math.sin(t + Math.PI);
+      // Colors: primarily #00FF9C (green) and #4CC9F0 (cyan)
+      const color = new THREE.Color(Math.random() > 0.5 ? "#00FF9C" : "#4CC9F0");
+      cols[i * 3] = color.r;
+      cols[i * 3 + 1] = color.g;
+      cols[i * 3 + 2] = color.b;
+    }
+    return { positions: pos, velocities: vel, colors: cols };
+  }, [count]);
 
-    // Neck/Head
-    joints.neck.set(0, 1.5 + bounce, bodyLean);
-    joints.head.set(0, 1.8 + bounce, bodyLean + 0.1);
+  useFrame((state) => {
+    if (!pointsRef.current || !linesRef.current) return;
 
-    // Arms (opposite to legs)
-    joints.shoulderL.set(-0.4, 1.4 + bounce, bodyLean);
-    joints.shoulderR.set(0.4, 1.4 + bounce, bodyLean);
+    const pointsAttr = pointsRef.current.geometry.attributes.position;
+    const linePositions = [];
 
-    joints.elbowL.set(-0.5, 1.0 + bounce, bodyLean - cycleR * 0.5);
-    joints.elbowR.set(0.5, 1.0 + bounce, bodyLean - cycleL * 0.5);
+    for (let i = 0; i < count; i++) {
+      // Update positions based on velocity
+      pointsAttr.array[i * 3] += velocities[i * 3];
+      pointsAttr.array[i * 3 + 1] += velocities[i * 3 + 1];
+      pointsAttr.array[i * 3 + 2] += velocities[i * 3 + 2];
 
-    joints.handL.set(-0.6, 0.7 + bounce, bodyLean - cycleR * 0.8);
-    joints.handR.set(0.6, 0.7 + bounce, bodyLean - cycleL * 0.8);
+      // Boundary bouncing
+      if (Math.abs(pointsAttr.array[i * 3]) > 10) velocities[i * 3] *= -1;
+      if (Math.abs(pointsAttr.array[i * 3 + 1]) > 7) velocities[i * 3 + 1] *= -1;
+      if (Math.abs(pointsAttr.array[i * 3 + 2]) > 5) velocities[i * 3 + 2] *= -1;
 
-    // Legs
-    joints.hipL.set(-0.2, 0.8 + bounce, 0);
-    joints.hipR.set(0.2, 0.8 + bounce, 0);
-
-    // Knee lift
-    joints.kneeL.set(-0.2, 0.4 + bounce + Math.max(0, cycleL) * 0.3, cycleL * 0.6);
-    joints.kneeR.set(0.2, 0.4 + bounce + Math.max(0, cycleR) * 0.3, cycleR * 0.6);
-
-    // Feet
-    joints.footL.set(-0.2, Math.max(0, cycleL) * 0.5, cycleL * 0.9);
-    joints.footR.set(0.2, Math.max(0, cycleR) * 0.5, cycleR * 0.9);
-
-    // Update lines between joints
-    const positions = [];
-    const connections = [
-      ['head', 'neck'],
-      ['neck', 'shoulderL'], ['neck', 'shoulderR'],
-      ['shoulderL', 'elbowL'], ['elbowL', 'handL'],
-      ['shoulderR', 'elbowR'], ['elbowR', 'handR'],
-      ['neck', 'hipL'], ['neck', 'hipR'],
-      ['hipL', 'kneeL'], ['kneeL', 'footL'],
-      ['hipR', 'kneeR'], ['kneeR', 'footR']
-    ];
-
-    connections.forEach(([a, b]) => {
-      const vA = (joints as any)[a];
-      const vB = (joints as any)[b];
-      positions.push(vA.x, vA.y, vA.z, vB.x, vB.y, vB.z);
-    });
-
-    if (lineRef.current) {
-      lineRef.current.geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+      // Mouse interactivity - nodes move away from cursor
+      if (!isMobile) {
+        const dx = pointsAttr.array[i * 3] - mousePosition.x * 10;
+        const dy = pointsAttr.array[i * 3 + 1] - mousePosition.y * 7;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 4) {
+          const force = (4 - dist) / 4;
+          pointsAttr.array[i * 3] += dx * force * 0.05;
+          pointsAttr.array[i * 3 + 1] += dy * force * 0.05;
+        }
+      }
     }
 
-    // Gentle global rotation
-    if (groupRef.current) {
-      groupRef.current.rotation.y = Math.PI * 0.15; // Side view
+    pointsAttr.needsUpdate = true;
+
+    // Generate connections
+    for (let i = 0; i < count; i++) {
+      for (let j = i + 1; j < count; j++) {
+        const dx = pointsAttr.array[i * 3] - pointsAttr.array[j * 3];
+        const dy = pointsAttr.array[i * 3 + 1] - pointsAttr.array[j * 3 + 1];
+        const dz = pointsAttr.array[i * 3 + 2] - pointsAttr.array[j * 3 + 2];
+        const distSq = dx * dx + dy * dy + dz * dz;
+
+        if (distSq < connectionDistance * connectionDistance) {
+          linePositions.push(
+            pointsAttr.array[i * 3], pointsAttr.array[i * 3 + 1], pointsAttr.array[i * 3 + 2],
+            pointsAttr.array[j * 3], pointsAttr.array[j * 3 + 1], pointsAttr.array[j * 3 + 2]
+          );
+        }
+      }
     }
+
+    linesRef.current.geometry.setAttribute(
+      'position',
+      new THREE.Float32BufferAttribute(linePositions, 3)
+    );
   });
 
   return (
-    <group ref={groupRef} position={[0, -1, 0]} scale={isMobile ? 1.5 : 2.2}>
-      {/* High-glow lines */}
-      <lineSegments ref={lineRef}>
+    <group>
+      <PointsComponent count={count} positions={positions} colors={colors} pointsRef={pointsRef} />
+      <lineSegments ref={linesRef}>
         <bufferGeometry />
         <lineBasicMaterial
-          color="#00FF9C"
-          linewidth={2}
+          color="#4CC9F0"
           transparent
-          opacity={0.8}
+          opacity={0.15}
           blending={THREE.AdditiveBlending}
+          depthWrite={false}
         />
       </lineSegments>
-
-      {/* Joint glow points */}
-      <Points range={Object.keys(joints).length}>
-        <PointMaterial
-          transparent
-          vertexColors
-          size={isMobile ? 0.4 : 0.6}
-          sizeAttenuation={true}
-          depthWrite={false}
-          blending={THREE.AdditiveBlending}
-        />
-      </Points>
-
-      {/* Energy trail particles */}
-      <RunnerTrails count={isMobile ? 50 : 150} />
     </group>
   );
 }
 
-// Particle trails behind the runner
-function RunnerTrails({ count }: { count: number }) {
-  const pointsRef = useRef<THREE.Points>(null);
-
-  const particles = useMemo(() => {
-    const pos = new Float32Array(count * 3);
-    const vel = new Float32Array(count * 3);
-    const life = new Float32Array(count);
-
-    for (let i = 0; i < count; i++) {
-      resetParticle(pos, vel, life, i);
-    }
-    return { pos, vel, life };
-  }, [count]);
-
-  function resetParticle(pos: Float32Array, vel: Float32Array, life: Float32Array, i: number) {
-    pos[i * 3] = (Math.random() - 0.5) * 0.5;
-    pos[i * 3 + 1] = Math.random() * 2;
-    pos[i * 3 + 2] = Math.random() * 0.5;
-
-    vel[i * 3] = (Math.random() - 0.5) * 0.05;
-    vel[i * 3 + 1] = (Math.random() - 0.5) * 0.02;
-    vel[i * 3 + 2] = -Math.random() * 0.1 - 0.05; // Move backwards
-
-    life[i] = Math.random();
-  }
-
-  useFrame((state, delta) => {
-    if (!pointsRef.current) return;
-    const posAttr = pointsRef.current.geometry.attributes.position;
-
-    for (let i = 0; i < count; i++) {
-      particles.life[i] -= delta * 0.5;
-
-      posAttr.array[i * 3] += particles.vel[i * 3];
-      posAttr.array[i * 3 + 1] += particles.vel[i * 3 + 1];
-      posAttr.array[i * 3 + 2] += particles.vel[i * 3 + 2];
-
-      if (particles.life[i] <= 0) {
-        resetParticle(posAttr.array as any, particles.vel, particles.life, i);
-      }
-    }
-    posAttr.needsUpdate = true;
-  });
-
+// Separate component for points to optimize rendering
+function PointsComponent({ count, positions, colors, pointsRef }: any) {
   return (
     <points ref={pointsRef}>
       <bufferGeometry>
         <bufferAttribute
           attach="attributes-position"
           count={count}
-          array={particles.pos}
+          array={positions}
+          itemSize={3}
+        />
+        <bufferAttribute
+          attach="attributes-color"
+          count={count}
+          array={colors}
           itemSize={3}
         />
       </bufferGeometry>
       <pointsMaterial
-        size={0.05}
-        color="#4CC9F0"
+        size={0.12}
+        vertexColors
         transparent
-        opacity={0.4}
+        opacity={0.6}
+        sizeAttenuation
         blending={THREE.AdditiveBlending}
         depthWrite={false}
       />
@@ -201,25 +149,26 @@ function RunnerTrails({ count }: { count: number }) {
 }
 
 function Scene({ isMobile }: { isMobile: boolean }) {
+  const groupRef = useRef<THREE.Group>(null);
+
+  useFrame((state) => {
+    if (groupRef.current) {
+      // Subtle group rotation
+      groupRef.current.rotation.y = state.clock.elapsedTime * 0.05;
+      groupRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.1) * 0.1;
+    }
+  });
+
   return (
     <>
-      <ambientLight intensity={0.2} />
-      <pointLight position={[10, 10, 10]} intensity={1.5} color="#00FF9C" />
-      <pointLight position={[-10, -10, -10]} intensity={1} color="#4CC9F0" />
+      <ambientLight intensity={0.4} />
+      <pointLight position={[10, 10, 10]} intensity={1} color="#00FF9C" />
+      <pointLight position={[-10, -10, -10]} intensity={0.5} color="#4CC9F0" />
 
-      {/* Cinematic bloom-like background grid */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -2, 0]}>
-        <planeGeometry args={[100, 100, 50, 50]} />
-        <meshStandardMaterial
-          color="#00FF9C"
-          wireframe
-          transparent
-          opacity={0.03}
-        />
-      </mesh>
-
-      <Float speed={1.5} rotationIntensity={0.2} floatIntensity={0.2}>
-        <DigitalRunner isMobile={isMobile} />
+      <Float speed={2} rotationIntensity={0.5} floatIntensity={0.5}>
+        <group ref={groupRef}>
+          <NeuralNetwork isMobile={isMobile} />
+        </group>
       </Float>
     </>
   );
@@ -236,13 +185,13 @@ export default function Hero3DScene() {
   }, []);
 
   return (
-    <div className="w-full h-full bg-[#0a0a0a]">
+    <div className="w-full h-full">
       <Canvas
-        camera={{ position: [0, 0, 8], fov: 45 }}
+        camera={{ position: [0, 0, 12], fov: 45 }}
         gl={{
-          antialias: true,
+          antialias: !isMobile,
           alpha: true,
-          powerPreference: "high-performance"
+          powerPreference: isMobile ? "low-power" : "high-performance"
         }}
         dpr={isMobile ? [1, 1] : [1, 2]}
       >
