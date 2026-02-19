@@ -221,10 +221,10 @@ export function Header() {
             </div>
 
             {/* Desktop Navigation & Right Side grouped to the right */}
-            <div className="hidden lg:flex items-center ml-auto">
+            <div className="hidden lg:flex items-center space-x-8 ml-auto">
               <div
                 ref={navRef}
-                className="flex items-center space-x-12 relative nav-container"
+                className="flex items-center space-x-6 relative nav-container"
                 onMouseLeave={handleNavLeave}
               >
                 {menuStructure.map((item) => {
@@ -317,14 +317,14 @@ export function Header() {
                   {/* Auth Menu */}
                   <AuthMenu />
 
-                  {/* Theme Toggle - Keep it at the end but tucked in */}
+                  {/* Theme Toggle */}
                   <ThemeToggle />
                 </div>
               )}
 
-              {/* Theme Toggle for logged out state */}
+              {/* Theme Toggle for logged out state to cover space */}
               {!isAuthenticated && (
-                <div className="flex items-center ml-12">
+                <div className="flex items-center">
                   <ThemeToggle />
                 </div>
               )}
