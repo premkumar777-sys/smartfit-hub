@@ -313,9 +313,9 @@ export function Header() {
               )}
 
               {/* Get Started Button - Only for non-authenticated users */}
-              {/* {!isAuthenticated && !isLoading && (
+              {!isAuthenticated && !isLoading && (
                 <NeonButton href="/auth">Get Started</NeonButton>
-              )} */}
+              )}
 
               {/* Auth Menu */}
               <AuthMenu />
@@ -365,9 +365,9 @@ export function Header() {
                       >
                         My Dashboard
                       </Button>
-                    ) : null /* !isLoading && (
+                    ) : !isLoading && (
                       <NeonButton href="/auth" className="w-full">Get Started</NeonButton>
-                    ) */}
+                    )}
                   </div>
                 </div>
               </MobileMenu>

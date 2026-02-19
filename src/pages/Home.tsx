@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Zap, Bot, Brain, Eye, BarChart3, Utensils, Calendar, QrCode, Trophy, Wrench, Sparkles, LineChart, Laptop, Calculator } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Suspense, lazy, useState, useEffect } from "react";
+import { Suspense, lazy } from "react";
 import { FeatureCard } from "@/components/FeatureCard";
 import { useAuth } from "@/hooks/use-auth";
 import "@/styles/feature-card.css";
@@ -11,28 +11,6 @@ import { HowItWorksCarousel } from "@/components/HowItWorksCarousel";
 import { toast } from "sonner";
 
 const HeroBackground = lazy(() => import("@/components/Hero3DScene"));
-
-const TypewriterText = ({ text, delay = 80 }: { text: string; delay?: number }) => {
-  const [displayText, setDisplayText] = useState("");
-  const [currentIndex, setCurrentIndex] = useState(0);
-
-  useEffect(() => {
-    if (currentIndex < text.length) {
-      const timeout = setTimeout(() => {
-        setDisplayText((prev) => prev + text[currentIndex]);
-        setCurrentIndex((prev) => prev + 1);
-      }, delay);
-      return () => clearTimeout(timeout);
-    }
-  }, [currentIndex, delay, text]);
-
-  return (
-    <span>
-      {displayText}
-      <span className="ml-1 inline-block w-[2px] h-[0.8em] bg-primary cursor-blink align-middle" />
-    </span>
-  );
-};
 
 const Home = () => {
   const { user, isAuthenticated } = useAuth();
@@ -65,12 +43,15 @@ const Home = () => {
             )}
 
             <motion.h1
-              className="text-4xl md:text-5xl lg:text-7xl font-black leading-tight pb-2"
+              className="text-4xl md:text-5xl lg:text-6xl font-bold leading-normal pb-2"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
-              <TypewriterText text="SmartFit AI Training" />
+              {isAuthenticated ? "Your Journey with" : "Transform Your Body with"}
+              <span className="text-gradient block mt-2 pb-1">
+                {isAuthenticated ? "SmartFit AI" : "SmartFit AI Training"}
+              </span>
             </motion.h1>
 
             <motion.p
@@ -82,7 +63,7 @@ const Home = () => {
               Experience the future of fitness with personalized workouts, smart nutrition plans, and real-time AI coaching
             </motion.p>
 
-            {/* <motion.div
+            <motion.div
               className="flex flex-col sm:flex-row gap-4 justify-center pt-4"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -120,7 +101,7 @@ const Home = () => {
                   </Button>
                 </>
               )}
-            </motion.div> */}
+            </motion.div>
 
             {/* Stats - only show for non-authenticated users */}
             {!isAuthenticated && (
@@ -338,11 +319,11 @@ const Home = () => {
             <p className="text-lg md:text-xl leading-relaxed text-gray-300 mb-8 max-w-prose mx-auto">
               Start your fitness journey today with personalized AI-powered training and nutrition plans
             </p>
-            {/* <Button asChild variant="hero" size="xl">
+            <Button asChild variant="hero" size="xl">
               <Link to="/auth">
                 Continue to Dashboard <ArrowRight className="ml-2" />
               </Link>
-            </Button> */}
+            </Button>
             <div className="mt-6 space-y-2">
               <p className="text-sm text-muted-foreground">🔒 Your data is securely stored.</p>
               <p className="text-sm text-muted-foreground">✓ Protected login recommended for all users.</p>
