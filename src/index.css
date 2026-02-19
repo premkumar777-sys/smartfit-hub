@@ -216,11 +216,3 @@ All colors MUST be HSL.
   }
 
 }
-@keyframes typewriter-blink {
-  from, to { opacity: 1; }
-  50% { opacity: 0; }
-}
-
-.cursor-blink {
-  animation: typewriter-blink 1s step-end infinite;
-}
