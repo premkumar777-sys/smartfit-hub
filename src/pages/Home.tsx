@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Zap, Bot, Brain, Eye, BarChart3, Utensils, Calendar, QrCode, Trophy, Wrench, Sparkles, LineChart, Laptop, Calculator } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -12,6 +13,28 @@ import { toast } from "sonner";
 
 const HeroBackground = lazy(() => import("@/components/Hero3DScene"));
 
+const TypewriterText = ({ text, delay = 80 }: { text: string; delay?: number }) => {
+  const [displayText, setDisplayText] = useState("");
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    if (currentIndex < text.length) {
+      const timeout = setTimeout(() => {
+        setDisplayText((prev) => prev + text[currentIndex]);
+        setCurrentIndex((prev) => prev + 1);
+      }, delay);
+      return () => clearTimeout(timeout);
+    }
+  }, [currentIndex, delay, text]);
+
+  return (
+    <span>
+      {displayText}
+      <span className="ml-1 inline-block w-[2px] h-[0.8em] bg-primary cursor-blink align-middle" />
+    </span>
+  );
+};
+
 const Home = () => {
   const { user, isAuthenticated } = useAuth();
 
@@ -19,7 +42,7 @@ const Home = () => {
     <div className="min-h-screen">
       {/* Hero Section */}
       <section className="relative overflow-hidden py-20">
-        <div className="absolute inset-0 z-0 opacity-30 pointer-events-none hero-3d-scene">
+        <div className="absolute inset-0 z-0 opacity-40 pointer-events-none hero-3d-scene">
           <Suspense fallback={null}>
             <HeroBackground />
           </Suspense>
@@ -43,15 +66,12 @@ const Home = () => {
             )}
 
             <motion.h1
-              className="text-4xl md:text-5xl lg:text-6xl font-bold leading-normal pb-2"
+              className="text-4xl md:text-5xl lg:text-7xl font-black leading-tight pb-2"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
-              {isAuthenticated ? "Your Journey with" : "Transform Your Body with"}
-              <span className="text-gradient block mt-2 pb-1">
-                {isAuthenticated ? "SmartFit AI" : "SmartFit AI Training"}
-              </span>
+              <TypewriterText text="SmartFit AI Training" />
             </motion.h1>
 
             <motion.p
