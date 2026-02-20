@@ -206,7 +206,7 @@ export function Header() {
   return (
     <>
       <header
-        className={`sticky top-0 z-50 backdrop-blur-sm bg-white/5 border-b border-gray-800 transition-all duration-300 ${isScrolled ? "py-2 shadow-md" : "py-4"
+        className={`sticky top-0 z-50 backdrop-blur-sm bg-background border-b border-white/10 transition-all duration-300 ${isScrolled ? "py-2 shadow-md" : "py-4"
           }`}
       >
         <nav
