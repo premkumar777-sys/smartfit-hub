@@ -14,17 +14,36 @@ const HeroBackground = lazy(() => import("@/components/Hero3DScene"));
 
 const TypewriterText = ({ text, delay = 80 }: { text: string; delay?: number }) => {
   const [displayText, setDisplayText] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
-    if (currentIndex < text.length) {
-      const timeout = setTimeout(() => {
+    let timeout: NodeJS.Timeout;
+
+    if (!isDeleting && currentIndex < text.length) {
+      // Typing phase
+      timeout = setTimeout(() => {
         setDisplayText((prev) => prev + text[currentIndex]);
         setCurrentIndex((prev) => prev + 1);
       }, delay);
-      return () => clearTimeout(timeout);
+    } else if (!isDeleting && currentIndex === text.length) {
+      // Waiting phase (full text typed)
+      timeout = setTimeout(() => {
+        setIsDeleting(true);
+      }, 2000);
+    } else if (isDeleting && currentIndex > 0) {
+      // Deleting phase
+      timeout = setTimeout(() => {
+        setDisplayText((prev) => prev.slice(0, -1));
+        setCurrentIndex((prev) => prev - 1);
+      }, delay / 2); // Deleting is faster
+    } else if (isDeleting && currentIndex === 0) {
+      // Done deleting, restart loop
+      setIsDeleting(false);
     }
-  }, [currentIndex, delay, text]);
+
+    return () => clearTimeout(timeout);
+  }, [currentIndex, isDeleting, delay, text]);
 
   return (
     <span>
