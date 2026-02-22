@@ -9,7 +9,7 @@ import { toast } from "sonner";
 
 // Duration mapping for plans based on amount
 const PLAN_DURATIONS: Record<string, number> = {
-    "99": 30,    // 1 month
+    "79": 30,    // 1 month
     "399": 180,  // 6 months  
     "699": 365,  // 1 year
 };
@@ -62,7 +62,7 @@ export default function PaymentSuccess() {
 
                 const planId = plan?.id || "premium";
 
-                // Determine subscription duration (default 30 days for ₹99)
+                // Determine subscription duration (default 30 days for ₹79)
                 // In production, you'd verify the amount from Instamojo API
                 const durationDays = 30; // Default to 1 month
 

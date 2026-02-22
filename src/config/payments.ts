@@ -23,10 +23,10 @@ export const PRO_PLANS: PaymentPlan[] = [
     {
         id: "intro",
         name: "Intro Offer",
-        price: "₹99",
+        price: "₹79",
         period: "1st month",
-        link: "https://imjo.in/JhTfuQ",
-        badge: "Best Value"
+        link: "https://imjo.in/KHh48R",
+
     },
     {
         id: "semiannual",
@@ -40,7 +40,8 @@ export const PRO_PLANS: PaymentPlan[] = [
         name: "Yearly",
         price: "₹699",
         period: "per year",
-        link: "https://imjo.in/fMMzWK"
+        link: "https://imjo.in/fMMzWK",
+        badge: "Best Value",
     }
 ];
 
