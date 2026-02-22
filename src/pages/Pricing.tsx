@@ -25,8 +25,8 @@ const tiers = [
     },
     {
         name: "Pro",
-        price: "499",
-        period: "per month",
+        price: "399",
+        period: "per 6 months",
         description: "Advanced AI-powered coaching for individual power users",
         icon: Sparkles,
         color: "from-[#00FF9C] to-[#4CC9F0]",
