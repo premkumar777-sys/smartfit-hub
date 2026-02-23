@@ -234,7 +234,6 @@ const Home = () => {
                 title: "AI Personal Trainer",
                 description: "24/7 AI Chat expert for personalized fitness advice, form tips, and nutrition guidance",
                 link: "/ai-trainer",
-                badge: "PRO",
                 isPremium: true
               },
               {
@@ -242,7 +241,6 @@ const Home = () => {
                 title: "AI Workout Generator",
                 description: "Professional, AI-crafted training programs tailored to your goals and fitness level",
                 link: "/ai-workout",
-                badge: "PRO",
                 isPremium: true
               },
               {
@@ -250,7 +248,6 @@ const Home = () => {
                 title: "Real-Time Form Detection",
                 description: "Computer vision technology analyzes your form and provides instant feedback",
                 link: "/workout-session",
-                badge: "PRO",
                 isPremium: true
               },
               {
@@ -258,7 +255,6 @@ const Home = () => {
                 title: "3D Trainer Mode",
                 description: "Follow animated 3D demonstrations with voice coaching – no camera required",
                 link: "/3d-trainer",
-                badge: "PRO",
                 isPremium: true
               },
               {
@@ -266,14 +262,12 @@ const Home = () => {
                 title: "Smart Progress Dashboard",
                 description: "Comprehensive analytics tracking your fitness journey and achievements",
                 link: "/progress",
-                badge: "FREE"
               },
               {
                 icon: Utensils,
                 title: "Nutrition & Macro AI",
                 description: "AI-powered meal planning with precise macro calculations",
                 link: "/nutrition",
-                badge: "PRO",
                 isPremium: true
               },
               {
@@ -281,7 +275,6 @@ const Home = () => {
                 title: "Home Workouts",
                 description: "Complete 6-day workout plan you can do anywhere – no equipment needed",
                 link: "/home-workouts",
-                badge: "FREE"
               },
               {
                 icon: QrCode,
@@ -298,7 +291,6 @@ const Home = () => {
                 title: "Gamified Training System",
                 description: "Earn rewards, unlock achievements, and compete with friends",
                 link: "/gamification",
-                badge: "FREE"
               },
               {
                 icon: Wrench,
@@ -326,7 +318,6 @@ const Home = () => {
                 title: "BMI Calculator",
                 description: "Calculate your BMI with gender-specific healthy ranges and personalized feedback",
                 link: "/bmi-calculator",
-                badge: "FREE"
               },
             ].map((feature, index) => (
               <FeatureCard

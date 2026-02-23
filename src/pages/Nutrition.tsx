@@ -6,7 +6,6 @@ import { Container } from "@/components/Container";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { BusinessPremiumLock } from "@/components/BusinessPremiumLock";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, TrendingUp, Info, Scale, Ruler, User, Target, Zap, Waves, Sparkles, Flame, Activity as ActivityIcon, TrendingDown } from "lucide-react";
@@ -187,191 +186,184 @@ export default function Nutrition() {
             </p>
           </div>
 
-          <BusinessPremiumLock
-            lockType="business"
-            title="Unlock Metabolic Mastery"
-            description="Access deep physiological analytics and personalized nutrition routing."
-            features={["Metabolic Adaptation Tracking", "Macro Cycling Protocol", "AI Meal Planning"]}
-          >
-            <div className="grid lg:grid-cols-12 gap-8 mt-12">
-              {/* Inputs Column */}
-              {/* Inputs Column - Biological Signature UI */}
-              <div className="lg:col-span-12">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between px-2">
-                    <div className="space-y-1">
-                      <h3 className="text-sm font-black uppercase tracking-[0.3em] text-white">Biological Signature</h3>
-                      <p className="text-[10px] text-muted-foreground uppercase tracking-widest opacity-60">Configure physiological baseline</p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div className="group relative bg-white/5 border border-white/10 rounded-3xl p-6 transition-all hover:bg-white/10 hover:border-primary/30">
-                      <div className="absolute top-4 right-4 text-primary/20 group-hover:text-primary transition-colors">
-                        <User className="w-5 h-5" />
-                      </div>
-                      <Label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-bold mb-2 block">Years / Age</Label>
-                      <Input
-                        type="number"
-                        value={age}
-                        onChange={(e) => setAge(e.target.value)}
-                        className="bg-transparent border-none text-4xl font-black p-0 h-auto focus-visible:ring-0 text-white tabular-nums"
-                      />
-                    </div>
-
-                    <div className="group relative bg-white/5 border border-white/10 rounded-3xl p-6 transition-all hover:bg-white/10 hover:border-primary/30">
-                      <div className="absolute top-4 right-4 text-primary/20 group-hover:text-primary transition-colors">
-                        <Scale className="w-5 h-5" />
-                      </div>
-                      <Label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-bold mb-2 block">Mass / Weight (kg)</Label>
-                      <Input
-                        type="number"
-                        value={weight}
-                        onChange={(e) => setWeight(e.target.value)}
-                        className="bg-transparent border-none text-4xl font-black p-0 h-auto focus-visible:ring-0 text-white tabular-nums"
-                      />
-                    </div>
-
-                    <div className="group relative bg-white/5 border border-white/10 rounded-3xl p-6 transition-all hover:bg-white/10 hover:border-primary/30">
-                      <div className="absolute top-4 right-4 text-primary/20 group-hover:text-primary transition-colors">
-                        <Ruler className="w-5 h-5" />
-                      </div>
-                      <Label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-bold mb-2 block">Stature / Height (cm)</Label>
-                      <Input
-                        type="number"
-                        value={height}
-                        onChange={(e) => setHeight(e.target.value)}
-                        className="bg-transparent border-none text-4xl font-black p-0 h-auto focus-visible:ring-0 text-white tabular-nums"
-                      />
-                    </div>
-
-                    <button
-                      onClick={handleUpdatePlan}
-                      disabled={isUpdating}
-                      className="group relative h-full min-h-[100px] flex flex-col items-center justify-center bg-primary rounded-3xl transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50 overflow-hidden shadow-[0_0_30px_rgba(var(--primary),0.2)]"
-                    >
-                      <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent pointer-events-none" />
-                      <div className="relative z-10 flex flex-col items-center gap-2">
-                        {isUpdating ? (
-                          <Loader2 className="animate-spin w-8 h-8 text-black" />
-                        ) : (
-                          <>
-                            <Zap className="w-6 h-6 text-black group-hover:animate-pulse" />
-                            <span className="text-sm font-black text-black uppercase tracking-tighter">Activate Metabolic Mastery</span>
-                          </>
-                        )}
-                      </div>
-                    </button>
+          <div className="grid lg:grid-cols-12 gap-8 mt-12">
+            {/* Inputs Column */}
+            {/* Inputs Column - Biological Signature UI */}
+            <div className="lg:col-span-12">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between px-2">
+                  <div className="space-y-1">
+                    <h3 className="text-sm font-black uppercase tracking-[0.3em] text-white">Biological Signature</h3>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-widest opacity-60">Configure physiological baseline</p>
                   </div>
                 </div>
-              </div>
 
-              {/* Advanced Config - Operational Directives & Metabolic Flux */}
-              <div className="lg:col-span-4 space-y-6">
-                <Card className="bg-black/40 border-white/5 backdrop-blur-xl shadow-2xl overflow-hidden rounded-[2.5rem] border-none ring-1 ring-white/10">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-black text-white/40 uppercase tracking-[0.3em] flex items-center justify-between">
-                      Operational Directives
-                      <Target className="w-4 h-4 text-primary" />
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="grid grid-cols-1 gap-3">
-                      {[
-                        { id: 'cut', label: 'Caloric Deficit', sub: 'Protocol: Lipid Oxidation', icon: <TrendingDown className="w-4 h-4" /> },
-                        { id: 'recomp', label: 'Maintenance', sub: 'Protocol: Metabolic Stasis', icon: <ActivityIcon className="w-4 h-4" /> },
-                        { id: 'bulk', label: 'Lean Bulk', sub: 'Protocol: Tissue Synthesis', icon: <TrendingUp className="w-4 h-4" /> }
-                      ].map((item) => (
-                        <button
-                          key={item.id}
-                          onClick={() => setGoal(item.id as Goal)}
-                          className={`group relative p-4 rounded-2xl border transition-all duration-300 text-left overflow-hidden ${goal === item.id
-                            ? "bg-primary/20 border-primary text-white shadow-[0_0_20px_rgba(var(--primary),0.1)]"
-                            : "bg-white/5 border-white/5 text-muted-foreground hover:bg-white/10 hover:border-white/20"
-                            }`}
-                        >
-                          <div className={`absolute top-0 left-0 w-1 h-full transition-all ${goal === item.id ? "bg-primary" : "bg-transparent"}`} />
-                          <div className="flex items-center justify-between relative z-10">
-                            <div className="space-y-1">
-                              <p className={`text-xs font-black uppercase tracking-widest ${goal === item.id ? "text-primary" : "text-white/40"}`}>{item.label}</p>
-                              <p className="text-[10px] opacity-60 font-medium">{item.sub}</p>
-                            </div>
-                            <div className={`p-2 rounded-xl transition-all ${goal === item.id ? "bg-primary text-black" : "bg-white/5 text-white/20"}`}>
-                              {item.icon}
-                            </div>
-                          </div>
-                        </button>
-                      ))}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="group relative bg-white/5 border border-white/10 rounded-3xl p-6 transition-all hover:bg-white/10 hover:border-primary/30">
+                    <div className="absolute top-4 right-4 text-primary/20 group-hover:text-primary transition-colors">
+                      <User className="w-5 h-5" />
                     </div>
-
-                    <div className="pt-6 mt-4 border-t border-white/5">
-                      <Label className="text-[10px] uppercase tracking-[0.4em] text-white/40 mb-4 block font-black">Metabolic Flux Level</Label>
-                      <div className="grid grid-cols-5 gap-1.5 p-1 bg-white/5 rounded-2xl border border-white/5">
-                        {(['sedentary', 'light', 'moderate', 'active', 'athlete'] as Activity[]).map((level, i) => (
-                          <button
-                            key={level}
-                            onClick={() => setActivity(level)}
-                            className={`h-10 rounded-xl flex flex-col items-center justify-center transition-all ${activity === level
-                              ? "bg-primary text-black shadow-lg"
-                              : "text-white/40 hover:bg-white/10 hover:text-white"
-                              }`}
-                          >
-                            <span className="text-[10px] font-black">{i + 1}</span>
-                            <div className={`w-1 h-1 rounded-full mt-0.5 ${activity === level ? "bg-black" : "bg-white/20"}`} />
-                          </button>
-                        ))}
-                      </div>
-                      <div className="flex justify-between mt-2 px-1">
-                        <span className="text-[9px] uppercase tracking-widest text-white/20 font-bold">Base</span>
-                        <span className="text-[9px] uppercase tracking-widest text-primary font-black">{activity.toUpperCase()}</span>
-                        <span className="text-[9px] uppercase tracking-widest text-white/20 font-bold">Peak</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Visual Results Dashboard */}
-              <div className="lg:col-span-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
-                  {/* Calories Highlight */}
-                  <Card className="bg-primary/5 border-primary/20 backdrop-blur-md rounded-[2.5rem] relative overflow-hidden md:col-span-2 p-8 flex flex-col items-center justify-center text-center">
-                    <Waves className="absolute bottom-0 left-0 w-full h-32 text-primary/10 -mb-8 pointer-events-none" />
-                    <div className="relative z-10 space-y-2">
-                      <p className="text-xs font-black uppercase tracking-[0.4em] text-primary">Daily Energy Target</p>
-                      <h2 className="text-8xl font-black text-white tracking-tighter tabular-nums drop-shadow-[0_0_30px_rgba(var(--primary),0.3)]">
-                        {result?.calories || 0}
-                      </h2>
-                      <p className="text-sm font-medium text-white/40 uppercase tracking-widest">Kilocalories / Protocol Day</p>
-                    </div>
-                  </Card>
-
-                  {/* Macro Breakdown */}
-                  <div className="md:grid md:grid-cols-3 gap-4 md:col-span-2">
-                    <MetricBox label="Basal (BMR)" value={result?.bmr || 0} unit="kcal" sub="Absolute minimum" icon={<Zap className="w-4 h-4" />} />
-                    <MetricBox label="Maintenance" value={result?.tdee || 0} unit="kcal" sub="Energy balance" icon={<Waves className="w-4 h-4" />} />
-                    <MetricBox label="Protein" value={result?.protein || 0} unit="g" sub="Structure & Growth" icon={<Scale className="w-4 h-4" />} color="text-blue-400" />
-                    <MetricBox label="Carbohydrates" value={result?.carbs || 0} unit="g" sub="Energy Output" icon={<Zap className="w-4 h-4" />} color="text-orange-400" />
-                    <MetricBox label="Lipids (Fats)" value={result?.fats || 0} unit="g" sub="Cellular Integrity" icon={<Waves className="w-4 h-4" />} color="text-yellow-400" />
-                    <MetricBox label="Fiber" value={Math.round((result?.calories || 2000) / 100 * 1.5)} unit="g" sub="System Optimization" icon={<Info className="w-4 h-4" />} />
+                    <Label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-bold mb-2 block">Years / Age</Label>
+                    <Input
+                      type="number"
+                      value={age}
+                      onChange={(e) => setAge(e.target.value)}
+                      className="bg-transparent border-none text-4xl font-black p-0 h-auto focus-visible:ring-0 text-white tabular-nums"
+                    />
                   </div>
-                </div>
-              </div>
 
-              {/* Bottom Tip */}
-              <div className="lg:col-span-12 p-8 rounded-[2rem] bg-gradient-to-r from-neutral-900 to-black border border-white/5 flex flex-col md:flex-row items-center gap-8 shadow-2xl">
-                <div className="w-20 h-20 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
-                  <Sparkles className="w-10 h-10 text-primary animate-pulse" />
-                </div>
-                <div className="space-y-2">
-                  <h4 className="text-xl font-black text-white tracking-tight">AI Synergy Insight</h4>
-                  <p className="text-sm text-muted-foreground leading-relaxed max-w-3xl">
-                    Your Calculated Intelligence Targets are now ready. Use the <strong>AI Core Analyzer</strong> at the top of this terminal to scan meals. The assistant will help you match these protocols by providing instant macro data for any input.
-                  </p>
+                  <div className="group relative bg-white/5 border border-white/10 rounded-3xl p-6 transition-all hover:bg-white/10 hover:border-primary/30">
+                    <div className="absolute top-4 right-4 text-primary/20 group-hover:text-primary transition-colors">
+                      <Scale className="w-5 h-5" />
+                    </div>
+                    <Label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-bold mb-2 block">Mass / Weight (kg)</Label>
+                    <Input
+                      type="number"
+                      value={weight}
+                      onChange={(e) => setWeight(e.target.value)}
+                      className="bg-transparent border-none text-4xl font-black p-0 h-auto focus-visible:ring-0 text-white tabular-nums"
+                    />
+                  </div>
+
+                  <div className="group relative bg-white/5 border border-white/10 rounded-3xl p-6 transition-all hover:bg-white/10 hover:border-primary/30">
+                    <div className="absolute top-4 right-4 text-primary/20 group-hover:text-primary transition-colors">
+                      <Ruler className="w-5 h-5" />
+                    </div>
+                    <Label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-bold mb-2 block">Stature / Height (cm)</Label>
+                    <Input
+                      type="number"
+                      value={height}
+                      onChange={(e) => setHeight(e.target.value)}
+                      className="bg-transparent border-none text-4xl font-black p-0 h-auto focus-visible:ring-0 text-white tabular-nums"
+                    />
+                  </div>
+
+                  <button
+                    onClick={handleUpdatePlan}
+                    disabled={isUpdating}
+                    className="group relative h-full min-h-[100px] flex flex-col items-center justify-center bg-primary rounded-3xl transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50 overflow-hidden shadow-[0_0_30px_rgba(var(--primary),0.2)]"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent pointer-events-none" />
+                    <div className="relative z-10 flex flex-col items-center gap-2">
+                      {isUpdating ? (
+                        <Loader2 className="animate-spin w-8 h-8 text-black" />
+                      ) : (
+                        <>
+                          <Zap className="w-6 h-6 text-black group-hover:animate-pulse" />
+                          <span className="text-sm font-black text-black uppercase tracking-tighter">Activate Metabolic Mastery</span>
+                        </>
+                      )}
+                    </div>
+                  </button>
                 </div>
               </div>
             </div>
-          </BusinessPremiumLock>
+
+            {/* Advanced Config - Operational Directives & Metabolic Flux */}
+            <div className="lg:col-span-4 space-y-6">
+              <Card className="bg-black/40 border-white/5 backdrop-blur-xl shadow-2xl overflow-hidden rounded-[2.5rem] border-none ring-1 ring-white/10">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-black text-white/40 uppercase tracking-[0.3em] flex items-center justify-between">
+                    Operational Directives
+                    <Target className="w-4 h-4 text-primary" />
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="grid grid-cols-1 gap-3">
+                    {[
+                      { id: 'cut', label: 'Caloric Deficit', sub: 'Protocol: Lipid Oxidation', icon: <TrendingDown className="w-4 h-4" /> },
+                      { id: 'recomp', label: 'Maintenance', sub: 'Protocol: Metabolic Stasis', icon: <ActivityIcon className="w-4 h-4" /> },
+                      { id: 'bulk', label: 'Lean Bulk', sub: 'Protocol: Tissue Synthesis', icon: <TrendingUp className="w-4 h-4" /> }
+                    ].map((item) => (
+                      <button
+                        key={item.id}
+                        onClick={() => setGoal(item.id as Goal)}
+                        className={`group relative p-4 rounded-2xl border transition-all duration-300 text-left overflow-hidden ${goal === item.id
+                          ? "bg-primary/20 border-primary text-white shadow-[0_0_20px_rgba(var(--primary),0.1)]"
+                          : "bg-white/5 border-white/5 text-muted-foreground hover:bg-white/10 hover:border-white/20"
+                          }`}
+                      >
+                        <div className={`absolute top-0 left-0 w-1 h-full transition-all ${goal === item.id ? "bg-primary" : "bg-transparent"}`} />
+                        <div className="flex items-center justify-between relative z-10">
+                          <div className="space-y-1">
+                            <p className={`text-xs font-black uppercase tracking-widest ${goal === item.id ? "text-primary" : "text-white/40"}`}>{item.label}</p>
+                            <p className="text-[10px] opacity-60 font-medium">{item.sub}</p>
+                          </div>
+                          <div className={`p-2 rounded-xl transition-all ${goal === item.id ? "bg-primary text-black" : "bg-white/5 text-white/20"}`}>
+                            {item.icon}
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="pt-6 mt-4 border-t border-white/5">
+                    <Label className="text-[10px] uppercase tracking-[0.4em] text-white/40 mb-4 block font-black">Metabolic Flux Level</Label>
+                    <div className="grid grid-cols-5 gap-1.5 p-1 bg-white/5 rounded-2xl border border-white/5">
+                      {(['sedentary', 'light', 'moderate', 'active', 'athlete'] as Activity[]).map((level, i) => (
+                        <button
+                          key={level}
+                          onClick={() => setActivity(level)}
+                          className={`h-10 rounded-xl flex flex-col items-center justify-center transition-all ${activity === level
+                            ? "bg-primary text-black shadow-lg"
+                            : "text-white/40 hover:bg-white/10 hover:text-white"
+                            }`}
+                        >
+                          <span className="text-[10px] font-black">{i + 1}</span>
+                          <div className={`w-1 h-1 rounded-full mt-0.5 ${activity === level ? "bg-black" : "bg-white/20"}`} />
+                        </button>
+                      ))}
+                    </div>
+                    <div className="flex justify-between mt-2 px-1">
+                      <span className="text-[9px] uppercase tracking-widest text-white/20 font-bold">Base</span>
+                      <span className="text-[9px] uppercase tracking-widest text-primary font-black">{activity.toUpperCase()}</span>
+                      <span className="text-[9px] uppercase tracking-widest text-white/20 font-bold">Peak</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Visual Results Dashboard */}
+            <div className="lg:col-span-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
+                {/* Calories Highlight */}
+                <Card className="bg-primary/5 border-primary/20 backdrop-blur-md rounded-[2.5rem] relative overflow-hidden md:col-span-2 p-8 flex flex-col items-center justify-center text-center">
+                  <Waves className="absolute bottom-0 left-0 w-full h-32 text-primary/10 -mb-8 pointer-events-none" />
+                  <div className="relative z-10 space-y-2">
+                    <p className="text-xs font-black uppercase tracking-[0.4em] text-primary">Daily Energy Target</p>
+                    <h2 className="text-8xl font-black text-white tracking-tighter tabular-nums drop-shadow-[0_0_30px_rgba(var(--primary),0.3)]">
+                      {result?.calories || 0}
+                    </h2>
+                    <p className="text-sm font-medium text-white/40 uppercase tracking-widest">Kilocalories / Protocol Day</p>
+                  </div>
+                </Card>
+
+                {/* Macro Breakdown */}
+                <div className="md:grid md:grid-cols-3 gap-4 md:col-span-2">
+                  <MetricBox label="Basal (BMR)" value={result?.bmr || 0} unit="kcal" sub="Absolute minimum" icon={<Zap className="w-4 h-4" />} />
+                  <MetricBox label="Maintenance" value={result?.tdee || 0} unit="kcal" sub="Energy balance" icon={<Waves className="w-4 h-4" />} />
+                  <MetricBox label="Protein" value={result?.protein || 0} unit="g" sub="Structure & Growth" icon={<Scale className="w-4 h-4" />} color="text-blue-400" />
+                  <MetricBox label="Carbohydrates" value={result?.carbs || 0} unit="g" sub="Energy Output" icon={<Zap className="w-4 h-4" />} color="text-orange-400" />
+                  <MetricBox label="Lipids (Fats)" value={result?.fats || 0} unit="g" sub="Cellular Integrity" icon={<Waves className="w-4 h-4" />} color="text-yellow-400" />
+                  <MetricBox label="Fiber" value={Math.round((result?.calories || 2000) / 100 * 1.5)} unit="g" sub="System Optimization" icon={<Info className="w-4 h-4" />} />
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom Tip */}
+            <div className="lg:col-span-12 p-8 rounded-[2rem] bg-gradient-to-r from-neutral-900 to-black border border-white/5 flex flex-col md:flex-row items-center gap-8 shadow-2xl">
+              <div className="w-20 h-20 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
+                <Sparkles className="w-10 h-10 text-primary animate-pulse" />
+              </div>
+              <div className="space-y-2">
+                <h4 className="text-xl font-black text-white tracking-tight">AI Synergy Insight</h4>
+                <p className="text-sm text-muted-foreground leading-relaxed max-w-3xl">
+                  Your Calculated Intelligence Targets are now ready. Use the <strong>AI Core Analyzer</strong> at the top of this terminal to scan meals. The assistant will help you match these protocols by providing instant macro data for any input.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </Container>
 
