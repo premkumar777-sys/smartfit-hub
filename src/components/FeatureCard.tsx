@@ -23,6 +23,16 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index, badge
   const [rotation, setRotation] = useState({ x: 0, y: 0, z: 0 });
   const [isFocused, setIsFocused] = useState(false);
   const prefersReducedMotion = useReducedMotion();
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Throttle mouse move for better performance
   const mouseMoveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -30,7 +40,7 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index, badge
 
   // New 3D card flip animation on mouse move
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (prefersReducedMotion || !cardRef.current) return;
+    if (prefersReducedMotion || isMobile || !cardRef.current) return;
 
     // Throttle updates
     if (mouseMoveTimeoutRef.current) return;
@@ -102,7 +112,7 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index, badge
     const baseDelay = index * 0.2; // Stagger cards
 
     const animate = () => {
-      if (!cardRef.current || isHovered) {
+      if (!cardRef.current || isHovered || isMobile) {
         rafRef.current = requestAnimationFrame(animate);
         return;
       }
@@ -152,8 +162,8 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index, badge
       style={{
         transformStyle: 'preserve-3d',
         perspective: '1000px',
-        transform: prefersReducedMotion ? undefined : `perspective(1000px) rotateX(${rotation.x}deg) rotateY(${rotation.y}deg) rotateZ(${rotation.z}deg)`,
-        willChange: 'transform'
+        transform: (prefersReducedMotion || isMobile) ? undefined : `perspective(1000px) rotateX(${rotation.x}deg) rotateY(${rotation.y}deg) rotateZ(${rotation.z}deg)`,
+        willChange: (isHovered && !isMobile) ? 'transform' : 'auto'
       }}
       onMouseMove={handleMouseMove}
       onMouseEnter={handleMouseEnter}
@@ -200,9 +210,9 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index, badge
         ref={innerRef}
         className="relative z-10"
         style={{
-          transform: prefersReducedMotion ? undefined : `translateZ(20px) translate(${mousePosition.x * 0.02}px, ${mousePosition.y * 0.02}px)`,
+          transform: (prefersReducedMotion || isMobile) ? undefined : `translateZ(20px) translate(${mousePosition.x * 0.02}px, ${mousePosition.y * 0.02}px)`,
           transformStyle: 'preserve-3d',
-          willChange: 'transform'
+          willChange: (isHovered && !isMobile) ? 'transform' : 'auto'
         }}
       >
         {/* Icon with 3D rotation */}
@@ -279,9 +289,9 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index, badge
       <div className="absolute top-0 left-0 w-20 h-20 border-t-2 border-l-2 border-[#00FF9C]/0 group-hover:border-[#00FF9C]/50 rounded-tl-2xl transition-all duration-500" />
       <div className="absolute bottom-0 right-0 w-20 h-20 border-b-2 border-r-2 border-[#00FF9C]/0 group-hover:border-[#00FF9C]/50 rounded-br-2xl transition-all duration-500" />
 
-      {/* Animated particles on hover */}
+      {/* Animated particles on hover - Disabled on mobile for performance */}
       <AnimatePresence>
-        {isHovered && !prefersReducedMotion && (
+        {isHovered && !prefersReducedMotion && !isMobile && (
           <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl">
             {[...Array(4)].map((_, i) => (
               <motion.div

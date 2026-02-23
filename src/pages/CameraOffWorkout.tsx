@@ -443,6 +443,7 @@ export default function CameraOffWorkout() {
                     src={video.thumbnail}
                     alt={video.title}
                     className="absolute inset-0 w-full h-full object-cover"
+                    loading="lazy"
                     onError={(e) => {
                       // Hide broken image and show fallback
                       (e.target as HTMLImageElement).style.display = 'none';
