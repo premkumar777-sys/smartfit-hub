@@ -84,7 +84,7 @@ const Home = () => {
             )}
 
             <motion.h1
-              className="text-4xl md:text-5xl lg:text-6xl font-bold leading-normal pb-2"
+              className="text-4xl md:text-5xl lg:text-6xl font-bold leading-normal pb-2 text-white"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
@@ -96,7 +96,7 @@ const Home = () => {
             </motion.h1>
 
             <motion.p
-              className="text-lg md:text-xl leading-relaxed text-gray-300 max-w-prose mx-auto"
+              className="text-lg md:text-xl leading-relaxed text-gray-100 max-w-prose mx-auto" // Changed text-gray-300 to text-gray-100
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}

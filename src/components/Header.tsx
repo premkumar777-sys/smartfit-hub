@@ -208,13 +208,13 @@ export function Header() {
       <header
         className={cn(
           "sticky top-0 z-50 transition-all duration-300 border-b border-white/10",
-          "bg-[#0a0a0a]/90 backdrop-blur-md supports-[backdrop-filter]:bg-[#0a0a0a]/60",
+          "bg-[#0a0a0a] backdrop-blur-md", // Enforced solid dark background
           isScrolled ? "py-2 shadow-lg" : "py-4",
-          "pb-safe pt-safe" // Safe area padding for mobile notches
+          "pb-safe pt-safe"
         )}
       >
         <nav
-          className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12"
+          className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 text-white" // Force text white in nav
           role="navigation"
           aria-label="Main Navigation"
         >
