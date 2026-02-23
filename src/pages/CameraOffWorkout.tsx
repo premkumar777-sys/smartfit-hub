@@ -400,109 +400,173 @@ export default function CameraOffWorkout() {
               </AnimatePresence>
             </div>
           </div>
-        </PremiumLock>
 
-        {/* Info banner */}
-        <div className="mt-8 bg-muted/50 rounded-xl p-6 border border-border">
-          <h3 className="font-semibold mb-2 flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-primary" />
-            About 3D Trainer Mode
-          </h3>
-          <p className="text-muted-foreground text-sm">
-            This is a <strong>3D exercise demonstration system</strong>, not real-time form detection.
-            Watch the animated trainer to learn proper exercise form, then follow along at your own pace.
-            The angle guidance shows you the target positions to aim for during each exercise.
-          </p>
-        </div>
-
-        {/* Workout Videos Section */}
-        <div className="mt-12">
-          <div className="mb-6">
-            <h2 className="text-3xl md:text-4xl font-bold leading-tight mb-2 flex items-center gap-3">
-              <Video className="w-8 h-8 text-primary" />
-              Workout Videos
-            </h2>
-            <p className="text-lg text-muted-foreground">
-              Watch these guided workout videos to perfect your form and technique
+          {/* Info banner */}
+          <div className="mt-8 bg-muted/50 rounded-xl p-6 border border-border">
+            <h3 className="font-semibold mb-2 flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-primary" />
+              About 3D Trainer Mode
+            </h3>
+            <p className="text-muted-foreground text-sm">
+              This is a <strong>3D exercise demonstration system</strong>, not real-time form detection.
+              Watch the animated trainer to learn proper exercise form, then follow along at your own pace.
+              The angle guidance shows you the target positions to aim for during each exercise.
             </p>
           </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {WORKOUT_VIDEOS.map((video) => (
-              <motion.div
-                key={video.id}
-                whileHover={{ scale: 1.02, y: -5 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => setActiveVideo(video)}
-                className="group relative bg-card/80 backdrop-blur-sm rounded-2xl overflow-hidden border border-border hover:border-primary/50 transition-all duration-300 cursor-pointer"
-              >
-                {/* Video Thumbnail */}
-                <div className="relative aspect-video bg-gradient-to-br from-primary/20 via-primary/10 to-muted overflow-hidden">
-                  {/* Thumbnail image */}
-                  <img
-                    src={video.thumbnail}
-                    alt={video.title}
-                    className="absolute inset-0 w-full h-full object-cover"
-                    loading="lazy"
-                    onError={(e) => {
-                      // Hide broken image and show fallback
-                      (e.target as HTMLImageElement).style.display = 'none';
+          {/* Workout Videos Section */}
+          <div className="mt-12">
+            <div className="mb-6">
+              <h2 className="text-3xl md:text-4xl font-bold leading-tight mb-2 flex items-center gap-3">
+                <Video className="w-8 h-8 text-primary" />
+                Workout Videos
+              </h2>
+              <p className="text-lg text-muted-foreground">
+                Watch these guided workout videos to perfect your form and technique
+              </p>
+            </div>
+
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {WORKOUT_VIDEOS.map((video) => (
+                <motion.div
+                  key={video.id}
+                  whileHover={{ scale: 1.02, y: -5 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setActiveVideo(video)}
+                  className="group relative bg-card/80 backdrop-blur-sm rounded-2xl overflow-hidden border border-border hover:border-primary/50 transition-all duration-300 cursor-pointer"
+                >
+                  {/* Video Thumbnail */}
+                  <div className="relative aspect-video bg-gradient-to-br from-primary/20 via-primary/10 to-muted overflow-hidden">
+                    {/* Thumbnail image */}
+                    <img
+                      src={video.thumbnail}
+                      alt={video.title}
+                      className="absolute inset-0 w-full h-full object-cover"
+                      loading="lazy"
+                      onError={(e) => {
+                        // Hide broken image and show fallback
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
+                    />
+                    {/* Fallback icon when no thumbnail */}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <Dumbbell className="w-16 h-16 text-primary/30" />
+                    </div>
+
+                    {/* Play button overlay */}
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <motion.div
+                        whileHover={{ scale: 1.1 }}
+                        className="w-16 h-16 rounded-full bg-primary/90 flex items-center justify-center shadow-lg shadow-primary/30"
+                      >
+                        <PlayCircle className="w-10 h-10 text-primary-foreground" />
+                      </motion.div>
+                    </div>
+
+                    {/* Duration badge */}
+                    <div className="absolute bottom-2 right-2 px-2 py-1 rounded-md bg-black/70 text-xs font-medium text-white">
+                      {video.duration}
+                    </div>
+
+                    {/* Category badge */}
+                    <div className="absolute top-2 left-2 px-2 py-1 rounded-md bg-primary/90 text-xs font-semibold text-primary-foreground">
+                      {video.category}
+                    </div>
+                  </div>
+
+                  {/* Video info */}
+                  <div className="p-4">
+                    <h4 className="font-semibold text-lg group-hover:text-primary transition-colors">
+                      {video.title}
+                    </h4>
+                    <p className="text-sm text-muted-foreground mt-1 flex items-center gap-2">
+                      <Video className="w-4 h-4" />
+                      Click to watch
+                    </p>
+                  </div>
+
+                  {/* Glow effect on hover */}
+                  <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+                    style={{
+                      boxShadow: 'inset 0 0 20px rgba(0, 255, 156, 0.1), 0 0 30px rgba(0, 255, 156, 0.15)'
                     }}
                   />
-                  {/* Fallback icon when no thumbnail */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <Dumbbell className="w-16 h-16 text-primary/30" />
-                  </div>
+                </motion.div>
+              ))}
+            </div>
 
-                  {/* Play button overlay */}
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <motion.div
-                      whileHover={{ scale: 1.1 }}
-                      className="w-16 h-16 rounded-full bg-primary/90 flex items-center justify-center shadow-lg shadow-primary/30"
+            {/* Add more videos hint */}
+            <div className="mt-8 text-center">
+              <p className="text-muted-foreground text-sm">
+                💡 <strong>Tip:</strong> You can add your own workout videos by placing them in the <code className="bg-muted px-2 py-1 rounded text-xs">/public/videos</code> folder
+              </p>
+            </div>
+          </div>
+
+          {/* Video Player Modal */}
+          <AnimatePresence>
+            {activeVideo && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4"
+                onClick={() => setActiveVideo(null)}
+              >
+                <motion.div
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.9, opacity: 0 }}
+                  transition={{ type: "spring", damping: 20 }}
+                  className="relative w-full max-w-4xl bg-card rounded-2xl overflow-hidden border border-border shadow-2xl"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {/* Modal Header */}
+                  <div className="flex items-center justify-between p-4 border-b border-border">
+                    <div>
+                      <h3 className="text-xl font-bold">{activeVideo.title}</h3>
+                      <p className="text-sm text-muted-foreground flex items-center gap-2">
+                        <span className="px-2 py-0.5 rounded bg-primary/20 text-primary text-xs font-medium">
+                          {activeVideo.category}
+                        </span>
+                        <span>{activeVideo.duration}</span>
+                      </p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setActiveVideo(null)}
+                      className="hover:bg-destructive/20 hover:text-destructive"
                     >
-                      <PlayCircle className="w-10 h-10 text-primary-foreground" />
-                    </motion.div>
+                      ✕ Close
+                    </Button>
                   </div>
 
-                  {/* Duration badge */}
-                  <div className="absolute bottom-2 right-2 px-2 py-1 rounded-md bg-black/70 text-xs font-medium text-white">
-                    {video.duration}
+                  {/* Video Player */}
+                  <div className="relative aspect-video bg-black">
+                    <video
+                      src={activeVideo.videoUrl}
+                      controls
+                      autoPlay
+                      className="w-full h-full"
+                      poster={activeVideo.thumbnail}
+                    >
+                      Your browser does not support the video tag.
+                    </video>
                   </div>
 
-                  {/* Category badge */}
-                  <div className="absolute top-2 left-2 px-2 py-1 rounded-md bg-primary/90 text-xs font-semibold text-primary-foreground">
-                    {video.category}
+                  {/* Modal Footer */}
+                  <div className="p-4 bg-muted/30 border-t border-border">
+                    <p className="text-sm text-muted-foreground">
+                      <strong>Pro tip:</strong> Follow along with the video and practice proper form.
+                      Use the 3D trainer above to see the exercise from different angles.
+                    </p>
                   </div>
-                </div>
-
-                {/* Video info */}
-                <div className="p-4">
-                  <h4 className="font-semibold text-lg group-hover:text-primary transition-colors">
-                    {video.title}
-                  </h4>
-                  <p className="text-sm text-muted-foreground mt-1 flex items-center gap-2">
-                    <Video className="w-4 h-4" />
-                    Click to watch
-                  </p>
-                </div>
-
-                {/* Glow effect on hover */}
-                <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
-                  style={{
-                    boxShadow: 'inset 0 0 20px rgba(0, 255, 156, 0.1), 0 0 30px rgba(0, 255, 156, 0.15)'
-                  }}
-                />
+                </motion.div>
               </motion.div>
-            ))}
-          </div>
-
-          {/* Add more videos hint */}
-          <div className="mt-8 text-center">
-            <p className="text-muted-foreground text-sm">
-              💡 <strong>Tip:</strong> You can add your own workout videos by placing them in the <code className="bg-muted px-2 py-1 rounded text-xs">/public/videos</code> folder
-            </p>
-          </div>
-        </div>
+            )}
+          </AnimatePresence>
+        </PremiumLock>
       </Container>
 
       {/* Video Player Modal */}

@@ -142,23 +142,6 @@ export default function AITrainer() {
                     </div>
                 </div>
 
-                {/* Quick Actions */}
-                <div className="flex flex-wrap gap-2 mb-4">
-                    {quickActions.map((action) => (
-                        <Button
-                            key={action.label}
-                            variant="outline"
-                            size="sm"
-                            className="gap-2"
-                            onClick={() => handleQuickAction(action.prompt)}
-                            disabled={isLoading}
-                        >
-                            <action.icon className="w-4 h-4" />
-                            {action.label}
-                        </Button>
-                    ))}
-                </div>
-
                 {/* Chat Area */}
                 <PremiumLock
                     title="Unlock AI Trainer Chat"
@@ -170,6 +153,23 @@ export default function AITrainer() {
                         "Unlimited Messaging"
                     ]}
                 >
+                    {/* Quick Actions */}
+                    <div className="flex flex-wrap gap-2 mb-4">
+                        {quickActions.map((action) => (
+                            <Button
+                                key={action.label}
+                                variant="outline"
+                                size="sm"
+                                className="gap-2"
+                                onClick={() => handleQuickAction(action.prompt)}
+                                disabled={isLoading}
+                            >
+                                <action.icon className="w-4 h-4" />
+                                {action.label}
+                            </Button>
+                        ))}
+                    </div>
+
                     <Card className="flex-1 glass border-primary/20 flex flex-col overflow-hidden h-full">
                         <CardContent className="flex-1 overflow-y-auto p-4 space-y-4">
                             {messages.map((message) => (

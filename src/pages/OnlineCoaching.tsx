@@ -10,6 +10,8 @@ import { openPaymentLink, COACHING_PLAN, WHATSAPP_NUMBER } from "@/config/paymen
 import { BusinessPremiumLock } from "@/components/BusinessPremiumLock";
 import { AddClientDialog } from "@/components/trainer/AddClientDialog";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
+import { useSubscription } from "@/hooks/use-subscription";
 import { toast } from "sonner";
 
 // Animated Counter Component
@@ -58,16 +60,24 @@ export default function OnlineCoaching() {
     const [searchParams] = useSearchParams();
     const [isFormOpen, setIsFormOpen] = useState(false);
 
+    const { isAuthenticated } = useAuth();
+    const { hasPremiumAccess } = useSubscription();
+
     // Auto-open form if they returned from a successful payment
     useEffect(() => {
         const paymentStatus = searchParams.get("payment_status");
         if (paymentStatus === "Credit") {
-            setIsFormOpen(true);
-            toast.success("Payment successful! Please complete your onboarding details.", {
-                duration: 5000,
-            });
+            // Only auto-open if verified premium or at least authenticated (to prevent drive-by URL manipulation)
+            if (isAuthenticated) {
+                setIsFormOpen(true);
+                toast.success("Payment successful! Please complete your onboarding details.", {
+                    duration: 5000,
+                });
+            } else {
+                toast.error("Please sign in to complete onboarding.");
+            }
         }
-    }, [searchParams]);
+    }, [searchParams, isAuthenticated]);
 
     const handleApply = async (formData: any) => {
         try {
@@ -436,16 +446,16 @@ export default function OnlineCoaching() {
                             </CardContent>
                         </Card>
                     </div>
-                </BusinessPremiumLock>
 
-                <AddClientDialog
-                    open={isFormOpen}
-                    onOpenChange={setIsFormOpen}
-                    onSubmit={handleApply}
-                    title="Online Onboarding Form"
-                    description="Congratulations on your enrollment! Please fill out your details so the Head Coach can build your custom transformation plan."
-                    submitText="Submit Application"
-                />
+                    <AddClientDialog
+                        open={isFormOpen}
+                        onOpenChange={setIsFormOpen}
+                        onSubmit={handleApply}
+                        title="Online Onboarding Form"
+                        description="Congratulations on your enrollment! Please fill out your details so the Head Coach can build your custom transformation plan."
+                        submitText="Submit Application"
+                    />
+                </BusinessPremiumLock>
             </Container>
         </div>
     );

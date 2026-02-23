@@ -142,16 +142,19 @@ export function useSubscription(): SubscriptionData {
     checkSubscription()
   }, [checkSubscription])
 
-  // Check subscription when returning from checkout (URL contains checkout=success)
+  // Check subscription when returning from checkout (URL contains checkout=success or payment_status=Credit)
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search)
-    if (urlParams.get('checkout') === 'success') {
-      // Small delay to allow Stripe webhook to process
-      setTimeout(() => {
+    const isSuccess = urlParams.get('checkout') === 'success' || urlParams.get('payment_status') === 'Credit'
+
+    if (isSuccess) {
+      // Small delay to allow webhook/sync to process
+      const timer = setTimeout(() => {
         checkSubscription()
       }, 2000)
-      // Clean up URL
-      window.history.replaceState({}, '', window.location.pathname)
+
+      // Clean up URL to prevent repeat triggers
+      return () => clearTimeout(timer)
     }
   }, [checkSubscription])
 
