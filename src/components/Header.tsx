@@ -206,8 +206,12 @@ export function Header() {
   return (
     <>
       <header
-        className={`sticky top-0 z-50 backdrop-blur-sm bg-background border-b border-white/10 transition-all duration-300 ${isScrolled ? "py-2 shadow-md" : "py-4"
-          }`}
+        className={cn(
+          "sticky top-0 z-50 transition-all duration-300 border-b border-white/10",
+          "bg-[#0a0a0a]/90 backdrop-blur-md supports-[backdrop-filter]:bg-[#0a0a0a]/60",
+          isScrolled ? "py-2 shadow-lg" : "py-4",
+          "pb-safe pt-safe" // Safe area padding for mobile notches
+        )}
       >
         <nav
           className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12"
