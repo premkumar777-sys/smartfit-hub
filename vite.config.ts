@@ -57,6 +57,10 @@ export default defineConfig(({ mode }) => {
             }
           }
         ]
+      },
+      devOptions: {
+        enabled: true,
+        type: 'module'
       }
     })
   ];
