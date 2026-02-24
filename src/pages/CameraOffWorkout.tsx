@@ -19,7 +19,6 @@ import { TrainerScene } from '@/components/TrainerScene';
 import { AngleGuidance } from '@/components/AngleGuidance';
 import { WorkoutTimer } from '@/components/WorkoutTimer';
 import { useVoiceCoach } from '@/hooks/useVoiceCoach';
-import { PremiumLock } from '@/components/PremiumLock';
 
 type Exercise = 'squat' | 'pushup' | 'bicepCurl' | 'idle';
 
@@ -286,287 +285,276 @@ export default function CameraOffWorkout() {
         </div>
 
         {/* Main content grid */}
-        <PremiumLock
-          title="Unlock 3D Personal Trainer"
-          description="Get access to interactive 3D workout demonstrations and real-time voice coaching."
-          features={[
-            "Interactive 3D Models",
-            "Real-time Voice Coaching",
-            "Angle Guidance System",
-            "Unlimited Workout Sessions"
-          ]}
-        >
-          <div className="grid lg:grid-cols-3 gap-6">
-            {/* Left: 3D Trainer */}
-            <div className="lg:col-span-2 space-y-4">
-              <TrainerScene
-                exercise={isWorkoutActive ? selectedExercise : 'idle'}
-                isAnimating={isWorkoutActive || selectedExercise !== 'idle'}
-              />
+        <div className="grid lg:grid-cols-3 gap-6">
+          {/* Left: 3D Trainer */}
+          <div className="lg:col-span-2 space-y-4">
+            <TrainerScene
+              exercise={isWorkoutActive ? selectedExercise : 'idle'}
+              isAnimating={isWorkoutActive || selectedExercise !== 'idle'}
+            />
 
-              {/* Exercise selector */}
-              <div className="bg-card/80 backdrop-blur-sm rounded-xl p-4 border border-border">
-                <p className="text-sm font-semibold mb-3">Select Exercise:</p>
-                <div className="grid grid-cols-3 gap-3">
-                  {EXERCISES.map((exercise) => (
-                    <motion.button
-                      key={exercise.id}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => handleExerciseSelect(exercise.id)}
-                      disabled={isWorkoutActive}
-                      className={`p-4 rounded-xl border transition-all ${selectedExercise === exercise.id
-                        ? 'bg-primary text-primary-foreground border-primary'
-                        : 'bg-muted/50 border-border hover:border-primary/50'
-                        } ${isWorkoutActive ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    >
-                      <div className="flex flex-col items-center gap-2">
-                        {exercise.icon}
-                        <span className="text-sm font-medium">{exercise.name}</span>
-                      </div>
-                    </motion.button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Start/Stop button */}
-              <div className="flex justify-center">
-                {!isWorkoutActive ? (
-                  <Button
-                    size="lg"
-                    onClick={handleStartWorkout}
-                    disabled={selectedExercise === 'idle'}
-                    className="px-8 py-6 text-lg"
+            {/* Exercise selector */}
+            <div className="bg-card/80 backdrop-blur-sm rounded-xl p-4 border border-border">
+              <p className="text-sm font-semibold mb-3">Select Exercise:</p>
+              <div className="grid grid-cols-3 gap-3">
+                {EXERCISES.map((exercise) => (
+                  <motion.button
+                    key={exercise.id}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => handleExerciseSelect(exercise.id)}
+                    disabled={isWorkoutActive}
+                    className={`p-4 rounded-xl border transition-all ${selectedExercise === exercise.id
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'bg-muted/50 border-border hover:border-primary/50'
+                      } ${isWorkoutActive ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
-                    <Play className="w-6 h-6 mr-2" />
-                    Start Workout
-                  </Button>
-                ) : (
-                  <Button
-                    size="lg"
-                    variant="destructive"
-                    onClick={handleStopWorkout}
-                    className="px-8 py-6 text-lg"
-                  >
-                    <Square className="w-6 h-6 mr-2" />
-                    Stop Workout
-                  </Button>
-                )}
+                    <div className="flex flex-col items-center gap-2">
+                      {exercise.icon}
+                      <span className="text-sm font-medium">{exercise.name}</span>
+                    </div>
+                  </motion.button>
+                ))}
               </div>
             </div>
 
-            {/* Right: Guidance & Timer */}
-            <div className="space-y-4">
-              {/* Timer */}
-              <WorkoutTimer
-                duration={currentExerciseConfig?.duration || 30}
-                isRunning={isWorkoutActive}
-                onComplete={handleTimerComplete}
-                onTick={handleTimerTick}
-              />
-
-              {/* Angle guidance */}
-              <AngleGuidance
-                exercise={selectedExercise}
-                phase={animationPhase}
-              />
-
-              {/* Completion message */}
-              <AnimatePresence>
-                {isComplete && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    className="bg-gradient-to-br from-primary/20 to-primary/5 rounded-xl p-6 border border-primary/30 text-center"
-                  >
-                    <Trophy className="w-12 h-12 text-primary mx-auto mb-3" />
-                    <h3 className="text-xl font-bold mb-2">Workout Complete! 🎉</h3>
-                    <p className="text-muted-foreground">
-                      Great job following along with the trainer!
-                    </p>
-                    <Button
-                      variant="outline"
-                      className="mt-4"
-                      onClick={() => {
-                        setIsComplete(false);
-                        setSelectedExercise('idle');
-                      }}
-                    >
-                      Choose Another Exercise
-                    </Button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+            {/* Start/Stop button */}
+            <div className="flex justify-center">
+              {!isWorkoutActive ? (
+                <Button
+                  size="lg"
+                  onClick={handleStartWorkout}
+                  disabled={selectedExercise === 'idle'}
+                  className="px-8 py-6 text-lg"
+                >
+                  <Play className="w-6 h-6 mr-2" />
+                  Start Workout
+                </Button>
+              ) : (
+                <Button
+                  size="lg"
+                  variant="destructive"
+                  onClick={handleStopWorkout}
+                  className="px-8 py-6 text-lg"
+                >
+                  <Square className="w-6 h-6 mr-2" />
+                  Stop Workout
+                </Button>
+              )}
             </div>
           </div>
 
-          {/* Info banner */}
-          <div className="mt-8 bg-muted/50 rounded-xl p-6 border border-border">
-            <h3 className="font-semibold mb-2 flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-primary" />
-              About 3D Trainer Mode
-            </h3>
-            <p className="text-muted-foreground text-sm">
-              This is a <strong>3D exercise demonstration system</strong>, not real-time form detection.
-              Watch the animated trainer to learn proper exercise form, then follow along at your own pace.
-              The angle guidance shows you the target positions to aim for during each exercise.
+          {/* Right: Guidance & Timer */}
+          <div className="space-y-4">
+            {/* Timer */}
+            <WorkoutTimer
+              duration={currentExerciseConfig?.duration || 30}
+              isRunning={isWorkoutActive}
+              onComplete={handleTimerComplete}
+              onTick={handleTimerTick}
+            />
+
+            {/* Angle guidance */}
+            <AngleGuidance
+              exercise={selectedExercise}
+              phase={animationPhase}
+            />
+
+            {/* Completion message */}
+            <AnimatePresence>
+              {isComplete && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  className="bg-gradient-to-br from-primary/20 to-primary/5 rounded-xl p-6 border border-primary/30 text-center"
+                >
+                  <Trophy className="w-12 h-12 text-primary mx-auto mb-3" />
+                  <h3 className="text-xl font-bold mb-2">Workout Complete! 🎉</h3>
+                  <p className="text-muted-foreground">
+                    Great job following along with the trainer!
+                  </p>
+                  <Button
+                    variant="outline"
+                    className="mt-4"
+                    onClick={() => {
+                      setIsComplete(false);
+                      setSelectedExercise('idle');
+                    }}
+                  >
+                    Choose Another Exercise
+                  </Button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+
+        {/* Info banner */}
+        <div className="mt-8 bg-muted/50 rounded-xl p-6 border border-border">
+          <h3 className="font-semibold mb-2 flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-primary" />
+            About 3D Trainer Mode
+          </h3>
+          <p className="text-muted-foreground text-sm">
+            This is a <strong>3D exercise demonstration system</strong>, not real-time form detection.
+            Watch the animated trainer to learn proper exercise form, then follow along at your own pace.
+            The angle guidance shows you the target positions to aim for during each exercise.
+          </p>
+        </div>
+
+        {/* Workout Videos Section */}
+        <div className="mt-12">
+          <div className="mb-6">
+            <h2 className="text-3xl md:text-4xl font-bold leading-tight mb-2 flex items-center gap-3">
+              <Video className="w-8 h-8 text-primary" />
+              Workout Videos
+            </h2>
+            <p className="text-lg text-muted-foreground">
+              Watch these guided workout videos to perfect your form and technique
             </p>
           </div>
 
-          {/* Workout Videos Section */}
-          <div className="mt-12">
-            <div className="mb-6">
-              <h2 className="text-3xl md:text-4xl font-bold leading-tight mb-2 flex items-center gap-3">
-                <Video className="w-8 h-8 text-primary" />
-                Workout Videos
-              </h2>
-              <p className="text-lg text-muted-foreground">
-                Watch these guided workout videos to perfect your form and technique
-              </p>
-            </div>
-
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {WORKOUT_VIDEOS.map((video) => (
-                <motion.div
-                  key={video.id}
-                  whileHover={{ scale: 1.02, y: -5 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => setActiveVideo(video)}
-                  className="group relative bg-card/80 backdrop-blur-sm rounded-2xl overflow-hidden border border-border hover:border-primary/50 transition-all duration-300 cursor-pointer"
-                >
-                  {/* Video Thumbnail */}
-                  <div className="relative aspect-video bg-gradient-to-br from-primary/20 via-primary/10 to-muted overflow-hidden">
-                    {/* Thumbnail image */}
-                    <img
-                      src={video.thumbnail}
-                      alt={video.title}
-                      className="absolute inset-0 w-full h-full object-cover"
-                      loading="lazy"
-                      onError={(e) => {
-                        // Hide broken image and show fallback
-                        (e.target as HTMLImageElement).style.display = 'none';
-                      }}
-                    />
-                    {/* Fallback icon when no thumbnail */}
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <Dumbbell className="w-16 h-16 text-primary/30" />
-                    </div>
-
-                    {/* Play button overlay */}
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <motion.div
-                        whileHover={{ scale: 1.1 }}
-                        className="w-16 h-16 rounded-full bg-primary/90 flex items-center justify-center shadow-lg shadow-primary/30"
-                      >
-                        <PlayCircle className="w-10 h-10 text-primary-foreground" />
-                      </motion.div>
-                    </div>
-
-                    {/* Duration badge */}
-                    <div className="absolute bottom-2 right-2 px-2 py-1 rounded-md bg-black/70 text-xs font-medium text-white">
-                      {video.duration}
-                    </div>
-
-                    {/* Category badge */}
-                    <div className="absolute top-2 left-2 px-2 py-1 rounded-md bg-primary/90 text-xs font-semibold text-primary-foreground">
-                      {video.category}
-                    </div>
-                  </div>
-
-                  {/* Video info */}
-                  <div className="p-4">
-                    <h4 className="font-semibold text-lg group-hover:text-primary transition-colors">
-                      {video.title}
-                    </h4>
-                    <p className="text-sm text-muted-foreground mt-1 flex items-center gap-2">
-                      <Video className="w-4 h-4" />
-                      Click to watch
-                    </p>
-                  </div>
-
-                  {/* Glow effect on hover */}
-                  <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
-                    style={{
-                      boxShadow: 'inset 0 0 20px rgba(0, 255, 156, 0.1), 0 0 30px rgba(0, 255, 156, 0.15)'
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {WORKOUT_VIDEOS.map((video) => (
+              <motion.div
+                key={video.id}
+                whileHover={{ scale: 1.02, y: -5 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setActiveVideo(video)}
+                className="group relative bg-card/80 backdrop-blur-sm rounded-2xl overflow-hidden border border-border hover:border-primary/50 transition-all duration-300 cursor-pointer"
+              >
+                {/* Video Thumbnail */}
+                <div className="relative aspect-video bg-gradient-to-br from-primary/20 via-primary/10 to-muted overflow-hidden">
+                  {/* Thumbnail image */}
+                  <img
+                    src={video.thumbnail}
+                    alt={video.title}
+                    className="absolute inset-0 w-full h-full object-cover"
+                    loading="lazy"
+                    onError={(e) => {
+                      // Hide broken image and show fallback
+                      (e.target as HTMLImageElement).style.display = 'none';
                     }}
                   />
-                </motion.div>
-              ))}
-            </div>
+                  {/* Fallback icon when no thumbnail */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Dumbbell className="w-16 h-16 text-primary/30" />
+                  </div>
 
-            {/* Add more videos hint */}
-            <div className="mt-8 text-center">
-              <p className="text-muted-foreground text-sm">
-                💡 <strong>Tip:</strong> You can add your own workout videos by placing them in the <code className="bg-muted px-2 py-1 rounded text-xs">/public/videos</code> folder
-              </p>
-            </div>
+                  {/* Play button overlay */}
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <motion.div
+                      whileHover={{ scale: 1.1 }}
+                      className="w-16 h-16 rounded-full bg-primary/90 flex items-center justify-center shadow-lg shadow-primary/30"
+                    >
+                      <PlayCircle className="w-10 h-10 text-primary-foreground" />
+                    </motion.div>
+                  </div>
+
+                  {/* Duration badge */}
+                  <div className="absolute bottom-2 right-2 px-2 py-1 rounded-md bg-black/70 text-xs font-medium text-white">
+                    {video.duration}
+                  </div>
+
+                  {/* Category badge */}
+                  <div className="absolute top-2 left-2 px-2 py-1 rounded-md bg-primary/90 text-xs font-semibold text-primary-foreground">
+                    {video.category}
+                  </div>
+                </div>
+
+                {/* Video info */}
+                <div className="p-4">
+                  <h4 className="font-semibold text-lg group-hover:text-primary transition-colors">
+                    {video.title}
+                  </h4>
+                  <p className="text-sm text-muted-foreground mt-1 flex items-center gap-2">
+                    <Video className="w-4 h-4" />
+                    Click to watch
+                  </p>
+                </div>
+
+                {/* Glow effect on hover */}
+                <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+                  style={{
+                    boxShadow: 'inset 0 0 20px rgba(0, 255, 156, 0.1), 0 0 30px rgba(0, 255, 156, 0.15)'
+                  }}
+                />
+              </motion.div>
+            ))}
           </div>
 
-          {/* Video Player Modal */}
-          <AnimatePresence>
-            {activeVideo && (
+          {/* Add more videos hint */}
+          <div className="mt-8 text-center">
+            <p className="text-muted-foreground text-sm">
+              💡 <strong>Tip:</strong> You can add your own workout videos by placing them in the <code className="bg-muted px-2 py-1 rounded text-xs">/public/videos</code> folder
+            </p>
+          </div>
+        </div>
+
+        {/* Video Player Modal */}
+        <AnimatePresence>
+          {activeVideo && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4"
+              onClick={() => setActiveVideo(null)}
+            >
               <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4"
-                onClick={() => setActiveVideo(null)}
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                transition={{ type: "spring", damping: 20 }}
+                className="relative w-full max-w-4xl bg-card rounded-2xl overflow-hidden border border-border shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
               >
-                <motion.div
-                  initial={{ scale: 0.9, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  exit={{ scale: 0.9, opacity: 0 }}
-                  transition={{ type: "spring", damping: 20 }}
-                  className="relative w-full max-w-4xl bg-card rounded-2xl overflow-hidden border border-border shadow-2xl"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {/* Modal Header */}
-                  <div className="flex items-center justify-between p-4 border-b border-border">
-                    <div>
-                      <h3 className="text-xl font-bold">{activeVideo.title}</h3>
-                      <p className="text-sm text-muted-foreground flex items-center gap-2">
-                        <span className="px-2 py-0.5 rounded bg-primary/20 text-primary text-xs font-medium">
-                          {activeVideo.category}
-                        </span>
-                        <span>{activeVideo.duration}</span>
-                      </p>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setActiveVideo(null)}
-                      className="hover:bg-destructive/20 hover:text-destructive"
-                    >
-                      ✕ Close
-                    </Button>
-                  </div>
-
-                  {/* Video Player */}
-                  <div className="relative aspect-video bg-black">
-                    <video
-                      src={activeVideo.videoUrl}
-                      controls
-                      autoPlay
-                      className="w-full h-full"
-                      poster={activeVideo.thumbnail}
-                    >
-                      Your browser does not support the video tag.
-                    </video>
-                  </div>
-
-                  {/* Modal Footer */}
-                  <div className="p-4 bg-muted/30 border-t border-border">
-                    <p className="text-sm text-muted-foreground">
-                      <strong>Pro tip:</strong> Follow along with the video and practice proper form.
-                      Use the 3D trainer above to see the exercise from different angles.
+                {/* Modal Header */}
+                <div className="flex items-center justify-between p-4 border-b border-border">
+                  <div>
+                    <h3 className="text-xl font-bold">{activeVideo.title}</h3>
+                    <p className="text-sm text-muted-foreground flex items-center gap-2">
+                      <span className="px-2 py-0.5 rounded bg-primary/20 text-primary text-xs font-medium">
+                        {activeVideo.category}
+                      </span>
+                      <span>{activeVideo.duration}</span>
                     </p>
                   </div>
-                </motion.div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setActiveVideo(null)}
+                    className="hover:bg-destructive/20 hover:text-destructive"
+                  >
+                    ✕ Close
+                  </Button>
+                </div>
+
+                {/* Video Player */}
+                <div className="relative aspect-video bg-black">
+                  <video
+                    src={activeVideo.videoUrl}
+                    controls
+                    autoPlay
+                    className="w-full h-full"
+                    poster={activeVideo.thumbnail}
+                  >
+                    Your browser does not support the video tag.
+                  </video>
+                </div>
+
+                {/* Modal Footer */}
+                <div className="p-4 bg-muted/30 border-t border-border">
+                  <p className="text-sm text-muted-foreground">
+                    <strong>Pro tip:</strong> Follow along with the video and practice proper form.
+                    Use the 3D trainer above to see the exercise from different angles.
+                  </p>
+                </div>
               </motion.div>
-            )}
-          </AnimatePresence>
-        </PremiumLock>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </Container>
 
       {/* Video Player Modal */}

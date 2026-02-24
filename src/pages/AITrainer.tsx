@@ -8,7 +8,6 @@ import { ArrowLeft, Send, Bot, User, Dumbbell, Heart, Flame, Apple, Target, Load
 import { streamChat } from "@/lib/streamChat";
 import { toast } from "sonner";
 import { useGamification, XP_REWARDS } from "@/hooks/useGamification";
-import { PremiumLock } from "@/components/PremiumLock";
 
 type Message = {
     id: string;
@@ -143,101 +142,90 @@ export default function AITrainer() {
                 </div>
 
                 {/* Chat Area */}
-                <PremiumLock
-                    title="Unlock AI Trainer Chat"
-                    description="Get unlimited 24/7 personal coaching and fitness advice with SmartFit Pro."
-                    features={[
-                        "24/7 AI Personal Trainer",
-                        "Instant Form Feedback",
-                        "Custom Workout Advice",
-                        "Unlimited Messaging"
-                    ]}
-                >
-                    {/* Quick Actions */}
-                    <div className="flex flex-wrap gap-2 mb-4">
-                        {quickActions.map((action) => (
-                            <Button
-                                key={action.label}
-                                variant="outline"
-                                size="sm"
-                                className="gap-2"
-                                onClick={() => handleQuickAction(action.prompt)}
-                                disabled={isLoading}
+                {/* Quick Actions */}
+                <div className="flex flex-wrap gap-2 mb-4">
+                    {quickActions.map((action) => (
+                        <Button
+                            key={action.label}
+                            variant="outline"
+                            size="sm"
+                            className="gap-2"
+                            onClick={() => handleQuickAction(action.prompt)}
+                            disabled={isLoading}
+                        >
+                            <action.icon className="w-4 h-4" />
+                            {action.label}
+                        </Button>
+                    ))}
+                </div>
+
+                <Card className="flex-1 glass border-primary/20 flex flex-col overflow-hidden h-full">
+                    <CardContent className="flex-1 overflow-y-auto p-4 space-y-4">
+                        {messages.map((message) => (
+                            <div
+                                key={message.id}
+                                className={`flex gap-3 ${message.role === "user" ? "flex-row-reverse" : ""}`}
                             >
-                                <action.icon className="w-4 h-4" />
-                                {action.label}
-                            </Button>
-                        ))}
-                    </div>
-
-                    <Card className="flex-1 glass border-primary/20 flex flex-col overflow-hidden h-full">
-                        <CardContent className="flex-1 overflow-y-auto p-4 space-y-4">
-                            {messages.map((message) => (
                                 <div
-                                    key={message.id}
-                                    className={`flex gap-3 ${message.role === "user" ? "flex-row-reverse" : ""}`}
+                                    className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${message.role === "user"
+                                        ? "bg-primary/20 text-primary"
+                                        : "gradient-primary text-white"
+                                        }`}
                                 >
-                                    <div
-                                        className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${message.role === "user"
-                                            ? "bg-primary/20 text-primary"
-                                            : "gradient-primary text-white"
-                                            }`}
-                                    >
-                                        {message.role === "user" ? (
-                                            <User className="w-4 h-4" />
-                                        ) : (
-                                            <Bot className="w-4 h-4" />
-                                        )}
-                                    </div>
-                                    <div
-                                        className={`max-w-[80%] rounded-2xl px-4 py-3 ${message.role === "user"
-                                            ? "bg-primary text-primary-foreground rounded-br-sm"
-                                            : "bg-gray-800/80 text-foreground rounded-bl-sm"
-                                            }`}
-                                    >
-                                        <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                                        <p className="text-xs opacity-50 mt-1">
-                                            {message.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                                        </p>
+                                    {message.role === "user" ? (
+                                        <User className="w-4 h-4" />
+                                    ) : (
+                                        <Bot className="w-4 h-4" />
+                                    )}
+                                </div>
+                                <div
+                                    className={`max-w-[80%] rounded-2xl px-4 py-3 ${message.role === "user"
+                                        ? "bg-primary text-primary-foreground rounded-br-sm"
+                                        : "bg-gray-800/80 text-foreground rounded-bl-sm"
+                                        }`}
+                                >
+                                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                                    <p className="text-xs opacity-50 mt-1">
+                                        {message.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                                    </p>
+                                </div>
+                            </div>
+                        ))}
+
+                        {isLoading && (
+                            <div className="flex gap-3">
+                                <div className="w-8 h-8 rounded-full gradient-primary flex items-center justify-center">
+                                    <Bot className="w-4 h-4 text-white" />
+                                </div>
+                                <div className="bg-gray-800/80 rounded-2xl rounded-bl-sm px-4 py-3">
+                                    <div className="flex items-center gap-2">
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                        <span className="text-sm text-muted-foreground">Thinking...</span>
                                     </div>
                                 </div>
-                            ))}
+                            </div>
+                        )}
 
-                            {isLoading && (
-                                <div className="flex gap-3">
-                                    <div className="w-8 h-8 rounded-full gradient-primary flex items-center justify-center">
-                                        <Bot className="w-4 h-4 text-white" />
-                                    </div>
-                                    <div className="bg-gray-800/80 rounded-2xl rounded-bl-sm px-4 py-3">
-                                        <div className="flex items-center gap-2">
-                                            <Loader2 className="w-4 h-4 animate-spin" />
-                                            <span className="text-sm text-muted-foreground">Thinking...</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
+                        <div ref={messagesEndRef} />
+                    </CardContent>
 
-                            <div ref={messagesEndRef} />
-                        </CardContent>
-
-                        {/* Input Area */}
-                        <div className="p-4 border-t border-gray-800">
-                            <form onSubmit={handleSubmit} className="flex gap-2">
-                                <Input
-                                    ref={inputRef}
-                                    value={input}
-                                    onChange={(e) => setInput(e.target.value)}
-                                    placeholder="Ask me anything about fitness..."
-                                    className="flex-1"
-                                    disabled={isLoading}
-                                />
-                                <Button type="submit" variant="hero" disabled={isLoading || !input.trim()}>
-                                    <Send className="w-4 h-4" />
-                                </Button>
-                            </form>
-                        </div>
-                    </Card>
-                </PremiumLock>
+                    {/* Input Area */}
+                    <div className="p-4 border-t border-gray-800">
+                        <form onSubmit={handleSubmit} className="flex gap-2">
+                            <Input
+                                ref={inputRef}
+                                value={input}
+                                onChange={(e) => setInput(e.target.value)}
+                                placeholder="Ask me anything about fitness..."
+                                className="flex-1"
+                                disabled={isLoading}
+                            />
+                            <Button type="submit" variant="hero" disabled={isLoading || !input.trim()}>
+                                <Send className="w-4 h-4" />
+                            </Button>
+                        </form>
+                    </div>
+                </Card>
             </Container>
         </div>
     );

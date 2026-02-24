@@ -1,4 +1,3 @@
-import { BusinessPremiumLock } from "@/components/BusinessPremiumLock";
 import { Settings, Laptop, Cpu, Activity, Check } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -11,12 +10,7 @@ export default function EquipmentIntegration() {
     ];
 
     return (
-        <BusinessPremiumLock
-            title="Equipment Integration"
-            description="Connect your smart gym equipment for seamless data tracking."
-            features={features}
-            lockType="business"
-        >
+        <div className="container mx-auto px-6 py-12">
             <div className="container mx-auto px-6 py-12">
                 <div className="max-w-4xl mx-auto space-y-12">
                     <div className="text-center space-y-4">
@@ -57,6 +51,6 @@ export default function EquipmentIntegration() {
                     </div>
                 </div>
             </div>
-        </BusinessPremiumLock>
+        </div>
     );
 }

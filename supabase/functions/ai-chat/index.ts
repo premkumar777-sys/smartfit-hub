@@ -61,40 +61,6 @@ serve(async (req) => {
       );
     }
 
-    // Check for Admin Bypass
-    const adminEmails = [
-      'eslavathpremkumar17@gmail.com',
-      '24r01a66t7@cmrithyderabad.edu.in'
-    ];
-
-    const isAdmin = user.email && adminEmails.map(e => e.toLowerCase()).includes(user.email.toLowerCase());
-
-    if (!isAdmin) {
-      // Check Subscription Status
-      const { data: subscription, error: subError } = await supabaseClient
-        .from('subscriptions')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('status', 'active')
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (subError) {
-        console.error("Subscription check error:", subError);
-        return new Response(
-          JSON.stringify({ error: "Error verifying subscription status" }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
-      if (!subscription) {
-        return new Response(
-          JSON.stringify({ error: "Active Pro subscription required." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-    }
 
     const { message, conversationHistory } = await req.json();
     const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");

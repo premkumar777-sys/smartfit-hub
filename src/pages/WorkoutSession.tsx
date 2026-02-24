@@ -3,7 +3,6 @@ import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/Container";
 import PoseDetector from "@/components/PoseDetector";
-import { PremiumLock } from "@/components/PremiumLock";
 
 export default function WorkoutSession() {
   const navigate = useNavigate();
@@ -25,18 +24,7 @@ export default function WorkoutSession() {
             </p>
           </div>
 
-          <PremiumLock
-            title="Unlock Real-Time Form Correction"
-            description="Get instant AI feedback on your form to prevent injury and maximize results."
-            features={[
-              "Live Camera Form Detection",
-              "Rep Counting & Analysis",
-              "Imbalance Detection",
-              "Post-Workout Stats"
-            ]}
-          >
-            <PoseDetector />
-          </PremiumLock>
+          <PoseDetector />
         </div>
       </Container>
     </div>

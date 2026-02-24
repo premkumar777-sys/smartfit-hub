@@ -34,8 +34,16 @@ export const InstallPrompt = () => {
         const { outcome } = await deferredPrompt.userChoice;
 
         if (outcome === 'accepted') {
+            (window as any).gtag?.('event', 'pwa_prompt_accepted', {
+                event_category: 'PWA',
+                event_label: 'Custom Prompt'
+            });
             console.log('User accepted the install prompt');
         } else {
+            (window as any).gtag?.('event', 'pwa_prompt_dismissed', {
+                event_category: 'PWA',
+                event_label: 'Custom Prompt'
+            });
             console.log('User dismissed the install prompt');
         }
 

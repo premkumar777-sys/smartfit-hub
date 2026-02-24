@@ -73,9 +73,9 @@ export const BUSINESS_PLANS: PaymentPlan[] = [
 export const COACHING_PLAN: PaymentPlan = {
     id: "coaching",
     name: "Personal Coaching",
-    price: "₹199",
+    price: "₹9",
     period: "per month",
-    link: "https://imjo.in/ZQVVWg"
+    link: "https://imjo.in/vJwgza"
 };
 
 // ===========================================
