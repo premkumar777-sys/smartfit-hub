@@ -194,10 +194,10 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
                                     placeholder="Tell me what you ate... (e.g., '3 scrambled eggs and bread')"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="w-full h-32 bg-black/40 border border-white/10 rounded-xl p-4 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 placeholder:text-muted-foreground resize-none transition-all hover:border-primary/20"
+                                    className="w-full h-32 bg-black/40 border border-white/20 rounded-xl p-4 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 placeholder:text-muted-foreground resize-none transition-all hover:border-primary/30"
                                 />
                                 <div className="absolute bottom-3 right-3 flex items-center gap-2">
-                                    <span className="text-[10px] text-muted-foreground bg-black/60 px-2 py-1 rounded border border-white/5">
+                                    <span className="text-[10px] text-muted-foreground bg-black/60 px-2 py-1 rounded border border-white/20">
                                         Enter to log
                                     </span>
                                 </div>
@@ -224,7 +224,7 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
                     </div>
                 ) : (
                     <div className="space-y-4 animate-in fade-in zoom-in-95 duration-300">
-                        <div className="p-4 rounded-xl bg-primary/10 border border-primary/30 relative overflow-hidden">
+                        <div className="p-4 rounded-xl bg-primary/10 border border-primary/50 relative overflow-hidden">
                             <div className="absolute top-0 right-0 p-2 opacity-10">
                                 <SparklesIcon className="w-12 h-12" />
                             </div>
@@ -247,7 +247,7 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
                                 {isLogging ? <Loader2 className="w-4 h-4 animate-spin" /> : <TrendingUp className="w-4 h-4 mr-2" />}
                                 Log this meal
                             </Button>
-                            <Button onClick={handleDone} variant="outline" className="w-full border-white/10 hover:bg-white/5">
+                            <Button onClick={handleDone} variant="outline" className="w-full border-white/30 hover:bg-white/10">
                                 Done
                             </Button>
                         </div>
@@ -260,9 +260,9 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
 
 function MacroItem({ label, value }: { label: string; value: string }) {
     return (
-        <div className="bg-black/40 p-2 rounded-lg text-center border border-white/5">
-            <p className="text-[10px] uppercase text-muted-foreground">{label}</p>
-            <p className="text-sm font-bold text-white">{value}</p>
+        <div className="bg-black/40 p-2 rounded-lg text-center border border-white/20">
+            <p className="text-[10px] uppercase text-white/60 font-black">{label}</p>
+            <p className="text-sm font-black text-white">{value}</p>
         </div>
     );
 }

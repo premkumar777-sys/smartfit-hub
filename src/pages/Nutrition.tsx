@@ -318,7 +318,7 @@ export default function Nutrition() {
         <div className="flex flex-col gap-12">
           {/* Hero Branding */}
           <div className="text-center space-y-4">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-[10px] uppercase font-bold tracking-[0.3em] text-primary/80 animate-in fade-in slide-in-from-top-4 duration-700">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/20 text-[10px] uppercase font-bold tracking-[0.3em] text-primary animate-in fade-in slide-in-from-top-4 duration-700">
               Intelligence Protocol v2.0
             </div>
             <h1 className="text-5xl md:text-7xl font-black tracking-tighter text-white animate-in fade-in slide-in-from-bottom-4 duration-1000">
@@ -332,7 +332,7 @@ export default function Nutrition() {
           {/* AI Core Section */}
           <div className="max-w-xl mx-auto w-full relative group">
             <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-purple-500/20 rounded-2xl blur-xl opacity-50 group-hover:opacity-100 transition duration-1000"></div>
-            <div className="relative bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
+            <div className="relative bg-black/40 backdrop-blur-xl border border-white/20 rounded-2xl overflow-hidden shadow-2xl">
               <FoodScanner onScanComplete={() => { }} />
             </div>
             <p className="text-center text-[10px] text-muted-foreground mt-4 uppercase tracking-[0.2em] opacity-40">
@@ -353,42 +353,42 @@ export default function Nutrition() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div className="group relative bg-white/5 border border-white/10 rounded-3xl p-6 transition-all hover:bg-white/10 hover:border-primary/30">
-                    <div className="absolute top-4 right-4 text-primary/20 group-hover:text-primary transition-colors">
+                  <div className="group relative bg-white/5 border border-white/20 rounded-3xl p-6 transition-all hover:bg-white/10 hover:border-primary/50">
+                    <div className="absolute top-4 right-4 text-primary/40 group-hover:text-primary transition-colors">
                       <User className="w-5 h-5" />
                     </div>
-                    <Label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-bold mb-2 block">Years / Age</Label>
+                    <Label className="text-[10px] uppercase tracking-[0.2em] text-white/60 font-black mb-2 block">Years / Age</Label>
                     <Input
                       type="number"
                       value={age}
                       onChange={(e) => setAge(e.target.value)}
-                      className="bg-transparent border-none text-4xl font-black p-0 h-auto focus-visible:ring-0 text-white tabular-nums"
+                      className="bg-black/20 border border-white/20 focus:border-primary/50 rounded-xl text-4xl font-black px-4 py-2 h-auto focus-visible:ring-0 text-white tabular-nums transition-all"
                     />
                   </div>
 
-                  <div className="group relative bg-white/5 border border-white/10 rounded-3xl p-6 transition-all hover:bg-white/10 hover:border-primary/30">
-                    <div className="absolute top-4 right-4 text-primary/20 group-hover:text-primary transition-colors">
+                  <div className="group relative bg-white/5 border border-white/20 rounded-3xl p-6 transition-all hover:bg-white/10 hover:border-primary/50">
+                    <div className="absolute top-4 right-4 text-primary/40 group-hover:text-primary transition-colors">
                       <Scale className="w-5 h-5" />
                     </div>
-                    <Label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-bold mb-2 block">Mass / Weight (kg)</Label>
+                    <Label className="text-[10px] uppercase tracking-[0.2em] text-white/60 font-black mb-2 block">Mass / Weight (kg)</Label>
                     <Input
                       type="number"
                       value={weight}
                       onChange={(e) => setWeight(e.target.value)}
-                      className="bg-transparent border-none text-4xl font-black p-0 h-auto focus-visible:ring-0 text-white tabular-nums"
+                      className="bg-black/20 border border-white/10 focus:border-primary/50 rounded-xl text-4xl font-black px-4 py-2 h-auto focus-visible:ring-0 text-white tabular-nums transition-all"
                     />
                   </div>
 
-                  <div className="group relative bg-white/5 border border-white/10 rounded-3xl p-6 transition-all hover:bg-white/10 hover:border-primary/30">
-                    <div className="absolute top-4 right-4 text-primary/20 group-hover:text-primary transition-colors">
+                  <div className="group relative bg-white/5 border border-white/20 rounded-3xl p-6 transition-all hover:bg-white/10 hover:border-primary/50">
+                    <div className="absolute top-4 right-4 text-primary/40 group-hover:text-primary transition-colors">
                       <Ruler className="w-5 h-5" />
                     </div>
-                    <Label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-bold mb-2 block">Stature / Height (cm)</Label>
+                    <Label className="text-[10px] uppercase tracking-[0.2em] text-white/60 font-black mb-2 block">Stature / Height (cm)</Label>
                     <Input
                       type="number"
                       value={height}
                       onChange={(e) => setHeight(e.target.value)}
-                      className="bg-transparent border-none text-4xl font-black p-0 h-auto focus-visible:ring-0 text-white tabular-nums"
+                      className="bg-black/20 border border-white/10 focus:border-primary/50 rounded-xl text-4xl font-black px-4 py-2 h-auto focus-visible:ring-0 text-white tabular-nums transition-all"
                     />
                   </div>
 
@@ -416,7 +416,7 @@ export default function Nutrition() {
             {/* Precision Config & Results */}
             <div className="lg:col-span-4 space-y-6">
               {/* Operational Directives (Goal) */}
-              <Card className="bg-black/40 border-white/5 backdrop-blur-xl shadow-2xl overflow-hidden rounded-[2.5rem] border-none ring-1 ring-white/10">
+              <Card className="bg-black/40 border-white/20 backdrop-blur-xl shadow-2xl overflow-hidden rounded-[2.5rem] border-none ring-1 ring-white/20">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-black text-white/40 uppercase tracking-[0.3em] flex items-center justify-between">
                     Operational Directives
@@ -435,7 +435,7 @@ export default function Nutrition() {
                         onClick={() => setGoal(item.id as Goal)}
                         className={`group relative p-4 rounded-2xl border transition-all duration-300 text-left overflow-hidden ${goal === item.id
                           ? "bg-primary/20 border-primary text-white shadow-[0_0_20px_rgba(var(--primary),0.1)]"
-                          : "bg-white/5 border-white/5 text-muted-foreground hover:bg-white/10 hover:border-white/20"
+                          : "bg-white/5 border-white/10 text-muted-foreground hover:bg-white/10 hover:border-white/30"
                           }`}
                       >
                         <div className={`absolute top-0 left-0 w-1 h-full transition-all ${goal === item.id ? "bg-primary" : "bg-transparent"}`} />
@@ -466,7 +466,7 @@ export default function Nutrition() {
                           onClick={() => setDietaryPreference(diet.id as any)}
                           className={`py-2 px-1 rounded-xl text-[10px] font-black uppercase tracking-tighter border transition-all ${dietaryPreference === diet.id
                             ? "bg-white/10 border-primary text-primary"
-                            : "bg-white/5 border-white/5 text-white/40 hover:bg-white/10"
+                            : "bg-white/5 border-white/20 text-white/40 hover:bg-white/10"
                             }`}
                         >
                           {diet.label}
@@ -540,7 +540,7 @@ export default function Nutrition() {
                 </div>
 
                 {/* Progress Visualization */}
-                <Card className="bg-black/40 border-white/5 backdrop-blur-xl rounded-[2.5rem] md:col-span-2 overflow-hidden border-none ring-1 ring-white/10 p-8">
+                <Card className="bg-black/40 border-white/20 backdrop-blur-xl rounded-[2.5rem] md:col-span-2 overflow-hidden border-none ring-1 ring-white/20 p-8 shadow-2xl">
                   <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
                     <div className="space-y-1">
                       <h3 className="text-xl font-black text-white uppercase tracking-tighter flex items-center gap-2">
@@ -564,13 +564,13 @@ export default function Nutrition() {
                           <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
                           <XAxis
                             dataKey="date"
-                            stroke="#666"
+                            stroke="#888"
                             fontSize={10}
                             tickLine={false}
                             axisLine={false}
                           />
                           <YAxis
-                            stroke="#666"
+                            stroke="#888"
                             fontSize={10}
                             tickLine={false}
                             axisLine={false}
@@ -579,7 +579,7 @@ export default function Nutrition() {
                           <Tooltip
                             contentStyle={{
                               backgroundColor: '#111',
-                              border: '1px solid #333',
+                              border: '1px solid #444',
                               borderRadius: '12px',
                               fontSize: '12px'
                             }}
@@ -596,11 +596,11 @@ export default function Nutrition() {
                       </ResponsiveContainer>
                     </div>
                   ) : (
-                    <div className="h-[200px] flex flex-col items-center justify-center text-center space-y-4 border border-dashed border-white/10 rounded-3xl bg-white/5">
-                      <Calendar className="w-8 h-8 text-white/20" />
+                    <div className="h-[200px] flex flex-col items-center justify-center text-center space-y-4 border border-dashed border-white/20 rounded-3xl bg-white/5">
+                      <Calendar className="w-8 h-8 text-white/40" />
                       <div className="space-y-1">
-                        <p className="text-sm font-bold text-white/40">No historical data detected</p>
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Start logging your fuel to see precision trends</p>
+                        <p className="text-sm font-bold text-white/60">No historical data detected</p>
+                        <p className="text-[10px] text-white/40 uppercase tracking-widest">Start logging your fuel to see precision trends</p>
                       </div>
                     </div>
                   )}
@@ -716,16 +716,16 @@ export default function Nutrition() {
 
 function MetricBox({ label, value, unit, sub, icon, color }: { label: string; value: number | string; unit: string, sub: string, icon: React.ReactNode, color?: string }) {
   return (
-    <div className="bg-white/5 border border-white/10 rounded-3xl p-6 hover:bg-white/10 transition-colors group">
+    <div className="bg-white/5 border border-white/20 rounded-3xl p-6 hover:bg-white/10 transition-colors group shadow-lg">
       <div className="flex items-center justify-between mb-4">
-        <div className={`p-2 rounded-xl bg-white/5 ${color || 'text-primary'} border border-white/10`}>
+        <div className={`p-2 rounded-xl bg-white/5 ${color || 'text-primary'} border border-white/20`}>
           {icon}
         </div>
-        <p className="text-[10px] uppercase font-black tracking-widest text-muted-foreground opacity-40">{unit}</p>
+        <p className="text-[10px] uppercase font-black tracking-widest text-white/40">{unit}</p>
       </div>
-      <p className="text-xs font-bold text-muted-foreground mb-1 group-hover:text-white transition-colors uppercase tracking-wider">{label}</p>
+      <p className="text-xs font-black text-white/60 mb-1 group-hover:text-white transition-colors uppercase tracking-wider">{label}</p>
       <h4 className={`text-3xl font-black ${color || 'text-white'} tracking-tighter tabular-nums mb-1`}>{value}</h4>
-      <p className="text-[10px] text-muted-foreground/60 font-medium">{sub}</p>
+      <p className="text-[10px] text-white/40 font-medium">{sub}</p>
     </div>
   )
 }
