@@ -46,7 +46,10 @@ export default function AITrainer() {
     };
 
     useEffect(() => {
-        scrollToBottom();
+        // Only scroll smoothly if there are more than just the welcome message
+        if (messages.length > 1) {
+            scrollToBottom();
+        }
     }, [messages]);
 
     const sendMessage = async (content: string) => {

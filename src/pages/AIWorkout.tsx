@@ -10,7 +10,6 @@ import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useGamification, XP_REWARDS } from "@/hooks/useGamification";
-import { ComingSoonBadge } from "@/components/ComingSoon";
 import { BMIResult } from "@/components/BMIResult";
 
 const AIWorkout = () => {
@@ -146,7 +145,6 @@ const AIWorkout = () => {
             <ArrowLeft className="w-4 h-4 mr-2" aria-hidden="true" />
             Back
           </button>
-          <ComingSoonBadge />
         </div>
 
         <div className="text-center mb-8 relative">

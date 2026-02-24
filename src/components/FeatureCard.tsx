@@ -171,9 +171,8 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index, badge
       onFocus={handleFocus}
       onBlur={handleBlur}
       onKeyDown={handleKeyDown}
-      tabIndex={link ? 0 : -1}
-      role={link ? "button" : "article"}
-      aria-label={`${title}: ${description}`}
+      role={onClick ? "button" : (link ? undefined : "article")}
+      aria-label={title ? `${title}: ${description}` : undefined}
     >
       {/* Floating Badge */}
       {badge && (
