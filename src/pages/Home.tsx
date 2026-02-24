@@ -268,8 +268,7 @@ const Home = () => {
                 title: "Nutrition & Macro AI",
                 description: "AI-powered meal planning with precise macro calculations",
                 link: "/nutrition",
-                isPremium: true,
-                variant: 'saas'
+                isPremium: true
               },
               {
                 icon: Calendar,
