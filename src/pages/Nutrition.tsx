@@ -353,58 +353,58 @@ export default function Nutrition() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div className="group relative bg-white/5 border border-white/20 rounded-3xl p-6 transition-all hover:bg-white/10 hover:border-primary/50">
-                    <div className="absolute top-4 right-4 text-primary/40 group-hover:text-primary transition-colors">
-                      <User className="w-5 h-5" />
+                  <div className="group relative bg-white/5 border border-white/20 rounded-2xl p-4 transition-all hover:bg-white/10 hover:border-primary/50">
+                    <div className="absolute top-2 right-4 text-primary/40 group-hover:text-primary transition-colors">
+                      <User className="w-4 h-4" />
                     </div>
-                    <Label className="text-[10px] uppercase tracking-[0.2em] text-white/60 font-black mb-2 block">Years / Age</Label>
+                    <Label className="text-[9px] uppercase tracking-[0.2em] text-white/60 font-black mb-1 block">Years / Age</Label>
                     <Input
                       type="number"
                       value={age}
                       onChange={(e) => setAge(e.target.value)}
-                      className="bg-black/20 border border-white/20 focus:border-primary/50 rounded-xl text-4xl font-black px-4 py-2 h-auto focus-visible:ring-0 text-white tabular-nums transition-all"
+                      className="bg-black/20 border border-white/20 focus:border-primary/50 rounded-lg text-2xl font-black px-3 py-1 h-auto focus-visible:ring-0 text-white tabular-nums transition-all"
                     />
                   </div>
 
-                  <div className="group relative bg-white/5 border border-white/20 rounded-3xl p-6 transition-all hover:bg-white/10 hover:border-primary/50">
-                    <div className="absolute top-4 right-4 text-primary/40 group-hover:text-primary transition-colors">
-                      <Scale className="w-5 h-5" />
+                  <div className="group relative bg-white/5 border border-white/20 rounded-2xl p-4 transition-all hover:bg-white/10 hover:border-primary/50">
+                    <div className="absolute top-2 right-4 text-primary/40 group-hover:text-primary transition-colors">
+                      <Scale className="w-4 h-4" />
                     </div>
-                    <Label className="text-[10px] uppercase tracking-[0.2em] text-white/60 font-black mb-2 block">Mass / Weight (kg)</Label>
+                    <Label className="text-[9px] uppercase tracking-[0.2em] text-white/60 font-black mb-1 block">Mass / Weight (kg)</Label>
                     <Input
                       type="number"
                       value={weight}
                       onChange={(e) => setWeight(e.target.value)}
-                      className="bg-black/20 border border-white/10 focus:border-primary/50 rounded-xl text-4xl font-black px-4 py-2 h-auto focus-visible:ring-0 text-white tabular-nums transition-all"
+                      className="bg-black/20 border border-white/20 focus:border-primary/50 rounded-lg text-2xl font-black px-3 py-1 h-auto focus-visible:ring-0 text-white tabular-nums transition-all"
                     />
                   </div>
 
-                  <div className="group relative bg-white/5 border border-white/20 rounded-3xl p-6 transition-all hover:bg-white/10 hover:border-primary/50">
-                    <div className="absolute top-4 right-4 text-primary/40 group-hover:text-primary transition-colors">
+                  <div className="group relative bg-white/5 border border-white/20 rounded-2xl p-4 transition-all hover:bg-white/10 hover:border-primary/50">
+                    <div className="absolute top-2 right-4 text-primary/40 group-hover:text-primary transition-colors">
                       <Ruler className="w-5 h-5" />
                     </div>
-                    <Label className="text-[10px] uppercase tracking-[0.2em] text-white/60 font-black mb-2 block">Stature / Height (cm)</Label>
+                    <Label className="text-[9px] uppercase tracking-[0.2em] text-white/60 font-black mb-1 block">Stature / Height (cm)</Label>
                     <Input
                       type="number"
                       value={height}
                       onChange={(e) => setHeight(e.target.value)}
-                      className="bg-black/20 border border-white/10 focus:border-primary/50 rounded-xl text-4xl font-black px-4 py-2 h-auto focus-visible:ring-0 text-white tabular-nums transition-all"
+                      className="bg-black/20 border border-white/20 focus:border-primary/50 rounded-lg text-2xl font-black px-3 py-1 h-auto focus-visible:ring-0 text-white tabular-nums transition-all"
                     />
                   </div>
 
                   <button
                     onClick={handleUpdatePlan}
                     disabled={isUpdating}
-                    className="group relative h-full min-h-[100px] flex flex-col items-center justify-center bg-primary rounded-3xl transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50 overflow-hidden shadow-[0_0_30px_rgba(var(--primary),0.2)]"
+                    className="group relative h-full min-h-[80px] flex flex-col items-center justify-center bg-primary rounded-2xl transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50 overflow-hidden shadow-[0_0_20px_rgba(var(--primary),0.2)]"
                   >
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent pointer-events-none" />
-                    <div className="relative z-10 flex flex-col items-center gap-2">
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none" />
+                    <div className="relative z-10 flex flex-col items-center gap-1.5">
                       {isUpdating ? (
-                        <Loader2 className="animate-spin w-8 h-8 text-black" />
+                        <Loader2 className="animate-spin w-6 h-6 text-black" />
                       ) : (
                         <>
-                          <Zap className="w-6 h-6 text-black group-hover:animate-pulse" />
-                          <span className="text-sm font-black text-black uppercase tracking-tighter">Activate Metabolic Mastery</span>
+                          <Zap className="w-5 h-5 text-black group-hover:animate-pulse" />
+                          <span className="text-[11px] font-black text-black uppercase tracking-tighter text-center leading-tight px-4">Activate Mastery Protocol</span>
                         </>
                       )}
                     </div>
