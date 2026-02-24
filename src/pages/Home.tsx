@@ -325,6 +325,7 @@ const Home = () => {
                 badge={(feature as any).badge}
                 isPremium={(feature as any).isPremium}
                 onClick={(feature as any).onClick}
+                variant={(feature as any).variant}
               />
             ))}
           </div>

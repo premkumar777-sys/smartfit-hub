@@ -325,26 +325,25 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index, badge
         <AnimatePresence>
           {isHovered && !prefersReducedMotion && !isMobile && (
             <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl">
-              {[...Array(4)].map((_, i) => (
+              {[0, 1, 2, 3].map((i) => (
                 <motion.div
                   key={i}
                   className="absolute w-1 h-1 rounded-full bg-[#00FF9C]"
                   style={{
-                    boxShadow: `0 0 6px #00FF9C, 0 0 12px #00FF9C`
+                    boxShadow: `0 0 6px #00FF9C, 0 0 12px #00FF9C`,
+                    translateZ: '10px' // Added for better 3D depth
                   }}
                   initial={{
                     opacity: 0,
                     scale: 0,
                     x: '50%',
-                    y: '50%',
-                    z: 0
+                    y: '50%'
                   }}
                   animate={{
                     opacity: [0, 1, 0],
                     scale: [0, 2, 0],
                     x: [`${40 + i * 5}%`, `${60 - i * 5}%`, `${50 + i * 3}%`],
-                    y: [`${45 + i * 3}%`, `${55 - i * 3}%`, `${50 - i * 2}%`],
-                    z: [0, 50, 0]
+                    y: [`${45 + i * 3}%`, `${55 - i * 3}%`, `${50 - i * 2}%`]
                   }}
                   transition={{
                     duration: 2,
