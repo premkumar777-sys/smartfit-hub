@@ -239,7 +239,7 @@ const Home = () => {
               {
                 icon: Zap,
                 title: "AI Workout Generator",
-                description: "Professional, AI-crafted training programs tailored to your goals and fitness level",
+                description: "Smart training programs with integrated BMI assessment and fitness goal tracking",
                 link: "/ai-workout",
                 isPremium: true
               },
@@ -312,12 +312,6 @@ const Home = () => {
                 link: "/online-coaching",
                 badge: "LIVE",
                 isPremium: true
-              },
-              {
-                icon: Calculator,
-                title: "BMI Calculator",
-                description: "Calculate your BMI with gender-specific healthy ranges and personalized feedback",
-                link: "/bmi-calculator",
               },
             ].map((feature, index) => (
               <FeatureCard

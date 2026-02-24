@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Container } from "@/components/Container";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Dumbbell, ArrowLeft, Save, Zap } from "lucide-react";
+import { Loader2, Dumbbell, ArrowLeft, Save, Zap, Calculator, Target } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -171,65 +171,78 @@ const AIWorkout = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="age">Age</Label>
-                  <Input
-                    id="age"
-                    type="number"
-                    placeholder="25"
-                    required
-                    value={formData.age}
-                    onChange={(e) => setFormData({ ...formData, age: e.target.value })}
-                  />
-                </div>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 pb-2 border-b border-white/10">
+                    <Calculator className="w-4 h-4 text-primary" />
+                    <h4 className="text-sm font-semibold text-white uppercase tracking-wider">Step 1: Health & BMI Assessment</h4>
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="weight">Weight (kg)</Label>
-                  <Input
-                    id="weight"
-                    type="number"
-                    step="0.1"
-                    placeholder="70"
-                    required
-                    value={formData.weight}
-                    onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
-                  />
-                </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="age">Age</Label>
+                      <Input
+                        id="age"
+                        type="number"
+                        placeholder="25"
+                        required
+                        value={formData.age}
+                        onChange={(e) => setFormData({ ...formData, age: e.target.value })}
+                      />
+                    </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="height">Height (cm)</Label>
-                  <Input
-                    id="height"
-                    type="number"
-                    placeholder="175"
-                    required
-                    value={formData.height}
-                    onChange={(e) => setFormData({ ...formData, height: e.target.value })}
-                  />
-                </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="gender">Gender</Label>
+                      <Select
+                        value={formData.gender}
+                        onValueChange={(value) => setFormData({ ...formData, gender: value as "male" | "female" })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="male">♂ Male</SelectItem>
+                          <SelectItem value="female">♀ Female</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="gender">Gender</Label>
-                  <Select
-                    value={formData.gender}
-                    onValueChange={(value) => setFormData({ ...formData, gender: value as "male" | "female" })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select your gender" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="male">♂ Male</SelectItem>
-                      <SelectItem value="female">♀ Female</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="weight">Weight (kg)</Label>
+                      <Input
+                        id="weight"
+                        type="number"
+                        step="0.1"
+                        placeholder="70"
+                        required
+                        value={formData.weight}
+                        onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="height">Height (cm)</Label>
+                      <Input
+                        id="height"
+                        type="number"
+                        placeholder="175"
+                        required
+                        value={formData.height}
+                        onChange={(e) => setFormData({ ...formData, height: e.target.value })}
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 {calculateBMI() && formData.gender && (
-                  <BMIResult
-                    bmi={parseFloat(calculateBMI()!)}
-                    gender={formData.gender as "male" | "female"}
-                  />
+                  <div className="animate-in fade-in slide-in-from-top-2 duration-500">
+                    <BMIResult
+                      bmi={parseFloat(calculateBMI()!)}
+                      gender={formData.gender as "male" | "female"}
+                    />
+                  </div>
                 )}
 
                 {calculateBMI() && !formData.gender && (
@@ -240,25 +253,32 @@ const AIWorkout = () => {
                   </div>
                 )}
 
-                <div className="space-y-2">
-                  <Label htmlFor="goal">Fitness Goal</Label>
-                  <Select
-                    required
-                    value={formData.goal}
-                    onValueChange={(value) => setFormData({ ...formData, goal: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select your goal" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="weight-loss">Weight Loss</SelectItem>
-                      <SelectItem value="muscle-gain">Muscle Gain</SelectItem>
-                      <SelectItem value="endurance">Endurance</SelectItem>
-                      <SelectItem value="strength">Strength</SelectItem>
-                      <SelectItem value="flexibility">Flexibility</SelectItem>
-                      <SelectItem value="general-fitness">General Fitness</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 pb-2 border-b border-white/10">
+                    <Target className="w-4 h-4 text-primary" />
+                    <h4 className="text-sm font-semibold text-white uppercase tracking-wider">Step 2: Training Goal</h4>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="goal">Fitness Goal</Label>
+                    <Select
+                      required
+                      value={formData.goal}
+                      onValueChange={(value) => setFormData({ ...formData, goal: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select your goal" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="weight-loss">Weight Loss</SelectItem>
+                        <SelectItem value="muscle-gain">Muscle Gain</SelectItem>
+                        <SelectItem value="endurance">Endurance</SelectItem>
+                        <SelectItem value="strength">Strength</SelectItem>
+                        <SelectItem value="flexibility">Flexibility</SelectItem>
+                        <SelectItem value="general-fitness">General Fitness</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 <Button

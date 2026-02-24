@@ -38,7 +38,6 @@ const GymFinder = lazy(() => import("./pages/GymFinder"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const RefundPolicy = lazy(() => import("./pages/RefundPolicy"));
-const BMICalculator = lazy(() => import("./pages/BMICalculator"));
 const ShippingPolicy = lazy(() => import("./pages/ShippingPolicy"));
 const ContactUs = lazy(() => import("./pages/ContactUs"));
 const BusinessLanding = lazy(() => import("./pages/business/BusinessLanding"));
@@ -81,7 +80,6 @@ const App = () => {
                   <Route path="/home-workouts" element={<HomeWorkouts />} />
                   <Route path="/ai-trainer" element={<AITrainer />} />
                   <Route path="/gamification" element={<Gamification />} />
-                  <Route path="/bmi-calculator" element={<BMICalculator />} />
                   <Route path="/3d-trainer" element={<CameraOffWorkout />} />
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/settings" element={<Settings />} />
