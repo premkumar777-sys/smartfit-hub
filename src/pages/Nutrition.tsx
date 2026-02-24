@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, TrendingUp, Info, Scale, Ruler, User, Target, Zap, Waves, Sparkles, Flame, Activity as ActivityIcon, TrendingDown } from "lucide-react";
+import { Loader2, TrendingUp, Info, Scale, Ruler, User, Target, Zap, Waves, Sparkles, Flame, Activity as ActivityIcon, TrendingDown, Utensils, Bot, ChefHat, Dumbbell, BarChart3, Settings2, LogOut, Home } from "lucide-react";
 import { FoodScanner } from "@/components/FoodScanner";
 
 type Activity = "sedentary" | "light" | "moderate" | "active" | "athlete";
@@ -227,292 +227,408 @@ export default function Nutrition() {
   };
 
   return (
-    <div className="min-h-screen py-16 relative overflow-hidden bg-[#0A0A0A]">
-      <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent opacity-30 pointer-events-none" />
-
-      <Container className="relative z-10 max-w-5xl">
-        <button
-          onClick={() => navigate(-1)}
-          className="group inline-flex items-center text-sm text-muted-foreground hover:text-primary mb-12 transition-all"
-        >
-          <span className="mr-2 group-hover:-translate-x-1 transition-transform">←</span>
-          Return to Hub
-        </button>
-
-        <div className="flex flex-col gap-12">
-          {/* Hero Branding */}
-          <div className="text-center space-y-4">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-[10px] uppercase font-bold tracking-[0.3em] text-primary/80 animate-in fade-in slide-in-from-top-4 duration-700">
-              Intelligence Protocol v2.0
+    <div className="min-h-screen bg-[#F7F8FA] flex flex-col md:flex-row font-sans selection:bg-green-100 selection:text-green-900">
+      {/* Sidebar Navigation */}
+      <aside className="w-full md:w-64 bg-white border-r border-gray-200 flex flex-col h-screen sticky top-0 z-20">
+        <div className="p-6">
+          <div className="flex items-center gap-2 mb-8">
+            <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
+              <Zap className="w-5 h-5 text-white" />
             </div>
-            <h1 className="text-5xl md:text-7xl font-black tracking-tighter text-white animate-in fade-in slide-in-from-bottom-4 duration-1000">
-              Precision <span className="text-primary italic">Fueling</span>
-            </h1>
-            <p className="text-muted-foreground text-sm md:text-lg max-w-2xl mx-auto leading-relaxed opacity-80">
-              Your nutritional architecture, decoded. Use the AI Core to analyze fuel or calculate your metabolic baseline below.
-            </p>
+            <span className="text-xl font-bold tracking-tight text-gray-900">SmartFit <span className="text-green-500">AI</span></span>
           </div>
 
-          {/* AI Core Section */}
-          <div className="max-w-xl mx-auto w-full relative group">
-            <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-purple-500/20 rounded-2xl blur-xl opacity-50 group-hover:opacity-100 transition duration-1000"></div>
-            <div className="relative bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
-              <FoodScanner onScanComplete={() => { }} />
-            </div>
-            <p className="text-center text-[10px] text-muted-foreground mt-4 uppercase tracking-[0.2em] opacity-40">
-              Conversational Food Intelligence System
-            </p>
-          </div>
+          <nav className="space-y-1">
+            {[
+              { icon: ActivityIcon, label: 'Dashboard', path: '/dashboard' },
+              { icon: Utensils, label: 'Log Meal', path: '#' },
+              { icon: Target, label: 'Nutrition', path: '/nutrition', active: true },
+              { icon: Zap, label: 'Workout', path: '/ai-workout' },
+              { icon: TrendingUp, label: 'Progress', path: '/progress' },
+              { icon: Bot, label: 'AI Coach', path: '/ai-trainer' },
+              { icon: User, label: 'Settings', path: '/settings' },
+            ].map((item) => (
+              <button
+                key={item.label}
+                onClick={() => item.path !== '#' && navigate(item.path)}
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all ${item.active
+                  ? "bg-green-50 text-green-700"
+                  : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
+                  }`}
+              >
+                <item.icon className="w-4 h-4" />
+                {item.label}
+              </button>
+            ))}
+          </nav>
+        </div>
 
-          <div className="grid lg:grid-cols-12 gap-8 mt-12">
-            {/* Inputs Column */}
-            {/* Inputs Column - Biological Signature UI */}
-            <div className="lg:col-span-12">
-              <Card className="bg-white/5 border-white/10 backdrop-blur-xl rounded-[2.5rem] overflow-hidden border-none ring-1 ring-white/10">
-                <CardContent className="p-8 space-y-8">
-                  <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-                    <div className="space-y-1 text-center md:text-left">
-                      <h3 className="text-lg font-black uppercase tracking-[0.3em] text-white">Biological Identity</h3>
-                      <p className="text-[10px] text-muted-foreground uppercase tracking-widest opacity-60">Physiological baseline configuration</p>
+        <div className="mt-auto p-6 border-t border-gray-100">
+          <div className="flex items-center gap-3 px-3 py-2 rounded-xl bg-gray-50">
+            <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-700 font-bold text-xs">
+              P
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-gray-900 truncate">Prem</p>
+              <p className="text-xs text-gray-500 truncate">Pro Plan</p>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      {/* Main Content Area */}
+      <main className="flex-1 min-w-0 overflow-y-auto">
+        {/* Top Header Bar */}
+        <header className="h-16 bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-10 px-8 flex items-center justify-between">
+          <div className="flex flex-col">
+            <h1 className="text-lg font-bold text-gray-900">Good Evening, Prem 👋</h1>
+            <p className="text-xs text-gray-500 font-medium">Goal: {goalMap[goal].label} • {result?.calories || 2400} kcal/day</p>
+          </div>
+          <div className="flex items-center gap-4">
+            <Button variant="outline" size="sm" className="rounded-full bg-white border-gray-200 text-gray-700 hover:bg-gray-50">
+              Weekly Report
+            </Button>
+            <Button size="sm" className="rounded-full bg-green-500 hover:bg-green-600 text-white font-semibold">
+              <Sparkles className="w-4 h-4 mr-2" /> Upgrade to Elite
+            </Button>
+          </div>
+        </header>
+
+        <div className="p-8 max-w-7xl mx-auto space-y-8">
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Left Column: Stats */}
+            <div className="lg:col-span-2 space-y-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+                {/* Card 1 – Calories Today */}
+                <Card className="bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="p-2 rounded-lg bg-green-50 text-green-600">
+                        <Flame className="w-6 h-6" />
+                      </div>
+                      <span className="text-xs font-bold text-green-600 bg-green-50 px-3 py-1 rounded-full uppercase tracking-wider">
+                        Active
+                      </span>
                     </div>
-                    <Button
-                      onClick={handleUpdatePlan}
-                      disabled={isUpdating}
-                      className="bg-primary text-black font-black uppercase tracking-tighter rounded-full px-8 py-6 hover:scale-105 transition-all shadow-[0_0_30px_rgba(var(--primary),0.2)]"
-                    >
-                      {isUpdating ? <Loader2 className="animate-spin w-5 h-5" /> : <><Zap className="w-4 h-4 mr-2" /> Sync Protocol</>}
-                    </Button>
-                  </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    {[
-                      { label: 'Age', value: age, setter: setAge, unit: 'Years', icon: <User className="w-4 h-4" /> },
-                      { label: 'Weight', value: weight, setter: setWeight, unit: 'kg', icon: <Scale className="w-4 h-4" /> },
-                      { label: 'Height', value: height, setter: setHeight, unit: 'cm', icon: <Ruler className="w-4 h-4" /> }
-                    ].map((item) => (
-                      <div key={item.label} className="bg-white/5 border border-white/5 rounded-2xl p-4 transition-all hover:bg-white/10">
-                        <div className="flex items-center justify-between mb-2">
-                          <Label className="text-[10px] uppercase tracking-widest text-white/40 font-bold">{item.label}</Label>
-                          <div className="text-primary/40">{item.icon}</div>
-                        </div>
+                    <div className="space-y-4">
+                      <div>
+                        <p className="text-sm font-medium text-gray-500 mb-1">Calories Today</p>
                         <div className="flex items-baseline gap-2">
+                          <h2 className="text-3xl font-bold text-gray-900">2,093</h2>
+                          <span className="text-sm font-medium text-gray-400">/ {result?.calories || 2400} kcal</span>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-xs font-bold uppercase tracking-widest text-gray-400">
+                          <span>Progress</span>
+                          <span className="text-green-600">307 kcal remaining</span>
+                        </div>
+                        <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: '87%' }}
+                            className="h-full bg-green-500 rounded-full shadow-[0_0_10px_rgba(34,197,94,0.3)]"
+                          />
+                        </div>
+                      </div>
+
+                      <Button className="w-full bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl h-11 transition-all">
+                        + Log Meal
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Card 2 – Macronutrients */}
+                <Card className="bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+                  <CardContent className="p-6">
+                    <h3 className="text-sm font-bold text-gray-900 mb-6 uppercase tracking-wider">Macronutrients</h3>
+
+                    <div className="space-y-6">
+                      {[
+                        { label: 'Protein', icon: <div className="w-2 h-2 rounded-full bg-blue-500" />, value: result?.protein || 160, current: 148, unit: 'g', color: 'bg-blue-500' },
+                        { label: 'Carbs', icon: <div className="w-2 h-2 rounded-full bg-orange-500" />, value: result?.carbs || 250, current: 225, unit: 'g', color: 'bg-orange-500' },
+                        { label: 'Fats', icon: <div className="w-2 h-2 rounded-full bg-purple-500" />, value: result?.fats || 70, current: 67, unit: 'g', color: 'bg-purple-500' }
+                      ].map((macro) => (
+                        <div key={macro.label} className="space-y-2">
+                          <div className="flex items-center justify-between text-xs">
+                            <div className="flex items-center gap-2">
+                              {macro.icon}
+                              <span className="font-bold text-gray-500 uppercase">{macro.label}</span>
+                            </div>
+                            <span className="font-bold text-gray-900">{macro.current}{macro.unit} <span className="text-gray-300">/ {macro.value}{macro.unit}</span></span>
+                          </div>
+                          <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                            <motion.div
+                              initial={{ width: 0 }}
+                              animate={{ width: `${(macro.current / macro.value) * 100}%` }}
+                              className={`h-full ${macro.color} rounded-full`}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Weekly Progress Chart */}
+              <Card className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+                <CardHeader className="p-6 pb-0 flex flex-row items-center justify-between">
+                  <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Weekly Progress</h3>
+                  <Select defaultValue="weight">
+                    <SelectTrigger className="w-32 h-8 rounded-lg text-xs font-bold border-gray-200">
+                      <SelectValue placeholder="Metric" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="weight">Weight (kg)</SelectItem>
+                      <SelectItem value="calories">Calories</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </CardHeader>
+                <CardContent className="p-6 pt-8">
+                  <div className="h-[200px] w-full flex items-end justify-between gap-2">
+                    {[68.5, 68.2, 68.4, 68.1, 67.9, 67.8, 67.6].map((v, i) => (
+                      <div key={i} className="flex-1 flex flex-col items-center gap-2 group cursor-pointer">
+                        <div className="w-full relative h-[150px] flex items-end">
+                          <motion.div
+                            initial={{ height: 0 }}
+                            animate={{ height: `${(v / 70) * 100}%` }}
+                            className="w-full bg-green-500/10 hover:bg-green-500/20 rounded-t-lg transition-colors border-t-2 border-green-500"
+                          />
+                          <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-6 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                            <span className="text-[10px] font-bold bg-gray-900 text-white px-2 py-1 rounded">
+                              {v} kg
+                            </span>
+                          </div>
+                        </div>
+                        <span className="text-[10px] font-bold text-gray-400 uppercase">
+                          {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][i]}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Bio & Config Section (Integrated) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <Card className="bg-white border border-gray-200 rounded-2xl shadow-sm">
+                  <CardHeader className="p-6 pb-0">
+                    <CardTitle className="text-sm font-bold text-gray-900 uppercase tracking-widest">Biological Profile</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6 space-y-4">
+                    <div className="grid grid-cols-3 gap-3">
+                      {[
+                        { label: 'Age', value: age, setter: setAge, unit: 'Yrs' },
+                        { label: 'Weight', value: weight, setter: setWeight, unit: 'kg' },
+                        { label: 'Height', value: height, setter: setHeight, unit: 'cm' }
+                      ].map((item) => (
+                        <div key={item.label} className="p-3 rounded-xl bg-gray-50 border border-gray-100">
+                          <Label className="text-[9px] font-black text-gray-400 uppercase block mb-1">{item.label}</Label>
                           <Input
                             type="number"
                             value={item.value}
                             onChange={(e) => item.setter(e.target.value)}
-                            className="bg-transparent border-none text-3xl font-black p-0 h-auto focus-visible:ring-0 text-white w-20"
+                            className="h-7 p-0 bg-transparent border-none text-base font-bold text-gray-900 focus-visible:ring-0"
                           />
-                          <span className="text-[10px] font-bold text-white/20 uppercase">{item.unit}</span>
+                          <span className="text-[10px] text-gray-300 font-bold uppercase">{item.unit}</span>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
 
-                    <div className="bg-white/5 border border-white/5 rounded-2xl p-4 transition-all hover:bg-white/10">
-                      <Label className="text-[10px] uppercase tracking-widest text-white/40 font-bold mb-3 block">Dietary Type</Label>
+                    <div className="space-y-2">
+                      <Label className="text-[9px] font-black text-gray-400 uppercase">Dietary Type</Label>
                       <div className="flex gap-1">
                         {['veg', 'non-veg', 'mixed'].map((diet) => (
                           <button
                             key={diet}
                             onClick={() => setDietaryPreference(diet as any)}
-                            className={`flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all ${dietaryPreference === diet
-                              ? "bg-primary text-black"
-                              : "bg-white/5 text-white/40 hover:bg-white/10"
+                            className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all ${dietaryPreference === diet
+                              ? "bg-green-500 text-white"
+                              : "bg-gray-50 text-gray-400 hover:bg-gray-100"
                               }`}
                           >
-                            {diet === 'non-veg' ? 'Non-Veg' : diet.toUpperCase()}
+                            {diet}
                           </button>
                         ))}
                       </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
 
-            {/* Configuration Column */}
-            <div className="lg:col-span-4 space-y-4">
-              <Card className="bg-white/5 border-white/10 backdrop-blur-xl rounded-[2rem] overflow-hidden border-none ring-1 ring-white/10">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-[10px] font-black text-white/40 uppercase tracking-[0.4em]">Configuration</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  {/* Goal Selective */}
-                  <div className="space-y-3">
-                    <Label className="text-[9px] uppercase tracking-widest text-primary/60 font-black">Performance Goal</Label>
-                    <div className="grid grid-cols-1 gap-2">
-                      {[
-                        { id: 'cut', label: 'Fat Loss', sub: 'Caloric Deficit' },
-                        { id: 'recomp', label: 'Maintenance', sub: 'Recomposition' },
-                        { id: 'bulk', label: 'Lean Bulk', sub: 'Muscle Gain' }
-                      ].map((item) => (
-                        <button
-                          key={item.id}
-                          onClick={() => setGoal(item.id as Goal)}
-                          className={`group p-3 rounded-xl border transition-all text-left ${goal === item.id
-                            ? "bg-primary/10 border-primary text-white"
-                            : "bg-white/5 border-white/5 text-white/40 hover:bg-white/10"
-                            }`}
-                        >
-                          <div className="flex justify-between items-center">
-                            <div>
-                              <p className="text-[10px] font-black uppercase tracking-tight">{item.label}</p>
-                              <p className="text-[8px] opacity-40 uppercase tracking-tighter">{item.sub}</p>
-                            </div>
-                            {goal === item.id && <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />}
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Activity Flow */}
-                  <div className="space-y-3 pt-4 border-t border-white/5">
-                    <Label className="text-[9px] uppercase tracking-widest text-primary/60 font-black">Metabolic Flow</Label>
-                    <div className="grid grid-cols-5 gap-1">
-                      {[1, 2, 3, 4, 5].map((level, i) => {
-                        const types: Activity[] = ['sedentary', 'light', 'moderate', 'active', 'athlete'];
-                        const isActive = activity === types[i];
-                        return (
-                          <button
-                            key={level}
-                            onClick={() => setActivity(types[i])}
-                            className={`h-8 rounded-lg text-[10px] font-black transition-all ${isActive
-                              ? "bg-primary text-black"
-                              : "bg-white/5 text-white/20 hover:text-white"
-                              }`}
-                          >
-                            {level}
-                          </button>
-                        );
-                      })}
-                    </div>
-                    <p className="text-[8px] text-center text-white/20 uppercase tracking-[0.2em]">{activity}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Intelligence Report Section */}
-            <div className="lg:col-span-8 space-y-4">
-              <div className="grid grid-cols-1 gap-4">
-                {/* Energy Protocol Card */}
-                <Card className="bg-primary border-none rounded-[2.5rem] p-8 text-black relative overflow-hidden shadow-[0_0_50px_rgba(var(--primary),0.2)]">
-                  <div className="flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
-                    <div className="text-center md:text-left">
-                      <p className="text-[10px] font-black uppercase tracking-[0.4em] opacity-60 mb-2">Energy Balance Protocol</p>
-                      <div className="flex items-baseline gap-2 justify-center md:justify-start">
-                        <h2 className="text-7xl font-black tracking-tighter tabular-nums leading-none">{result?.calories || 0}</h2>
-                        <span className="text-sm font-black uppercase tracking-widest">kcal/day</span>
-                      </div>
-                    </div>
-
-                    <div className="h-px w-full md:w-px md:h-20 bg-black/10 shrink-0" />
-
-                    <div className="grid grid-cols-3 gap-8 text-center md:text-left">
-                      {[
-                        { label: 'Prot.', value: result?.protein, c: 'text-black' },
-                        { label: 'Carbs', value: result?.carbs, c: 'text-black' },
-                        { label: 'Fats', value: result?.fats, c: 'text-black/60' }
-                      ].map(m => (
-                        <div key={m.label}>
-                          <p className="text-[9px] font-black uppercase tracking-widest opacity-40">{m.label}</p>
-                          <p className={`text-xl font-black ${m.c}`}>{m.value || 0}g</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="mt-8 flex justify-center md:justify-start">
                     <Button
-                      onClick={handleGenerateMealPlan}
-                      disabled={isGeneratingPlan || !result}
-                      className="bg-black text-white hover:bg-neutral-900 font-black uppercase tracking-[0.2em] text-[10px] rounded-full px-10 py-5 h-auto transition-transform active:scale-95"
+                      onClick={handleUpdatePlan}
+                      disabled={isUpdating}
+                      className="w-full bg-gray-900 hover:bg-gray-800 text-white text-xs font-bold rounded-xl h-10 mt-2"
                     >
-                      {isGeneratingPlan ? <Loader2 className="animate-spin w-3 h-3" /> : <><Sparkles className="w-3 h-3 mr-2" /> AI Meal Protocol</>}
+                      {isUpdating ? <Loader2 className="animate-spin w-4 h-4" /> : "Sync Base Protocol"}
                     </Button>
-                  </div>
+                  </CardContent>
                 </Card>
 
-                {/* Performance Metrics */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {[
-                    { l: 'BMR', v: result?.bmr, u: 'kcal' },
-                    { l: 'TDEE', v: result?.tdee, u: 'kcal' },
-                    { l: 'TEF', v: Math.round((result?.calories || 0) * 0.1), u: 'kcal' },
-                    { l: 'Fiber', v: Math.round((result?.calories || 2000) / 100 * 1.5), u: 'g' }
-                  ].map(s => (
-                    <div key={s.l} className="bg-white/5 border border-white/5 rounded-2xl p-4 flex flex-col justify-center">
-                      <p className="text-[8px] font-black uppercase tracking-widest text-white/20 mb-1">{s.l}</p>
-                      <p className="text-lg font-black text-white">{s.v || 0}<span className="text-[9px] text-white/20 ml-1">{s.u}</span></p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* AI Meal Plan Display */}
-            {mealPlan && (
-              <div className="lg:col-span-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <Card className="bg-white/5 border-white/5 rounded-[2.5rem] overflow-hidden backdrop-blur-md">
-                  <CardHeader className="p-8 pb-4">
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-1">
-                        <CardTitle className="text-xl font-black text-white uppercase tracking-tighter">Daily Protocol</CardTitle>
-                        <CardDescription className="text-[10px] text-primary/60 font-bold uppercase tracking-widest">
-                          {dietaryPreference.toUpperCase()} • {result?.calories} KCAL BASELINE
-                        </CardDescription>
-                      </div>
-                      <Button variant="ghost" size="icon" onClick={() => setMealPlan(null)} className="rounded-full text-white/20 hover:text-white">✕</Button>
-                    </div>
+                <Card className="bg-white border border-gray-200 rounded-2xl shadow-sm">
+                  <CardHeader className="p-6 pb-0">
+                    <CardTitle className="text-sm font-bold text-gray-900 uppercase tracking-widest">Protocol Config</CardTitle>
                   </CardHeader>
-                  <CardContent className="p-8 pt-0">
-                    <div className="prose prose-invert max-w-none whitespace-pre-wrap text-sm text-white/70 font-medium leading-relaxed border-t border-white/5 pt-6">
-                      {mealPlan}
+                  <CardContent className="p-6 space-y-4">
+                    <div className="space-y-2">
+                      <Label className="text-[9px] font-black text-gray-400 uppercase">Performance Goal</Label>
+                      <div className="grid grid-cols-3 gap-2">
+                        {['cut', 'recomp', 'bulk'].map((g) => (
+                          <button
+                            key={g}
+                            onClick={() => setGoal(g as Goal)}
+                            className={`py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all ${goal === g
+                              ? "bg-blue-500 text-white"
+                              : "bg-gray-50 text-gray-400 hover:bg-gray-100"
+                              }`}
+                          >
+                            {g}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-[9px] font-black text-gray-400 uppercase">Activity Level (1-5)</Label>
+                      <div className="flex gap-1">
+                        {[1, 2, 3, 4, 5].map((level, i) => {
+                          const types: Activity[] = ['sedentary', 'light', 'moderate', 'active', 'athlete'];
+                          return (
+                            <button
+                              key={level}
+                              onClick={() => setActivity(types[i])}
+                              className={`flex-1 h-8 rounded-lg text-xs font-bold transition-all ${activity === types[i]
+                                ? "bg-orange-500 text-white"
+                                : "bg-gray-50 text-gray-400 hover:bg-gray-100"
+                                }`}
+                            >
+                              {level}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div className="pt-2">
+                      <Button
+                        onClick={handleGenerateMealPlan}
+                        disabled={isGeneratingPlan}
+                        className="w-full bg-green-50 text-green-700 hover:bg-green-100 text-xs font-bold rounded-xl h-10"
+                      >
+                        {isGeneratingPlan ? <Loader2 className="animate-spin w-4 h-4" /> : "Request AI Meal Plan"}
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
               </div>
-            )}
+            </div>
+
+            {/* Right Column: Meals & Tools */}
+            <div className="space-y-8">
+              {/* Today's Meals Card */}
+              <Card className="bg-white border border-gray-200 rounded-2xl shadow-sm">
+                <CardHeader className="p-6">
+                  <CardTitle className="text-sm font-bold text-gray-900 uppercase tracking-wider">Today's Meals</CardTitle>
+                </CardHeader>
+                <CardContent className="p-6 pt-0 space-y-4">
+                  {[
+                    { name: 'Oatmeal with Berries', calories: 450, time: '08:00 AM', icon: '🥣' },
+                    { name: 'Chicken Breast & Rice', calories: 820, time: '01:30 PM', icon: '🍗' },
+                    { name: 'Paneer Curry & Roti', calories: 600, time: '08:30 PM', icon: '🥘' }
+                  ].map((meal, i) => (
+                    <div key={i} className="flex items-center gap-4 group cursor-pointer hover:bg-gray-50 p-2 rounded-xl transition-colors">
+                      <div className="w-12 h-12 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                        {meal.icon}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-gray-900 truncate">{meal.name}</p>
+                        <p className="text-xs text-gray-400 font-medium">{meal.time}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-bold text-gray-900">{meal.calories}</p>
+                        <p className="text-[10px] text-gray-400 font-bold uppercase">kcal</p>
+                      </div>
+                    </div>
+                  ))}
+
+                  <div className="pt-4 border-t border-gray-100">
+                    <FoodScanner onScanComplete={() => { }} />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Meal Plan Content (if exists) */}
+              {mealPlan && (
+                <Card className="bg-green-50 border-green-100 rounded-2xl shadow-sm border">
+                  <CardHeader className="p-6 flex flex-row items-center justify-between pb-2">
+                    <CardTitle className="text-[10px] font-black text-green-700 uppercase tracking-[0.2em]">AI Intelligence Report</CardTitle>
+                    <Button variant="ghost" size="icon" onClick={() => setMealPlan(null)} className="h-6 w-6 text-green-700 hover:bg-green-200/50">✕</Button>
+                  </CardHeader>
+                  <CardContent className="p-6 pt-0">
+                    <div className="text-xs text-green-800 leading-relaxed font-medium whitespace-pre-wrap">
+                      {mealPlan}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* AI Wisdom Widget */}
+              <Card className="bg-gray-900 text-white rounded-2xl shadow-xl overflow-hidden relative">
+                <div className="absolute top-0 right-0 p-4 opacity-10">
+                  <Bot className="w-20 h-20" />
+                </div>
+                <CardContent className="p-6 relative z-10 space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center">
+                      <Bot className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold">AI Nutritionist</h4>
+                      <p className="text-xs text-gray-400">Online now • Ask anything</p>
+                    </div>
+                  </div>
+                  <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-gray-300 italic">
+                    "Prem, you are 307 kcal away from your target. A high-protein snack like Greek yogurt would be perfect now."
+                  </div>
+                  <div className="relative">
+                    <Input
+                      placeholder="Ask about your diet..."
+                      className="h-10 bg-white/10 border-white/5 text-white placeholder:text-gray-500 rounded-xl pr-10 focus-visible:ring-green-500 transition-all"
+                    />
+                    <button className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500 hover:text-green-400">
+                      <Zap className="w-4 h-4" />
+                    </button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
-      </Container>
+      </main>
 
-      {/* Immersive Mastery Overlay */}
+      {/* Legacy Overlay Support */}
       {showOverlay && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-2xl transition-all duration-500 animate-in fade-in">
-          <div className="absolute inset-0 bg-gradient-to-t from-primary/10 via-transparent to-transparent pointer-events-none" />
-          <div className="relative text-center space-y-8 max-w-2xl px-6">
-            <div className="relative inline-block">
-              <div className="absolute inset-0 bg-primary blur-[60px] opacity-20 animate-pulse" />
-              <div className="relative bg-primary/10 border border-primary/30 w-24 h-24 rounded-[2rem] flex items-center justify-center mx-auto mb-12 shadow-[0_0_50px_rgba(var(--primary),0.2)]">
-                <Zap className="w-12 h-12 text-primary animate-pulse" />
-              </div>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-white/95 backdrop-blur-md transition-all duration-500 animate-in fade-in">
+          <div className="relative text-center space-y-6 max-w-md px-6">
+            <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-8 animate-bounce">
+              <Zap className="w-8 h-8 text-green-600" />
             </div>
-
-            <div className="space-y-4">
-              <h2 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tighter animate-in slide-in-from-bottom-4 duration-700">
-                {[
-                  "Initiating Metabolic Synchronization...",
-                  "Mastery Protocol Activated! 💎",
-                  "You are now in God Mode! 🔥"
-                ][overlayStep]}
-              </h2>
-              <p className="text-primary/60 font-black uppercase tracking-[0.4em] text-sm md:text-base animate-in fade-in slide-in-from-bottom-2 delay-300 duration-700">
-                {[
-                  "Calibrating physiological baseline",
-                  "Energy flux stabilized at peak performance",
-                  "Nutritional trajectory: OPTIMIZED"
-                ][overlayStep]}
-              </p>
-            </div>
-
-            <div className="pt-12">
-              <div className="w-48 h-1 bg-white/5 mx-auto rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-primary transition-all duration-1000 ease-linear shadow-[0_0_15px_#00FF9C]"
-                  style={{ width: `${((overlayStep + 1) / 3) * 100}%` }}
-                />
-              </div>
+            <h2 className="text-2xl font-bold text-gray-900 tracking-tight">
+              {[
+                "Updating Baseline...",
+                "Protocol Calibrated! ✅",
+                "Ready for Performance 🔥"
+              ][overlayStep]}
+            </h2>
+            <div className="w-32 h-1 bg-gray-100 mx-auto rounded-full overflow-hidden">
+              <div
+                className="h-full bg-green-500 transition-all duration-1000 ease-linear"
+                style={{ width: `${((overlayStep + 1) / 3) * 100}%` }}
+              />
             </div>
           </div>
         </div>

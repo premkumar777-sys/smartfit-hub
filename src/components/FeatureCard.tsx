@@ -13,9 +13,10 @@ interface FeatureCardProps {
   badge?: string;
   isPremium?: boolean;
   onClick?: () => void;
+  variant?: 'cyber' | 'saas';
 }
 
-export const FeatureCard = ({ icon: Icon, title, description, link, index, badge, isPremium, onClick }: FeatureCardProps) => {
+export const FeatureCard = ({ icon: Icon, title, description, link, index, badge, isPremium, onClick, variant = 'cyber' }: FeatureCardProps) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
@@ -24,6 +25,8 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index, badge
   const [isFocused, setIsFocused] = useState(false);
   const prefersReducedMotion = useReducedMotion();
   const [isMobile, setIsMobile] = useState(false);
+
+  const isSaas = variant === 'saas';
 
   useEffect(() => {
     const checkMobile = () => {
@@ -118,8 +121,8 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index, badge
       }
 
       const elapsed = (Date.now() - startTime) * 0.001;
-      const floatY = Math.sin(elapsed * 0.8 + baseDelay) * 1.5;
-      const floatX = Math.cos(elapsed * 0.6 + baseDelay) * 1;
+      const floatY = Math.sin(elapsed * 0.8 + baseDelay) * (isSaas ? 0.8 : 1.5);
+      const floatX = Math.cos(elapsed * 0.6 + baseDelay) * (isSaas ? 0.5 : 1);
 
       // Minimal movement to avoid visible shake
       cardRef.current.style.transform = `translate3d(${floatX}px, ${floatY}px, 0)`;
@@ -132,7 +135,7 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index, badge
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-  }, [isHovered, index, prefersReducedMotion]);
+  }, [isHovered, index, prefersReducedMotion, isSaas]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -151,13 +154,15 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index, badge
       ref={cardRef}
       className={cn(
         "feature-card-3d group relative p-8 rounded-2xl",
-        "bg-gradient-to-br from-gray-900/90 to-gray-800/70",
-        "backdrop-blur-md border-2 border-transparent",
+        isSaas
+          ? "bg-white border border-gray-100 shadow-sm hover:shadow-xl hover:border-green-100"
+          : "bg-gradient-to-br from-gray-900/90 to-gray-800/70 backdrop-blur-md border-2 border-transparent",
         "transition-all duration-300 ease-out",
-        "focus:outline-none focus:ring-2 focus:ring-[#00FF9C] focus:ring-offset-2 focus:ring-offset-gray-900",
+        "focus:outline-none focus:ring-2 focus:ring-[#00FF9C]",
+        isSaas ? "focus:ring-offset-0" : "focus:ring-offset-2 focus:ring-offset-gray-900",
         "cursor-pointer select-none overflow-hidden",
-        isHovered && (isPremium ? "border-blue-400/50 shadow-[0_0_20px_rgba(59,130,246,0.3)]" : "border-[#00FF9C]/40"),
-        isFocused && "ring-2 ring-[#00FF9C] border-[#00FF9C]/40"
+        !isSaas && isHovered && (isPremium ? "border-blue-400/50 shadow-[0_0_20px_rgba(59,130,246,0.3)]" : "border-[#00FF9C]/40"),
+        isFocused && "ring-2 ring-[#00FF9C]"
       )}
       style={{
         transformStyle: 'preserve-3d',
@@ -178,31 +183,41 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index, badge
       {badge && (
         <div className={cn(
           "absolute top-4 right-4 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider z-20",
-          isPremium ? "bg-blue-500 text-white shadow-[0_0_10px_rgba(59,130,246,0.5)]" : "bg-[#00FF9C] text-black"
+          isPremium ? "bg-blue-500 text-white shadow-[0_0_10px_rgba(59,130,246,0.5)]" : "bg-[#00FF9C] text-black",
+          isSaas && !isPremium && "bg-green-100 text-green-700"
         )} style={{ transform: 'translateZ(40px)' }}>
           {badge}
         </div>
       )}
 
-      {/* Animated gradient background */}
-      <div
-        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-        style={{
-          background: isPremium
-            ? `radial-gradient(circle at ${50 + mousePosition.x * 0.1}% ${50 + mousePosition.y * 0.1}%, rgba(59, 130, 246, 0.2), transparent 70%)`
-            : `radial-gradient(circle at ${50 + mousePosition.x * 0.1}% ${50 + mousePosition.y * 0.1}%, rgba(0, 255, 156, 0.15), transparent 70%)`
-        }}
-      />
+      {/* Animated gradient background - simplified for SaaS */}
+      {!isSaas && (
+        <div
+          className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+          style={{
+            background: isPremium
+              ? `radial-gradient(circle at ${50 + mousePosition.x * 0.1}% ${50 + mousePosition.y * 0.1}%, rgba(59, 130, 246, 0.2), transparent 70%)`
+              : `radial-gradient(circle at ${50 + mousePosition.x * 0.1}% ${50 + mousePosition.y * 0.1}%, rgba(0, 255, 156, 0.15), transparent 70%)`
+          }}
+        />
+      )}
 
-      {/* Glowing border effect */}
-      <div
-        className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-        style={{
-          boxShadow: isHovered
-            ? (isPremium ? `inset 0 0 30px rgba(59, 130, 246, 0.2), 0 0 40px rgba(59, 130, 246, 0.3)` : `inset 0 0 30px rgba(0, 255, 156, 0.2), 0 0 40px rgba(0, 255, 156, 0.3)`)
-            : 'none'
-        }}
-      />
+      {/* SaaS Hover Highlight */}
+      {isSaas && (
+        <div className="absolute inset-0 bg-green-50/30 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+      )}
+
+      {/* Glowing border effect (Cyber only) */}
+      {!isSaas && (
+        <div
+          className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+          style={{
+            boxShadow: isHovered
+              ? (isPremium ? `inset 0 0 30px rgba(59, 130, 246, 0.2), 0 0 40px rgba(59, 130, 246, 0.3)` : `inset 0 0 30px rgba(0, 255, 156, 0.2), 0 0 40px rgba(0, 255, 156, 0.3)`)
+              : 'none'
+          }}
+        />
+      )}
 
       {/* Content wrapper with 3D transform */}
       <div
@@ -225,8 +240,8 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index, badge
           <motion.div
             animate={isHovered ? {
               scale: 1.15,
-              rotateY: 180,
-              rotateX: 10
+              rotateY: isSaas ? 0 : 180,
+              rotateX: isSaas ? -10 : 10
             } : {
               scale: 1,
               rotateY: 0,
@@ -243,9 +258,11 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index, badge
             <Icon
               className={cn(
                 "h-12 w-12 transition-all duration-500",
-                isHovered || isFocused
-                  ? "text-[#00FF9C] drop-shadow-[0_0_15px_rgba(0,255,156,0.7)]"
-                  : "text-[#00FF9C]/80"
+                isSaas
+                  ? (isHovered ? "text-green-500" : "text-gray-400")
+                  : (isHovered || isFocused
+                    ? "text-[#00FF9C] drop-shadow-[0_0_15px_rgba(0,255,156,0.7)]"
+                    : "text-[#00FF9C]/80")
               )}
             />
           </motion.div>
@@ -253,7 +270,10 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index, badge
 
         {/* Title with 3D depth */}
         <motion.h3
-          className="text-xl font-bold mb-4 text-center text-white leading-relaxed"
+          className={cn(
+            "text-xl font-bold mb-4 text-center leading-relaxed",
+            isSaas ? "text-gray-900" : "text-white"
+          )}
           style={{
             transform: prefersReducedMotion ? undefined : `translateZ(25px)`,
             transformStyle: 'preserve-3d'
@@ -272,7 +292,10 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index, badge
 
         {/* Description */}
         <motion.p
-          className="text-gray-300 text-center leading-relaxed"
+          className={cn(
+            "text-center leading-relaxed",
+            isSaas ? "text-gray-500 font-medium" : "text-gray-300"
+          )}
           style={{
             transform: prefersReducedMotion ? undefined : `translateZ(15px)`,
             transformStyle: 'preserve-3d'
@@ -284,53 +307,64 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index, badge
         </motion.p>
       </div>
 
-      {/* 3D corner accents */}
-      <div className="absolute top-0 left-0 w-20 h-20 border-t-2 border-l-2 border-[#00FF9C]/0 group-hover:border-[#00FF9C]/50 rounded-tl-2xl transition-all duration-500" />
-      <div className="absolute bottom-0 right-0 w-20 h-20 border-b-2 border-r-2 border-[#00FF9C]/0 group-hover:border-[#00FF9C]/50 rounded-br-2xl transition-all duration-500" />
+      {/* Corner accents (Cyber only) */}
+      {!isSaas && (
+        <>
+          <div className="absolute top-0 left-0 w-20 h-20 border-t-2 border-l-2 border-[#00FF9C]/0 group-hover:border-[#00FF9C]/50 rounded-tl-2xl transition-all duration-500" />
+          <div className="absolute bottom-0 right-0 w-20 h-20 border-b-2 border-r-2 border-[#00FF9C]/0 group-hover:border-[#00FF9C]/50 rounded-br-2xl transition-all duration-500" />
+        </>
+      )}
 
-      {/* Animated particles on hover - Disabled on mobile for performance */}
-      <AnimatePresence>
-        {isHovered && !prefersReducedMotion && !isMobile && (
-          <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl">
-            {[...Array(4)].map((_, i) => (
+      {/* SaaS Bottom Accent */}
+      {isSaas && (
+        <div className="absolute bottom-0 left-0 right-0 h-1 bg-green-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
+      )}
+
+      {/* Animated particles on hover - Cyber only */}
+      {!isSaas && (
+        <AnimatePresence>
+          {isHovered && !prefersReducedMotion && !isMobile && (
+            <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl">
+              {[...Array(4)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  className="absolute w-1 h-1 rounded-full bg-[#00FF9C]"
+                  style={{
+                    boxShadow: `0 0 6px #00FF9C, 0 0 12px #00FF9C`
+                  }}
+                  initial={{
+                    opacity: 0,
+                    scale: 0,
+                    x: '50%',
+                    y: '50%',
+                    z: 0
+                  }}
+                  animate={{
+                    opacity: [0, 1, 0],
+                    scale: [0, 2, 0],
+                    x: [`${40 + i * 5}%`, `${60 - i * 5}%`, `${50 + i * 3}%`],
+                    y: [`${45 + i * 3}%`, `${55 - i * 3}%`, `${50 - i * 2}%`],
+                    z: [0, 50, 0]
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    delay: i * 0.25,
+                    ease: "easeInOut"
+                  }}
+                />
+              ))}
+
+              {/* Rotating ring effect */}
               <motion.div
-                key={i}
-                className="absolute w-1 h-1 rounded-full bg-[#00FF9C]"
-                style={{
-                  boxShadow: `0 0 6px #00FF9C, 0 0 12px #00FF9C`
-                }}
-                initial={{
-                  opacity: 0,
-                  scale: 0,
-                  x: '50%',
-                  y: '50%',
-                  z: 0
-                }}
-                animate={{
-                  opacity: [0, 1, 0],
-                  scale: [0, 2, 0],
-                  x: [`${40 + i * 5}%`, `${60 - i * 5}%`, `${50 + i * 3}%`],
-                  y: [`${45 + i * 3}%`, `${55 - i * 3}%`, `${50 - i * 2}%`],
-                  z: [0, 50, 0]
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  delay: i * 0.25,
-                  ease: "easeInOut"
-                }}
+                className="absolute inset-4 rounded-xl border border-[#00FF9C]/20"
+                animate={{ rotateZ: 360 }}
+                transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
               />
-            ))}
-
-            {/* Rotating ring effect */}
-            <motion.div
-              className="absolute inset-4 rounded-xl border border-[#00FF9C]/20"
-              animate={{ rotateZ: 360 }}
-              transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-            />
-          </div>
-        )}
-      </AnimatePresence>
+            </div>
+          )}
+        </AnimatePresence>
+      )}
     </motion.div>
   );
 
