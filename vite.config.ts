@@ -41,6 +41,7 @@ export default defineConfig(({ mode }) => {
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,mp4}'],
+        maximumFileSizeToCacheInBytes: 10 * 1024 * 1024, // Increase to 10MB
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/images\.unsplash\.com\/.*/i,
