@@ -316,6 +316,27 @@ export default function Nutrition() {
                     />
                   </div>
 
+                  <div className="group relative bg-white/5 border border-white/10 rounded-3xl p-6 transition-all hover:bg-white/10 hover:border-primary/30">
+                    <div className="absolute top-4 right-4 text-primary/20 group-hover:text-primary transition-colors">
+                      <Target className="w-5 h-5" />
+                    </div>
+                    <Label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-bold mb-2 block">Dietary Identity</Label>
+                    <div className="grid grid-cols-3 gap-1 mt-2">
+                      {['veg', 'non-veg', 'mixed'].map((diet) => (
+                        <button
+                          key={diet}
+                          onClick={() => setDietaryPreference(diet as any)}
+                          className={`py-2 rounded-xl text-[10px] font-black uppercase tracking-tighter border transition-all ${dietaryPreference === diet
+                            ? "bg-primary text-black border-primary"
+                            : "bg-white/5 border-white/5 text-white/40 hover:bg-white/10"
+                            }`}
+                        >
+                          {diet === 'non-veg' ? 'Non-Veg' : diet.toUpperCase()}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
                   <button
                     onClick={handleUpdatePlan}
                     disabled={isUpdating}
@@ -328,7 +349,7 @@ export default function Nutrition() {
                       ) : (
                         <>
                           <Zap className="w-6 h-6 text-black group-hover:animate-pulse" />
-                          <span className="text-sm font-black text-black uppercase tracking-tighter">Activate Metabolic Mastery</span>
+                          <span className="text-sm font-black text-black uppercase tracking-tighter">Sync & Recalculate</span>
                         </>
                       )}
                     </div>
@@ -376,29 +397,7 @@ export default function Nutrition() {
                     ))}
                   </div>
 
-                  {/* Dietary Identity - NEW SECTION */}
-                  <div className="pt-4 border-t border-white/5">
-                    <Label className="text-[10px] uppercase tracking-[0.4em] text-white/40 mb-4 block font-black">Dietary Identity</Label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {[
-                        { id: 'veg', label: 'Veg', color: 'text-green-400' },
-                        { id: 'non-veg', label: 'Non-Veg', color: 'text-red-400' },
-                        { id: 'mixed', label: 'Mixed', color: 'text-amber-400' }
-                      ].map((diet) => (
-                        <button
-                          key={diet.id}
-                          onClick={() => setDietaryPreference(diet.id as any)}
-                          className={`py-2 px-1 rounded-xl text-[10px] font-black uppercase tracking-tighter border transition-all ${dietaryPreference === diet.id
-                            ? "bg-white/10 border-primary text-primary"
-                            : "bg-white/5 border-white/5 text-white/40 hover:bg-white/10"
-                            }`}
-                        >
-                          {diet.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
+                  {/* Metabolic Flux Level */}
                   <div className="pt-4 border-t border-white/5">
                     <Label className="text-[10px] uppercase tracking-[0.4em] text-white/40 mb-4 block font-black">Metabolic Flux Level</Label>
                     <div className="grid grid-cols-5 gap-1.5 p-1 bg-white/5 rounded-2xl border border-white/5">
@@ -416,11 +415,6 @@ export default function Nutrition() {
                         </button>
                       ))}
                     </div>
-                    <div className="flex justify-between mt-2 px-1">
-                      <span className="text-[9px] uppercase tracking-widest text-white/20 font-bold">Base</span>
-                      <span className="text-[9px] uppercase tracking-widest text-primary font-black">{activity.toUpperCase()}</span>
-                      <span className="text-[9px] uppercase tracking-widest text-white/20 font-bold">Peak</span>
-                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -432,12 +426,26 @@ export default function Nutrition() {
                 {/* Calories Highlight */}
                 <Card className="bg-primary/5 border-primary/20 backdrop-blur-md rounded-[2.5rem] relative overflow-hidden md:col-span-2 p-8 flex flex-col items-center justify-center text-center">
                   <Waves className="absolute bottom-0 left-0 w-full h-32 text-primary/10 -mb-8 pointer-events-none" />
-                  <div className="relative z-10 space-y-2">
+                  <div className="relative z-10 space-y-4">
                     <p className="text-xs font-black uppercase tracking-[0.4em] text-primary">Daily Energy Target</p>
                     <h2 className="text-8xl font-black text-white tracking-tighter tabular-nums drop-shadow-[0_0_30px_rgba(var(--primary),0.3)]">
                       {result?.calories || 0}
                     </h2>
                     <p className="text-sm font-medium text-white/40 uppercase tracking-widest">Kilocalories / Protocol Day</p>
+
+                    <div className="pt-4 animate-in fade-in duration-1000">
+                      <Button
+                        onClick={handleGenerateMealPlan}
+                        disabled={isGeneratingPlan || !result}
+                        className="bg-primary text-black font-black uppercase tracking-tighter rounded-full px-12 py-7 hover:scale-105 transition-all shadow-[0_0_40px_rgba(var(--primary),0.3)]"
+                      >
+                        {isGeneratingPlan ? (
+                          <><Loader2 className="w-5 h-5 mr-3 animate-spin" /> Cooking Protocol...</>
+                        ) : (
+                          <><Sparkles className="w-5 h-5 mr-3" /> Generate AI ${dietaryPreference.toUpperCase()} Plan</>
+                        )}
+                      </Button>
+                    </div>
                   </div>
                 </Card>
 
@@ -463,19 +471,6 @@ export default function Nutrition() {
                 <p className="text-sm text-muted-foreground leading-relaxed max-w-3xl">
                   Your Calculated Intelligence Targets are now ready. Use the <strong>AI Core Analyzer</strong> at the top of this terminal to scan meals. The assistant will help you match these protocols by providing instant macro data for any input.
                 </p>
-                <div className="pt-4">
-                  <Button
-                    onClick={handleGenerateMealPlan}
-                    disabled={isGeneratingPlan || !result}
-                    className="bg-primary text-black font-black uppercase tracking-tighter rounded-full px-8 py-6 hover:scale-105 transition-all shadow-[0_0_30px_rgba(var(--primary),0.2)]"
-                  >
-                    {isGeneratingPlan ? (
-                      <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Cooking Plan...</>
-                    ) : (
-                      <><Sparkles className="w-5 h-5 mr-2" /> Generate ${dietaryPreference} Meal Plan</>
-                    )}
-                  </Button>
-                </div>
               </div>
             </div>
 
