@@ -37,7 +37,10 @@ export default function Nutrition() {
   const [height, setHeight] = useState("175");
   const [activity, setActivity] = useState<Activity>("moderate");
   const [goal, setGoal] = useState<Goal>("recomp");
+  const [dietaryPreference, setDietaryPreference] = useState<"veg" | "non-veg" | "mixed">("mixed");
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
+  const [mealPlan, setMealPlan] = useState<string | null>(null);
   const [showOverlay, setShowOverlay] = useState(false);
   const [overlayStep, setOverlayStep] = useState(0);
 
@@ -73,6 +76,7 @@ export default function Nutrition() {
         setHeight(parsed.height || "175");
         setActivity(parsed.activity || "moderate");
         setGoal(parsed.goal || "recomp");
+        setDietaryPreference(parsed.dietaryPreference || "mixed");
       } catch (err) {
         console.error("Local storage parse error:", err);
       }
@@ -142,10 +146,84 @@ export default function Nutrition() {
       }
     }
 
-    localStorage.setItem(storageKey, JSON.stringify({ age, weight, height, activity, goal }));
+    localStorage.setItem(storageKey, JSON.stringify({ age, weight, height, activity, goal, dietaryPreference }));
     setShowOverlay(false);
     setIsUpdating(false);
     toast.success("Nutritional protocol updated and synced!");
+  };
+
+  const handleGenerateMealPlan = async () => {
+    if (!result) return;
+    setIsGeneratingPlan(true);
+
+    try {
+      // Get Groq Key (same logic as FoodScanner)
+      let groqKey = import.meta.env.VITE_GROQ_API_KEY || "";
+      if (!groqKey) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("preferences")
+            .eq("id", user.id)
+            .single();
+          groqKey = (profile?.preferences as any)?.groq_api_key || "";
+        }
+      }
+
+      groqKey = groqKey.replace(/^["']|["']$/g, '').trim();
+
+      if (!groqKey) {
+        toast.error("AI Assistant Unavailable", { description: "Please add your Groq API key in Settings or .env" });
+        setIsGeneratingPlan(false);
+        return;
+      }
+
+      const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${groqKey}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: "llama-3.3-70b-versatile",
+          messages: [
+            {
+              role: "system",
+              content: `You are a high-performance Nutrition AI. Create a detailed 1-day meal plan for a user with the following targets:
+              Calories: ${result.calories} kcal
+              Protein: ${result.protein}g
+              Carbs: ${result.carbs}g
+              Fats: ${result.fats}g
+              Dietary Preference: ${dietaryPreference.toUpperCase()}
+              
+              FORMAT:
+              - Breakfast (Time, Name, Macros, Ingredients)
+              - Lunch (Time, Name, Macros, Ingredients)
+              - Snack (Time, Name, Macros, Ingredients)
+              - Dinner (Time, Name, Macros, Ingredients)
+              
+              Keep it highly professional, science-based, and appetizing.`
+            },
+            {
+              role: "user",
+              content: `Generate a ${dietaryPreference} meal plan for today.`
+            }
+          ]
+        })
+      });
+
+      if (!response.ok) throw new Error(`Groq API Error: ${response.status}`);
+
+      const data = await response.json();
+      setMealPlan(data.choices[0].message.content);
+      toast.success("Precision Meal Plan generated!");
+    } catch (error: any) {
+      console.error("Meal Plan Error:", error);
+      toast.error("Failed to generate plan", { description: error.message });
+    } finally {
+      setIsGeneratingPlan(false);
+    }
   };
 
   return (
@@ -259,8 +337,9 @@ export default function Nutrition() {
               </div>
             </div>
 
-            {/* Advanced Config - Operational Directives & Metabolic Flux */}
+            {/* Precision Config & Results */}
             <div className="lg:col-span-4 space-y-6">
+              {/* Operational Directives (Goal) */}
               <Card className="bg-black/40 border-white/5 backdrop-blur-xl shadow-2xl overflow-hidden rounded-[2.5rem] border-none ring-1 ring-white/10">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-black text-white/40 uppercase tracking-[0.3em] flex items-center justify-between">
@@ -268,7 +347,7 @@ export default function Nutrition() {
                     <Target className="w-4 h-4 text-primary" />
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3">
+                <CardContent className="space-y-4">
                   <div className="grid grid-cols-1 gap-3">
                     {[
                       { id: 'cut', label: 'Caloric Deficit', sub: 'Protocol: Lipid Oxidation', icon: <TrendingDown className="w-4 h-4" /> },
@@ -297,7 +376,30 @@ export default function Nutrition() {
                     ))}
                   </div>
 
-                  <div className="pt-6 mt-4 border-t border-white/5">
+                  {/* Dietary Identity - NEW SECTION */}
+                  <div className="pt-4 border-t border-white/5">
+                    <Label className="text-[10px] uppercase tracking-[0.4em] text-white/40 mb-4 block font-black">Dietary Identity</Label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[
+                        { id: 'veg', label: 'Veg', color: 'text-green-400' },
+                        { id: 'non-veg', label: 'Non-Veg', color: 'text-red-400' },
+                        { id: 'mixed', label: 'Mixed', color: 'text-amber-400' }
+                      ].map((diet) => (
+                        <button
+                          key={diet.id}
+                          onClick={() => setDietaryPreference(diet.id as any)}
+                          className={`py-2 px-1 rounded-xl text-[10px] font-black uppercase tracking-tighter border transition-all ${dietaryPreference === diet.id
+                            ? "bg-white/10 border-primary text-primary"
+                            : "bg-white/5 border-white/5 text-white/40 hover:bg-white/10"
+                            }`}
+                        >
+                          {diet.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="pt-4 border-t border-white/5">
                     <Label className="text-[10px] uppercase tracking-[0.4em] text-white/40 mb-4 block font-black">Metabolic Flux Level</Label>
                     <div className="grid grid-cols-5 gap-1.5 p-1 bg-white/5 rounded-2xl border border-white/5">
                       {(['sedentary', 'light', 'moderate', 'active', 'athlete'] as Activity[]).map((level, i) => (
@@ -361,8 +463,54 @@ export default function Nutrition() {
                 <p className="text-sm text-muted-foreground leading-relaxed max-w-3xl">
                   Your Calculated Intelligence Targets are now ready. Use the <strong>AI Core Analyzer</strong> at the top of this terminal to scan meals. The assistant will help you match these protocols by providing instant macro data for any input.
                 </p>
+                <div className="pt-4">
+                  <Button
+                    onClick={handleGenerateMealPlan}
+                    disabled={isGeneratingPlan || !result}
+                    className="bg-primary text-black font-black uppercase tracking-tighter rounded-full px-8 py-6 hover:scale-105 transition-all shadow-[0_0_30px_rgba(var(--primary),0.2)]"
+                  >
+                    {isGeneratingPlan ? (
+                      <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Cooking Plan...</>
+                    ) : (
+                      <><Sparkles className="w-5 h-5 mr-2" /> Generate ${dietaryPreference} Meal Plan</>
+                    )}
+                  </Button>
+                </div>
               </div>
             </div>
+
+            {/* Meal Plan Display */}
+            {mealPlan && (
+              <div className="lg:col-span-12 animate-in fade-in slide-in-from-bottom-8 duration-700">
+                <Card className="bg-white/5 border-white/10 rounded-[2.5rem] overflow-hidden backdrop-blur-md">
+                  <CardHeader className="bg-primary/10 border-b border-white/5 p-8">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle className="text-2xl font-black text-white uppercase tracking-tighter">Precision Daily Protocol</CardTitle>
+                        <CardDescription className="text-primary font-bold">Generated for ${dietaryPreference.toUpperCase()} • ${result?.calories} kcal</CardDescription>
+                      </div>
+                      <div className="p-3 bg-primary rounded-2xl text-black">
+                        <Utensils className="w-6 h-6" />
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-8">
+                    <div className="prose prose-invert max-w-none whitespace-pre-wrap text-white/80 leading-relaxed font-medium">
+                      {mealPlan}
+                    </div>
+                    <div className="mt-8 flex justify-end">
+                      <Button
+                        variant="ghost"
+                        onClick={() => setMealPlan(null)}
+                        className="text-white/40 hover:text-white"
+                      >
+                        Clear Plan
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
           </div>
         </div>
       </Container>
