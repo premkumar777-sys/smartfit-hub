@@ -268,239 +268,206 @@ export default function Nutrition() {
             {/* Inputs Column */}
             {/* Inputs Column - Biological Signature UI */}
             <div className="lg:col-span-12">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between px-2">
-                  <div className="space-y-1">
-                    <h3 className="text-sm font-black uppercase tracking-[0.3em] text-white">Biological Signature</h3>
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-widest opacity-60">Configure physiological baseline</p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div className="group relative bg-white/5 border border-white/10 rounded-3xl p-6 transition-all hover:bg-white/10 hover:border-primary/30">
-                    <div className="absolute top-4 right-4 text-primary/20 group-hover:text-primary transition-colors">
-                      <User className="w-5 h-5" />
+              <Card className="bg-white/5 border-white/10 backdrop-blur-xl rounded-[2.5rem] overflow-hidden border-none ring-1 ring-white/10">
+                <CardContent className="p-8 space-y-8">
+                  <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                    <div className="space-y-1 text-center md:text-left">
+                      <h3 className="text-lg font-black uppercase tracking-[0.3em] text-white">Biological Identity</h3>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-widest opacity-60">Physiological baseline configuration</p>
                     </div>
-                    <Label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-bold mb-2 block">Years / Age</Label>
-                    <Input
-                      type="number"
-                      value={age}
-                      onChange={(e) => setAge(e.target.value)}
-                      className="bg-transparent border-none text-4xl font-black p-0 h-auto focus-visible:ring-0 text-white tabular-nums"
-                    />
+                    <Button
+                      onClick={handleUpdatePlan}
+                      disabled={isUpdating}
+                      className="bg-primary text-black font-black uppercase tracking-tighter rounded-full px-8 py-6 hover:scale-105 transition-all shadow-[0_0_30px_rgba(var(--primary),0.2)]"
+                    >
+                      {isUpdating ? <Loader2 className="animate-spin w-5 h-5" /> : <><Zap className="w-4 h-4 mr-2" /> Sync Protocol</>}
+                    </Button>
                   </div>
 
-                  <div className="group relative bg-white/5 border border-white/10 rounded-3xl p-6 transition-all hover:bg-white/10 hover:border-primary/30">
-                    <div className="absolute top-4 right-4 text-primary/20 group-hover:text-primary transition-colors">
-                      <Scale className="w-5 h-5" />
-                    </div>
-                    <Label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-bold mb-2 block">Mass / Weight (kg)</Label>
-                    <Input
-                      type="number"
-                      value={weight}
-                      onChange={(e) => setWeight(e.target.value)}
-                      className="bg-transparent border-none text-4xl font-black p-0 h-auto focus-visible:ring-0 text-white tabular-nums"
-                    />
-                  </div>
-
-                  <div className="group relative bg-white/5 border border-white/10 rounded-3xl p-6 transition-all hover:bg-white/10 hover:border-primary/30">
-                    <div className="absolute top-4 right-4 text-primary/20 group-hover:text-primary transition-colors">
-                      <Ruler className="w-5 h-5" />
-                    </div>
-                    <Label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-bold mb-2 block">Stature / Height (cm)</Label>
-                    <Input
-                      type="number"
-                      value={height}
-                      onChange={(e) => setHeight(e.target.value)}
-                      className="bg-transparent border-none text-4xl font-black p-0 h-auto focus-visible:ring-0 text-white tabular-nums"
-                    />
-                  </div>
-
-                  <div className="group relative bg-white/5 border border-white/10 rounded-3xl p-6 transition-all hover:bg-white/10 hover:border-primary/30">
-                    <div className="absolute top-4 right-4 text-primary/20 group-hover:text-primary transition-colors">
-                      <Target className="w-5 h-5" />
-                    </div>
-                    <Label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-bold mb-2 block">Dietary Identity</Label>
-                    <div className="grid grid-cols-3 gap-1 mt-2">
-                      {['veg', 'non-veg', 'mixed'].map((diet) => (
-                        <button
-                          key={diet}
-                          onClick={() => setDietaryPreference(diet as any)}
-                          className={`py-2 rounded-xl text-[10px] font-black uppercase tracking-tighter border transition-all ${dietaryPreference === diet
-                            ? "bg-primary text-black border-primary"
-                            : "bg-white/5 border-white/5 text-white/40 hover:bg-white/10"
-                            }`}
-                        >
-                          {diet === 'non-veg' ? 'Non-Veg' : diet.toUpperCase()}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={handleUpdatePlan}
-                    disabled={isUpdating}
-                    className="group relative h-full min-h-[100px] flex flex-col items-center justify-center bg-primary rounded-3xl transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50 overflow-hidden shadow-[0_0_30px_rgba(var(--primary),0.2)]"
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent pointer-events-none" />
-                    <div className="relative z-10 flex flex-col items-center gap-2">
-                      {isUpdating ? (
-                        <Loader2 className="animate-spin w-8 h-8 text-black" />
-                      ) : (
-                        <>
-                          <Zap className="w-6 h-6 text-black group-hover:animate-pulse" />
-                          <span className="text-sm font-black text-black uppercase tracking-tighter">Sync & Recalculate</span>
-                        </>
-                      )}
-                    </div>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Precision Config & Results */}
-            <div className="lg:col-span-4 space-y-6">
-              {/* Operational Directives (Goal) */}
-              <Card className="bg-black/40 border-white/5 backdrop-blur-xl shadow-2xl overflow-hidden rounded-[2.5rem] border-none ring-1 ring-white/10">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-black text-white/40 uppercase tracking-[0.3em] flex items-center justify-between">
-                    Operational Directives
-                    <Target className="w-4 h-4 text-primary" />
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 gap-3">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     {[
-                      { id: 'cut', label: 'Caloric Deficit', sub: 'Protocol: Lipid Oxidation', icon: <TrendingDown className="w-4 h-4" /> },
-                      { id: 'recomp', label: 'Maintenance', sub: 'Protocol: Metabolic Stasis', icon: <ActivityIcon className="w-4 h-4" /> },
-                      { id: 'bulk', label: 'Lean Bulk', sub: 'Protocol: Tissue Synthesis', icon: <TrendingUp className="w-4 h-4" /> }
+                      { label: 'Age', value: age, setter: setAge, unit: 'Years', icon: <User className="w-4 h-4" /> },
+                      { label: 'Weight', value: weight, setter: setWeight, unit: 'kg', icon: <Scale className="w-4 h-4" /> },
+                      { label: 'Height', value: height, setter: setHeight, unit: 'cm', icon: <Ruler className="w-4 h-4" /> }
                     ].map((item) => (
-                      <button
-                        key={item.id}
-                        onClick={() => setGoal(item.id as Goal)}
-                        className={`group relative p-4 rounded-2xl border transition-all duration-300 text-left overflow-hidden ${goal === item.id
-                          ? "bg-primary/20 border-primary text-white shadow-[0_0_20px_rgba(var(--primary),0.1)]"
-                          : "bg-white/5 border-white/5 text-muted-foreground hover:bg-white/10 hover:border-white/20"
-                          }`}
-                      >
-                        <div className={`absolute top-0 left-0 w-1 h-full transition-all ${goal === item.id ? "bg-primary" : "bg-transparent"}`} />
-                        <div className="flex items-center justify-between relative z-10">
-                          <div className="space-y-1">
-                            <p className={`text-xs font-black uppercase tracking-widest ${goal === item.id ? "text-primary" : "text-white/40"}`}>{item.label}</p>
-                            <p className="text-[10px] opacity-60 font-medium">{item.sub}</p>
-                          </div>
-                          <div className={`p-2 rounded-xl transition-all ${goal === item.id ? "bg-primary text-black" : "bg-white/5 text-white/20"}`}>
-                            {item.icon}
-                          </div>
+                      <div key={item.label} className="bg-white/5 border border-white/5 rounded-2xl p-4 transition-all hover:bg-white/10">
+                        <div className="flex items-center justify-between mb-2">
+                          <Label className="text-[10px] uppercase tracking-widest text-white/40 font-bold">{item.label}</Label>
+                          <div className="text-primary/40">{item.icon}</div>
                         </div>
-                      </button>
+                        <div className="flex items-baseline gap-2">
+                          <Input
+                            type="number"
+                            value={item.value}
+                            onChange={(e) => item.setter(e.target.value)}
+                            className="bg-transparent border-none text-3xl font-black p-0 h-auto focus-visible:ring-0 text-white w-20"
+                          />
+                          <span className="text-[10px] font-bold text-white/20 uppercase">{item.unit}</span>
+                        </div>
+                      </div>
                     ))}
-                  </div>
 
-                  {/* Metabolic Flux Level */}
-                  <div className="pt-4 border-t border-white/5">
-                    <Label className="text-[10px] uppercase tracking-[0.4em] text-white/40 mb-4 block font-black">Metabolic Flux Level</Label>
-                    <div className="grid grid-cols-5 gap-1.5 p-1 bg-white/5 rounded-2xl border border-white/5">
-                      {(['sedentary', 'light', 'moderate', 'active', 'athlete'] as Activity[]).map((level, i) => (
-                        <button
-                          key={level}
-                          onClick={() => setActivity(level)}
-                          className={`h-10 rounded-xl flex flex-col items-center justify-center transition-all ${activity === level
-                            ? "bg-primary text-black shadow-lg"
-                            : "text-white/40 hover:bg-white/10 hover:text-white"
-                            }`}
-                        >
-                          <span className="text-[10px] font-black">{i + 1}</span>
-                          <div className={`w-1 h-1 rounded-full mt-0.5 ${activity === level ? "bg-black" : "bg-white/20"}`} />
-                        </button>
-                      ))}
+                    <div className="bg-white/5 border border-white/5 rounded-2xl p-4 transition-all hover:bg-white/10">
+                      <Label className="text-[10px] uppercase tracking-widest text-white/40 font-bold mb-3 block">Dietary Type</Label>
+                      <div className="flex gap-1">
+                        {['veg', 'non-veg', 'mixed'].map((diet) => (
+                          <button
+                            key={diet}
+                            onClick={() => setDietaryPreference(diet as any)}
+                            className={`flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all ${dietaryPreference === diet
+                              ? "bg-primary text-black"
+                              : "bg-white/5 text-white/40 hover:bg-white/10"
+                              }`}
+                          >
+                            {diet === 'non-veg' ? 'Non-Veg' : diet.toUpperCase()}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
             </div>
 
-            {/* Visual Results Dashboard */}
-            <div className="lg:col-span-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
-                {/* Calories Highlight */}
-                <Card className="bg-primary/5 border-primary/20 backdrop-blur-md rounded-[2.5rem] relative overflow-hidden md:col-span-2 p-8 flex flex-col items-center justify-center text-center">
-                  <Waves className="absolute bottom-0 left-0 w-full h-32 text-primary/10 -mb-8 pointer-events-none" />
-                  <div className="relative z-10 space-y-4">
-                    <p className="text-xs font-black uppercase tracking-[0.4em] text-primary">Daily Energy Target</p>
-                    <h2 className="text-8xl font-black text-white tracking-tighter tabular-nums drop-shadow-[0_0_30px_rgba(var(--primary),0.3)]">
-                      {result?.calories || 0}
-                    </h2>
-                    <p className="text-sm font-medium text-white/40 uppercase tracking-widest">Kilocalories / Protocol Day</p>
-
-                    <div className="pt-4 animate-in fade-in duration-1000">
-                      <Button
-                        onClick={handleGenerateMealPlan}
-                        disabled={isGeneratingPlan || !result}
-                        className="bg-primary text-black font-black uppercase tracking-tighter rounded-full px-12 py-7 hover:scale-105 transition-all shadow-[0_0_40px_rgba(var(--primary),0.3)]"
-                      >
-                        {isGeneratingPlan ? (
-                          <><Loader2 className="w-5 h-5 mr-3 animate-spin" /> Cooking Protocol...</>
-                        ) : (
-                          <><Sparkles className="w-5 h-5 mr-3" /> Generate AI ${dietaryPreference.toUpperCase()} Plan</>
-                        )}
-                      </Button>
+            {/* Configuration Column */}
+            <div className="lg:col-span-4 space-y-4">
+              <Card className="bg-white/5 border-white/10 backdrop-blur-xl rounded-[2rem] overflow-hidden border-none ring-1 ring-white/10">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-[10px] font-black text-white/40 uppercase tracking-[0.4em]">Configuration</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Goal Selective */}
+                  <div className="space-y-3">
+                    <Label className="text-[9px] uppercase tracking-widest text-primary/60 font-black">Performance Goal</Label>
+                    <div className="grid grid-cols-1 gap-2">
+                      {[
+                        { id: 'cut', label: 'Fat Loss', sub: 'Caloric Deficit' },
+                        { id: 'recomp', label: 'Maintenance', sub: 'Recomposition' },
+                        { id: 'bulk', label: 'Lean Bulk', sub: 'Muscle Gain' }
+                      ].map((item) => (
+                        <button
+                          key={item.id}
+                          onClick={() => setGoal(item.id as Goal)}
+                          className={`group p-3 rounded-xl border transition-all text-left ${goal === item.id
+                            ? "bg-primary/10 border-primary text-white"
+                            : "bg-white/5 border-white/5 text-white/40 hover:bg-white/10"
+                            }`}
+                        >
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <p className="text-[10px] font-black uppercase tracking-tight">{item.label}</p>
+                              <p className="text-[8px] opacity-40 uppercase tracking-tighter">{item.sub}</p>
+                            </div>
+                            {goal === item.id && <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />}
+                          </div>
+                        </button>
+                      ))}
                     </div>
+                  </div>
+
+                  {/* Activity Flow */}
+                  <div className="space-y-3 pt-4 border-t border-white/5">
+                    <Label className="text-[9px] uppercase tracking-widest text-primary/60 font-black">Metabolic Flow</Label>
+                    <div className="grid grid-cols-5 gap-1">
+                      {[1, 2, 3, 4, 5].map((level, i) => {
+                        const types: Activity[] = ['sedentary', 'light', 'moderate', 'active', 'athlete'];
+                        const isActive = activity === types[i];
+                        return (
+                          <button
+                            key={level}
+                            onClick={() => setActivity(types[i])}
+                            className={`h-8 rounded-lg text-[10px] font-black transition-all ${isActive
+                              ? "bg-primary text-black"
+                              : "bg-white/5 text-white/20 hover:text-white"
+                              }`}
+                          >
+                            {level}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <p className="text-[8px] text-center text-white/20 uppercase tracking-[0.2em]">{activity}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Intelligence Report Section */}
+            <div className="lg:col-span-8 space-y-4">
+              <div className="grid grid-cols-1 gap-4">
+                {/* Energy Protocol Card */}
+                <Card className="bg-primary border-none rounded-[2.5rem] p-8 text-black relative overflow-hidden shadow-[0_0_50px_rgba(var(--primary),0.2)]">
+                  <div className="flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
+                    <div className="text-center md:text-left">
+                      <p className="text-[10px] font-black uppercase tracking-[0.4em] opacity-60 mb-2">Energy Balance Protocol</p>
+                      <div className="flex items-baseline gap-2 justify-center md:justify-start">
+                        <h2 className="text-7xl font-black tracking-tighter tabular-nums leading-none">{result?.calories || 0}</h2>
+                        <span className="text-sm font-black uppercase tracking-widest">kcal/day</span>
+                      </div>
+                    </div>
+
+                    <div className="h-px w-full md:w-px md:h-20 bg-black/10 shrink-0" />
+
+                    <div className="grid grid-cols-3 gap-8 text-center md:text-left">
+                      {[
+                        { label: 'Prot.', value: result?.protein, c: 'text-black' },
+                        { label: 'Carbs', value: result?.carbs, c: 'text-black' },
+                        { label: 'Fats', value: result?.fats, c: 'text-black/60' }
+                      ].map(m => (
+                        <div key={m.label}>
+                          <p className="text-[9px] font-black uppercase tracking-widest opacity-40">{m.label}</p>
+                          <p className={`text-xl font-black ${m.c}`}>{m.value || 0}g</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="mt-8 flex justify-center md:justify-start">
+                    <Button
+                      onClick={handleGenerateMealPlan}
+                      disabled={isGeneratingPlan || !result}
+                      className="bg-black text-white hover:bg-neutral-900 font-black uppercase tracking-[0.2em] text-[10px] rounded-full px-10 py-5 h-auto transition-transform active:scale-95"
+                    >
+                      {isGeneratingPlan ? <Loader2 className="animate-spin w-3 h-3" /> : <><Sparkles className="w-3 h-3 mr-2" /> AI Meal Protocol</>}
+                    </Button>
                   </div>
                 </Card>
 
-                {/* Macro Breakdown */}
-                <div className="md:grid md:grid-cols-3 gap-4 md:col-span-2">
-                  <MetricBox label="Basal (BMR)" value={result?.bmr || 0} unit="kcal" sub="Absolute minimum" icon={<Zap className="w-4 h-4" />} />
-                  <MetricBox label="Maintenance" value={result?.tdee || 0} unit="kcal" sub="Energy balance" icon={<Waves className="w-4 h-4" />} />
-                  <MetricBox label="Protein" value={result?.protein || 0} unit="g" sub="Structure & Growth" icon={<Scale className="w-4 h-4" />} color="text-blue-400" />
-                  <MetricBox label="Carbohydrates" value={result?.carbs || 0} unit="g" sub="Energy Output" icon={<Zap className="w-4 h-4" />} color="text-orange-400" />
-                  <MetricBox label="Lipids (Fats)" value={result?.fats || 0} unit="g" sub="Cellular Integrity" icon={<Waves className="w-4 h-4" />} color="text-yellow-400" />
-                  <MetricBox label="Fiber" value={Math.round((result?.calories || 2000) / 100 * 1.5)} unit="g" sub="System Optimization" icon={<Info className="w-4 h-4" />} />
+                {/* Performance Metrics */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {[
+                    { l: 'BMR', v: result?.bmr, u: 'kcal' },
+                    { l: 'TDEE', v: result?.tdee, u: 'kcal' },
+                    { l: 'TEF', v: Math.round((result?.calories || 0) * 0.1), u: 'kcal' },
+                    { l: 'Fiber', v: Math.round((result?.calories || 2000) / 100 * 1.5), u: 'g' }
+                  ].map(s => (
+                    <div key={s.l} className="bg-white/5 border border-white/5 rounded-2xl p-4 flex flex-col justify-center">
+                      <p className="text-[8px] font-black uppercase tracking-widest text-white/20 mb-1">{s.l}</p>
+                      <p className="text-lg font-black text-white">{s.v || 0}<span className="text-[9px] text-white/20 ml-1">{s.u}</span></p>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
 
-            {/* Bottom Tip */}
-            <div className="lg:col-span-12 p-8 rounded-[2rem] bg-gradient-to-r from-neutral-900 to-black border border-white/5 flex flex-col md:flex-row items-center gap-8 shadow-2xl">
-              <div className="w-20 h-20 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
-                <Sparkles className="w-10 h-10 text-primary animate-pulse" />
-              </div>
-              <div className="space-y-2">
-                <h4 className="text-xl font-black text-white tracking-tight">AI Synergy Insight</h4>
-                <p className="text-sm text-muted-foreground leading-relaxed max-w-3xl">
-                  Your Calculated Intelligence Targets are now ready. Use the <strong>AI Core Analyzer</strong> at the top of this terminal to scan meals. The assistant will help you match these protocols by providing instant macro data for any input.
-                </p>
-              </div>
-            </div>
-
-            {/* Meal Plan Display */}
+            {/* AI Meal Plan Display */}
             {mealPlan && (
-              <div className="lg:col-span-12 animate-in fade-in slide-in-from-bottom-8 duration-700">
-                <Card className="bg-white/5 border-white/10 rounded-[2.5rem] overflow-hidden backdrop-blur-md">
-                  <CardHeader className="bg-primary/10 border-b border-white/5 p-8">
+              <div className="lg:col-span-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <Card className="bg-white/5 border-white/5 rounded-[2.5rem] overflow-hidden backdrop-blur-md">
+                  <CardHeader className="p-8 pb-4">
                     <div className="flex items-center justify-between">
-                      <div>
-                        <CardTitle className="text-2xl font-black text-white uppercase tracking-tighter">Precision Daily Protocol</CardTitle>
-                        <CardDescription className="text-primary font-bold">Generated for ${dietaryPreference.toUpperCase()} • ${result?.calories} kcal</CardDescription>
+                      <div className="space-y-1">
+                        <CardTitle className="text-xl font-black text-white uppercase tracking-tighter">Daily Protocol</CardTitle>
+                        <CardDescription className="text-[10px] text-primary/60 font-bold uppercase tracking-widest">
+                          {dietaryPreference.toUpperCase()} • {result?.calories} KCAL BASELINE
+                        </CardDescription>
                       </div>
-                      <div className="p-3 bg-primary rounded-2xl text-black">
-                        <Utensils className="w-6 h-6" />
-                      </div>
+                      <Button variant="ghost" size="icon" onClick={() => setMealPlan(null)} className="rounded-full text-white/20 hover:text-white">✕</Button>
                     </div>
                   </CardHeader>
-                  <CardContent className="p-8">
-                    <div className="prose prose-invert max-w-none whitespace-pre-wrap text-white/80 leading-relaxed font-medium">
+                  <CardContent className="p-8 pt-0">
+                    <div className="prose prose-invert max-w-none whitespace-pre-wrap text-sm text-white/70 font-medium leading-relaxed border-t border-white/5 pt-6">
                       {mealPlan}
-                    </div>
-                    <div className="mt-8 flex justify-end">
-                      <Button
-                        variant="ghost"
-                        onClick={() => setMealPlan(null)}
-                        className="text-white/40 hover:text-white"
-                      >
-                        Clear Plan
-                      </Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -552,20 +519,4 @@ export default function Nutrition() {
       )}
     </div>
   );
-}
-
-function MetricBox({ label, value, unit, sub, icon, color }: { label: string; value: number | string; unit: string, sub: string, icon: React.ReactNode, color?: string }) {
-  return (
-    <div className="bg-white/5 border border-white/10 rounded-3xl p-6 hover:bg-white/10 transition-colors group">
-      <div className="flex items-center justify-between mb-4">
-        <div className={`p-2 rounded-xl bg-white/5 ${color || 'text-primary'} border border-white/10`}>
-          {icon}
-        </div>
-        <p className="text-[10px] uppercase font-black tracking-widest text-muted-foreground opacity-40">{unit}</p>
-      </div>
-      <p className="text-xs font-bold text-muted-foreground mb-1 group-hover:text-white transition-colors uppercase tracking-wider">{label}</p>
-      <h4 className={`text-3xl font-black ${color || 'text-white'} tracking-tighter tabular-nums mb-1`}>{value}</h4>
-      <p className="text-[10px] text-muted-foreground/60 font-medium">{sub}</p>
-    </div>
-  )
 }
