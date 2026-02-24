@@ -8,8 +8,9 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, TrendingUp, Info, Scale, Ruler, User, Target, Zap, Waves, Sparkles, Flame, Activity as ActivityIcon, TrendingDown } from "lucide-react";
+import { Loader2, TrendingUp, Info, Scale, Ruler, User, Target, Zap, Waves, Sparkles, Flame, Activity as ActivityIcon, TrendingDown, History, Utensils, Calendar } from "lucide-react";
 import { FoodScanner } from "@/components/FoodScanner";
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, BarChart, Bar, Cell } from "recharts";
 
 type Activity = "sedentary" | "light" | "moderate" | "active" | "athlete";
 type Goal = "cut" | "recomp" | "bulk";
@@ -43,10 +44,14 @@ export default function Nutrition() {
   const [mealPlan, setMealPlan] = useState<string | null>(null);
   const [showOverlay, setShowOverlay] = useState(false);
   const [overlayStep, setOverlayStep] = useState(0);
+  const [nutritionHistory, setNutritionHistory] = useState<any[]>([]);
+  const [isLogging, setIsLogging] = useState(false);
 
   useEffect(() => {
-    const loadProfileSettings = async () => {
+    const loadData = async () => {
       const { data: { session } } = await supabase.auth.getSession();
+
+      // Load Profile
       if (session) {
         const { data } = await supabase
           .from('profiles')
@@ -63,6 +68,21 @@ export default function Nutrition() {
           if (data.weight) setWeight(data.weight.toString());
           if (data.height) setHeight(data.height.toString());
           if (data.activity_level) setActivity(data.activity_level as Activity);
+        }
+
+        // Load Nutrition History
+        const { data: logs } = await supabase
+          .from('nutrition_logs')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .order('logged_at', { ascending: true })
+          .limit(30);
+
+        if (logs) {
+          setNutritionHistory(logs.map(l => ({
+            ...l,
+            date: new Date(l.logged_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+          })));
         }
       }
     };
@@ -81,7 +101,7 @@ export default function Nutrition() {
         console.error("Local storage parse error:", err);
       }
     }
-    loadProfileSettings();
+    loadData();
   }, []);
 
   const result = useMemo(() => {
@@ -102,6 +122,62 @@ export default function Nutrition() {
     return { bmr: Math.round(bmr), tdee: Math.round(tdee), calories, protein, fats, carbs };
   }, [age, weight, height, activity, goal]);
 
+  const handleLogIntake = async () => {
+    if (!result) return;
+    setIsLogging(true);
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast.error("Please login to save progress");
+      setIsLogging(false);
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('activity_logs' as any) // Use activity_logs as a generic tracker if nutrition_logs is missing
+        .insert({
+          user_id: user.id,
+          activity_type: 'nutrition',
+          value: result.calories,
+          created_at: new Date().toISOString()
+        });
+
+      // Also try nutrition_logs if it exists (using any to bypass TS errors since types.ts is old)
+      await supabase
+        .from('nutrition_logs' as any)
+        .insert({
+          user_id: user.id,
+          calories: result.calories,
+          protein: result.protein,
+          carbs: result.carbs,
+          fats: result.fats,
+          logged_at: new Date().toISOString()
+        });
+
+      toast.success("Progress logged effectively! 💪");
+
+      // Refresh local history
+      const { data: logs } = await supabase
+        .from('nutrition_logs' as any)
+        .select('*')
+        .eq('user_id', user.id)
+        .order('logged_at', { ascending: true })
+        .limit(30);
+
+      if (logs) {
+        setNutritionHistory(logs.map(l => ({
+          ...l,
+          date: new Date(l.logged_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+        })));
+      }
+    } catch (err) {
+      console.error("Logging error:", err);
+      toast.error("Failed to log progress");
+    } finally {
+      setIsLogging(false);
+    }
+  };
   const handleUpdatePlan = async () => {
     if (!result) return;
     setIsUpdating(true);
@@ -432,12 +508,24 @@ export default function Nutrition() {
                 {/* Calories Highlight */}
                 <Card className="bg-primary/5 border-primary/20 backdrop-blur-md rounded-[2.5rem] relative overflow-hidden md:col-span-2 p-8 flex flex-col items-center justify-center text-center">
                   <Waves className="absolute bottom-0 left-0 w-full h-32 text-primary/10 -mb-8 pointer-events-none" />
-                  <div className="relative z-10 space-y-2">
+                  <div className="relative z-10 space-y-4">
                     <p className="text-xs font-black uppercase tracking-[0.4em] text-primary">Daily Energy Target</p>
                     <h2 className="text-8xl font-black text-white tracking-tighter tabular-nums drop-shadow-[0_0_30px_rgba(var(--primary),0.3)]">
                       {result?.calories || 0}
                     </h2>
                     <p className="text-sm font-medium text-white/40 uppercase tracking-widest">Kilocalories / Protocol Day</p>
+
+                    <div className="pt-4 flex flex-wrap justify-center gap-3">
+                      <Button
+                        onClick={handleLogIntake}
+                        disabled={isLogging || !result}
+                        size="lg"
+                        className="bg-primary text-black font-black uppercase tracking-tighter rounded-2xl px-8 hover:scale-105 transition-all shadow-lg"
+                      >
+                        {isLogging ? <Loader2 className="w-5 h-5 animate-spin" /> : <TrendingUp className="w-5 h-5 mr-2" />}
+                        Log Today's Intake
+                      </Button>
+                    </div>
                   </div>
                 </Card>
 
@@ -450,6 +538,73 @@ export default function Nutrition() {
                   <MetricBox label="Lipids (Fats)" value={result?.fats || 0} unit="g" sub="Cellular Integrity" icon={<Waves className="w-4 h-4" />} color="text-yellow-400" />
                   <MetricBox label="Fiber" value={Math.round((result?.calories || 2000) / 100 * 1.5)} unit="g" sub="System Optimization" icon={<Info className="w-4 h-4" />} />
                 </div>
+
+                {/* Progress Visualization */}
+                <Card className="bg-black/40 border-white/5 backdrop-blur-xl rounded-[2.5rem] md:col-span-2 overflow-hidden border-none ring-1 ring-white/10 p-8">
+                  <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
+                    <div className="space-y-1">
+                      <h3 className="text-xl font-black text-white uppercase tracking-tighter flex items-center gap-2">
+                        <History className="w-5 h-5 text-primary" />
+                        Metabolic Analytics
+                      </h3>
+                      <p className="text-xs text-muted-foreground uppercase tracking-widest opacity-60">Caloric adherence trend (Last 30 entries)</p>
+                    </div>
+                  </div>
+
+                  {nutritionHistory.length > 0 ? (
+                    <div className="h-[300px] w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={nutritionHistory}>
+                          <defs>
+                            <linearGradient id="colorCal" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="#00FF9C" stopOpacity={0.3} />
+                              <stop offset="95%" stopColor="#00FF9C" stopOpacity={0} />
+                            </linearGradient>
+                          </defs>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
+                          <XAxis
+                            dataKey="date"
+                            stroke="#666"
+                            fontSize={10}
+                            tickLine={false}
+                            axisLine={false}
+                          />
+                          <YAxis
+                            stroke="#666"
+                            fontSize={10}
+                            tickLine={false}
+                            axisLine={false}
+                            tickFormatter={(v) => `${v}k`}
+                          />
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: '#111',
+                              border: '1px solid #333',
+                              borderRadius: '12px',
+                              fontSize: '12px'
+                            }}
+                          />
+                          <Area
+                            type="monotone"
+                            dataKey="calories"
+                            stroke="#00FF9C"
+                            fillOpacity={1}
+                            fill="url(#colorCal)"
+                            strokeWidth={3}
+                          />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    </div>
+                  ) : (
+                    <div className="h-[200px] flex flex-col items-center justify-center text-center space-y-4 border border-dashed border-white/10 rounded-3xl bg-white/5">
+                      <Calendar className="w-8 h-8 text-white/20" />
+                      <div className="space-y-1">
+                        <p className="text-sm font-bold text-white/40">No historical data detected</p>
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Start logging your fuel to see precision trends</p>
+                      </div>
+                    </div>
+                  )}
+                </Card>
               </div>
             </div>
 

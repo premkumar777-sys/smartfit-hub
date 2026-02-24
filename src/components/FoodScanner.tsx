@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Camera, Upload, X, Info, Sparkles } from "lucide-react";
+import { Loader2, Camera, Upload, X, Info, Sparkles, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -14,6 +14,49 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState<{ name: string; calories: number; protein: number; carbs: number; fats: number } | null>(null);
     const [quotaExceeded, setQuotaExceeded] = useState(false);
+    const [isLogging, setIsLogging] = useState(false);
+
+    const handleLogMeal = async () => {
+        if (!result) return;
+        setIsLogging(true);
+
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+            toast.error("Please login to log meals");
+            setIsLogging(false);
+            return;
+        }
+
+        try {
+            const { error: logError } = await (supabase.from('activity_logs' as any).insert({
+                user_id: user.id,
+                activity_type: 'nutrition',
+                value: result.calories,
+                created_at: new Date().toISOString()
+            }));
+
+            const { error: nutError } = await (supabase.from('nutrition_logs' as any).insert({
+                user_id: user.id,
+                calories: result.calories,
+                protein: result.protein,
+                carbs: result.carbs,
+                fats: result.fats,
+                meal_name: result.name,
+                logged_at: new Date().toISOString()
+            }));
+
+            if (logError || nutError) throw logError || nutError;
+
+            toast.success("Meal logged to your history! 📈");
+            onScanComplete(result);
+            handleDone();
+        } catch (err: any) {
+            console.error("Logging error:", err);
+            toast.error("Failed to log meal", { description: err.message });
+        } finally {
+            setIsLogging(false);
+        }
+    };
 
     const analyzeText = async (query: string) => {
         if (!query.trim()) return;
@@ -196,7 +239,15 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
                             </div>
                         </div>
                         <div className="flex gap-2">
-                            <Button onClick={handleDone} className="w-full bg-primary text-black font-bold hover:bg-primary/80">
+                            <Button
+                                onClick={handleLogMeal}
+                                disabled={isLogging}
+                                className="w-full bg-emerald-500 hover:bg-emerald-600 text-black font-bold"
+                            >
+                                {isLogging ? <Loader2 className="w-4 h-4 animate-spin" /> : <TrendingUp className="w-4 h-4 mr-2" />}
+                                Log this meal
+                            </Button>
+                            <Button onClick={handleDone} variant="outline" className="w-full border-white/10 hover:bg-white/5">
                                 Done
                             </Button>
                         </div>
