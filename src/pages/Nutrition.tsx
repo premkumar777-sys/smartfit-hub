@@ -33,9 +33,9 @@ const storageKey = "smartfit_nutrition_v1";
 
 export default function Nutrition() {
   const navigate = useNavigate();
-  const [age, setAge] = useState("28");
-  const [weight, setWeight] = useState("70");
-  const [height, setHeight] = useState("175");
+  const [age, setAge] = useState("");
+  const [weight, setWeight] = useState("");
+  const [height, setHeight] = useState("");
   const [activity, setActivity] = useState<Activity>("moderate");
   const [goal, setGoal] = useState<Goal>("recomp");
   const [dietaryPreference, setDietaryPreference] = useState<"veg" | "non-veg" | "mixed">("mixed");
@@ -91,9 +91,9 @@ export default function Nutrition() {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        setAge(parsed.age || "28");
-        setWeight(parsed.weight || "70");
-        setHeight(parsed.height || "175");
+        setAge(parsed.age || "");
+        setWeight(parsed.weight || "");
+        setHeight(parsed.height || "");
         setActivity(parsed.activity || "moderate");
         setGoal(parsed.goal || "recomp");
         setDietaryPreference(parsed.dietaryPreference || "mixed");
@@ -362,6 +362,7 @@ export default function Nutrition() {
                       type="number"
                       value={age}
                       onChange={(e) => setAge(e.target.value)}
+                      placeholder="e.g. 28"
                       className="bg-black/20 border border-white/20 focus:border-primary/50 rounded-lg text-2xl font-black px-3 py-1 h-auto focus-visible:ring-0 text-white tabular-nums transition-all"
                     />
                   </div>
@@ -375,6 +376,7 @@ export default function Nutrition() {
                       type="number"
                       value={weight}
                       onChange={(e) => setWeight(e.target.value)}
+                      placeholder="e.g. 74kg"
                       className="bg-black/20 border border-white/20 focus:border-primary/50 rounded-lg text-2xl font-black px-3 py-1 h-auto focus-visible:ring-0 text-white tabular-nums transition-all"
                     />
                   </div>
@@ -388,6 +390,7 @@ export default function Nutrition() {
                       type="number"
                       value={height}
                       onChange={(e) => setHeight(e.target.value)}
+                      placeholder="e.g. 180cm"
                       className="bg-black/20 border border-white/20 focus:border-primary/50 rounded-lg text-2xl font-black px-3 py-1 h-auto focus-visible:ring-0 text-white tabular-nums transition-all"
                     />
                   </div>
