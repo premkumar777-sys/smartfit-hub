@@ -196,7 +196,7 @@ export default function RoadToICN() {
             {/* Background Image - Refined Placement */}
             <div className="fixed top-0 right-0 w-[55%] h-full pointer-events-none z-0 overflow-hidden translate-x-[5%]">
                 <div
-                    className="absolute inset-0 bg-contain bg-no-repeat bg-center opacity-[0.2]"
+                    className="absolute inset-0 bg-contain bg-no-repeat bg-center opacity-[0.70]"
                     style={{ backgroundImage: `url(${icnShield})` }}
                 />
                 {/* Fade edges to blend */}
