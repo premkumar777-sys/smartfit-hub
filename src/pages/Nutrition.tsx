@@ -316,29 +316,6 @@ export default function Nutrition() {
         </button>
 
         <div className="flex flex-col gap-12">
-          {/* Hero Branding */}
-          <div className="text-center space-y-4">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/20 text-[10px] uppercase font-bold tracking-[0.3em] text-primary animate-in fade-in slide-in-from-top-4 duration-700">
-              Intelligence Protocol v2.0
-            </div>
-            <h1 className="text-5xl md:text-7xl font-black tracking-tighter text-white animate-in fade-in slide-in-from-bottom-4 duration-1000">
-              Precision <span className="text-primary italic">Fueling</span>
-            </h1>
-            <p className="text-muted-foreground text-sm md:text-lg max-w-2xl mx-auto leading-relaxed opacity-80">
-              Your nutritional architecture, decoded. Use the AI Core to analyze fuel or calculate your metabolic baseline below.
-            </p>
-          </div>
-
-          {/* AI Core Section */}
-          <div className="max-w-xl mx-auto w-full relative group">
-            <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-purple-500/20 rounded-2xl blur-xl opacity-50 group-hover:opacity-100 transition duration-1000"></div>
-            <div className="relative bg-black/40 backdrop-blur-xl border border-white/20 rounded-2xl overflow-hidden shadow-2xl">
-              <FoodScanner onScanComplete={() => { }} />
-            </div>
-            <p className="text-center text-[10px] text-muted-foreground mt-4 uppercase tracking-[0.2em] opacity-40">
-              Conversational Food Intelligence System
-            </p>
-          </div>
 
           <div className="grid lg:grid-cols-12 gap-8 mt-12">
             {/* Inputs Column */}
@@ -590,45 +567,83 @@ export default function Nutrition() {
             </div>
 
             {/* Bottom Tip */}
-            <div className="lg:col-span-12 p-8 rounded-[2rem] bg-gradient-to-r from-neutral-900 to-black border border-white/5 flex flex-col md:flex-row items-center gap-8 shadow-2xl">
-              <div className="w-20 h-20 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
-                <Sparkles className="w-10 h-10 text-primary animate-pulse" />
-              </div>
-              <div className="space-y-2">
-                <h4 className="text-xl font-black text-white tracking-tight">AI Synergy Insight</h4>
-                <p className="text-sm text-muted-foreground leading-relaxed max-w-3xl">
-                  Your Calculated Intelligence Targets are now ready. Use the <strong>AI Core Analyzer</strong> at the top of this terminal to scan meals. The assistant will help you match these protocols by providing instant macro data for any input.
-                </p>
-                <div className="flex flex-wrap gap-2 pt-4">
-                  {[
-                    { id: 'veg', label: 'Veg', color: 'bg-green-500/10 border-green-500/30 text-green-400' },
-                    { id: 'non-veg', label: 'Non-Veg', color: 'bg-red-500/10 border-red-500/30 text-red-400' },
-                    { id: 'mixed', label: 'Mixed', color: 'bg-amber-500/10 border-amber-500/30 text-amber-400' }
-                  ].map((diet) => (
-                    <button
-                      key={diet.id}
-                      onClick={() => setDietaryPreference(diet.id as any)}
-                      className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-tighter border transition-all ${dietaryPreference === diet.id
-                        ? "bg-primary/20 border-primary text-primary"
-                        : "bg-white/5 border-white/10 text-white/40 hover:bg-white/10"
-                        }`}
-                    >
-                      {diet.label}
-                    </button>
-                  ))}
+            {/* AI Synergy Insight Consolidated Section */}
+            <div className="lg:col-span-12 space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
+              <div className="text-center space-y-4">
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/20 text-[10px] uppercase font-bold tracking-[0.3em] text-primary">
+                  Intelligence Protocol v2.0
                 </div>
-                <div className="pt-4">
-                  <Button
-                    onClick={handleGenerateMealPlan}
-                    disabled={isGeneratingPlan || !result}
-                    className="bg-primary text-black font-black uppercase tracking-tighter rounded-xl px-8 py-6 hover:scale-105 transition-all shadow-[0_0_30px_rgba(var(--primary),0.2)] w-full md:w-auto"
-                  >
-                    {isGeneratingPlan ? (
-                      <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Cooking Plan...</>
-                    ) : (
-                      <><Sparkles className="w-5 h-5 mr-2" /> Generate {dietaryPreference.toUpperCase()} Meal Plan</>
-                    )}
-                  </Button>
+                <h2 className="text-4xl md:text-6xl font-black tracking-tighter text-white">
+                  Precision <span className="text-primary italic">Fueling</span>
+                </h2>
+                <p className="text-muted-foreground text-sm max-w-2xl mx-auto leading-relaxed opacity-80">
+                  Your nutritional architecture, decoded. Use the AI Core to analyze fuel or calculate your metabolic baseline below.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                {/* AI Scanner */}
+                <div className="relative group">
+                  <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-purple-500/20 rounded-2xl blur-xl opacity-50 group-hover:opacity-100 transition duration-1000"></div>
+                  <div className="relative bg-black/60 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
+                    <FoodScanner onScanComplete={() => { }} />
+                  </div>
+                  <p className="text-center text-[10px] text-muted-foreground mt-4 uppercase tracking-[0.2em] opacity-40">
+                    Conversational Food Intelligence System
+                  </p>
+                </div>
+
+                {/* AI Strategy & Control */}
+                <div className="p-8 rounded-[2rem] bg-gradient-to-br from-neutral-900 to-black border border-white/5 shadow-2xl space-y-6 h-full flex flex-col justify-center">
+                  <div className="flex items-center gap-4 mb-2">
+                    <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
+                      <Sparkles className="w-6 h-6 text-primary" />
+                    </div>
+                    <div>
+                      <h4 className="text-xl font-black text-white tracking-tight uppercase tracking-widest">AI Synergy Insight</h4>
+                      <p className="text-[10px] text-primary/60 font-black uppercase tracking-[0.2em]">Strategy Optimization</p>
+                    </div>
+                  </div>
+
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    Once your protocols are calibrated, use this strategy engine to generate custom meal plans aligned with your genetic target.
+                  </p>
+
+                  <div className="space-y-4 pt-2">
+                    <Label className="text-[10px] uppercase tracking-[0.4em] text-white/40 font-black">Refine Dietary Identity</Label>
+                    <div className="flex flex-wrap gap-2">
+                      {[
+                        { id: 'veg', label: 'Veg' },
+                        { id: 'non-veg', label: 'Non-Veg' },
+                        { id: 'mixed', label: 'Mixed' }
+                      ].map((diet) => (
+                        <button
+                          key={diet.id}
+                          onClick={() => setDietaryPreference(diet.id as any)}
+                          className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-tighter border transition-all ${dietaryPreference === diet.id
+                            ? "bg-primary/20 border-primary text-primary"
+                            : "bg-white/5 border-white/10 text-white/40 hover:bg-white/10"
+                            }`}
+                        >
+                          {diet.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="pt-4">
+                    <Button
+                      onClick={handleGenerateMealPlan}
+                      disabled={isGeneratingPlan || !result}
+                      className="bg-primary text-black font-black uppercase tracking-tighter rounded-xl px-8 py-6 hover:scale-105 transition-all shadow-[0_0_30px_rgba(var(--primary),0.2)] w-full"
+                    >
+                      {isGeneratingPlan ? (
+                        <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Cooking Protocol...</>
+                      ) : (
+                        <><Sparkles className="w-5 h-5 mr-2" /> Generate {dietaryPreference.toUpperCase()} Strategy</>
+                      )}
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
