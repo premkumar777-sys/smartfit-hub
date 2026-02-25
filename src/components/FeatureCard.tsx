@@ -13,7 +13,7 @@ interface FeatureCardProps {
   badge?: string;
   isPremium?: boolean;
   onClick?: () => void;
-  variant?: 'cyber' | 'saas';
+  variant?: 'cyber' | 'saas' | 'icn';
 }
 
 export const FeatureCard = ({ icon: Icon, title, description, link, index, badge, isPremium, onClick, variant = 'cyber' }: FeatureCardProps) => {
@@ -27,6 +27,7 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index, badge
   const [isMobile, setIsMobile] = useState(false);
 
   const isSaas = variant === 'saas';
+  const isIcn = variant === 'icn';
 
   useEffect(() => {
     const checkMobile = () => {
@@ -153,16 +154,23 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index, badge
     <motion.div
       ref={cardRef}
       className={cn(
-        "feature-card-3d group relative p-8 rounded-2xl",
+        "feature-card-3d group relative h-full flex flex-col p-8 rounded-3xl transition-all duration-700",
         isSaas
-          ? "bg-white border border-gray-100 shadow-sm hover:shadow-xl hover:border-green-100"
-          : "bg-gradient-to-br from-gray-900/90 to-gray-800/70 backdrop-blur-md border-2 border-transparent",
-        "transition-all duration-300 ease-out",
-        "focus:outline-none focus:ring-2 focus:ring-[#00FF9C]",
-        isSaas ? "focus:ring-offset-0" : "focus:ring-offset-2 focus:ring-offset-gray-900",
+          ? "bg-white border-gray-100 hover:border-green-200 shadow-sm hover:shadow-xl"
+          : isIcn
+            ? "bg-black/40 backdrop-blur-xl border-gold/20 hover:border-gold/50 shadow-[0_0_20px_rgba(212,175,55,0.05)] hover:shadow-[0_0_40px_rgba(212,175,55,0.2)]"
+            : "bg-[#0A0A0B]/80 backdrop-blur-md border-[#FFFFFF]/10 hover:border-[#00FF9C]/30 shadow-2xl",
+        isHovered && !prefersReducedMotion && !isMobile && "feature-card-glow",
+        "focus:outline-none focus:ring-2",
+        isSaas
+          ? "focus:ring-green-500 focus:ring-offset-0"
+          : isIcn
+            ? "focus:ring-gold focus:ring-offset-2 focus:ring-offset-black"
+            : "focus:ring-[#00FF9C] focus:ring-offset-2 focus:ring-offset-gray-900",
         "cursor-pointer select-none overflow-hidden",
         !isSaas && isHovered && (isPremium ? "border-blue-400/50 shadow-[0_0_20px_rgba(59,130,246,0.3)]" : "border-[#00FF9C]/40"),
-        isFocused && "ring-2 ring-[#00FF9C]"
+        isFocused && "ring-2 ring-[#00FF9C]", // This line is redundant if focus:ring is handled above, but kept as per original structure.
+        className
       )}
       style={{
         transformStyle: 'preserve-3d',
@@ -190,14 +198,16 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index, badge
         </div>
       )}
 
-      {/* Animated gradient background - simplified for SaaS */}
-      {!isSaas && (
+      {/* Glassmorphism Hover Gradient */}
+      {isHovered && !isMobile && (
         <div
-          className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+          className="absolute inset-0 rounded-2xl opacity-100 pointer-events-none transition-opacity duration-300"
           style={{
-            background: isPremium
-              ? `radial-gradient(circle at ${50 + mousePosition.x * 0.1}% ${50 + mousePosition.y * 0.1}%, rgba(59, 130, 246, 0.2), transparent 70%)`
-              : `radial-gradient(circle at ${50 + mousePosition.x * 0.1}% ${50 + mousePosition.y * 0.1}%, rgba(0, 255, 156, 0.15), transparent 70%)`
+            background: isIcn
+              ? `radial-gradient(circle at ${50 + mousePosition.x * 0.1}% ${50 + mousePosition.y * 0.1}%, rgba(212, 175, 55, 0.15), rgba(59, 130, 246, 0.05) 70%)`
+              : isPremium
+                ? `radial-gradient(circle at ${50 + mousePosition.x * 0.1}% ${50 + mousePosition.y * 0.1}%, rgba(59, 130, 246, 0.2), transparent 70%)`
+                : `radial-gradient(circle at ${50 + mousePosition.x * 0.1}% ${50 + mousePosition.y * 0.1}%, rgba(0, 255, 156, 0.15), transparent 70%)`
           }}
         />
       )}
@@ -207,13 +217,15 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index, badge
         <div className="absolute inset-0 bg-green-50/30 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
       )}
 
-      {/* Glowing border effect (Cyber only) */}
+      {/* Glowing border effect (Cyber & ICN) */}
       {!isSaas && (
         <div
           className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
           style={{
             boxShadow: isHovered
-              ? (isPremium ? `inset 0 0 30px rgba(59, 130, 246, 0.2), 0 0 40px rgba(59, 130, 246, 0.3)` : `inset 0 0 30px rgba(0, 255, 156, 0.2), 0 0 40px rgba(0, 255, 156, 0.3)`)
+              ? isIcn
+                ? `inset 0 0 30px rgba(212, 175, 55, 0.1), 0 0 40px rgba(212, 175, 55, 0.2)`
+                : (isPremium ? `inset 0 0 30px rgba(59, 130, 246, 0.2), 0 0 40px rgba(59, 130, 246, 0.3)` : `inset 0 0 30px rgba(0, 255, 156, 0.2), 0 0 40px rgba(0, 255, 156, 0.3)`)
               : 'none'
           }}
         />
@@ -260,9 +272,13 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index, badge
                 "h-12 w-12 transition-all duration-500",
                 isSaas
                   ? (isHovered ? "text-green-500" : "text-gray-400")
-                  : (isHovered || isFocused
-                    ? "text-[#00FF9C] drop-shadow-[0_0_15px_rgba(0,255,156,0.7)]"
-                    : "text-[#00FF9C]/80")
+                  : isIcn
+                    ? (isHovered || isFocused
+                      ? "text-gold drop-shadow-[0_0_15px_rgba(212,175,55,0.7)]"
+                      : "text-gold/80")
+                    : (isHovered || isFocused
+                      ? "text-[#00FF9C] drop-shadow-[0_0_15px_rgba(0,255,156,0.7)]"
+                      : "text-[#00FF9C]/80")
               )}
             />
           </motion.div>

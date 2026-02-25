@@ -230,6 +230,14 @@ const Home = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
               {
+                icon: Trophy,
+                title: "Road to ICN Elite",
+                description: "The interactive journey from 'Common Man' to 'Stage-Ready Competitor' with structural symmetry analysis",
+                link: "/road-to-icn",
+                variant: "icn",
+                isPremium: true
+              },
+              {
                 icon: Bot,
                 title: "AI Personal Trainer",
                 description: "24/7 AI Chat expert for personalized fitness advice, form tips, and nutrition guidance",
