@@ -618,16 +618,34 @@ export default function Nutrition() {
                 <p className="text-sm text-muted-foreground leading-relaxed max-w-3xl">
                   Your Calculated Intelligence Targets are now ready. Use the <strong>AI Core Analyzer</strong> at the top of this terminal to scan meals. The assistant will help you match these protocols by providing instant macro data for any input.
                 </p>
+                <div className="flex flex-wrap gap-2 pt-4">
+                  {[
+                    { id: 'veg', label: 'Veg', color: 'bg-green-500/10 border-green-500/30 text-green-400' },
+                    { id: 'non-veg', label: 'Non-Veg', color: 'bg-red-500/10 border-red-500/30 text-red-400' },
+                    { id: 'mixed', label: 'Mixed', color: 'bg-amber-500/10 border-amber-500/30 text-amber-400' }
+                  ].map((diet) => (
+                    <button
+                      key={diet.id}
+                      onClick={() => setDietaryPreference(diet.id as any)}
+                      className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-tighter border transition-all ${dietaryPreference === diet.id
+                        ? "bg-primary/20 border-primary text-primary"
+                        : "bg-white/5 border-white/10 text-white/40 hover:bg-white/10"
+                        }`}
+                    >
+                      {diet.label}
+                    </button>
+                  ))}
+                </div>
                 <div className="pt-4">
                   <Button
                     onClick={handleGenerateMealPlan}
                     disabled={isGeneratingPlan || !result}
-                    className="bg-primary text-black font-black uppercase tracking-tighter rounded-full px-8 py-6 hover:scale-105 transition-all shadow-[0_0_30px_rgba(var(--primary),0.2)]"
+                    className="bg-primary text-black font-black uppercase tracking-tighter rounded-xl px-8 py-6 hover:scale-105 transition-all shadow-[0_0_30px_rgba(var(--primary),0.2)] w-full md:w-auto"
                   >
                     {isGeneratingPlan ? (
                       <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Cooking Plan...</>
                     ) : (
-                      <><Sparkles className="w-5 h-5 mr-2" /> Generate ${dietaryPreference} Meal Plan</>
+                      <><Sparkles className="w-5 h-5 mr-2" /> Generate {dietaryPreference.toUpperCase()} Meal Plan</>
                     )}
                   </Button>
                 </div>
