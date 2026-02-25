@@ -14,9 +14,10 @@ interface FeatureCardProps {
   isPremium?: boolean;
   onClick?: () => void;
   variant?: 'cyber' | 'saas' | 'icn';
+  className?: string;
 }
 
-export const FeatureCard = ({ icon: Icon, title, description, link, index, badge, isPremium, onClick, variant = 'cyber' }: FeatureCardProps) => {
+export const FeatureCard = ({ icon: Icon, title, description, link, index, badge, isPremium, onClick, variant = 'cyber', className }: FeatureCardProps) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
