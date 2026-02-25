@@ -413,7 +413,7 @@ export default function OnlineCoaching() {
                             <Badge className="bg-[#00FF9C] text-black hover:bg-[#00FF9C]">Limited Spots Available</Badge>
                             <h2 className="text-3xl font-bold text-white">Exclusive 1:1 Coaching</h2>
                             <div className="text-5xl font-bold text-white">
-                                ₹{COACHING_PLAN.price} <span className="text-lg text-gray-500 font-normal">/ month</span>
+                                {COACHING_PLAN.price} <span className="text-lg text-gray-500 font-normal">/ month</span>
                             </div>
                             <ul className="text-left space-y-4 max-w-sm mx-auto">
                                 {[
@@ -433,7 +433,7 @@ export default function OnlineCoaching() {
                                     onClick={() => openPaymentLink(COACHING_PLAN.link)}
                                     className="w-full bg-[#00FF9C] text-black hover:bg-[#00FF9C]/90 h-14 text-lg font-bold shadow-[0_0_20px_rgba(0,255,156,0.3)]"
                                 >
-                                    1. Secure Your Spot (Pay ₹{COACHING_PLAN.price})
+                                    1. Secure Your Spot (Pay {COACHING_PLAN.price})
                                 </Button>
                                 <Button
                                     onClick={() => setIsFormOpen(true)}
