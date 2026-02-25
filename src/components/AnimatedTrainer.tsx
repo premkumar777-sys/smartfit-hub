@@ -159,79 +159,136 @@ export function AnimatedTrainer({ exercise, isAnimating }: AnimatedTrainerProps)
     <group ref={groupRef}>
       {/* ===== TORSO (Skin Layer) ===== */}
       <mesh ref={torsoRef} position={[0, 0.6, 0]}>
-        <capsuleGeometry args={[0.3, 0.5, 12, 16]} />
+        <capsuleGeometry args={[0.3, 0.52, 12, 16]} />
         <primitive object={anatomicalMaterial} />
       </mesh>
 
-      {/* Tank Top (Workout Shirt) */}
+      {/* Lats (V-Taper Muscle) */}
+      <mesh position={[0.22, 0.65, -0.05]} rotation={[0, 0, -0.3]}>
+        <capsuleGeometry args={[0.15, 0.35, 12, 12]} />
+        <primitive object={anatomicalMaterial} />
+      </mesh>
+      <mesh position={[-0.22, 0.65, -0.05]} rotation={[0, 0, 0.3]}>
+        <capsuleGeometry args={[0.15, 0.35, 12, 12]} />
+        <primitive object={anatomicalMaterial} />
+      </mesh>
+
+      {/* Trapezius & Neck Muscle */}
+      <mesh position={[0, 1, -0.08]} rotation={[0, 0, 0]}>
+        <capsuleGeometry args={[0.18, 0.2, 8, 8]} />
+        <primitive object={anatomicalMaterial} />
+      </mesh>
+
+      {/* Abdominals (Realistic 6-Pack Definition) */}
+      <group position={[0, 0.45, 0.18]}>
+        {[0, 1, 2].map((i) => (
+          <group key={i} position={[0, -i * 0.1, 0]}>
+            <mesh position={[0.07, 0, 0.04]} rotation={[0, 0.2, 0]}>
+              <capsuleGeometry args={[0.05, 0.05, 8, 8]} />
+              <primitive object={getMaterial('abs')} />
+            </mesh>
+            <mesh position={[-0.07, 0, 0.04]} rotation={[0, -0.2, 0]}>
+              <capsuleGeometry args={[0.05, 0.05, 8, 8]} />
+              <primitive object={getMaterial('abs')} />
+            </mesh>
+          </group>
+        ))}
+      </group>
+
+      {/* Tank Top (Workout Shirt) with Branding */}
       <group position={[0, 0.72, 0]}>
         <mesh>
           <capsuleGeometry args={[0.33, 0.35, 12, 16]} />
           <primitive object={clothingMaterial} />
         </mesh>
         {/* Straps */}
-        <mesh position={[0.22, 0.2, 0]} rotation={[0, 0, 0.2]}>
-          <boxGeometry args={[0.1, 0.2, 0.3]} />
+        <mesh position={[0.2, 0.25, 0]} rotation={[0, 0, 0.3]}>
+          <boxGeometry args={[0.06, 0.3, 0.32]} />
           <primitive object={clothingMaterial} />
         </mesh>
-        <mesh position={[-0.22, 0.2, 0]} rotation={[0, 0, -0.2]}>
-          <boxGeometry args={[0.1, 0.2, 0.3]} />
+        <mesh position={[-0.2, 0.25, 0]} rotation={[0, 0, -0.3]}>
+          <boxGeometry args={[0.06, 0.3, 0.32]} />
           <primitive object={clothingMaterial} />
         </mesh>
       </group>
 
-      {/* Pectorals */}
-      <mesh position={[0.16, 0.78, 0.18]} rotation={[0, 0.3, 0]}>
+      {/* Pectorals (Defined Upper Chest) */}
+      <mesh position={[0.15, 0.78, 0.22]} rotation={[0, 0.4, 0]}>
         <sphereGeometry args={[0.16, 16, 16]} />
         <primitive object={getMaterial('chest')} />
       </mesh>
-      <mesh position={[-0.16, 0.78, 0.18]} rotation={[0, -0.3, 0]}>
+      <mesh position={[-0.15, 0.78, 0.22]} rotation={[0, -0.4, 0]}>
         <sphereGeometry args={[0.16, 16, 16]} />
         <primitive object={getMaterial('chest')} />
       </mesh>
 
-      {/* ===== HEAD (Organic Skin) ===== */}
-      <mesh position={[0, 1.4, 0]}>
-        <sphereGeometry args={[0.16, 16, 16]} />
-        <primitive object={anatomicalMaterial} />
-      </mesh>
+      {/* ===== HEAD (Hyper-Real Features) ===== */}
+      <group position={[0, 1.4, 0]}>
+        {/* Face */}
+        <mesh>
+          <sphereGeometry args={[0.16, 16, 16]} />
+          <primitive object={anatomicalMaterial} />
+        </mesh>
+        {/* Nose Bridge */}
+        <mesh position={[0, 0, 0.16]}>
+          <capsuleGeometry args={[0.02, 0.05, 4, 8]} />
+          <primitive object={anatomicalMaterial} />
+        </mesh>
+        {/* Eyes (Subtle Depth) */}
+        <mesh position={[0.06, 0.04, 0.14]}>
+          <sphereGeometry args={[0.015, 8, 8]} />
+          <meshStandardMaterial color="#222" roughness={0.1} />
+        </mesh>
+        <mesh position={[-0.06, 0.04, 0.14]}>
+          <sphereGeometry args={[0.015, 8, 8]} />
+          <meshStandardMaterial color="#222" roughness={0.1} />
+        </mesh>
+        {/* Hair (Short Athletic Cut) */}
+        <mesh position={[0, 0.08, -0.02]} rotation={[-0.3, 0, 0]}>
+          <capsuleGeometry args={[0.17, 0.05, 8, 12]} />
+          <meshStandardMaterial color="#1a120b" roughness={0.9} />
+        </mesh>
+      </group>
+
+      {/* Neck */}
       <mesh position={[0, 1.15, 0]}>
         <cylinderGeometry args={[0.07, 0.1, 0.2, 12]} />
         <primitive object={anatomicalMaterial} />
       </mesh>
 
-      {/* ===== ARMS & SHOULDERS ===== */}
-      <group position={[0.42, 0.9, 0]}>
+      {/* ===== ARMS & BROAD SHOULDERS ===== */}
+      <group position={[0.42, 0.92, 0]}>
+        {/* Deltoids */}
         <mesh>
-          <sphereGeometry args={[0.16, 16, 16]} />
+          <sphereGeometry args={[0.17, 16, 16]} />
           <primitive object={getMaterial('shoulders')} />
         </mesh>
       </group>
-      <group position={[-0.42, 0.9, 0]}>
+      <group position={[-0.42, 0.92, 0]}>
         <mesh>
-          <sphereGeometry args={[0.16, 16, 16]} />
+          <sphereGeometry args={[0.17, 16, 16]} />
           <primitive object={getMaterial('shoulders')} />
         </mesh>
       </group>
 
-      <group ref={leftArmRef} position={[0.42, 0.9, 0]} rotation={[0, 0, 0.15]}>
-        <mesh position={[0.08, -0.2, 0]}>
-          <capsuleGeometry args={[0.12, 0.35, 12, 12]} />
+      <group ref={leftArmRef} position={[0.42, 0.92, 0]} rotation={[0, 0, 0.15]}>
+        <mesh position={[0.08, -0.22, 0]}>
+          <capsuleGeometry args={[0.13, 0.38, 12, 12]} />
           <primitive object={getMaterial('arms')} />
         </mesh>
-        <mesh ref={leftForearmRef} position={[0.08, -0.58, 0]}>
-          <capsuleGeometry args={[0.08, 0.35, 10, 10]} />
+        <mesh ref={leftForearmRef} position={[0.08, -0.62, 0]}>
+          <capsuleGeometry args={[0.09, 0.38, 10, 10]} />
           <primitive object={getMaterial('arms')} />
         </mesh>
       </group>
 
-      <group ref={rightArmRef} position={[-0.42, 0.9, 0]} rotation={[0, 0, -0.15]}>
-        <mesh position={[-0.08, -0.2, 0]}>
-          <capsuleGeometry args={[0.12, 0.35, 12, 12]} />
+      <group ref={rightArmRef} position={[-0.42, 0.92, 0]} rotation={[0, 0, -0.15]}>
+        <mesh position={[-0.08, -0.22, 0]}>
+          <capsuleGeometry args={[0.13, 0.38, 12, 12]} />
           <primitive object={getMaterial('arms')} />
         </mesh>
-        <mesh ref={rightForearmRef} position={[-0.08, -0.58, 0]}>
-          <capsuleGeometry args={[0.08, 0.35, 10, 10]} />
+        <mesh ref={rightForearmRef} position={[-0.08, -0.62, 0]}>
+          <capsuleGeometry args={[0.09, 0.38, 10, 10]} />
           <primitive object={getMaterial('arms')} />
         </mesh>
       </group>
@@ -248,7 +305,7 @@ export function AnimatedTrainer({ exercise, isAnimating }: AnimatedTrainerProps)
         {/* Upper Leg with Shorts */}
         <group position={[0, -0.25, 0]}>
           <mesh>
-            <capsuleGeometry args={[0.18, 0.3, 12, 12]} />
+            <capsuleGeometry args={[0.19, 0.32, 12, 12]} />
             <primitive object={clothingMaterial} />
           </mesh>
         </group>

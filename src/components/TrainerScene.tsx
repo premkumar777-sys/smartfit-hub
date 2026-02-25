@@ -21,25 +21,31 @@ export function TrainerScene({ exercise, isAnimating }: TrainerSceneProps) {
         gl={{ antialias: true, alpha: true }}
       >
         <Suspense fallback={null}>
-          {/* Lighting - Studio Setup */}
-          <ambientLight intensity={0.4} />
+          {/* Lighting - Pro Studio Setup */}
+          <ambientLight intensity={0.2} />
+
+          {/* Key Light (Dramatic muscle shadows) */}
           <spotLight
-            position={[10, 10, 10]}
+            position={[5, 10, 5]}
             angle={0.15}
             penumbra={1}
-            intensity={2}
+            intensity={3}
             castShadow
             shadow-mapSize={[2048, 2048]}
           />
+
+          {/* Fill Light (Soften shadows) */}
           <directionalLight
-            position={[-5, 5, 5]}
-            intensity={1}
+            position={[-5, 2, 5]}
+            intensity={0.4}
             color="#ffffff"
           />
-          <pointLight position={[0, 2, -5]} intensity={0.5} color="#4CC9F0" />
 
-          {/* Accent light to pop the green highlights */}
-          <pointLight position={[0, 0, 5]} intensity={0.2} color="#00FF9C" />
+          {/* Rim Light (Separation from background) */}
+          <pointLight position={[0, 4, -4]} intensity={1.5} color="#4CC9F0" />
+
+          {/* Muscle Highlight Pop */}
+          <pointLight position={[2, 0, 2]} intensity={0.3} color="#00FF9C" />
 
           {/* The animated trainer */}
           <AnimatedTrainer exercise={exercise} isAnimating={isAnimating} />
