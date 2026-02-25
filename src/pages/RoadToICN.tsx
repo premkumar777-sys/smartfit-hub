@@ -521,23 +521,15 @@ export default function RoadToICN() {
 
                     {/* Right Column: Readiness Score & Checklist */}
                     <div className="lg:col-span-1 space-y-6">
-                        <div className="bg-white/5 border border-white/10 backdrop-blur-xl rounded-3xl p-6 shadow-xl">
+                        <div className="bg-white/5 border border-white/10 backdrop-blur-xl rounded-3xl p-4 shadow-xl">
                             <h3 className="text-xl font-black uppercase tracking-tight mb-1">Athlete Status</h3>
-                            <div className="text-[10px] font-black uppercase tracking-[0.2em] text-gold mb-8">iCompete Natural</div>
+                            <div className="text-[10px] font-black uppercase tracking-[0.2em] text-gold mb-6">iCompete Natural</div>
 
-                            <div className="mb-8">
+                            <div>
                                 <div className="text-[10px] text-white/40 font-black uppercase tracking-widest mb-1">ICN Readiness Score</div>
                                 <div className="text-5xl font-black text-white flex items-baseline gap-1">
                                     <CountUp value={parseFloat(readinessScore)} duration={1.5} decimals={1} />
                                     <span className="text-sm text-white/20 font-bold">/100</span>
-                                </div>
-                            </div>
-
-                            {/* Formula Display */}
-                            <div className="pt-6 border-t border-white/5">
-                                <div className="text-[10px] text-white/20 font-black uppercase tracking-widest mb-3">Formula Engine:</div>
-                                <div className="font-mono text-[11px] text-white/50 leading-relaxed">
-                                    Readiness = (<span className="text-gold/50">S</span> 0.3) + (<span className="text-gold/50">C</span> 0.3) + (<span className="text-gold/50">M</span> 0.2) + (<span className="text-gold/50">P</span> 0.2)
                                 </div>
                             </div>
                         </div>
