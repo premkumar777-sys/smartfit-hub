@@ -277,16 +277,6 @@ const Home = () => {
                 link: "/home-workouts",
               },
               {
-                icon: QrCode,
-                title: "QR Smart Attendance",
-                description: "Contactless entry system with automated check-in and attendance tracking",
-                badge: "COMING SOON",
-                onClick: () => toast.info("Coming Soon! 🚀 We're currently building the Smart Attendance system. Stay tuned!", {
-                  description: "This feature will be available in the next major update.",
-                  duration: 5000,
-                })
-              },
-              {
                 icon: Trophy,
                 title: "Gamified Training System",
                 description: "Earn rewards, unlock achievements, and compete with friends",
