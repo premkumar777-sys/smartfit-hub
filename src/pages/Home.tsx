@@ -294,14 +294,16 @@ const Home = () => {
                 icon: Wrench,
                 title: "Trainer Performance Tools",
                 description: "Advanced tools for trainers to optimize client results and track progress",
-                link: "/trainer-tools"
+                link: "/trainer-tools",
+                isPremium: true
               },
 
               {
                 icon: LineChart,
                 title: "AI Analytics Dashboard",
                 description: "Deep learning insights into your workout performance and predictive trend analysis",
-                link: "/gym-analytics/ai"
+                link: "/gym-analytics/ai",
+                isPremium: true
               },
               {
                 icon: Laptop,

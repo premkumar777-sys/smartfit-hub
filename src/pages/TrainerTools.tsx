@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
     Users, Dumbbell, TrendingUp, Calendar, BarChart3,
     MessageSquare, ClipboardCheck, DollarSign, Plus,
-    ChevronRight, Bell, Search, Filter, Loader2, Lock
+    ChevronRight, Bell, Search, Filter, Loader2, Lock, ArrowLeft
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -450,6 +450,17 @@ export default function TrainerTools() {
     return (
         <div className="min-h-screen bg-background pt-20 pb-12">
             <Container>
+                {/* Back Button */}
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    className="mb-6 text-gray-400 hover:text-white -ml-2"
+                    onClick={() => navigate("/")}
+                >
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Return to Hub
+                </Button>
+
                 {/* Header */}
                 <div className="mb-8">
                     <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
