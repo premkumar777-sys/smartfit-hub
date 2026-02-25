@@ -57,6 +57,7 @@ export default function RoadToICN() {
     const navigate = useNavigate();
     const [currentPhase, setCurrentPhase] = useState<ICNPhase>('reality');
     const [unlockedPhases, setUnlockedPhases] = useState<ICNPhase[]>(['reality']);
+    const [showPhaseInfo, setShowPhaseInfo] = useState(false);
     const [checklist, setChecklist] = useState<Record<string, boolean>>({
         tan: false,
         trunks: false,
@@ -94,6 +95,7 @@ export default function RoadToICN() {
             case 'reality':
                 return {
                     advice: "You're at the starting line. Focus on your structural baseline. Don't worry about mass yet – objective symmetry is your first hurdle.",
+                    detailedInfo: "The ICN journey begins not with a workout, but with an objective mirror. In the Reality Check phase, we strip away the ego and analyze your structural baseline. ICN judges are meticulous about skeletal alignment—even before you add a single gram of stage-ready muscle. This stage requires bi-weekly structural assessments to identify lateral shifts in the pelvic girdle or centerline deviations in the torso. You aren't just training; you're building the 'X-Frame' foundation that will dictate your overall symmetry for the next 12 months.",
                     focus: "Foundation & Symmetry",
                     target: "Baseline Assessment",
                     protocol: [
@@ -111,6 +113,7 @@ export default function RoadToICN() {
             case 'build':
                 return {
                     advice: "Construction time. Emphasize the X-Frame: wide lats, sweeping quads, and a tight midsection. Maintain natural standards.",
+                    detailedInfo: "Construction begins now. The 'Build' phase is a controlled high-volume hypertrophy protocol aimed at expanding your structural silhouette. We emphasize the 'Sweep' and 'Width'—wide lats, sweeping quads, and a high, tight midsection. Unlike traditional bodybuilding, ICN standards demand muscular balance and aesthetic flow even during a caloric surplus. Every set is an opportunity to specialize on weak points revealed in Phase 01. Your goal is a gradual, sustainable 0.5% weight gain per week to ensure quality over quantity.",
                     focus: "Hypertrophy & Width",
                     target: "0.5% weight gain / week",
                     protocol: [
@@ -128,6 +131,7 @@ export default function RoadToICN() {
             case 'lean':
                 return {
                     advice: "The cut begins. We need to see muscular separation. Move from 'Cloudy' to 'Stage Lean.' Discipline is your only teammate now.",
+                    detailedInfo: "This is where the 'Stage-Ready' look is forged. We move from mass to density and separation. The 'Deep Lean' phase is a clinical execution of body fat reduction, targeting the 8-12% range. Discipline is your only teammate here. We transition from simple movements to density-focused training and isometric posing holds. Judges look for 'Deep Cuts' and striations that only appear when conditioning reaches elite standards. Every calorie is tracked, and every step (NEAT) is a deliberate move towards the podium.",
                     focus: "Density & Separation",
                     target: "8-12% Body Fat",
                     protocol: [
@@ -145,6 +149,7 @@ export default function RoadToICN() {
             case 'posing':
                 return {
                     advice: "Showmanship is half the battle. Every muscle must be presented with intent. Perfection in transitions is what wins trophies.",
+                    detailedInfo: "Showmanship is 50% of the victory. A world-class physique can lose to an inferior one if the presentation is flawed. In the 'Art of Posing' phase, we refine your stage walk, transitions, and mandatory posing holds. You will practice 'holding' elite poses for up to 60 seconds with 100% intensity and zero shaking. This phase includes the 'Peak Week' protocol where electrolyte and fluid balance are manipulated to ensure you hit the stage in a 'Dry' and 'Vascular' state. Every transition must be seamless, fluid, and intent-driven.",
                     focus: "Presentation & Flow",
                     target: "Stage Ready",
                     protocol: [
@@ -320,6 +325,7 @@ export default function RoadToICN() {
                         currentPhase={currentPhase}
                         unlockedPhases={unlockedPhases}
                         onPhaseChange={setCurrentPhase}
+                        onReadMore={() => setShowPhaseInfo(true)}
                     />
                 </div>
 
@@ -606,27 +612,6 @@ export default function RoadToICN() {
                             </div>
                         </div>
 
-                        {/* Phase Advancement Guide */}
-                        <div className="bg-gold/5 border border-gold/20 rounded-3xl p-6 mb-6">
-                            <h3 className="text-sm font-black uppercase tracking-widest text-gold mb-4 flex items-center gap-2">
-                                <Info className="w-4 h-4" />
-                                How to Level Up
-                            </h3>
-                            <div className="space-y-4">
-                                <div className="flex gap-3">
-                                    <div className="w-5 h-5 rounded-full bg-gold/10 border border-gold/30 flex items-center justify-center text-[10px] font-black text-gold shrink-0">1</div>
-                                    <p className="text-[11px] text-white/60 leading-relaxed"><strong className="text-white">Complete Protocols:</strong> Check all tasks in the active Readiness Checklist.</p>
-                                </div>
-                                <div className="flex gap-3">
-                                    <div className="w-5 h-5 rounded-full bg-gold/10 border border-gold/30 flex items-center justify-center text-[10px] font-black text-gold shrink-0">2</div>
-                                    <p className="text-[11px] text-white/60 leading-relaxed"><strong className="text-white">Judicial Review:</strong> Click the "Review Prep Progress" button below.</p>
-                                </div>
-                                <div className="flex gap-3">
-                                    <div className="w-5 h-5 rounded-full bg-gold/10 border border-gold/30 flex items-center justify-center text-[10px] font-black text-gold shrink-0">3</div>
-                                    <p className="text-[11px] text-white/60 leading-relaxed"><strong className="text-white">Unlock Next Stage:</strong> Successfully pass the review to access the next evolution phase.</p>
-                                </div>
-                            </div>
-                        </div>
 
                         {/* Prep Checklist */}
                         <div className="bg-white/5 border border-white/10 backdrop-blur-xl rounded-3xl p-6">
@@ -663,6 +648,86 @@ export default function RoadToICN() {
                     </div>
                 </div>
             </Container>
+
+            {/* Phase Intel Modal */}
+            <AnimatePresence>
+                {showPhaseInfo && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8"
+                    >
+                        {/* Backdrop */}
+                        <div
+                            className="absolute inset-0 bg-[#050505]/80 backdrop-blur-md"
+                            onClick={() => setShowPhaseInfo(false)}
+                        />
+
+                        {/* Modal Content */}
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            className="relative w-full max-w-2xl bg-[#0a0a0a] border border-gold/20 rounded-[2rem] overflow-hidden shadow-[0_0_50px_rgba(212,175,55,0.1)]"
+                        >
+                            {/* Header Image/Background */}
+                            <div className="h-32 bg-gradient-to-br from-gold/20 to-transparent relative">
+                                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20" />
+                                <div className="absolute inset-0 flex items-center justify-center px-8">
+                                    <div className="flex flex-col items-center">
+                                        <div className="px-3 py-1 rounded bg-gold text-black text-[10px] font-black uppercase tracking-widest mb-2">
+                                            Phase Intel Report
+                                        </div>
+                                        <h2 className="text-3xl font-black uppercase tracking-tighter text-white">
+                                            {currentPhase === 'reality' ? 'Phase 01: Reality Check' :
+                                                currentPhase === 'build' ? 'Phase 02: Natural Build' :
+                                                    currentPhase === 'lean' ? 'Phase 03: Deep Lean' :
+                                                        'Phase 04: Art of Posing'}
+                                        </h2>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="p-8 md:p-12">
+                                <div className="grid md:grid-cols-2 gap-8 mb-8">
+                                    <div>
+                                        <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-gold mb-2">Strategic Focus</h4>
+                                        <p className="text-lg font-bold text-white leading-tight">{phaseDetails?.focus}</p>
+                                    </div>
+                                    <div>
+                                        <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-gold mb-2">Primary Target</h4>
+                                        <p className="text-lg font-bold text-white leading-tight">{phaseDetails?.target}</p>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-6">
+                                    <div>
+                                        <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-gold mb-3">Athletic Briefing</h4>
+                                        <p className="text-sm text-white/60 leading-relaxed italic">
+                                            "{phaseDetails?.detailedInfo}"
+                                        </p>
+                                    </div>
+
+                                    <div>
+                                        <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-gold mb-3 text-center">Judicial Standards</h4>
+                                        <div className="p-4 rounded-2xl bg-gold/5 border border-gold/10 text-xs text-gold/80 font-medium text-center italic">
+                                            {phaseDetails?.standard}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button
+                                    onClick={() => setShowPhaseInfo(false)}
+                                    className="w-full mt-10 h-14 rounded-2xl bg-gold text-black font-black uppercase tracking-widest text-xs hover:bg-white transition-colors duration-300"
+                                >
+                                    Dismiss Briefing
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div >
     );
 }

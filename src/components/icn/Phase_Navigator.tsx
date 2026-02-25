@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Lock } from 'lucide-react';
+import { Lock, Sparkles } from 'lucide-react';
 
 export type ICNPhase = 'reality' | 'build' | 'lean' | 'posing';
 
@@ -7,6 +7,7 @@ interface Phase_NavigatorProps {
     currentPhase: ICNPhase;
     unlockedPhases: ICNPhase[];
     onPhaseChange: (phase: ICNPhase) => void;
+    onReadMore?: (phase: ICNPhase) => void;
 }
 
 const PHASES: { id: ICNPhase; label: string; sub: string }[] = [
@@ -16,7 +17,7 @@ const PHASES: { id: ICNPhase; label: string; sub: string }[] = [
     { id: 'posing', label: 'Art of Posing', sub: 'Phase 04' },
 ];
 
-export function Phase_Navigator({ currentPhase, unlockedPhases, onPhaseChange }: Phase_NavigatorProps) {
+export function Phase_Navigator({ currentPhase, unlockedPhases, onPhaseChange, onReadMore }: Phase_NavigatorProps) {
     return (
         <div className="relative w-full py-8">
             <div className="absolute top-1/2 left-0 w-full h-0.5 bg-white/5 -translate-y-1/2" />
@@ -58,6 +59,18 @@ export function Phase_Navigator({ currentPhase, unlockedPhases, onPhaseChange }:
                                 <p className={`text-xs font-bold mt-1 whitespace-nowrap ${isActive ? 'text-white' : 'text-white/40'}`}>
                                     {phase.label}
                                 </p>
+                                {isActive && onReadMore && (
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            onReadMore(phase.id);
+                                        }}
+                                        className="mt-2 text-[9px] font-black uppercase tracking-[0.2em] text-gold hover:text-white transition-colors flex items-center gap-1 mx-auto"
+                                    >
+                                        <Sparkles className="w-2.5 h-2.5" />
+                                        Read Intel
+                                    </button>
+                                )}
                             </div>
                         </div>
                     );
