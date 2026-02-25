@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { Container } from "@/components/Container";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Check, Calendar, Video, Star, Users, Trophy } from "lucide-react";
+import { Check, Calendar, Video, Star, Users, Trophy, ArrowLeft } from "lucide-react";
 import { motion } from "framer-motion";
 import { openPaymentLink, COACHING_PLAN, WHATSAPP_NUMBER } from "@/config/payments";
 import { AddClientDialog } from "@/components/trainer/AddClientDialog";
@@ -57,6 +57,7 @@ const AnimatedCounter = ({
 
 export default function OnlineCoaching() {
     const [searchParams] = useSearchParams();
+    const navigate = useNavigate();
     const [isFormOpen, setIsFormOpen] = useState(false);
 
     const { isAuthenticated } = useAuth();
@@ -159,6 +160,17 @@ export default function OnlineCoaching() {
     return (
         <div className="min-h-screen pt-20 pb-12 bg-background">
             <Container>
+                {/* Back Button */}
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    className="mb-6 text-gray-400 hover:text-white -ml-2"
+                    onClick={() => navigate(-1)}
+                >
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Return to Hub
+                </Button>
+
                 {/* Hero / Profile Section */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-20">
                     <motion.div

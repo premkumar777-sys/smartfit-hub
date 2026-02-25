@@ -3,8 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
-import { Lock } from 'lucide-react';
-import { toast } from 'sonner';
+
 
 interface FeatureCardProps {
   icon: React.ElementType;
@@ -387,35 +386,20 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index, badge
     </motion.div>
   );
 
-  // Lock overlay for business-only features
-  const lockedCard = (
-    <div
-      className="block relative"
-      onClick={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        toast.error("RESTRICTED ACCESS", {
-          description: "This feature is available for Business & Trainer accounts only. Contact us to upgrade.",
-          className: "bg-[#050505] border border-blue-500/50 text-white font-sans",
-        });
-      }}
-      style={{ cursor: 'not-allowed' }}
-    >
-      {/* Lock overlay */}
-      <div className="absolute inset-0 z-30 rounded-3xl bg-black/60 backdrop-blur-[2px] flex flex-col items-center justify-center gap-2 pointer-events-none">
-        <div className="w-12 h-12 rounded-full bg-blue-500/20 border border-blue-500/50 flex items-center justify-center">
-          <Lock className="w-5 h-5 text-blue-400" />
-        </div>
-        <span className="text-xs font-bold uppercase tracking-widest text-blue-400">Business Only</span>
-      </div>
-      <div style={{ opacity: 0.4, pointerEvents: 'none' }}>
+  if (isBusinessOnly) {
+    return (
+      <div
+        className="block"
+        style={{ cursor: 'pointer' }}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          window.alert("🔒 Business & Trainer Feature\n\nThis feature is exclusively available for Business and Trainer accounts.\n\nContact us to upgrade your account and unlock access.");
+        }}
+      >
         {cardContent}
       </div>
-    </div>
-  );
-
-  if (isBusinessOnly) {
-    return lockedCard;
+    );
   }
 
   if (onClick) {
