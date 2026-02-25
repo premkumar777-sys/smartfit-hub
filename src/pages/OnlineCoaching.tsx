@@ -4,7 +4,7 @@ import { Container } from "@/components/Container";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Check, Calendar, Video, Star, Users, Trophy, ArrowLeft } from "lucide-react";
+import { Check, Calendar, Video, Star, Users, Trophy, ArrowLeft, ExternalLink } from "lucide-react";
 import { motion } from "framer-motion";
 import { openPaymentLink, COACHING_PLAN, WHATSAPP_NUMBER } from "@/config/payments";
 import { AddClientDialog } from "@/components/trainer/AddClientDialog";
@@ -59,6 +59,9 @@ export default function OnlineCoaching() {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const [isFormOpen, setIsFormOpen] = useState(false);
+    const [showMeetLink, setShowMeetLink] = useState(false);
+
+    const MEET_LINK = "https://meet.google.com/nhp-dxpr-qdz";
 
     const { isAuthenticated } = useAuth();
     const { hasPremiumAccess } = useSubscription();
@@ -150,6 +153,7 @@ export default function OnlineCoaching() {
             // 3. Open WhatsApp in new tab
             window.open(waUrl, '_blank');
             setIsFormOpen(false);
+            setShowMeetLink(true); // Show Meet link after submission
         } catch (error) {
             console.error("Error submitting application:", error);
             toast.error("Process interrupted. Please try again.");
@@ -447,6 +451,39 @@ export default function OnlineCoaching() {
                         </CardContent>
                     </Card>
                 </div>
+
+                {/* Google Meet Link - shown after form submission */}
+                {showMeetLink && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5 }}
+                        className="max-w-3xl mx-auto mt-10"
+                    >
+                        <Card className="bg-gradient-to-br from-blue-950/80 to-black border-blue-500/40 relative overflow-hidden">
+                            <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent" />
+                            <CardContent className="p-8 text-center space-y-4">
+                                <div className="w-16 h-16 rounded-full bg-blue-500/20 border border-blue-500/40 flex items-center justify-center mx-auto">
+                                    <Video className="w-8 h-8 text-blue-400" />
+                                </div>
+                                <h3 className="text-2xl font-bold text-white">🎉 You're In! Join Your Session</h3>
+                                <p className="text-gray-400">Your coach has been notified. Click below to join your Google Meet session at the scheduled time.</p>
+                                <div className="bg-blue-900/30 border border-blue-500/30 rounded-xl p-4 text-blue-300 font-mono text-sm break-all">
+                                    {MEET_LINK}
+                                </div>
+                                <Button
+                                    onClick={() => window.open(MEET_LINK, '_blank')}
+                                    className="bg-blue-500 hover:bg-blue-400 text-white h-12 px-8 text-lg font-bold w-full sm:w-auto"
+                                >
+                                    <Video className="w-5 h-5 mr-2" />
+                                    Join Google Meet
+                                    <ExternalLink className="w-4 h-4 ml-2" />
+                                </Button>
+                                <p className="text-xs text-gray-500">Save this link — you'll use it for all your coaching sessions.</p>
+                            </CardContent>
+                        </Card>
+                    </motion.div>
+                )}
 
                 <AddClientDialog
                     open={isFormOpen}
