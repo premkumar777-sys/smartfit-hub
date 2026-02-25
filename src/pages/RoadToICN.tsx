@@ -19,8 +19,10 @@ import { X_Frame_Overlay } from '@/components/icn/X_Frame_Overlay';
 import { Phase_Navigator, ICNPhase } from '@/components/icn/Phase_Navigator';
 import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
+import icnShield from '@/assets/icn-shield.jpg';
 
 const CountUp = ({ value, duration = 2, decimals = 0 }: { value: number; duration?: number; decimals?: number }) => {
+    // ... existing CountUp code ...
     const [displayValue, setDisplayValue] = useState(0);
 
     useMemo(() => {
@@ -187,11 +189,17 @@ export default function RoadToICN() {
     };
 
     return (
-        <div className="min-h-screen bg-[#050505] text-white pt-24 pb-12 font-sans overflow-x-hidden">
-            {/* Background Decorative Elements */}
-            <div className="fixed top-0 left-0 w-full h-full pointer-events-none opacity-20 bg-[radial-gradient(circle_at_50%_50%,#d4af37_0%,transparent_50%)]" />
+        <div className="min-h-screen bg-[#050505] text-white pt-24 pb-12 font-sans overflow-x-hidden relative">
+            {/* Background Image */}
+            <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+                <div
+                    className="absolute inset-0 bg-cover bg-center opacity-[0.15] scale-110 blur-[2px]"
+                    style={{ backgroundImage: `url(${icnShield})` }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-b from-[#050505] via-transparent to-[#050505]" />
+            </div>
 
-            <Container>
+            <Container className="relative z-10">
                 {/* Header Section */}
                 <div className="relative mb-12">
                     <motion.div
