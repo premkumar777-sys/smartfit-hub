@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Trophy,
@@ -10,7 +11,8 @@ import {
     ChevronRight,
     Sparkles,
     ShieldCheck,
-    CheckCircle2
+    CheckCircle2,
+    ArrowLeft
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Container } from '@/components/Container';
@@ -51,6 +53,7 @@ const CountUp = ({ value, duration = 2, decimals = 0 }: { value: number; duratio
 };
 
 export default function RoadToICN() {
+    const navigate = useNavigate();
     const [currentPhase, setCurrentPhase] = useState<ICNPhase>('reality');
     const [scores, setScores] = useState({
         Symmetry: 65,
@@ -190,16 +193,33 @@ export default function RoadToICN() {
 
     return (
         <div className="min-h-screen bg-[#050505] text-white pt-24 pb-12 font-sans overflow-x-hidden relative">
-            {/* Background Image */}
-            <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+            {/* Background Image - Refined Placement */}
+            <div className="fixed top-0 right-0 w-[60%] h-full pointer-events-none z-0 overflow-hidden">
                 <div
-                    className="absolute inset-0 bg-cover bg-center opacity-[0.15] scale-110 blur-[2px]"
+                    className="absolute inset-0 bg-contain bg-no-repeat bg-center opacity-[0.25] scale-90 translate-x-1/4"
                     style={{ backgroundImage: `url(${icnShield})` }}
                 />
+                {/* Fade edges to blend */}
+                <div className="absolute inset-0 bg-gradient-to-l from-transparent via-[#050505]/40 to-[#050505]" />
                 <div className="absolute inset-0 bg-gradient-to-b from-[#050505] via-transparent to-[#050505]" />
             </div>
 
             <Container className="relative z-10">
+                {/* Back Button */}
+                <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="mb-8"
+                >
+                    <button
+                        onClick={() => navigate(-1)}
+                        className="group flex items-center gap-2 px-4 py-2 rounded-full border border-gold/30 bg-gold/5 hover:bg-gold/10 transition-all duration-300"
+                    >
+                        <ArrowLeft className="w-4 h-4 text-gold group-hover:-translate-x-1 transition-transform" />
+                        <span className="text-gold font-black uppercase tracking-[0.2em] text-[10px]">Return to Hub</span>
+                    </button>
+                </motion.div>
+
                 {/* Header Section */}
                 <div className="relative mb-12">
                     <motion.div
