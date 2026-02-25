@@ -526,78 +526,7 @@ export default function CameraOffWorkout() {
               </motion.div>
             ))}
           </div>
-
-          {/* Add more videos hint */}
-          <div className="mt-8 text-center">
-            <p className="text-muted-foreground text-sm">
-              💡 <strong>Tip:</strong> You can add your own workout videos by placing them in the <code className="bg-muted px-2 py-1 rounded text-xs">/public/videos</code> folder
-            </p>
-          </div>
         </div>
-
-        {/* Video Player Modal */}
-        <AnimatePresence>
-          {activeVideo && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4"
-              onClick={() => setActiveVideo(null)}
-            >
-              <motion.div
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.9, opacity: 0 }}
-                transition={{ type: "spring", damping: 20 }}
-                className="relative w-full max-w-4xl bg-card rounded-2xl overflow-hidden border border-border shadow-2xl"
-                onClick={(e) => e.stopPropagation()}
-              >
-                {/* Modal Header */}
-                <div className="flex items-center justify-between p-4 border-b border-border">
-                  <div>
-                    <h3 className="text-xl font-bold">{activeVideo.title}</h3>
-                    <p className="text-sm text-muted-foreground flex items-center gap-2">
-                      <span className="px-2 py-0.5 rounded bg-primary/20 text-primary text-xs font-medium">
-                        {activeVideo.category}
-                      </span>
-                      <span>{activeVideo.duration}</span>
-                    </p>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setActiveVideo(null)}
-                    className="hover:bg-destructive/20 hover:text-destructive"
-                  >
-                    ✕ Close
-                  </Button>
-                </div>
-
-                {/* Video Player */}
-                <div className="relative aspect-video bg-black">
-                  <video
-                    src={activeVideo.videoUrl}
-                    controls
-                    autoPlay
-                    className="w-full h-full"
-                    poster={activeVideo.thumbnail}
-                  >
-                    Your browser does not support the video tag.
-                  </video>
-                </div>
-
-                {/* Modal Footer */}
-                <div className="p-4 bg-muted/30 border-t border-border">
-                  <p className="text-sm text-muted-foreground">
-                    <strong>Pro tip:</strong> Follow along with the video and practice proper form.
-                    Use the 3D trainer above to see the exercise from different angles.
-                  </p>
-                </div>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </Container>
 
       {/* Video Player Modal */}
