@@ -295,7 +295,7 @@ const Home = () => {
                 title: "Trainer Performance Tools",
                 description: "Advanced tools for trainers to optimize client results and track progress",
                 link: "/trainer-tools",
-                isPremium: true
+                isBusinessOnly: true
               },
 
               {
@@ -303,7 +303,7 @@ const Home = () => {
                 title: "AI Analytics Dashboard",
                 description: "Deep learning insights into your workout performance and predictive trend analysis",
                 link: "/gym-analytics/ai",
-                isPremium: true
+                isBusinessOnly: true
               },
               {
                 icon: Laptop,
@@ -323,6 +323,7 @@ const Home = () => {
                 index={index}
                 badge={(feature as any).badge}
                 isPremium={(feature as any).isPremium}
+                isBusinessOnly={(feature as any).isBusinessOnly}
                 onClick={(feature as any).onClick}
                 variant={(feature as any).variant}
               />
