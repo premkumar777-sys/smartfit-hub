@@ -319,12 +319,12 @@ export function Header() {
                   </Button>
                 ) : (
                   !isLoading && (
-                    <Button
-                      onClick={() => navigate("/auth")}
-                      className="bg-primary text-black font-black uppercase tracking-tighter hover:bg-primary/90 shadow-[0_0_15px_rgba(var(--primary),0.3)]"
+                    <NavItem
+                      href="/auth"
+                      className="text-primary hover:text-primary/80 font-black uppercase tracking-tighter"
                     >
                       Login
-                    </Button>
+                    </NavItem>
                   )
                 )}
 
@@ -381,12 +381,12 @@ export function Header() {
                       </Button>
                     ) : (
                       !isLoading && (
-                        <Button
-                          onClick={() => navigate("/auth")}
-                          className="w-full bg-primary text-black font-black uppercase tracking-tighter"
+                        <NavItem
+                          href="/auth"
+                          className="w-full text-primary font-black uppercase tracking-tighter text-center"
                         >
                           Login
-                        </Button>
+                        </NavItem>
                       )
                     )}
                   </div>
