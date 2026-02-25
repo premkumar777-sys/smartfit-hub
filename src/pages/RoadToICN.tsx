@@ -606,6 +606,28 @@ export default function RoadToICN() {
                             </div>
                         </div>
 
+                        {/* Phase Advancement Guide */}
+                        <div className="bg-gold/5 border border-gold/20 rounded-3xl p-6 mb-6">
+                            <h3 className="text-sm font-black uppercase tracking-widest text-gold mb-4 flex items-center gap-2">
+                                <Info className="w-4 h-4" />
+                                How to Level Up
+                            </h3>
+                            <div className="space-y-4">
+                                <div className="flex gap-3">
+                                    <div className="w-5 h-5 rounded-full bg-gold/10 border border-gold/30 flex items-center justify-center text-[10px] font-black text-gold shrink-0">1</div>
+                                    <p className="text-[11px] text-white/60 leading-relaxed"><strong className="text-white">Complete Protocols:</strong> Check all tasks in the active Readiness Checklist.</p>
+                                </div>
+                                <div className="flex gap-3">
+                                    <div className="w-5 h-5 rounded-full bg-gold/10 border border-gold/30 flex items-center justify-center text-[10px] font-black text-gold shrink-0">2</div>
+                                    <p className="text-[11px] text-white/60 leading-relaxed"><strong className="text-white">Judicial Review:</strong> Click the "Review Prep Progress" button below.</p>
+                                </div>
+                                <div className="flex gap-3">
+                                    <div className="w-5 h-5 rounded-full bg-gold/10 border border-gold/30 flex items-center justify-center text-[10px] font-black text-gold shrink-0">3</div>
+                                    <p className="text-[11px] text-white/60 leading-relaxed"><strong className="text-white">Unlock Next Stage:</strong> Successfully pass the review to access the next evolution phase.</p>
+                                </div>
+                            </div>
+                        </div>
+
                         {/* Prep Checklist */}
                         <div className="bg-white/5 border border-white/10 backdrop-blur-xl rounded-3xl p-6">
                             <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
