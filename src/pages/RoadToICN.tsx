@@ -20,6 +20,34 @@ import { Phase_Navigator, ICNPhase } from '@/components/icn/Phase_Navigator';
 import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
 
+const CountUp = ({ value, duration = 2, decimals = 0 }: { value: number; duration?: number; decimals?: number }) => {
+    const [displayValue, setDisplayValue] = useState(0);
+
+    useMemo(() => {
+        let frame = 0;
+        const totalFrames = Math.max(1, duration * 60);
+        const endValue = value;
+
+        const update = () => {
+            frame++;
+            const progress = frame / totalFrames;
+            const easeOutQuad = progress * (2 - progress);
+            const current = endValue * easeOutQuad;
+            setDisplayValue(Number(current.toFixed(decimals)));
+
+            if (frame < totalFrames) {
+                requestAnimationFrame(update);
+            } else {
+                setDisplayValue(endValue);
+            }
+        };
+
+        requestAnimationFrame(update);
+    }, [value, duration, decimals]);
+
+    return <span>{displayValue.toFixed(decimals)}</span>;
+};
+
 export default function RoadToICN() {
     const [currentPhase, setCurrentPhase] = useState<ICNPhase>('reality');
     const [scores, setScores] = useState({
@@ -204,12 +232,39 @@ export default function RoadToICN() {
                                     <ShieldCheck className="w-5 h-5 text-blue-400" />
                                     Judge's Scorecard
                                 </h3>
-                                <div className="px-3 py-1 bg-gold/20 rounded-full border border-gold/40 text-[10px] font-black text-gold tracking-widest uppercase">
-                                    Live Analysis
+                                <div className={`px-3 py-1 rounded-full border text-[10px] font-black tracking-widest uppercase flex items-center gap-2 transition-colors duration-500 ${isScanning
+                                    ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-500'
+                                    : 'bg-green-500/10 border-green-500/30 text-green-500'}`}>
+                                    <div className={`w-1.5 h-1.5 rounded-full ${isScanning ? 'bg-yellow-500 animate-pulse' : 'bg-green-500'}`} />
+                                    {isScanning ? 'Analyzing' : 'Live Mode'}
                                 </div>
                             </div>
 
-                            <ICN_RadarChart data={scores} />
+                            <div className="relative">
+                                <ICN_RadarChart data={isScanning ? {
+                                    Symmetry: scores.Symmetry + (Math.random() * 5 - 2.5),
+                                    Conditioning: scores.Conditioning + (Math.random() * 5 - 2.5),
+                                    Muscularity: scores.Muscularity + (Math.random() * 5 - 2.5),
+                                    Presence: scores.Presence
+                                } : scores} />
+                                {isScanning && (
+                                    <div className="absolute inset-0 flex items-center justify-center bg-black/20 backdrop-blur-[1px] rounded-2xl">
+                                        <div className="flex flex-col items-center gap-2">
+                                            <div className="flex gap-1">
+                                                {[1, 2, 3].map(i => (
+                                                    <motion.div
+                                                        key={i}
+                                                        animate={{ height: [4, 12, 4] }}
+                                                        transition={{ duration: 0.5, repeat: Infinity, delay: i * 0.1 }}
+                                                        className="w-1 bg-gold rounded-full"
+                                                    />
+                                                ))}
+                                            </div>
+                                            <span className="text-[8px] font-black text-gold uppercase tracking-[0.2em] animate-pulse">Syncing Telemetry</span>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
 
                             <div className="mt-12 space-y-8">
                                 {/* Symmetry Slider */}
@@ -228,7 +283,7 @@ export default function RoadToICN() {
                                                 </motion.span>
                                             )}
                                         </div>
-                                        <span className="text-gold">{scores.Symmetry}%</span>
+                                        <span className="text-gold"><CountUp value={scores.Symmetry} duration={1} />%</span>
                                     </div>
                                     <Slider
                                         value={[scores.Symmetry]}
@@ -255,7 +310,7 @@ export default function RoadToICN() {
                                                 </motion.span>
                                             )}
                                         </div>
-                                        <span className="text-gold">{scores.Conditioning}%</span>
+                                        <span className="text-gold"><CountUp value={scores.Conditioning} duration={1} />%</span>
                                     </div>
                                     <Slider
                                         value={[scores.Conditioning]}
@@ -286,7 +341,7 @@ export default function RoadToICN() {
                                                 </motion.span>
                                             )}
                                         </div>
-                                        <span className="text-gold">{scores.Muscularity}%</span>
+                                        <span className="text-gold"><CountUp value={scores.Muscularity} duration={1} />%</span>
                                     </div>
                                     <Slider
                                         value={[scores.Muscularity]}
@@ -451,9 +506,9 @@ export default function RoadToICN() {
 
                             <div className="mb-10">
                                 <div className="text-[10px] text-blue-200/60 font-black uppercase tracking-widest mb-2 px-1">ICN Readiness Score</div>
-                                <div className="text-8xl font-black text-white leading-none tracking-tighter flex items-end gap-2">
-                                    {readinessScore}
-                                    <span className="text-2xl text-blue-300/60 mb-3 tracking-widest">%</span>
+                                <div className="text-4xl font-black text-white flex items-center gap-1">
+                                    <CountUp value={parseFloat(readinessScore)} duration={1.5} decimals={1} />
+                                    <span className="text-sm text-gold/60">/100</span>
                                 </div>
                             </div>
 
