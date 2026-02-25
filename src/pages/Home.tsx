@@ -230,6 +230,14 @@ const Home = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
               {
+                icon: Laptop,
+                title: "Online Coaching",
+                description: "Get 1-on-1 expert guidance with personalized workout and nutrition roadmap",
+                link: "/online-coaching",
+                badge: "LIVE",
+                isPremium: true
+              },
+              {
                 icon: Trophy,
                 title: "Road to ICN Elite",
                 description: "The interactive journey from 'Common Man' to 'Stage-Ready Competitor' with structural symmetry analysis",
@@ -259,6 +267,13 @@ const Home = () => {
                 isPremium: true
               },
               {
+                icon: Utensils,
+                title: "Nutrition & Macro AI",
+                description: "AI-powered meal planning with precise macro calculations",
+                link: "/nutrition",
+                isPremium: true
+              },
+              {
                 icon: Sparkles,
                 title: "3D Trainer Mode",
                 description: "Follow animated 3D demonstrations with voice coaching – no camera required",
@@ -272,11 +287,10 @@ const Home = () => {
                 link: "/progress",
               },
               {
-                icon: Utensils,
-                title: "Nutrition & Macro AI",
-                description: "AI-powered meal planning with precise macro calculations",
-                link: "/nutrition",
-                isPremium: true
+                icon: Trophy,
+                title: "Gamified Training System",
+                description: "Earn rewards, unlock achievements, and compete with friends",
+                link: "/gamification",
               },
               {
                 icon: Calendar,
@@ -285,20 +299,6 @@ const Home = () => {
                 link: "/home-workouts",
               },
               {
-                icon: Trophy,
-                title: "Gamified Training System",
-                description: "Earn rewards, unlock achievements, and compete with friends",
-                link: "/gamification",
-              },
-              {
-                icon: Wrench,
-                title: "Trainer Performance Tools",
-                description: "Advanced tools for trainers to optimize client results and track progress",
-                link: "/trainer-tools",
-                isBusinessOnly: true
-              },
-
-              {
                 icon: LineChart,
                 title: "AI Analytics Dashboard",
                 description: "Deep learning insights into your workout performance and predictive trend analysis",
@@ -306,12 +306,11 @@ const Home = () => {
                 isBusinessOnly: true
               },
               {
-                icon: Laptop,
-                title: "Online Coaching",
-                description: "Get 1-on-1 expert guidance with personalized workout and nutrition roadmap",
-                link: "/online-coaching",
-                badge: "LIVE",
-                isPremium: true
+                icon: Wrench,
+                title: "Trainer Performance Tools",
+                description: "Advanced tools for trainers to optimize client results and track progress",
+                link: "/trainer-tools",
+                isBusinessOnly: true
               },
             ].map((feature, index) => (
               <FeatureCard
