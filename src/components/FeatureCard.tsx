@@ -386,44 +386,56 @@ export const FeatureCard = ({ icon: Icon, title, description, link, index, badge
     </motion.div>
   );
 
+  const sparkClass = isIcn ? 'spark-card-wrapper-gold' : 'spark-card-wrapper';
+
   if (isBusinessOnly) {
     return (
-      <div
-        className="block"
-        style={{ cursor: 'pointer' }}
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          window.alert("🔒 Business & Trainer Feature\n\nThis feature is exclusively available for Business and Trainer accounts.\n\nContact us to upgrade your account and unlock access.");
-        }}
-      >
-        {cardContent}
+      <div className={sparkClass}>
+        <div
+          className="block rounded-3xl"
+          style={{ cursor: 'pointer' }}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            window.alert("🔒 Business & Trainer Feature\n\nThis feature is exclusively available for Business and Trainer accounts.\n\nContact us to upgrade your account and unlock access.");
+          }}
+        >
+          {cardContent}
+        </div>
       </div>
     );
   }
 
   if (onClick) {
     return (
-      <div
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          onClick();
-        }}
-        className="block"
-      >
-        {cardContent}
+      <div className={sparkClass}>
+        <div
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onClick();
+          }}
+          className="block rounded-3xl"
+        >
+          {cardContent}
+        </div>
       </div>
     );
   }
 
   if (link) {
     return (
-      <Link to={link} className="block">
-        {cardContent}
-      </Link>
+      <div className={sparkClass}>
+        <Link to={link} className="block rounded-3xl">
+          {cardContent}
+        </Link>
+      </div>
     );
   }
 
-  return cardContent;
+  return (
+    <div className={sparkClass}>
+      {cardContent}
+    </div>
+  );
 };
