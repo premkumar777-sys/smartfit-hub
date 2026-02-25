@@ -36,6 +36,7 @@ export default function RoadToICN() {
         feedback: string;
         points: string[];
     } | null>(null);
+    const [aiUpdated, setAiUpdated] = useState<Record<string, boolean>>({});
 
     // Readiness Formula: Score = (S * 0.3) + (C * 0.3) + (M * 0.2) + (P * 0.2)
     const readinessScore = useMemo(() => {
@@ -102,6 +103,7 @@ export default function RoadToICN() {
 
     const handleScoreChange = (metric: keyof typeof scores, value: number[]) => {
         setScores(prev => ({ ...prev, [metric]: value[0] }));
+        setAiUpdated(prev => ({ ...prev, [metric]: false }));
     };
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -121,7 +123,24 @@ export default function RoadToICN() {
         // Simulate scanning delay
         setTimeout(() => {
             setIsScanning(false);
-            const balanceScore = Math.floor(scores.Symmetry * 0.95 + Math.random() * 10);
+            const balanceScore = Math.floor(65 + Math.random() * 25);
+
+            // AI guestimates based on phase and "image analysis"
+            const conditioningScore = currentPhase === 'lean' ? Math.floor(75 + Math.random() * 15) : Math.floor(40 + Math.random() * 30);
+            const muscularityScore = currentPhase === 'build' ? Math.floor(70 + Math.random() * 20) : Math.floor(50 + Math.random() * 25);
+
+            setScores({
+                Symmetry: balanceScore,
+                Conditioning: conditioningScore,
+                Muscularity: muscularityScore,
+                Presence: scores.Presence // Presence remains manual for stagecraft
+            });
+
+            setAiUpdated({
+                Symmetry: true,
+                Conditioning: true,
+                Muscularity: true
+            });
 
             setAnalysisResult({
                 balance: balanceScore,
@@ -196,7 +215,19 @@ export default function RoadToICN() {
                                 {/* Symmetry Slider */}
                                 <div className="space-y-4">
                                     <div className="flex justify-between text-xs font-bold uppercase tracking-widest">
-                                        <span>Structural Symmetry</span>
+                                        <div className="flex items-center gap-2">
+                                            <span>Structural Symmetry</span>
+                                            {aiUpdated.Symmetry && (
+                                                <motion.span
+                                                    initial={{ opacity: 0, scale: 0.8 }}
+                                                    animate={{ opacity: 1, scale: 1 }}
+                                                    className="text-[8px] px-1.5 py-0.5 bg-gold/20 text-gold border border-gold/30 rounded flex items-center gap-1"
+                                                >
+                                                    <Sparkles className="w-2 h-2" />
+                                                    AI Scanned
+                                                </motion.span>
+                                            )}
+                                        </div>
                                         <span className="text-gold">{scores.Symmetry}%</span>
                                     </div>
                                     <Slider
@@ -211,7 +242,19 @@ export default function RoadToICN() {
                                 {/* Conditioning Slider */}
                                 <div className="space-y-4">
                                     <div className="flex justify-between text-xs font-bold uppercase tracking-widest">
-                                        <span>Muscle Conditioning</span>
+                                        <div className="flex items-center gap-2">
+                                            <span>Muscle Conditioning</span>
+                                            {aiUpdated.Conditioning && (
+                                                <motion.span
+                                                    initial={{ opacity: 0, scale: 0.8 }}
+                                                    animate={{ opacity: 1, scale: 1 }}
+                                                    className="text-[8px] px-1.5 py-0.5 bg-gold/20 text-gold border border-gold/30 rounded flex items-center gap-1"
+                                                >
+                                                    <Sparkles className="w-2 h-2" />
+                                                    AI Scanned
+                                                </motion.span>
+                                            )}
+                                        </div>
                                         <span className="text-gold">{scores.Conditioning}%</span>
                                     </div>
                                     <Slider
@@ -230,7 +273,19 @@ export default function RoadToICN() {
                                 {/* Muscularity Slider */}
                                 <div className="space-y-4">
                                     <div className="flex justify-between text-xs font-bold uppercase tracking-widest">
-                                        <span>Muscularity</span>
+                                        <div className="flex items-center gap-2">
+                                            <span>Muscularity</span>
+                                            {aiUpdated.Muscularity && (
+                                                <motion.span
+                                                    initial={{ opacity: 0, scale: 0.8 }}
+                                                    animate={{ opacity: 1, scale: 1 }}
+                                                    className="text-[8px] px-1.5 py-0.5 bg-gold/20 text-gold border border-gold/30 rounded flex items-center gap-1"
+                                                >
+                                                    <Sparkles className="w-2 h-2" />
+                                                    AI Scanned
+                                                </motion.span>
+                                            )}
+                                        </div>
                                         <span className="text-gold">{scores.Muscularity}%</span>
                                     </div>
                                     <Slider
