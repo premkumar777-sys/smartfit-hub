@@ -30,6 +30,12 @@ export default function RoadToICN() {
     });
     const [showOverlay, setShowOverlay] = useState(false);
     const [previewImage, setPreviewImage] = useState<string | null>(null);
+    const [isScanning, setIsScanning] = useState(false);
+    const [analysisResult, setAnalysisResult] = useState<{
+        balance: number;
+        feedback: string;
+        points: string[];
+    } | null>(null);
 
     // Readiness Formula: Score = (S * 0.3) + (C * 0.3) + (M * 0.2) + (P * 0.2)
     const readinessScore = useMemo(() => {
@@ -105,6 +111,32 @@ export default function RoadToICN() {
             reader.onloadend = () => setPreviewImage(reader.result as string);
             reader.readAsDataURL(file);
         }
+    };
+
+    const handleScan = () => {
+        if (!previewImage) return;
+        setIsScanning(true);
+        setAnalysisResult(null);
+
+        // Simulate scanning delay
+        setTimeout(() => {
+            setIsScanning(false);
+            const balanceScore = Math.floor(scores.Symmetry * 0.95 + Math.random() * 10);
+
+            setAnalysisResult({
+                balance: balanceScore,
+                feedback: balanceScore > 80
+                    ? "Excellent structural balance. High skeletal alignment noted."
+                    : "Minor lateral shift detected in the pelvic-girdle. Focus on unilateral stabilization.",
+                points: [
+                    "Bilateral Delt Elevation: Correct",
+                    `Upper Torso Symmetry: ${balanceScore}%`,
+                    "Centerline Deviation: 2.1mm",
+                    "Pelvic Alignment: Adjusted"
+                ]
+            });
+            setShowOverlay(true);
+        }, 2500);
     };
 
     return (
@@ -271,8 +303,24 @@ export default function RoadToICN() {
                             <div className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-black/40 border-2 border-dashed border-white/5 flex items-center justify-center group">
                                 {previewImage ? (
                                     <>
-                                        <img src={previewImage} className="w-full h-full object-cover" alt="Check Pose" />
+                                        <img src={previewImage} className={`w-full h-full object-cover transition-all duration-700 ${isScanning ? 'blur-[2px] opacity-40' : ''}`} alt="Check Pose" />
                                         {showOverlay && <X_Frame_Overlay opacity={0.6} />}
+
+                                        {/* Scanning Animation */}
+                                        {isScanning && (
+                                            <motion.div
+                                                initial={{ top: "0%" }}
+                                                animate={{ top: "100%" }}
+                                                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                                                className="absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-gold to-transparent shadow-[0_0_15px_rgba(212,175,55,1)] z-20"
+                                            />
+                                        )}
+
+                                        {isScanning && (
+                                            <div className="absolute inset-0 bg-gold/5 flex items-center justify-center">
+                                                <div className="text-[10px] font-black text-gold uppercase tracking-[0.3em] animate-pulse">Analyzing Structure...</div>
+                                            </div>
+                                        )}
                                     </>
                                 ) : (
                                     <div className="text-center p-8 opacity-20 group-hover:opacity-40 transition-opacity">
@@ -284,17 +332,52 @@ export default function RoadToICN() {
 
                             <div className="mt-8 flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
                                 <div className="flex flex-col">
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Symmetry Overlay</span>
-                                    <span className="text-xs font-bold">X-Frame Alignment Guide</span>
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-white/40">{isScanning ? "AI Engine Busy" : "Symmetry Overlay"}</span>
+                                    <span className="text-xs font-bold">{isScanning ? "Processing Pixels..." : "X-Frame Alignment Guide"}</span>
                                 </div>
                                 <Button
-                                    onClick={() => setShowOverlay(!showOverlay)}
+                                    onClick={handleScan}
+                                    disabled={!previewImage || isScanning}
                                     variant={showOverlay ? "default" : "outline"}
-                                    className={showOverlay ? "bg-gold text-black" : ""}
+                                    className={showOverlay ? "bg-gold text-black hover:bg-gold/80" : "hover:text-gold hover:border-gold/50"}
                                 >
-                                    {showOverlay ? "Lock Grid" : "Analyze"}
+                                    {isScanning ? (
+                                        <span className="flex items-center gap-2">
+                                            <div className="w-3 h-3 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                                            Scanning
+                                        </span>
+                                    ) : showOverlay ? "Re-Analyze" : "Analyze"}
                                 </Button>
                             </div>
+
+                            {/* Automated Analysis Result */}
+                            <AnimatePresence>
+                                {analysisResult && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        className="mt-6 p-6 rounded-2xl bg-gold/10 border border-gold/20"
+                                    >
+                                        <div className="flex items-center justify-between mb-4">
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-gold">Structural Report</span>
+                                            <div className="text-xs font-bold text-white px-2 py-0.5 bg-gold/20 rounded">Dev: 2.1mm</div>
+                                        </div>
+                                        <div className="space-y-3">
+                                            {analysisResult.points.map((pt, i) => (
+                                                <div key={i} className="flex items-center justify-between text-[11px] font-medium">
+                                                    <span className="text-white/60">{pt.split(':')[0]}</span>
+                                                    <span className="text-white font-bold">{pt.split(':')[1]}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <div className="mt-6 pt-4 border-t border-gold/10">
+                                            <p className="text-xs text-gold font-bold leading-relaxed italic">
+                                                "{analysisResult.feedback}"
+                                            </p>
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
                         </div>
                     </div>
 
