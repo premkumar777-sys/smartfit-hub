@@ -309,7 +309,7 @@ export function Header() {
 
               <div className="flex items-center space-x-4">
                 {/* My Dashboard Button - Only for logged-in users */}
-                {isAuthenticated && !isLoading && (
+                {isAuthenticated && !isLoading ? (
                   <Button
                     variant="outline"
                     onClick={() => navigate("/dashboard")}
@@ -317,6 +317,15 @@ export function Header() {
                   >
                     My Dashboard
                   </Button>
+                ) : (
+                  !isLoading && (
+                    <Button
+                      onClick={() => navigate("/auth")}
+                      className="bg-primary text-black font-black uppercase tracking-tighter hover:bg-primary/90 shadow-[0_0_15px_rgba(var(--primary),0.3)]"
+                    >
+                      Login
+                    </Button>
+                  )
                 )}
 
                 {/* Get Started Button removed per user request */}
@@ -370,7 +379,16 @@ export function Header() {
                       >
                         My Dashboard
                       </Button>
-                    ) : null}
+                    ) : (
+                      !isLoading && (
+                        <Button
+                          onClick={() => navigate("/auth")}
+                          className="w-full bg-primary text-black font-black uppercase tracking-tighter"
+                        >
+                          Login
+                        </Button>
+                      )
+                    )}
                   </div>
                 </div>
               </MobileMenu>
