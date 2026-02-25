@@ -1,9 +1,11 @@
 import { motion } from 'framer-motion';
+import { Lock } from 'lucide-react';
 
 export type ICNPhase = 'reality' | 'build' | 'lean' | 'posing';
 
 interface Phase_NavigatorProps {
     currentPhase: ICNPhase;
+    unlockedPhases: ICNPhase[];
     onPhaseChange: (phase: ICNPhase) => void;
 }
 
@@ -14,7 +16,7 @@ const PHASES: { id: ICNPhase; label: string; sub: string }[] = [
     { id: 'posing', label: 'Art of Posing', sub: 'Phase 04' },
 ];
 
-export function Phase_Navigator({ currentPhase, onPhaseChange }: Phase_NavigatorProps) {
+export function Phase_Navigator({ currentPhase, unlockedPhases, onPhaseChange }: Phase_NavigatorProps) {
     return (
         <div className="relative w-full py-8">
             <div className="absolute top-1/2 left-0 w-full h-0.5 bg-white/5 -translate-y-1/2" />
@@ -22,22 +24,31 @@ export function Phase_Navigator({ currentPhase, onPhaseChange }: Phase_Navigator
             <div className="relative flex justify-between items-center max-w-4xl mx-auto">
                 {PHASES.map((phase, index) => {
                     const isActive = phase.id === currentPhase;
-                    const isCompleted = PHASES.findIndex(p => p.id === currentPhase) > index;
+                    const isUnlocked = unlockedPhases.includes(phase.id);
+                    const isCompleted = isUnlocked && PHASES.findIndex(p => p.id === currentPhase) > index && phase.id !== currentPhase;
 
                     return (
                         <div key={phase.id} className="relative flex flex-col items-center">
                             <motion.button
-                                whileHover={{ scale: 1.1 }}
-                                whileTap={{ scale: 0.9 }}
-                                onClick={() => onPhaseChange(phase.id)}
+                                whileHover={isUnlocked ? { scale: 1.1 } : {}}
+                                whileTap={isUnlocked ? { scale: 0.9 } : {}}
+                                onClick={() => isUnlocked && onPhaseChange(phase.id)}
                                 className={`w-10 h-10 rounded-full border-2 flex items-center justify-center z-10 transition-all duration-500 ${isActive
-                                        ? 'bg-gold border-gold shadow-[0_0_20px_rgba(212,175,55,0.6)] text-black'
-                                        : isCompleted
-                                            ? 'bg-blue-600 border-blue-600 text-white'
+                                    ? 'bg-gold border-gold shadow-[0_0_20px_rgba(212,175,55,0.6)] text-black'
+                                    : isCompleted
+                                        ? 'bg-blue-600 border-blue-600 text-white'
+                                        : !isUnlocked
+                                            ? 'bg-white/5 border-white/10 text-white/20 cursor-not-allowed'
                                             : 'bg-black border-white/20 text-white/40'
                                     }`}
                             >
-                                {isCompleted ? '✓' : index + 1}
+                                {!isUnlocked ? (
+                                    <Lock className="w-4 h-4" />
+                                ) : isCompleted ? (
+                                    '✓'
+                                ) : (
+                                    index + 1
+                                )}
                             </motion.button>
 
                             <div className="absolute top-12 text-center w-32">

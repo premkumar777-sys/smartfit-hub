@@ -56,6 +56,7 @@ const CountUp = ({ value, duration = 2, decimals = 0 }: { value: number; duratio
 export default function RoadToICN() {
     const navigate = useNavigate();
     const [currentPhase, setCurrentPhase] = useState<ICNPhase>('reality');
+    const [unlockedPhases, setUnlockedPhases] = useState<ICNPhase[]>(['reality']);
     const [checklist, setChecklist] = useState<Record<string, boolean>>({
         tan: false,
         trunks: false,
@@ -209,6 +210,20 @@ export default function RoadToICN() {
         if (progress === 100) {
             message = "STAGE READY: ELITE STATUS";
             description = "The Judges have reviewed your prep. You are structurally optimized for the ICN stage. It's showtime!";
+
+            // Sequential Unlocking Logic
+            const phaseSequence: ICNPhase[] = ['reality', 'build', 'lean', 'posing'];
+            const currentIndex = phaseSequence.indexOf(currentPhase);
+            if (currentIndex < phaseSequence.length - 1) {
+                const nextPhase = phaseSequence[currentIndex + 1];
+                if (!unlockedPhases.includes(nextPhase)) {
+                    setUnlockedPhases(prev => [...prev, nextPhase]);
+                    toast.success("NEW PHASE UNLOCKED", {
+                        description: `You have successfully completed the ${currentPhase} protocols. ${nextPhase.toUpperCase()} is now accessible.`,
+                        className: "bg-gold border border-black text-black font-sans font-bold",
+                    });
+                }
+            }
         } else if (progress >= 50) {
             message = "ELITE CONTENDER IN PROGRESS";
             description = "Solid fundamentals. Your presenting protocols are taking shape. Focus on the remaining fine-tuning.";
@@ -280,7 +295,11 @@ export default function RoadToICN() {
 
                 {/* Phase Navigator */}
                 <div className="mb-20">
-                    <Phase_Navigator currentPhase={currentPhase} onPhaseChange={setCurrentPhase} />
+                    <Phase_Navigator
+                        currentPhase={currentPhase}
+                        unlockedPhases={unlockedPhases}
+                        onPhaseChange={setCurrentPhase}
+                    />
                 </div>
 
                 <div className="grid lg:grid-cols-3 gap-8 items-start">
