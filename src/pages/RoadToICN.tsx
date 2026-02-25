@@ -225,6 +225,14 @@ export default function RoadToICN() {
     };
 
     const handleReviewProgress = () => {
+        if (!analysisResult) {
+            toast.error("DATA VERIFICATION REQUIRED", {
+                description: "Judicial Review cannot proceed without analytical proof. Perform a Judge's Eye Scan first.",
+                className: "bg-[#050505] border border-red-500/50 text-red-500 font-sans",
+            });
+            return;
+        }
+
         const currentTasks = phaseDetails?.tasks || [];
         const completedCount = currentTasks.filter(task => checklist[task.id]).length;
         const totalCount = currentTasks.length;
@@ -324,7 +332,10 @@ export default function RoadToICN() {
                     <Phase_Navigator
                         currentPhase={currentPhase}
                         unlockedPhases={unlockedPhases}
-                        onPhaseChange={setCurrentPhase}
+                        onPhaseChange={(phase) => {
+                            setCurrentPhase(phase);
+                            setAnalysisResult(null);
+                        }}
                         onReadMore={() => setShowPhaseInfo(true)}
                     />
                 </div>
