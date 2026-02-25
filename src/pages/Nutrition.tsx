@@ -452,28 +452,6 @@ export default function Nutrition() {
                     ))}
                   </div>
 
-                  {/* Dietary Identity - NEW SECTION */}
-                  <div className="pt-4 border-t border-white/5">
-                    <Label className="text-[10px] uppercase tracking-[0.4em] text-white/40 mb-4 block font-black">Dietary Identity</Label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {[
-                        { id: 'veg', label: 'Veg', color: 'text-green-400' },
-                        { id: 'non-veg', label: 'Non-Veg', color: 'text-red-400' },
-                        { id: 'mixed', label: 'Mixed', color: 'text-amber-400' }
-                      ].map((diet) => (
-                        <button
-                          key={diet.id}
-                          onClick={() => setDietaryPreference(diet.id as any)}
-                          className={`py-2 px-1 rounded-xl text-[10px] font-black uppercase tracking-tighter border transition-all ${dietaryPreference === diet.id
-                            ? "bg-white/10 border-primary text-primary"
-                            : "bg-white/5 border-white/20 text-white/40 hover:bg-white/10"
-                            }`}
-                        >
-                          {diet.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
 
                   <div className="pt-4 border-t border-white/5">
                     <Label className="text-[10px] uppercase tracking-[0.4em] text-white/40 mb-4 block font-black">Metabolic Flux Level</Label>
@@ -660,7 +638,7 @@ export default function Nutrition() {
                     <div className="flex items-center justify-between">
                       <div>
                         <CardTitle className="text-2xl font-black text-white uppercase tracking-tighter">Precision Daily Protocol</CardTitle>
-                        <CardDescription className="text-primary font-bold">Generated for ${dietaryPreference.toUpperCase()} • ${result?.calories} kcal</CardDescription>
+                        <CardDescription className="text-primary font-bold">Generated for {dietaryPreference.toUpperCase()} • {result?.calories} kcal</CardDescription>
                       </div>
                       <div className="p-3 bg-primary rounded-2xl text-black">
                         <Utensils className="w-6 h-6" />
