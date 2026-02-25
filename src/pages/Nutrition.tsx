@@ -46,6 +46,7 @@ export default function Nutrition() {
   const [overlayStep, setOverlayStep] = useState(0);
   const [nutritionHistory, setNutritionHistory] = useState<any[]>([]);
   const [isLogging, setIsLogging] = useState(false);
+  const [protocolActivated, setProtocolActivated] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -68,6 +69,7 @@ export default function Nutrition() {
           if (data.weight) setWeight(data.weight.toString());
           if (data.height) setHeight(data.height.toString());
           if (data.activity_level) setActivity(data.activity_level as Activity);
+          if (data.daily_calories_target) setProtocolActivated(true);
         }
 
         // Load Nutrition History
@@ -97,6 +99,7 @@ export default function Nutrition() {
         setActivity(parsed.activity || "moderate");
         setGoal(parsed.goal || "recomp");
         setDietaryPreference(parsed.dietaryPreference || "mixed");
+        if (parsed.age && parsed.weight) setProtocolActivated(true);
       } catch (err) {
         console.error("Local storage parse error:", err);
       }
@@ -223,6 +226,7 @@ export default function Nutrition() {
     }
 
     localStorage.setItem(storageKey, JSON.stringify({ age, weight, height, activity, goal, dietaryPreference }));
+    setProtocolActivated(true);
     setShowOverlay(false);
     setIsUpdating(false);
     toast.success("Nutritional protocol updated and synced!");
@@ -309,15 +313,14 @@ export default function Nutrition() {
       <Container className="relative z-10 max-w-5xl">
         <button
           onClick={() => navigate(-1)}
-          className="group inline-flex items-center text-sm text-muted-foreground hover:text-primary mb-12 transition-all"
+          className="group inline-flex items-center text-sm text-muted-foreground hover:text-primary mb-6 transition-all"
         >
           <span className="mr-2 group-hover:-translate-x-1 transition-transform">←</span>
           Return to Hub
         </button>
 
         <div className="flex flex-col gap-12">
-
-          <div className="grid lg:grid-cols-12 gap-8 mt-12">
+          <div className="grid lg:grid-cols-12 gap-8">
             {/* Inputs Column */}
             {/* Inputs Column - Biological Signature UI */}
             <div className="lg:col-span-12">
@@ -568,7 +571,18 @@ export default function Nutrition() {
 
             {/* Bottom Tip */}
             {/* AI Synergy Insight Consolidated Section */}
-            <div className="lg:col-span-12 space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
+            <div className={`lg:col-span-12 relative space-y-8 transition-all duration-1000 ${protocolActivated ? "opacity-100 translate-y-0" : "opacity-30 grayscale pointer-events-none select-none blur-sm"}`}>
+              {!protocolActivated && (
+                <div className="absolute inset-0 z-20 flex items-center justify-center p-8 text-center bg-black/20 backdrop-blur-[2px] rounded-[2.5rem]">
+                  <div className="bg-black/80 border border-primary/20 p-8 rounded-3xl shadow-2xl max-w-md animate-in zoom-in-95 duration-500">
+                    <Zap className="w-12 h-12 text-primary mx-auto mb-4 animate-pulse" />
+                    <h3 className="text-xl font-black text-white uppercase tracking-tighter mb-2">Protocol Activation Required</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      Sync your biological signature above to unlock the AI Core Analyzer and generate your precision strategy.
+                    </p>
+                  </div>
+                </div>
+              )}
               <div className="text-center space-y-4">
                 <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/20 text-[10px] uppercase font-bold tracking-[0.3em] text-primary">
                   Intelligence Protocol v2.0
