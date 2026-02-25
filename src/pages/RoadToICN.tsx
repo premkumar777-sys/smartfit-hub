@@ -101,6 +101,11 @@ export default function RoadToICN() {
                         "Focus on compound movements",
                         "Establish nutritional baseline",
                     ],
+                    tasks: [
+                        { id: 'symmetry', label: 'Symmetry Baseline Scan', sub: 'Min. deviation' },
+                        { id: 'posture', label: 'Posture Analysis', sub: 'Skeletal alignment' },
+                        { id: 'frame', label: 'Frame Density Check', sub: 'Protocol 01' },
+                    ],
                     standard: "ICN judges look for an X-frame foundation even in the early stages."
                 };
             case 'build':
@@ -112,6 +117,11 @@ export default function RoadToICN() {
                         "High volume training (12-20 sets/muscle)",
                         "Caloric surplus (Natural emphasis)",
                         "Weak point specialization",
+                    ],
+                    tasks: [
+                        { id: 'width', label: 'Lat Width Target', sub: 'Expansion Scan' },
+                        { id: 'sweep', label: 'Quad Sweep Assessment', sub: 'Outer Head' },
+                        { id: 'core', label: 'Midsection Tightness', sub: 'Vacuum Practice' },
                     ],
                     standard: "Muscular balance must be maintained while adding size."
                 };
@@ -125,6 +135,11 @@ export default function RoadToICN() {
                         "Increased NEAT (Step goals)",
                         "Practice 'holding' poses for 30s",
                     ],
+                    tasks: [
+                        { id: 'separation', label: 'Striation Detection', sub: 'Scan 03' },
+                        { id: 'vasc', label: 'Vascularity Review', sub: 'Bloodflow Scan' },
+                        { id: 'abs', label: 'Abdominal Definition', sub: 'Deep Cuts' },
+                    ],
                     standard: "Definition wins shows. We need to see the deep cuts."
                 };
             case 'posing':
@@ -136,6 +151,11 @@ export default function RoadToICN() {
                         "Dailly posing (45 mins)",
                         "Peak week electrolyte balance",
                         "Stage walk refinement",
+                    ],
+                    tasks: [
+                        { id: 'tan', label: 'Competition Base Tan', sub: 'Elite Shade 04' },
+                        { id: 'trunks', label: 'ICN Registered Trunks', sub: 'Mandatory' },
+                        { id: 'walk', label: 'Stage Walk Mastery', sub: 'Presence' },
                     ],
                     standard: "Transitions should be seamless and fluid. Keep the core tight."
                 };
@@ -200,16 +220,17 @@ export default function RoadToICN() {
     };
 
     const handleReviewProgress = () => {
-        const completedCount = Object.values(checklist).filter(v => v).length;
-        const totalCount = Object.keys(checklist).length;
-        const progress = (completedCount / totalCount) * 100;
+        const currentTasks = phaseDetails?.tasks || [];
+        const completedCount = currentTasks.filter(task => checklist[task.id]).length;
+        const totalCount = currentTasks.length;
+        const progress = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
 
         let message = "";
         let description = "";
 
         if (progress === 100) {
             message = "STAGE READY: ELITE STATUS";
-            description = "The Judges have reviewed your prep. You are structurally optimized for the ICN stage. It's showtime!";
+            description = `The Judges have reviewed your ${currentPhase} prep. You are structurally optimized for the next stage.`;
 
             // Sequential Unlocking Logic
             const phaseSequence: ICNPhase[] = ['reality', 'build', 'lean', 'posing'];
@@ -593,17 +614,12 @@ export default function RoadToICN() {
                             </h3>
 
                             <div className="space-y-4">
-                                {[
-                                    { id: 'tan', label: 'Competition Base Tan', sub: 'Elite Shade 04' },
-                                    { id: 'trunks', label: 'ICN Registered Trunks', sub: 'Mandatory' },
-                                    { id: 'flow', label: 'Stage Walk & Routine', sub: 'Transitions' },
-                                    { id: 'peak', label: 'Peak Week Protocol', sub: 'Loading Phase' },
-                                ].map((item) => (
+                                {(phaseDetails?.tasks || []).map((item) => (
                                     <label key={item.id} className="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/5 cursor-pointer hover:bg-white/10 transition-colors group">
                                         <Checkbox
                                             id={item.id}
                                             className="border-gold data-[state=checked]:bg-gold"
-                                            checked={checklist[item.id]}
+                                            checked={checklist[item.id] || false}
                                             onCheckedChange={(checked) => setChecklist(prev => ({ ...prev, [item.id]: !!checked }))}
                                         />
                                         <div className="flex flex-col">
