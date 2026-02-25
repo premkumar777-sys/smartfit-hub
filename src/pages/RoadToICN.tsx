@@ -131,7 +131,7 @@ export default function RoadToICN() {
                         animate={{ opacity: 1, y: 0 }}
                         className="text-5xl md:text-7xl font-black mb-6 leading-none"
                     >
-                        THE <span className="text-gold text-transparent bg-clip-text bg-gradient-to-r from-gold to-white/60">EVOLUTION</span> <br /> OF AN ATHLETE
+                        THE <span className="text-transparent bg-clip-text bg-gradient-to-r from-gold via-gold/80 to-white/40 drop-shadow-[0_0_20px_rgba(212,175,55,0.3)]">EVOLUTION</span> <br /> OF AN ATHLETE
                     </motion.h1>
 
                     <p className="max-w-2xl text-white/40 text-lg leading-relaxed">
