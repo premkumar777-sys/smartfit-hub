@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Trophy,
@@ -55,6 +56,12 @@ const CountUp = ({ value, duration = 2, decimals = 0 }: { value: number; duratio
 export default function RoadToICN() {
     const navigate = useNavigate();
     const [currentPhase, setCurrentPhase] = useState<ICNPhase>('reality');
+    const [checklist, setChecklist] = useState<Record<string, boolean>>({
+        tan: false,
+        trunks: false,
+        flow: false,
+        peak: false
+    });
     const [scores, setScores] = useState({
         Symmetry: 65,
         Conditioning: 40,
@@ -189,6 +196,31 @@ export default function RoadToICN() {
             });
             setShowOverlay(true);
         }, 2500);
+    };
+
+    const handleReviewProgress = () => {
+        const completedCount = Object.values(checklist).filter(v => v).length;
+        const totalCount = Object.keys(checklist).length;
+        const progress = (completedCount / totalCount) * 100;
+
+        let message = "";
+        let description = "";
+
+        if (progress === 100) {
+            message = "STAGE READY: ELITE STATUS";
+            description = "The Judges have reviewed your prep. You are structurally optimized for the ICN stage. It's showtime!";
+        } else if (progress >= 50) {
+            message = "ELITE CONTENDER IN PROGRESS";
+            description = "Solid fundamentals. Your presenting protocols are taking shape. Focus on the remaining fine-tuning.";
+        } else {
+            message = "PREP ADVISORY: ACTION REQUIRED";
+            description = "Your adherence to stage protocols is currently below elite standards. Execute the remaining checklist items.";
+        }
+
+        toast(message, {
+            description: description,
+            className: "bg-[#050505] border border-gold/30 text-white font-sans",
+        });
     };
 
     return (
@@ -549,7 +581,12 @@ export default function RoadToICN() {
                                     { id: 'peak', label: 'Peak Week Protocol', sub: 'Loading Phase' },
                                 ].map((item) => (
                                     <label key={item.id} className="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/5 cursor-pointer hover:bg-white/10 transition-colors group">
-                                        <Checkbox id={item.id} className="border-gold data-[state=checked]:bg-gold" />
+                                        <Checkbox
+                                            id={item.id}
+                                            className="border-gold data-[state=checked]:bg-gold"
+                                            checked={checklist[item.id]}
+                                            onCheckedChange={(checked) => setChecklist(prev => ({ ...prev, [item.id]: !!checked }))}
+                                        />
                                         <div className="flex flex-col">
                                             <span className="text-xs font-bold group-hover:text-gold transition-colors">{item.label}</span>
                                             <span className="text-[9px] font-black uppercase text-white/20 tracking-widest">{item.sub}</span>
@@ -558,7 +595,10 @@ export default function RoadToICN() {
                                 ))}
                             </div>
 
-                            <Button className="w-full mt-8 h-12 bg-white/10 hover:bg-white/20 border-white/20 text-white font-black uppercase tracking-widest text-xs">
+                            <Button
+                                onClick={handleReviewProgress}
+                                className="w-full mt-8 h-12 bg-white/10 hover:bg-white/20 border-white/20 text-white font-black uppercase tracking-widest text-xs"
+                            >
                                 Review Prep Progress
                                 <ChevronRight className="w-4 h-4 ml-2" />
                             </Button>
@@ -566,6 +606,6 @@ export default function RoadToICN() {
                     </div>
                 </div>
             </Container>
-        </div>
+        </div >
     );
 }
