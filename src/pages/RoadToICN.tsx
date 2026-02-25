@@ -528,47 +528,26 @@ export default function RoadToICN() {
                                 Competition Readiness
                             </h3>
 
-                            <div className="space-y-6">
-                                <div>
-                                    <h4 className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-3">Presentation (Stage)</h4>
-                                    <div className="space-y-3">
-                                        {[
-                                            { id: 'tan', label: 'Competition Base Tan', sub: 'Elite Shade 04' },
-                                            { id: 'trunks', label: 'ICN Registered Trunks', sub: 'Mandatory' },
-                                            { id: 'flow', label: 'Stage Walk & Routine', sub: 'Transitions' },
-                                        ].map((item) => (
-                                            <label key={item.id} className="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/5 cursor-pointer hover:bg-white/10 transition-colors">
-                                                <Checkbox id={item.id} className="border-gold data-[state=checked]:bg-gold" />
-                                                <div className="flex flex-col">
-                                                    <span className="text-xs font-bold">{item.label}</span>
-                                                    <span className="text-[9px] font-black uppercase text-white/30 tracking-widest">{item.sub}</span>
-                                                </div>
-                                            </label>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <h4 className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-3">Administrative</h4>
-                                    <div className="space-y-3">
-                                        {[
-                                            { id: 'member', label: 'ICN Membership', sub: 'Active Status' },
-                                            { id: 'reg', label: 'Show Registration', sub: 'Paid & Confirmed' },
-                                        ].map((item) => (
-                                            <label key={item.id} className="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/5 cursor-pointer hover:bg-white/10 transition-colors">
-                                                <Checkbox id={item.id} className="border-gold data-[state=checked]:bg-gold" />
-                                                <div className="flex flex-col">
-                                                    <span className="text-xs font-bold">{item.label}</span>
-                                                    <span className="text-[9px] font-black uppercase text-white/30 tracking-widest">{item.sub}</span>
-                                                </div>
-                                            </label>
-                                        ))}
-                                    </div>
-                                </div>
+                            <div className="space-y-4">
+                                {[
+                                    { id: 'tan', label: 'Competition Base Tan', sub: 'Elite Shade 04' },
+                                    { id: 'trunks', label: 'ICN Registered Trunks', sub: 'Mandatory' },
+                                    { id: 'flow', label: 'Stage Walk & Routine', sub: 'Mastery Required' },
+                                    { id: 'member', label: 'ICN Membership', sub: 'Active Status' },
+                                    { id: 'reg', label: 'Show Registration', sub: 'Paid & Confirmed' },
+                                ].map((item) => (
+                                    <label key={item.id} className="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/5 cursor-pointer hover:bg-white/10 transition-colors">
+                                        <Checkbox id={item.id} className="border-gold data-[state=checked]:bg-gold" />
+                                        <div className="flex flex-col">
+                                            <span className="text-xs font-bold">{item.label}</span>
+                                            <span className="text-[9px] font-black uppercase text-white/30 tracking-widest">{item.sub}</span>
+                                        </div>
+                                    </label>
+                                ))}
                             </div>
 
                             <Button className="w-full mt-8 h-12 bg-white/10 hover:bg-white/20 border-white/20 text-white font-black uppercase tracking-widest text-xs">
-                                Review Prep Progress
+                                Confirm Readiness
                                 <ChevronRight className="w-4 h-4 ml-2" />
                             </Button>
                         </div>
