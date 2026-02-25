@@ -41,16 +41,56 @@ export default function RoadToICN() {
         ).toFixed(1);
     }, [scores]);
 
-    const judgeAdvice = useMemo(() => {
+    const phaseDetails = useMemo(() => {
         switch (currentPhase) {
             case 'reality':
-                return "You're at the starting line. Focus on your structural baseline. Don't worry about mass yet – objective symmetry is your first hurdle.";
+                return {
+                    advice: "You're at the starting line. Focus on your structural baseline. Don't worry about mass yet – objective symmetry is your first hurdle.",
+                    focus: "Foundation & Symmetry",
+                    target: "Baseline Assessment",
+                    protocol: [
+                        "Bi-weekly structural assessments",
+                        "Focus on compound movements",
+                        "Establish nutritional baseline",
+                    ],
+                    standard: "ICN judges look for an X-frame foundation even in the early stages."
+                };
             case 'build':
-                return "Construction time. Emphasize the X-Frame: wide lats, sweeping quads, and a tight midsection. Maintain natural standards.";
+                return {
+                    advice: "Construction time. Emphasize the X-Frame: wide lats, sweeping quads, and a tight midsection. Maintain natural standards.",
+                    focus: "Hypertrophy & Width",
+                    target: "0.5% weight gain / week",
+                    protocol: [
+                        "High volume training (12-20 sets/muscle)",
+                        "Caloric surplus (Natural emphasis)",
+                        "Weak point specialization",
+                    ],
+                    standard: "Muscular balance must be maintained while adding size."
+                };
             case 'lean':
-                return "The cut begins. We need to see muscular separation. Move from 'Cloudy' to 'Stage Lean.' Discipline is your only teammate now.";
+                return {
+                    advice: "The cut begins. We need to see muscular separation. Move from 'Cloudy' to 'Stage Lean.' Discipline is your only teammate now.",
+                    focus: "Density & Separation",
+                    target: "8-12% Body Fat",
+                    protocol: [
+                        "Gradual caloric deficit",
+                        "Increased NEAT (Step goals)",
+                        "Practice 'holding' poses for 30s",
+                    ],
+                    standard: "Definition wins shows. We need to see the deep cuts."
+                };
             case 'posing':
-                return "Showmanship is half the battle. Every muscle must be presented with intent. Perfection in transitions is what wins trophies.";
+                return {
+                    advice: "Showmanship is half the battle. Every muscle must be presented with intent. Perfection in transitions is what wins trophies.",
+                    focus: "Presentation & Flow",
+                    target: "Stage Ready",
+                    protocol: [
+                        "Dailly posing (45 mins)",
+                        "Peak week electrolyte balance",
+                        "Stage walk refinement",
+                    ],
+                    standard: "Transitions should be seamless and fluid. Keep the core tight."
+                };
         }
     }, [currentPhase]);
 
@@ -173,13 +213,43 @@ export default function RoadToICN() {
 
                         {/* Judge's Advice Card */}
                         <div className="bg-gold border border-gold/50 rounded-3xl p-8 text-black">
-                            <div className="flex items-center gap-2 mb-4">
-                                <Info className="w-5 h-5" />
-                                <span className="text-xs font-black uppercase tracking-widest">Judge's Advisory</span>
+                            <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center gap-2">
+                                    <Info className="w-5 h-5" />
+                                    <span className="text-xs font-black uppercase tracking-widest">Judge's Advisory</span>
+                                </div>
+                                <div className="text-[10px] font-bold px-2 py-0.5 bg-black/10 rounded uppercase">
+                                    {phaseDetails.focus}
+                                </div>
                             </div>
-                            <p className="text-sm font-bold leading-relaxed italic">
-                                "{judgeAdvice}"
+                            <p className="text-sm font-bold leading-relaxed italic mb-4">
+                                "{phaseDetails.advice}"
                             </p>
+                            <div className="pt-4 border-t border-black/10">
+                                <span className="text-[10px] font-black uppercase tracking-widest opacity-60">Phase Target:</span>
+                                <div className="text-xs font-black mt-1">{phaseDetails.target}</div>
+                            </div>
+                        </div>
+
+                        {/* Daily Athlete Protocol */}
+                        <div className="bg-white/5 border border-white/10 backdrop-blur-xl rounded-3xl p-8">
+                            <div className="flex items-center gap-2 mb-6">
+                                <Zap className="w-5 h-5 text-blue-400" />
+                                <h3 className="text-lg font-bold uppercase tracking-tight">Athlete Protocol</h3>
+                            </div>
+                            <ul className="space-y-4">
+                                {phaseDetails.protocol.map((item, idx) => (
+                                    <li key={idx} className="flex items-start gap-3">
+                                        <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-blue-400" />
+                                        <span className="text-xs text-white/70 font-medium leading-relaxed">{item}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                            <div className="mt-8 p-4 bg-blue-500/10 rounded-2xl border border-blue-500/20">
+                                <p className="text-[10px] text-blue-300 font-bold leading-tight">
+                                    <strong>ICN Standard:</strong> {phaseDetails.standard}
+                                </p>
+                            </div>
                         </div>
                     </div>
 
@@ -262,27 +332,50 @@ export default function RoadToICN() {
                         <div className="bg-white/5 border border-white/10 backdrop-blur-xl rounded-3xl p-8">
                             <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
                                 <CheckCircle2 className="w-5 h-5 text-gold" />
-                                Grooming Checklist
+                                Competition Readiness
                             </h3>
 
-                            <div className="space-y-4">
-                                {[
-                                    { id: 'tan', label: 'Competition Base Tan', sub: 'Elite Shade 04' },
-                                    { id: 'trunks', label: 'ICN Registered Trunks', sub: 'Mandatory' },
-                                    { id: 'flow', label: 'Stage Walk & Routine', sub: 'Transitions' },
-                                ].map((item) => (
-                                    <label key={item.id} className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/5 cursor-pointer hover:bg-white/10 transition-colors">
-                                        <Checkbox id={item.id} className="border-gold data-[state=checked]:bg-gold" />
-                                        <div className="flex flex-col">
-                                            <span className="text-xs font-bold">{item.label}</span>
-                                            <span className="text-[9px] font-black uppercase text-white/30 tracking-widest">{item.sub}</span>
-                                        </div>
-                                    </label>
-                                ))}
+                            <div className="space-y-6">
+                                <div>
+                                    <h4 className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-3">Presentation (Stage)</h4>
+                                    <div className="space-y-3">
+                                        {[
+                                            { id: 'tan', label: 'Competition Base Tan', sub: 'Elite Shade 04' },
+                                            { id: 'trunks', label: 'ICN Registered Trunks', sub: 'Mandatory' },
+                                            { id: 'flow', label: 'Stage Walk & Routine', sub: 'Transitions' },
+                                        ].map((item) => (
+                                            <label key={item.id} className="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/5 cursor-pointer hover:bg-white/10 transition-colors">
+                                                <Checkbox id={item.id} className="border-gold data-[state=checked]:bg-gold" />
+                                                <div className="flex flex-col">
+                                                    <span className="text-xs font-bold">{item.label}</span>
+                                                    <span className="text-[9px] font-black uppercase text-white/30 tracking-widest">{item.sub}</span>
+                                                </div>
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <h4 className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-3">Administrative</h4>
+                                    <div className="space-y-3">
+                                        {[
+                                            { id: 'member', label: 'ICN Membership', sub: 'Active Status' },
+                                            { id: 'reg', label: 'Show Registration', sub: 'Paid & Confirmed' },
+                                        ].map((item) => (
+                                            <label key={item.id} className="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/5 cursor-pointer hover:bg-white/10 transition-colors">
+                                                <Checkbox id={item.id} className="border-gold data-[state=checked]:bg-gold" />
+                                                <div className="flex flex-col">
+                                                    <span className="text-xs font-bold">{item.label}</span>
+                                                    <span className="text-[9px] font-black uppercase text-white/30 tracking-widest">{item.sub}</span>
+                                                </div>
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
                             </div>
 
                             <Button className="w-full mt-8 h-12 bg-white/10 hover:bg-white/20 border-white/20 text-white font-black uppercase tracking-widest text-xs">
-                                Final Review Submitted
+                                Review Prep Progress
                                 <ChevronRight className="w-4 h-4 ml-2" />
                             </Button>
                         </div>
