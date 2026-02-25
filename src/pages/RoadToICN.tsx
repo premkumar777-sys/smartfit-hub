@@ -194,13 +194,13 @@ export default function RoadToICN() {
     return (
         <div className="min-h-screen bg-[#050505] text-white pt-24 pb-12 font-sans overflow-x-hidden relative">
             {/* Background Image - Refined Placement */}
-            <div className="fixed top-0 right-0 w-[60%] h-full pointer-events-none z-0 overflow-hidden">
+            <div className="fixed top-0 right-0 w-[55%] h-full pointer-events-none z-0 overflow-hidden translate-x-[5%]">
                 <div
-                    className="absolute inset-[0] bg-contain bg-no-repeat bg-center opacity-[0.90] scale-90 translate-x-1/4"
+                    className="absolute inset-0 bg-contain bg-no-repeat bg-center opacity-[0.2]"
                     style={{ backgroundImage: `url(${icnShield})` }}
                 />
                 {/* Fade edges to blend */}
-                <div className="absolute inset-0 bg-gradient-to-l from-transparent via-[#050505]/40 to-[#050505]" />
+                <div className="absolute inset-0 bg-gradient-to-l from-transparent via-[#050505]/60 to-[#050505]" />
                 <div className="absolute inset-0 bg-gradient-to-b from-[#050505] via-transparent to-[#050505]" />
             </div>
 
@@ -236,9 +236,9 @@ export default function RoadToICN() {
                     <motion.h1
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="text-5xl md:text-7xl font-black mb-6 leading-none"
+                        className="text-5xl md:text-7xl font-black mb-6 leading-none text-white/90"
                     >
-                        THE <span className="text-transparent bg-clip-text bg-gradient-to-r from-gold via-gold/80 to-white/40 drop-shadow-[0_0_20px_rgba(212,175,55,0.3)]">EVOLUTION</span> <br /> OF AN ATHLETE
+                        THE <span className="text-transparent bg-clip-text bg-gradient-to-r from-gold/60 via-gold/40 to-white/20 drop-shadow-[0_0_15px_rgba(212,175,55,0.2)]">EVOLUTION</span> <br /> OF AN ATHLETE
                     </motion.h1>
 
                     <p className="max-w-2xl text-white/40 text-lg leading-relaxed">
