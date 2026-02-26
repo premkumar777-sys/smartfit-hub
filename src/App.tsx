@@ -18,7 +18,6 @@ const Home = lazy(() => import("./pages/Home"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Auth = lazy(() => import("./pages/Auth"));
 const AIWorkout = lazy(() => import("./pages/AIWorkout"));
-const WorkoutSession = lazy(() => import("./pages/WorkoutSession"));
 const Nutrition = lazy(() => import("./pages/Nutrition"));
 const Progress = lazy(() => import("./pages/Progress"));
 const Guides = lazy(() => import("./pages/Guides"));
@@ -74,7 +73,6 @@ const App = () => {
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/ai-workout" element={<AIWorkout />} />
-                  <Route path="/workout-session" element={<WorkoutSession />} />
                   <Route path="/nutrition" element={<Nutrition />} />
                   <Route path="/progress" element={<Progress />} />
                   <Route path="/guides" element={<Guides />} />

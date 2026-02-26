@@ -407,57 +407,6 @@ export default function Settings() {
                             </CardContent>
                         </Card>
 
-                        {/* 3. APPEARANCE */}
-                        <Card className="glass border-primary/10">
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <Palette className="w-5 h-5 text-primary" />
-                                    Appearance
-                                </CardTitle>
-                                <CardDescription>Customise how the app looks</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-6">
-                                {/* Theme */}
-                                <div className="flex items-center justify-between">
-                                    <div className="space-y-0.5">
-                                        <Label className="text-base font-semibold">Interface Theme</Label>
-                                        <p className="text-sm text-muted-foreground">Light or Dark mode</p>
-                                    </div>
-                                    <div className="flex bg-black/40 p-1 rounded-lg border border-white/10">
-                                        <button
-                                            onClick={() => { setTheme("dark"); handlePref(p => ({ ...p, theme: "dark" })); }}
-                                            className={`px-4 py-2 rounded-md text-sm transition-all flex items-center gap-2 ${currentTheme === "dark" ? "bg-primary text-black font-bold" : "text-muted-foreground hover:text-white"}`}
-                                        >
-                                            <Moon className="w-4 h-4" /> Dark
-                                        </button>
-                                        <button
-                                            onClick={() => { setTheme("light"); handlePref(p => ({ ...p, theme: "light" })); }}
-                                            className={`px-4 py-2 rounded-md text-sm transition-all flex items-center gap-2 ${currentTheme === "light" ? "bg-primary text-black font-bold" : "text-muted-foreground hover:text-white"}`}
-                                        >
-                                            <Sun className="w-4 h-4" /> Light
-                                        </button>
-                                    </div>
-                                </div>
-
-                                {/* Accent Color */}
-                                <div className="flex items-center justify-between">
-                                    <div className="space-y-0.5">
-                                        <Label className="text-base font-semibold">Accent Color</Label>
-                                        <p className="text-sm text-muted-foreground">Choose your UI highlight colour</p>
-                                    </div>
-                                    <div className="flex gap-2">
-                                        {ACCENT_COLORS.map(c => (
-                                            <button
-                                                key={c.id}
-                                                title={c.label}
-                                                onClick={() => handlePref(p => ({ ...p, accentColor: c.id }))}
-                                                className={`w-8 h-8 rounded-full ${c.class} transition-all hover:scale-110 ${preferences.accentColor === c.id ? "ring-2 ring-white ring-offset-2 ring-offset-background scale-110" : ""}`}
-                                            />
-                                        ))}
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
 
                         {/* 4. NOTIFICATIONS */}
                         <Card className="glass border-primary/10 opacity-80">
