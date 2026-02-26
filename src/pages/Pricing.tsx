@@ -173,7 +173,7 @@ export default function Pricing() {
                         </div>
                         <div className="p-6 rounded-2xl bg-white/5 border border-white/10 text-center">
                             <Trophy className="w-8 h-8 mx-auto mb-4 text-amber-400" />
-                            <h4 className="text-lg font-bold text-white mb-2">Money-Back Guarantee</h4>
+                            <h4 className="text-lg font-bold text-white mb-2">Quality Commitment</h4>
                             <p className="text-sm text-gray-400">Our coaching add-on comes with a 100% satisfaction guarantee.</p>
                         </div>
                     </div>
