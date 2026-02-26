@@ -217,35 +217,6 @@ export default function Settings() {
                                         </SelectContent>
                                     </Select>
                                 </div>
-
-                                <div className="flex items-center justify-between">
-                                    <div className="space-y-0.5">
-                                        <Label className="text-base font-semibold">Interface Theme</Label>
-                                        <p className="text-sm text-muted-foreground">Select your preferred color theme</p>
-                                    </div>
-                                    <div className="flex bg-black/40 p-1 rounded-lg border border-white/10">
-                                        <button
-                                            onClick={() => {
-                                                setTheme('dark');
-                                                handlePreferenceChange(p => ({ ...p, theme: 'dark' }));
-                                            }}
-                                            className={`p-2 rounded-md transition-all flex items-center gap-2 ${currentTheme === 'dark' ? 'bg-primary text-black font-bold' : 'text-muted-foreground hover:text-white'}`}
-                                        >
-                                            <Moon className="w-4 h-4" />
-                                            <span className="text-xs">Dark</span>
-                                        </button>
-                                        <button
-                                            onClick={() => {
-                                                setTheme('light');
-                                                handlePreferenceChange(p => ({ ...p, theme: 'light' }));
-                                            }}
-                                            className={`p-2 rounded-md transition-all flex items-center gap-2 ${currentTheme === 'light' ? 'bg-primary text-black font-bold' : 'text-muted-foreground hover:text-white'}`}
-                                        >
-                                            <Sun className="w-4 h-4" />
-                                            <span className="text-xs">Light</span>
-                                        </button>
-                                    </div>
-                                </div>
                             </CardContent>
                         </Card>
 

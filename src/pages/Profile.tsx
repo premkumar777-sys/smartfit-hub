@@ -512,7 +512,7 @@ export default function Profile() {
                                                 <Edit2 className="w-4 h-4 mr-2" />
                                                 Edit Profile
                                             </Button>
-                                            <Button variant="outline" className="rounded-full px-6 hover:bg-primary/5 transition-all">
+                                            <Button variant="outline" className="rounded-full px-6 hover:bg-primary/5 transition-all" onClick={() => navigate('/settings')}>
                                                 <Settings className="w-4 h-4 mr-2 text-muted-foreground" />
                                                 Settings
                                             </Button>
