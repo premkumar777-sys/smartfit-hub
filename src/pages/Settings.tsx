@@ -357,23 +357,7 @@ export default function Settings() {
                             </CardContent>
                         </Card>
 
-                        {/* Premium Status */}
-                        <Card className="glass border-yellow-500/20 bg-gradient-to-br from-yellow-500/5 to-orange-500/5">
-                            <CardHeader>
-                                <CardTitle className="text-yellow-500 text-lg flex items-center gap-2">
-                                    <Shield className="w-5 h-5" />
-                                    SmartFit Premium
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <p className="text-sm text-muted-foreground mb-4">
-                                    Upgrade to unlock personalized AI trainers, advanced analytics, and custom meal plans.
-                                </p>
-                                <Button className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-bold border-none" onClick={() => navigate("/upgrade")}>
-                                    Manage Subscription
-                                </Button>
-                            </CardContent>
-                        </Card>
+
                     </div>
                 </div>
             </Container>
