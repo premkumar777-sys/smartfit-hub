@@ -273,48 +273,8 @@ All colors MUST be HSL.
   }
 }
 
-/* === Spark Border Animation for Feature Cards === */
-@property --spark-angle {
-  syntax: '<angle>';
-  inherits: false;
-  initial-value: 0deg;
-}
-
-@keyframes spark-spin {
-  to {
-    --spark-angle: 360deg;
-  }
-}
-
-.spark-card-wrapper {
-  border-radius: 1.5rem;
-  /* rounded-3xl */
-  padding: 1px;
-  background: conic-gradient(from var(--spark-angle),
-      transparent 0deg,
-      transparent 60deg,
-      rgba(0, 255, 156, 0.08) 100deg,
-      rgba(0, 255, 156, 0.55) 130deg,
-      rgba(120, 255, 214, 0.9) 140deg,
-      rgba(0, 255, 156, 0.55) 150deg,
-      rgba(0, 255, 156, 0.08) 190deg,
-      transparent 220deg,
-      transparent 360deg);
-  animation: spark-spin 4s linear infinite;
-}
-
+/* Spark border animation removed for performance */
+.spark-card-wrapper,
 .spark-card-wrapper-gold {
   border-radius: 1.5rem;
-  padding: 1px;
-  background: conic-gradient(from var(--spark-angle),
-      transparent 0deg,
-      transparent 60deg,
-      rgba(212, 175, 55, 0.08) 100deg,
-      rgba(212, 175, 55, 0.6) 130deg,
-      rgba(255, 215, 80, 0.95) 140deg,
-      rgba(212, 175, 55, 0.6) 150deg,
-      rgba(212, 175, 55, 0.08) 190deg,
-      transparent 220deg,
-      transparent 360deg);
-  animation: spark-spin 4s linear infinite;
 }
