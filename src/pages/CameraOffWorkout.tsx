@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Container } from '@/components/Container';
-import { TrainerScene } from '@/components/TrainerScene';
+
 import { AngleGuidance } from '@/components/AngleGuidance';
 import { WorkoutTimer } from '@/components/WorkoutTimer';
 import { useVoiceCoach } from '@/hooks/useVoiceCoach';
@@ -168,7 +168,7 @@ export default function CameraOffWorkout() {
   const [isWorkoutActive, setIsWorkoutActive] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
   const [voiceEnabled, setVoiceEnabled] = useState(true);
-  const [trainerMode, setTrainerMode] = useState<'3d' | 'real'>('3d');
+
   const [animationPhase, setAnimationPhase] = useState<'down' | 'up' | 'hold'>('hold');
   const [currentCueIndex, setCurrentCueIndex] = useState(0);
   const [activeVideo, setActiveVideo] = useState<typeof WORKOUT_VIDEOS[0] | null>(null);
@@ -255,20 +255,6 @@ export default function CameraOffWorkout() {
             Back
           </Button>
           <div className="flex items-center gap-2">
-            <div className="flex p-1 bg-muted rounded-lg border border-border mr-4">
-              <button
-                onClick={() => setTrainerMode('3d')}
-                className={`px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition-all ${trainerMode === '3d' ? 'bg-primary text-black shadow-lg' : 'text-muted-foreground hover:text-primary'}`}
-              >
-                3D AI
-              </button>
-              <button
-                onClick={() => setTrainerMode('real')}
-                className={`px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition-all ${trainerMode === 'real' ? 'bg-primary text-black shadow-lg' : 'text-muted-foreground hover:text-primary'}`}
-              >
-                Pure Real
-              </button>
-            </div>
             <Button
               variant="outline"
               size="sm"
@@ -305,37 +291,29 @@ export default function CameraOffWorkout() {
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Left: 3D Trainer */}
           <div className="lg:col-span-2 space-y-4">
-            {trainerMode === '3d' ? (
-              <TrainerScene
-                exercise={isWorkoutActive ? selectedExercise : 'idle'}
-                isAnimating={isWorkoutActive || selectedExercise !== 'idle'}
-              />
-            ) : (
-              <div className="relative w-full h-[400px] md:h-[500px] rounded-2xl overflow-hidden bg-black border border-primary/20 group">
-                {selectedExercise === 'idle' ? (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center space-y-4 bg-gradient-to-br from-neutral-900 to-black">
-                    <Video className="w-16 h-16 text-primary/20" />
-                    <p className="text-muted-foreground uppercase tracking-widest text-xs font-black">Select an exercise to initialize video</p>
-                  </div>
-                ) : (
-                  <video
-                    key={selectedExercise}
-                    src={`/${selectedExercise}.mp4`}
-                    autoPlay
-                    loop
-                    muted
-                    className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
-                  />
-                )}
-                <div className="absolute inset-0 pointer-events-none border-[1px] border-white/5 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
-                <div className="absolute bottom-6 left-6 flex items-center gap-3">
-                  <div className="px-3 py-1 rounded-full bg-primary/20 border border-primary/30 backdrop-blur-md">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-primary">Live Demonstration</span>
-                  </div>
+            <div className="relative w-full h-[400px] md:h-[500px] rounded-2xl overflow-hidden bg-black border border-primary/20 group">
+              {selectedExercise === 'idle' ? (
+                <div className="absolute inset-0 flex flex-col items-center justify-center space-y-4 bg-gradient-to-br from-neutral-900 to-black">
+                  <Video className="w-16 h-16 text-primary/20" />
+                  <p className="text-muted-foreground uppercase tracking-widest text-xs font-black">Select an exercise to initialize video</p>
+                </div>
+              ) : (
+                <video
+                  key={selectedExercise}
+                  src={`/${selectedExercise}.mp4`}
+                  autoPlay
+                  loop
+                  muted
+                  className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
+                />
+              )}
+              <div className="absolute inset-0 pointer-events-none border-[1px] border-white/5 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+              <div className="absolute bottom-6 left-6 flex items-center gap-3">
+                <div className="px-3 py-1 rounded-full bg-primary/20 border border-primary/30 backdrop-blur-md">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-primary">Live Demonstration</span>
                 </div>
               </div>
-            )}
-
+            </div>
             {/* Exercise selector */}
             <div className="bg-card/80 backdrop-blur-sm rounded-xl p-4 border border-border">
               <p className="text-sm font-semibold mb-3">Select Exercise:</p>
