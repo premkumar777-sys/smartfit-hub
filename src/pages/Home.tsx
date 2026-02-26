@@ -12,38 +12,51 @@ import { toast } from "sonner";
 
 const HeroBackground = lazy(() => import("@/components/Hero3DScene"));
 
-const TypewriterText = ({ text, delay = 80 }: { text: string; delay?: number }) => {
-  const [displayText, setDisplayText] = useState("");
+const CYCLING_WORDS = [
+  "TRAINING",
+  "MINDSET",
+  "JOURNEY",
+  "RESULTS",
+  "EVOLUTION",
+  "LEGACY",
+];
+
+const TypewriterText = ({
+  prefix,
+  words = CYCLING_WORDS,
+  delay = 80,
+}: {
+  prefix: string;
+  words?: string[];
+  delay?: number;
+}) => {
+  const [wordIndex, setWordIndex] = useState(0);
+  const [charIndex, setCharIndex] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const currentWord = words[wordIndex % words.length];
+  const displayText = prefix + currentWord.slice(0, charIndex);
 
   useEffect(() => {
     let timeout: NodeJS.Timeout;
 
-    if (!isDeleting && currentIndex < text.length) {
-      // Typing phase
-      timeout = setTimeout(() => {
-        setDisplayText((prev) => prev + text[currentIndex]);
-        setCurrentIndex((prev) => prev + 1);
-      }, delay);
-    } else if (!isDeleting && currentIndex === text.length) {
-      // Waiting phase (full text typed)
-      timeout = setTimeout(() => {
-        setIsDeleting(true);
-      }, 2000);
-    } else if (isDeleting && currentIndex > 0) {
-      // Deleting phase
-      timeout = setTimeout(() => {
-        setDisplayText((prev) => prev.slice(0, -1));
-        setCurrentIndex((prev) => prev - 1);
-      }, delay / 2); // Deleting is faster
-    } else if (isDeleting && currentIndex === 0) {
-      // Done deleting, restart loop
+    if (!isDeleting && charIndex < currentWord.length) {
+      // Typing the rotating word
+      timeout = setTimeout(() => setCharIndex((c) => c + 1), delay);
+    } else if (!isDeleting && charIndex === currentWord.length) {
+      // Pause after full word is typed
+      timeout = setTimeout(() => setIsDeleting(true), 2000);
+    } else if (isDeleting && charIndex > 0) {
+      // Deleting only the rotating word
+      timeout = setTimeout(() => setCharIndex((c) => c - 1), delay / 2);
+    } else if (isDeleting && charIndex === 0) {
+      // Move to next word
       setIsDeleting(false);
+      setWordIndex((i) => (i + 1) % words.length);
     }
 
     return () => clearTimeout(timeout);
-  }, [currentIndex, isDeleting, delay, text]);
+  }, [charIndex, isDeleting, currentWord, delay, words]);
 
   return (
     <span>
@@ -91,7 +104,11 @@ const Home = () => {
             >
               {isAuthenticated ? "Your Journey with" : "Transform Your Body with"}
               <span className="text-gradient block mt-2 pb-1">
-                <TypewriterText text={isAuthenticated ? "SmartFit AI" : "SmartFit AI Training"} />
+                {isAuthenticated ? (
+                  "SmartFit AI"
+                ) : (
+                  <TypewriterText prefix="SmartFit AI " />
+                )}
               </span>
             </motion.h1>
 
