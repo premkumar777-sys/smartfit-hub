@@ -1,4 +1,4 @@
-import { useState, useEffect, Suspense, lazy } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Zap, Bot, Brain, Eye, BarChart3, Utensils, Calendar, QrCode, Trophy, Wrench, Sparkles, LineChart, Laptop, Calculator } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -10,7 +10,6 @@ import { FeaturesCarousel } from "@/components/FeaturesCarousel";
 import { HowItWorksCarousel } from "@/components/HowItWorksCarousel";
 import { toast } from "sonner";
 
-const HeroBackground = lazy(() => import("@/components/Hero3DScene"));
 
 const CYCLING_WORDS = [
   "TRAINING",
@@ -73,11 +72,7 @@ const Home = () => {
     <div className="min-h-screen">
       {/* Hero Section */}
       <section className="relative overflow-hidden py-20">
-        <div className="absolute inset-0 z-0 opacity-30 pointer-events-none hero-3d-scene">
-          <Suspense fallback={null}>
-            <HeroBackground />
-          </Suspense>
-        </div>
+
         <div className="relative z-10 max-w-4xl mx-auto px-6">
           <motion.div
             className="text-center space-y-8"
