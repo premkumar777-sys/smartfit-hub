@@ -250,7 +250,7 @@ const Dashboard = () => {
           </div>
           <div className="flex gap-2">
             <Button asChild variant="hero" size="lg">
-              <Link to="/workout-session">
+              <Link to="/ai-trainer">
                 Start Workout
               </Link>
             </Button>
@@ -339,7 +339,7 @@ const Dashboard = () => {
                   </p>
                   <div className="flex gap-2">
                     <Button asChild size="sm">
-                      <Link to="/workout-session">Start This Session</Link>
+                      <Link to="/ai-trainer">Start This Session</Link>
                     </Button>
                   </div>
                 </div>
