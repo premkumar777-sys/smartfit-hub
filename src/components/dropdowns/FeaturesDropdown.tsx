@@ -40,7 +40,7 @@ const features = [
     icon: Zap,
     title: "Real-time Form AI",
     description: "Get instant feedback on your form using computer vision",
-    href: "/ai-trainer"
+    href: "/workout-session"
   }
 ];
 

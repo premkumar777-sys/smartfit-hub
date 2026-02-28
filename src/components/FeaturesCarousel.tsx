@@ -34,7 +34,7 @@ const features = [
         description: "Advanced computer vision analyzes your movement in real-time to ensure perfect safety and form.",
         gradient: "from-cyan-500 to-blue-600",
         bgGlow: "rgba(6, 182, 212, 0.15)",
-        link: "/ai-trainer",
+        link: "/workout-session",
     },
     {
         icon: Sparkles,
