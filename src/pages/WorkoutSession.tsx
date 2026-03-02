@@ -14,6 +14,12 @@ import {
     Zap,
     TrendingUp,
     CheckCircle2,
+    Flame,
+    Dumbbell,
+    PersonStanding,
+    ArrowUpDown,
+    Waves,
+    Footprints,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/Container";
@@ -22,7 +28,7 @@ import * as poseDetection from "@tensorflow-models/pose-detection";
 import * as tf from "@tensorflow/tfjs";
 
 // ─── Types ─────────────────────────────────────────────
-type Exercise = "squat" | "pushup" | "bicepCurl";
+type Exercise = "squat" | "pushup" | "bicepCurl" | "lunge" | "shoulderPress" | "tricepExtension" | "lateralRaise" | "romanianDeadlift" | "jumpingJack";
 
 interface ExerciseConfig {
     id: Exercise;
@@ -48,7 +54,7 @@ const EXERCISES: ExerciseConfig[] = [
         id: "squat",
         name: "Squats",
         icon: <Activity className="w-5 h-5" />,
-        description: "Track your squat depth and knee alignment",
+        description: "Track squat depth and knee alignment",
         targetAngles: { joint: "knee", down: 90, up: 160 },
         keypointsUsed: ["left_hip", "left_knee", "left_ankle"],
         tips: [
@@ -62,7 +68,7 @@ const EXERCISES: ExerciseConfig[] = [
         id: "pushup",
         name: "Push-ups",
         icon: <Target className="w-5 h-5" />,
-        description: "Monitor elbow angle and body alignment",
+        description: "Monitor elbow angle and body line",
         targetAngles: { joint: "elbow", down: 90, up: 160 },
         keypointsUsed: ["left_shoulder", "left_elbow", "left_wrist"],
         tips: [
@@ -76,7 +82,7 @@ const EXERCISES: ExerciseConfig[] = [
         id: "bicepCurl",
         name: "Bicep Curls",
         icon: <Zap className="w-5 h-5" />,
-        description: "Track curl range of motion and elbow position",
+        description: "Track curl range of motion and form",
         targetAngles: { joint: "elbow", down: 160, up: 40 },
         keypointsUsed: ["left_shoulder", "left_elbow", "left_wrist"],
         tips: [
@@ -84,6 +90,90 @@ const EXERCISES: ExerciseConfig[] = [
             "Control the movement both ways",
             "Squeeze at the top",
             "Don't swing the weights",
+        ],
+    },
+    {
+        id: "lunge",
+        name: "Lunges",
+        icon: <Footprints className="w-5 h-5" />,
+        description: "Track front knee angle and hip depth",
+        targetAngles: { joint: "knee", down: 90, up: 160 },
+        keypointsUsed: ["left_hip", "left_knee", "left_ankle"],
+        tips: [
+            "Step forward with one foot",
+            "Lower back knee toward the floor",
+            "Front knee stays over ankle",
+            "Keep torso upright and core tight",
+        ],
+    },
+    {
+        id: "shoulderPress",
+        name: "Shoulder Press",
+        icon: <ArrowUpDown className="w-5 h-5" />,
+        description: "Track overhead press range of motion",
+        targetAngles: { joint: "elbow", down: 90, up: 160 },
+        keypointsUsed: ["left_shoulder", "left_elbow", "left_wrist"],
+        tips: [
+            "Start with elbows at 90° at shoulder height",
+            "Press straight up, lock out at the top",
+            "Keep core braced throughout",
+            "Don't flare elbows too wide",
+        ],
+    },
+    {
+        id: "tricepExtension",
+        name: "Tricep Extension",
+        icon: <Flame className="w-5 h-5" />,
+        description: "Track elbow extension overhead",
+        targetAngles: { joint: "elbow", down: 50, up: 160 },
+        keypointsUsed: ["left_shoulder", "left_elbow", "left_wrist"],
+        tips: [
+            "Keep upper arms still beside ears",
+            "Lower weight behind head with control",
+            "Fully extend at the top to squeeze triceps",
+            "Don't flare elbows outward",
+        ],
+    },
+    {
+        id: "lateralRaise",
+        name: "Lateral Raises",
+        icon: <Waves className="w-5 h-5" />,
+        description: "Track shoulder raise angle",
+        targetAngles: { joint: "shoulder", down: 20, up: 85 },
+        keypointsUsed: ["left_hip", "left_shoulder", "left_elbow"],
+        tips: [
+            "Slight bend in elbows throughout",
+            "Raise to shoulder height, not higher",
+            "Control the descent slowly",
+            "Avoid shrugging shoulders",
+        ],
+    },
+    {
+        id: "romanianDeadlift",
+        name: "Romanian Deadlift",
+        icon: <Dumbbell className="w-5 h-5" />,
+        description: "Track hip hinge depth and back angle",
+        targetAngles: { joint: "hip", down: 70, up: 160 },
+        keypointsUsed: ["left_shoulder", "left_hip", "left_knee"],
+        tips: [
+            "Hinge at the hips, not the waist",
+            "Keep back flat throughout the movement",
+            "Soft bend in knees, feel the hamstrings",
+            "Drive hips forward to stand up",
+        ],
+    },
+    {
+        id: "jumpingJack",
+        name: "Jumping Jacks",
+        icon: <PersonStanding className="w-5 h-5" />,
+        description: "Track arm raise and full-body movement",
+        targetAngles: { joint: "shoulder", down: 20, up: 150 },
+        keypointsUsed: ["left_hip", "left_shoulder", "left_elbow"],
+        tips: [
+            "Land softly on balls of feet",
+            "Raise arms fully overhead each rep",
+            "Keep a steady rhythm",
+            "Engage core throughout",
         ],
     },
 ];
@@ -379,32 +469,64 @@ const WorkoutSession = () => {
         let feedback = "";
         let feedbackType: RepState["feedbackType"] = "info";
 
-        if (selectedExercise === "bicepCurl") {
-            // Bicep curl: low angle = curled up, high angle = extended
-            if (current.phase === "up" && angle > 140) {
+        if (selectedExercise === "bicepCurl" || selectedExercise === "tricepExtension") {
+            // Curl-type: low angle = fully curled/extended, high angle = starting position
+            const extendedThreshold = selectedExercise === "tricepExtension" ? 150 : 140;
+            const contractedThreshold = selectedExercise === "tricepExtension" ? 60 : 50;
+            if (current.phase === "up" && angle > extendedThreshold) {
                 newPhase = "down";
-                feedback = "Good extension! Now curl up";
+                feedback = selectedExercise === "tricepExtension" ? "Good! Now extend fully" : "Good extension! Now curl up";
                 feedbackType = "good";
-            } else if (current.phase === "down" && angle < 50) {
+            } else if (current.phase === "down" && angle < contractedThreshold) {
                 newPhase = "up";
                 newCount = current.count + 1;
-                feedback = `Rep ${newCount}! Great squeeze! 💪`;
+                feedback = `Rep ${newCount}! ${selectedExercise === "tricepExtension" ? "Squeeze those triceps! 💪" : "Great squeeze! 💪"}`;
                 feedbackType = "good";
-            } else if (current.phase === "down" && angle < 80) {
-                feedback = "Keep curling up, squeeze at the top";
+            } else if (current.phase === "down") {
+                feedback = selectedExercise === "tricepExtension" ? "Extend arms fully overhead" : "Keep curling, squeeze at the top";
                 feedbackType = "info";
-            } else if (current.phase === "up" && angle < 120) {
-                feedback = "Extend your arm fully";
-                feedbackType = "warning";
             } else {
-                feedback = angle < 90 ? "Squeeze at the top!" : "Controlled movement";
+                feedback = selectedExercise === "tricepExtension" ? "Lower weight behind head" : "Extend arm fully";
+                feedbackType = "info";
+            }
+        } else if (selectedExercise === "lateralRaise" || selectedExercise === "jumpingJack") {
+            // Raise-type: high angle = arms raised, low angle = arms down
+            if (current.phase === "down" && angle > config.targetAngles.up - 10) {
+                newPhase = "up";
+                feedback = selectedExercise === "jumpingJack" ? "Arms up! Now back down" : "Shoulder height — now lower with control";
+                feedbackType = "good";
+            } else if (current.phase === "up" && angle < config.targetAngles.down + 10) {
+                newPhase = "down";
+                newCount = current.count + 1;
+                feedback = `Rep ${newCount}! Keep going! 🔥`;
+                feedbackType = "good";
+            } else if (current.phase === "down") {
+                feedback = selectedExercise === "jumpingJack" ? "Raise arms overhead" : "Raise arms to shoulder height";
+                feedbackType = "info";
+            } else {
+                feedback = "Lower arms back down";
                 feedbackType = "info";
             }
         } else {
-            // Squat & Pushup: low angle = bottom position
+            // Squat, Pushup, Lunge, Shoulder Press, Romanian Deadlift
+            // Low angle = bottom / contracted, high angle = top / extended
+            const depthMessages: Record<string, string> = {
+                squat: "Great depth! Now push up",
+                pushup: "Good depth! Push up strong",
+                lunge: "Deep lunge! Now stand back up",
+                shoulderPress: "Arms overhead! Now lower with control",
+                romanianDeadlift: "Good hip hinge! Drive hips forward to stand",
+            };
+            const driveMessages: Record<string, string> = {
+                squat: "Go lower, aim for 90° at the knee",
+                pushup: "Lower your chest more",
+                lunge: "Lower the back knee toward the floor",
+                shoulderPress: "Lower to 90° at the elbows",
+                romanianDeadlift: "Hinge deeper at the hips",
+            };
             if (current.phase === "up" && angle < config.targetAngles.down + 10) {
                 newPhase = "down";
-                feedback = selectedExercise === "squat" ? "Great depth! Now push up" : "Good depth! Now push up";
+                feedback = depthMessages[selectedExercise] ?? "Good depth! Now push up";
                 feedbackType = "good";
             } else if (current.phase === "down" && angle > config.targetAngles.up - 10) {
                 newPhase = "up";
@@ -412,10 +534,7 @@ const WorkoutSession = () => {
                 feedback = `Rep ${newCount}! Keep it up! 🔥`;
                 feedbackType = "good";
             } else if (current.phase === "up" && angle > config.targetAngles.up - 20) {
-                feedback = selectedExercise === "squat" ? "Go lower, aim for 90° at the knee" : "Lower yourself more";
-                feedbackType = "info";
-            } else if (current.phase === "up" && angle < config.targetAngles.down + 30) {
-                feedback = "Almost there, keep going down!";
+                feedback = driveMessages[selectedExercise] ?? "Go deeper";
                 feedbackType = "info";
             } else {
                 feedback = "Good form, keep going!";
@@ -489,7 +608,7 @@ const WorkoutSession = () => {
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="grid grid-cols-1 sm:grid-cols-3 gap-4"
+                        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
                     >
                         {EXERCISES.map((ex) => (
                             <button
@@ -503,14 +622,14 @@ const WorkoutSession = () => {
                                     }));
                                 }}
                                 className={`group relative p-6 rounded-2xl border transition-all duration-300 text-left ${selectedExercise === ex.id
-                                        ? "border-primary bg-primary/10 shadow-lg shadow-primary/20"
-                                        : "border-border bg-card/50 hover:border-primary/50 hover:bg-card/80"
+                                    ? "border-primary bg-primary/10 shadow-lg shadow-primary/20"
+                                    : "border-border bg-card/50 hover:border-primary/50 hover:bg-card/80"
                                     }`}
                             >
                                 <div
                                     className={`w-12 h-12 rounded-xl flex items-center justify-center mb-3 transition-colors ${selectedExercise === ex.id
-                                            ? "bg-primary text-white"
-                                            : "bg-muted text-muted-foreground group-hover:bg-primary/20 group-hover:text-primary"
+                                        ? "bg-primary text-white"
+                                        : "bg-muted text-muted-foreground group-hover:bg-primary/20 group-hover:text-primary"
                                         }`}
                                 >
                                     {ex.icon}
@@ -612,10 +731,10 @@ const WorkoutSession = () => {
 
                                     <div
                                         className={`absolute bottom-4 left-4 right-4 rounded-xl px-4 py-3 border backdrop-blur-sm ${repState.feedbackType === "good"
-                                                ? "bg-green-500/20 border-green-500/30 text-green-400"
-                                                : repState.feedbackType === "warning"
-                                                    ? "bg-yellow-500/20 border-yellow-500/30 text-yellow-400"
-                                                    : "bg-blue-500/20 border-blue-500/30 text-blue-400"
+                                            ? "bg-green-500/20 border-green-500/30 text-green-400"
+                                            : repState.feedbackType === "warning"
+                                                ? "bg-yellow-500/20 border-yellow-500/30 text-yellow-400"
+                                                : "bg-blue-500/20 border-blue-500/30 text-blue-400"
                                             }`}
                                     >
                                         <p className="text-sm font-medium text-center">
@@ -693,8 +812,8 @@ const WorkoutSession = () => {
                                 <span className="text-sm text-muted-foreground">Phase</span>
                                 <span
                                     className={`text-sm font-bold uppercase px-3 py-1 rounded-full ${repState.phase === "down"
-                                            ? "bg-orange-500/20 text-orange-400"
-                                            : "bg-green-500/20 text-green-400"
+                                        ? "bg-orange-500/20 text-orange-400"
+                                        : "bg-green-500/20 text-green-400"
                                         }`}
                                 >
                                     {repState.phase}
