@@ -16,7 +16,6 @@ import { cn } from "@/lib/utils";
 // Lazy load dropdown content
 const FeaturesDropdown = lazy(() => import("./dropdowns/FeaturesDropdown"));
 const GymsDropdown = lazy(() => import("./dropdowns/GymsDropdown"));
-const BusinessDropdown = lazy(() => import("./dropdowns/BusinessDropdown"));
 
 
 const menuStructure = [
@@ -32,12 +31,6 @@ const menuStructure = [
     dropdown: "gyms",
     isMega: true,
     badge: "New"
-  },
-  {
-    label: "For Business",
-    hasDropdown: true,
-    dropdown: "business",
-    isMega: true
   },
   {
     label: "AI Workout",
@@ -111,12 +104,7 @@ export function Header() {
             <GymsDropdown />
           </Suspense>
         );
-      case "business":
-        return (
-          <Suspense fallback={<div className="p-8 text-center">Loading...</div>}>
-            <BusinessDropdown />
-          </Suspense>
-        );
+
       default:
         return null;
     }
@@ -308,6 +296,14 @@ export function Header() {
               </div>
 
               <div className="flex items-center space-x-4">
+                {/* For Business link - always visible */}
+                <Link
+                  to="/business"
+                  className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors border border-border hover:border-primary/50 px-3 py-1.5 rounded-lg"
+                >
+                  For Business →
+                </Link>
+
                 {/* My Dashboard Button - Only for logged-in users */}
                 {isAuthenticated && !isLoading ? (
                   <Button
