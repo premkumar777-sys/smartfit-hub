@@ -218,6 +218,7 @@ const WorkoutSession = () => {
     // Refs
     const videoRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const cameraRef = useRef<HTMLDivElement>(null);
     const detectorRef = useRef<poseDetection.PoseDetector | null>(null);
     const animFrameRef = useRef<number | null>(null);
     const streamRef = useRef<MediaStream | null>(null);
@@ -620,6 +621,9 @@ const WorkoutSession = () => {
                                         feedback: `${ex.name} selected. Start the camera to begin!`,
                                         feedbackType: "info",
                                     }));
+                                    setTimeout(() => {
+                                        cameraRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+                                    }, 100);
                                 }}
                                 className={`group relative p-6 rounded-2xl border transition-all duration-300 text-left ${selectedExercise === ex.id
                                     ? "border-primary bg-primary/10 shadow-lg shadow-primary/20"
@@ -652,7 +656,7 @@ const WorkoutSession = () => {
                 {/* Main Content */}
                 <div className="grid lg:grid-cols-3 gap-6">
                     {/* Camera Feed */}
-                    <div className="lg:col-span-2">
+                    <div ref={cameraRef} className="lg:col-span-2">
                         <div className="relative rounded-2xl overflow-hidden bg-black/90 border border-border aspect-video">
                             {/* Video (hidden, used as source) */}
                             <video
