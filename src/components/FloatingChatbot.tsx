@@ -362,7 +362,7 @@ export const FloatingChatbot = () => {
                   <Send className="w-6 h-6" />
                 </Button>
               </form>
-              <p className="text-[10px] text-center mt-4 text-white/20 uppercase tracking-widest font-medium">
+              <p className="text-[10px] text-center mt-4 text-white uppercase tracking-widest font-medium">
                 Powered by SmartFit Advanced Neural Engine
               </p>
             </div>
