@@ -301,20 +301,6 @@ const Home = () => {
                 description: "Complete 6-day workout plan you can do anywhere – no equipment needed",
                 link: "/home-workouts",
               },
-              {
-                icon: LineChart,
-                title: "AI Analytics Dashboard",
-                description: "Deep learning insights into your workout performance and predictive trend analysis",
-                link: "/gym-analytics/ai",
-                isBusinessOnly: true
-              },
-              {
-                icon: Wrench,
-                title: "Trainer Performance Tools",
-                description: "Advanced tools for trainers to optimize client results and track progress",
-                link: "/trainer-tools",
-                isBusinessOnly: true
-              },
             ].map((feature, index) => (
               <FeatureCard
                 key={feature.title}

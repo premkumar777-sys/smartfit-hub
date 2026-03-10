@@ -11,8 +11,6 @@ export default function Pricing() {
         "AI Workout Generation",
         "Real-time AI Form Detection",
         "Nutrition & Macro Tracking",
-        "Gym Business Analytics",
-        "Client Management Suite",
         "Advanced Gamification",
         "Progress Analytics",
         "Home Workout access"
@@ -67,7 +65,7 @@ export default function Pricing() {
                                 <span className="text-sm text-muted-foreground ml-2">Forever</span>
                             </div>
                             <p className="mt-2 text-sm text-muted-foreground">
-                                Everything you need to transform your fitness or manage your gym.
+                                Everything you need to transform your fitness.
                             </p>
                         </div>
 
