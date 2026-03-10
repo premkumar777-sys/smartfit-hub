@@ -161,7 +161,7 @@ export const FloatingChatbot = () => {
         aria-label="Open chat"
       >
         <div className="absolute inset-0 rounded-full bg-white/10 animate-pulse" />
-        <MessageCircle className="w-8 h-8 text-black drop-shadow-sm relative z-10" />
+        <Bot className="w-8 h-8 text-black drop-shadow-sm relative z-10" />
         <span className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-[#0a0a0a] z-20" />
       </motion.button>
 
