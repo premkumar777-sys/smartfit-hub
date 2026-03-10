@@ -144,75 +144,89 @@ export const FloatingChatbot = () => {
       <motion.button
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full shadow-lg",
-          "bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70",
-          "flex items-center justify-center transition-all duration-300",
-          "border border-primary/20",
-          isOpen && "scale-0 opacity-0"
+          "fixed bottom-6 right-6 z-50 w-16 h-16 rounded-full shadow-[0_0_20px_rgba(0,255,156,0.4)]",
+          "bg-gradient-to-br from-[#00FF9C] via-[#4CC9F0] to-[#7B2CBF]",
+          "flex items-center justify-center transition-all duration-500",
+          "border border-white/20 backdrop-blur-sm",
+          isOpen && "scale-0 opacity-0 rotate-180"
         )}
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.95 }}
+        whileHover={{
+          scale: 1.1,
+          rotate: 5,
+          shadow: "0 0 30px rgba(0,255,156,0.6)"
+        }}
+        whileTap={{ scale: 0.9 }}
+        initial={{ scale: 0, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
         aria-label="Open chat"
       >
-        <MessageCircle className="w-6 h-6 text-primary-foreground" />
-        <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-pulse" />
+        <div className="absolute inset-0 rounded-full bg-white/10 animate-pulse" />
+        <MessageCircle className="w-8 h-8 text-black drop-shadow-sm relative z-10" />
+        <span className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-[#0a0a0a] z-20" />
       </motion.button>
 
       {/* Chat Panel */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            transition={{ duration: 0.2 }}
+            initial={{ opacity: 0, y: 100, scale: 0.8, filter: "blur(10px)" }}
+            animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
+            exit={{ opacity: 0, y: 100, scale: 0.8, filter: "blur(10px)" }}
+            transition={{ type: "spring", damping: 25, stiffness: 200 }}
             className={cn(
-              "fixed bottom-6 right-6 z-50 w-[380px] max-w-[calc(100vw-3rem)]",
-              "h-[600px] max-h-[calc(100vh-6rem)]",
-              "bg-background border border-border rounded-2xl shadow-2xl",
-              "flex flex-col overflow-hidden"
+              "fixed bottom-6 right-6 z-50 w-[400px] max-w-[calc(100vw-2rem)]",
+              "h-[650px] max-h-[calc(100vh-6rem)]",
+              "bg-black/80 backdrop-blur-2xl border border-white/10 rounded-[2rem] shadow-[0_0_50px_rgba(0,0,0,0.5)]",
+              "flex flex-col overflow-hidden ring-1 ring-white/20"
             )}
           >
+            {/* Dynamic Neon Border Glow */}
+            <div className="absolute inset-0 rounded-[2rem] pointer-events-none opacity-20 bg-gradient-to-tr from-[#00FF9C]/20 via-transparent to-[#7B2CBF]/20" />
+
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-border bg-gradient-to-r from-primary/10 to-primary/5">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
-                  <Bot className="w-5 h-5 text-primary-foreground" />
+            <div className="relative flex items-center justify-between p-6 border-b border-white/10 bg-white/5">
+              <div className="flex items-center gap-4">
+                <div className="relative">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#00FF9C] to-[#4CC9F0] flex items-center justify-center rotate-3">
+                    <Bot className="w-7 h-7 text-black -rotate-3" />
+                  </div>
+                  <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-black animate-pulse" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-foreground">SmartFit AI</h3>
-                  <p className="text-xs text-muted-foreground flex items-center gap-1">
-                    <span className="w-2 h-2 bg-green-500 rounded-full" />
-                    Online
-                  </p>
+                  <h3 className="font-bold text-white tracking-tight text-lg">SmartFit AI</h3>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 font-bold uppercase tracking-widest border border-green-500/20">
+                      Active
+                    </span>
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-2">
                 {messages.length > 0 && (
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="hover:bg-destructive/10 hover:text-destructive h-8 w-8"
+                        className="hover:bg-red-500/10 hover:text-red-400 text-white/40 h-10 w-10 transition-colors"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-5 h-5" />
                       </Button>
                     </AlertDialogTrigger>
-                    <AlertDialogContent className="w-[90vw] max-w-[340px] rounded-2xl">
+                    <AlertDialogContent className="bg-black/95 backdrop-blur-xl border-white/10 rounded-3xl">
                       <AlertDialogHeader>
-                        <AlertDialogTitle>Clear chat history?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          This will permanently delete all messages in this conversation.
+                        <AlertDialogTitle className="text-white text-xl">Reset Conversation?</AlertDialogTitle>
+                        <AlertDialogDescription className="text-white/60">
+                          This will clear all messages and reset the AI's context for this session.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
-                      <AlertDialogFooter className="flex-row gap-2 sm:justify-end">
-                        <AlertDialogCancel className="mt-0 rounded-full">Cancel</AlertDialogCancel>
+                      <AlertDialogFooter className="mt-2">
+                        <AlertDialogCancel className="bg-white/5 border-white/10 text-white rounded-2xl hover:bg-white/10">Cancel</AlertDialogCancel>
                         <AlertDialogAction
                           onClick={handleClearHistory}
-                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-full"
+                          className="bg-red-500 hover:bg-red-600 text-white rounded-2xl border-none shadow-lg shadow-red-500/20"
                         >
-                          Clear
+                          Clear Now
                         </AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>
@@ -222,108 +236,140 @@ export const FloatingChatbot = () => {
                   variant="ghost"
                   size="icon"
                   onClick={() => setIsOpen(false)}
-                  className="hover:bg-destructive/10 hover:text-destructive"
+                  className="hover:bg-white/10 text-white/40 hover:text-white h-10 w-10 transition-all"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-6 h-6" />
                 </Button>
               </div>
             </div>
-            {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+
+            {/* Messages Area */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-none">
               {messages.length === 0 ? (
-                <div className="text-center py-8">
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                    <Sparkles className="w-8 h-8 text-primary" />
+                <div className="h-full flex flex-col items-center justify-center text-center space-y-6">
+                  <motion.div
+                    initial={{ scale: 0.5, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="w-20 h-20 rounded-3xl bg-gradient-to-br from-[#00FF9C]/20 to-[#4CC9F0]/20 flex items-center justify-center ring-1 ring-white/10"
+                  >
+                    <Sparkles className="w-10 h-10 text-[#00FF9C]" />
+                  </motion.div>
+                  <div className="space-y-2">
+                    <h4 className="text-2xl font-bold text-white tracking-tight">
+                      Elevate Your Journey
+                    </h4>
+                    <p className="text-sm text-white/40 max-w-[200px] mx-auto">
+                      I'm your personal AI fitness strategist. How can we improve today?
+                    </p>
                   </div>
-                  <h4 className="font-semibold text-foreground mb-2">
-                    Hi 👋 I'm SmartFit AI Assistant
-                  </h4>
-                  <p className="text-sm text-muted-foreground mb-6">
-                    Ask me anything! I'm here to help.
-                  </p>
-                  <div className="flex flex-wrap gap-2 justify-center">
+                  <div className="grid grid-cols-1 gap-2 w-full max-w-[260px]">
                     {suggestedQuestions.map((question, i) => (
-                      <button
+                      <motion.button
                         key={i}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.1 }}
                         onClick={() => handleSuggestion(question)}
-                        className="text-xs px-3 py-2 rounded-full bg-secondary hover:bg-secondary/80 text-secondary-foreground transition-colors"
+                        className="text-xs text-left px-4 py-3 rounded-2xl bg-white/5 hover:bg-white/10 text-white/70 hover:text-white border border-white/5 hover:border-white/20 transition-all duration-300"
                       >
                         {question}
-                      </button>
+                      </motion.button>
                     ))}
                   </div>
                 </div>
               ) : (
-                messages.map((msg, i) => (
-                  <div
-                    key={i}
-                    className={cn(
-                      "flex",
-                      msg.role === "user" ? "justify-end" : "justify-start"
-                    )}
-                  >
-                    <div
+                <div className="space-y-4">
+                  {messages.map((msg, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
                       className={cn(
-                        "max-w-[80%] px-4 py-2.5 rounded-2xl text-sm",
-                        msg.role === "user"
-                          ? "bg-primary text-primary-foreground rounded-br-md"
-                          : "bg-secondary text-secondary-foreground rounded-bl-md"
+                        "flex items-end gap-2",
+                        msg.role === "user" ? "flex-row-reverse" : "flex-row"
                       )}
                     >
-                      {msg.content}
-                    </div>
-                  </div>
-                ))
+                      <div
+                        className={cn(
+                          "max-w-[85%] px-5 py-3.5 rounded-[1.5rem] text-[15px] leading-relaxed shadow-lg",
+                          msg.role === "user"
+                            ? "bg-gradient-to-br from-[#4CC9F0] to-[#7B2CBF] text-white rounded-br-none"
+                            : "bg-white/10 text-white/90 border border-white/10 backdrop-blur-md rounded-bl-none"
+                        )}
+                      >
+                        {msg.content}
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
               )}
 
               {isLoading && (
-                <div className="flex justify-start">
-                  <div className="bg-secondary px-4 py-3 rounded-2xl rounded-bl-md">
-                    <div className="flex gap-1.5">
-                      <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" />
-                      <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce [animation-delay:0.1s]" />
-                      <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce [animation-delay:0.2s]" />
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="flex justify-start items-center gap-3"
+                >
+                  <div className="bg-white/5 border border-white/10 px-4 py-4 rounded-3xl rounded-bl-none">
+                    <div className="flex gap-2">
+                      <div className="w-2 h-2 bg-[#00FF9C] rounded-full animate-bounce [animation-duration:0.8s]" />
+                      <div className="w-2 h-2 bg-[#4CC9F0] rounded-full animate-bounce [animation-delay:0.2s] [animation-duration:0.8s]" />
+                      <div className="w-2 h-2 bg-[#7B2CBF] rounded-full animate-bounce [animation-delay:0.4s] [animation-duration:0.8s]" />
                     </div>
                   </div>
-                </div>
+                </motion.div>
               )}
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Input */}
-            <form
-              onSubmit={handleSubmit}
-              className="p-4 border-t border-border bg-background"
-            >
-              <div className="flex gap-2">
-                <input
-                  ref={inputRef}
-                  type="text"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder="Type your message..."
-                  disabled={isLoading}
-                  className={cn(
-                    "flex-1 px-4 py-2.5 rounded-full text-sm",
-                    "bg-secondary border-0 outline-none",
-                    "placeholder:text-muted-foreground",
-                    "focus:ring-2 focus:ring-primary/50",
-                    "disabled:opacity-50"
+            {/* Input Form */}
+            <div className="p-6 bg-white/5 border-t border-white/10">
+              <form
+                onSubmit={handleSubmit}
+                className="relative flex gap-3 items-center"
+              >
+                <div className="relative flex-1 group">
+                  <input
+                    ref={inputRef}
+                    type="text"
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    placeholder="Message SmartFit AI..."
+                    disabled={isLoading}
+                    className={cn(
+                      "w-full px-6 py-4 rounded-2xl text-sm transition-all",
+                      "bg-white/5 border border-white/10 outline-none text-white",
+                      "placeholder:text-white/30",
+                      "focus:bg-white/10 focus:border-[#4CC9F0]/50 focus:ring-4 focus:ring-[#4CC9F0]/10",
+                      "disabled:opacity-50"
+                    )}
+                  />
+                  {!input && (
+                    <Sparkles className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 pointer-events-none group-focus-within:text-[#00FF9C]/50 transition-colors" />
                   )}
-                />
+                </div>
                 <Button
                   type="submit"
                   size="icon"
                   disabled={!input.trim() || isLoading}
-                  className="rounded-full w-10 h-10 shrink-0"
+                  className={cn(
+                    "rounded-2xl w-14 h-14 shrink-0 transition-all duration-300",
+                    input.trim()
+                      ? "bg-[#00FF9C] text-black shadow-[0_0_20px_rgba(0,255,156,0.3)] hover:scale-105"
+                      : "bg-white/10 text-white/30"
+                  )}
                 >
-                  <Send className="w-4 h-4" />
+                  <Send className="w-6 h-6" />
                 </Button>
-              </div>
-            </form>
+              </form>
+              <p className="text-[10px] text-center mt-4 text-white/20 uppercase tracking-widest font-medium">
+                Powered by SmartFit Advanced Neural Engine
+              </p>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
+
     </>
   );
 };
