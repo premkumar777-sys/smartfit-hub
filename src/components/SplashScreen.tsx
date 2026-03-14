@@ -27,7 +27,14 @@ export const SplashScreen = () => {
                  {`
                    @keyframes logoPulse {
                      0%, 100% { transform: scale(1); }
-                     50% { transform: scale(1.1); }
+                     50% { transform: scale(1.03); }
+                   }
+                   @keyframes loadingEllipsis {
+                     0% { content: ''; }
+                     25% { content: '.'; }
+                     50% { content: '..'; }
+                     75% { content: '...'; }
+                     100% { content: ''; }
                    }
                  `}
                </style>
@@ -36,7 +43,7 @@ export const SplashScreen = () => {
                  src="/favicon.png" 
                  alt="SmartFit Hub Logo" 
                  className="relative w-20 h-20 sm:w-24 sm:h-24 object-contain filter drop-shadow-[0_0_12px_rgba(0,255,156,0.5)] z-20"
-                 style={{ animation: 'logoPulse 2s ease-in-out infinite' }}
+                 style={{ animation: 'logoPulse 3s ease-in-out infinite' }}
                />
             </div>
             
@@ -46,8 +53,7 @@ export const SplashScreen = () => {
             </h1>
             
             <div className="flex items-center space-x-2 text-zinc-400 font-mono text-sm tracking-widest mt-4">
-              <Loader2 className="w-4 h-4 animate-spin text-[#00FF9C]" />
-              <span>INITIALIZING</span>
+              <span className="after:inline-block after:animate-[loadingEllipsis_2s_steps(4,end)_infinite] after:content-[''] after:w-4">INITIALIZING</span>
             </div>
         </div>
       </div>
