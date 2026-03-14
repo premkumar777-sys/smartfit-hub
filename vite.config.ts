@@ -14,8 +14,8 @@ export default defineConfig(({ mode }) => {
       registerType: 'autoUpdate',
       includeAssets: ['favicon.png', 'robots.txt', 'apple-touch-icon.png'],
       manifest: {
-        name: 'SmartFit AI - Training Hub',
-        short_name: 'SmartFit',
+        name: 'SFitNex - Training Hub',
+        short_name: 'SFitNex',
         description: 'AI-Powered Personal Training & Smart Fitness Hub',
         theme_color: '#0a0a0a',
         background_color: '#0a0a0a',

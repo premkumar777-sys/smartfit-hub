@@ -122,7 +122,7 @@ export const FeaturesCarousel = () => {
                         Powerful <span className="text-gradient">Features</span>
                     </h2>
                     <p className="text-gray-400 max-w-xl mx-auto">
-                        Discover what makes SmartFit Hub the ultimate fitness companion
+                        Discover what makes SFitNex Hub the ultimate fitness companion
                     </p>
                 </motion.div>
 

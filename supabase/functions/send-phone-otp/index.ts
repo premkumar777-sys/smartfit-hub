@@ -94,7 +94,7 @@ serve(async (req) => {
       }
 
       const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${twilioAccountSid}/Messages.json`;
-      const smsBody = `Your SmartFit AI verification code is: ${newOtp}. This code expires in 5 minutes.`;
+      const smsBody = `Your SFitNex verification code is: ${newOtp}. This code expires in 5 minutes.`;
 
       const twilioResponse = await fetch(twilioUrl, {
         method: "POST",

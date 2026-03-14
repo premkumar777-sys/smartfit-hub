@@ -46,7 +46,7 @@ export const SplashScreen = () => {
                <div className="absolute inset-0 bg-[#00FF9C] blur-[20px] opacity-20 animate-pulse"></div>
                <img 
                  src="/favicon.png" 
-                 alt="SmartFit Hub Logo" 
+                 alt="SFitNex Hub Logo" 
                  className="relative w-20 h-20 sm:w-24 sm:h-24 object-contain filter drop-shadow-[0_0_12px_rgba(0,255,156,0.5)] z-20"
                  style={{ animation: 'logoPulse 3s ease-in-out infinite' }}
                />
@@ -54,7 +54,7 @@ export const SplashScreen = () => {
             
             {/* Text branding */}
             <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-wider mb-2">
-              SmartFit<span className="text-[#00FF9C]">AI</span>
+              SFitNex
             </h1>
             
             <div className="flex items-center space-x-2 text-zinc-400 font-mono text-sm tracking-widest mt-4">

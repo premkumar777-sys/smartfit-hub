@@ -30,7 +30,7 @@ export default function Pricing() {
                         transition={{ duration: 0.5 }}
                     >
                         <Badge className="mb-4 bg-primary/10 text-primary border-primary/20 hover:bg-primary/20">
-                            Major Update: SmartFit 2.0
+                            Major Update: SFitNex 2.0
                         </Badge>
                         <h1 className="text-4xl md:text-5xl lg:text-7xl font-bold leading-tight mb-4 text-white">
                             Now <span className="text-gradient">Free for All</span>

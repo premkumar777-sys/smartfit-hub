@@ -33,7 +33,7 @@ export default function ShippingPolicy() {
                         <div>
                             <h2 className="font-semibold text-lg text-white mb-2">Digital Product - Instant Access</h2>
                             <p className="text-gray-300">
-                                SmartFit Hub is a <strong>100% digital platform</strong>. All our products and services are delivered electronically. There is no physical shipping involved.
+                                SFitNex Hub is a <strong>100% digital platform</strong>. All our products and services are delivered electronically. There is no physical shipping involved.
                             </p>
                         </div>
                     </div>
@@ -67,7 +67,7 @@ export default function ShippingPolicy() {
                     <section>
                         <h2 className="text-xl font-semibold text-white mb-3">1. Nature of Service</h2>
                         <p className="text-gray-300 leading-relaxed">
-                            SmartFit Hub provides AI-powered fitness and nutrition services through a web-based platform. Our offerings include:
+                            SFitNex Hub provides AI-powered fitness and nutrition services through a web-based platform. Our offerings include:
                         </p>
                         <ul className="list-disc list-inside text-gray-300 space-y-2 mt-2">
                             <li>AI-generated personalized workout plans</li>
@@ -94,7 +94,7 @@ export default function ShippingPolicy() {
                     <section>
                         <h2 className="text-xl font-semibold text-white mb-3">3. Access Requirements</h2>
                         <p className="text-gray-300 leading-relaxed">
-                            To use SmartFit Hub, you need:
+                            To use SFitNex Hub, you need:
                         </p>
                         <ul className="list-disc list-inside text-gray-300 space-y-2 mt-2">
                             <li>A device with a modern web browser (Chrome, Firefox, Safari, Edge)</li>

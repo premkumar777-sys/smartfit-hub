@@ -72,7 +72,7 @@ export const InstallPrompt = () => {
                         </div>
 
                         <div className="flex-1">
-                            <h3 className="text-white font-bold leading-tight">Install SmartFit AI</h3>
+                            <h3 className="text-white font-bold leading-tight">Install SFitNex</h3>
                             <p className="text-muted-foreground text-xs mt-1">
                                 Add to your home screen for a faster, app-like experience.
                             </p>

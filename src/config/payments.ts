@@ -1,5 +1,5 @@
 /**
- * Payment Configuration for SmartFit Hub
+ * Payment Configuration for SFitNex Hub
  * 
  * Update the payment links here once you have your Razorpay links.
  * All components will automatically use these links.

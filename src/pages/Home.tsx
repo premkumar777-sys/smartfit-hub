@@ -100,9 +100,9 @@ const Home = () => {
               {isAuthenticated ? "Your Journey with" : "Transform Your Body with"}
               <span className="text-gradient block mt-2 pb-1">
                 {isAuthenticated ? (
-                  "SmartFit AI"
+                  "SFitNex"
                 ) : (
-                  <TypewriterText prefix="SmartFit AI " />
+                  <TypewriterText prefix="SFitNex " />
                 )}
               </span>
             </motion.h1>
@@ -219,7 +219,7 @@ const Home = () => {
               {isAuthenticated ? (
                 <>Explore <span className="text-gradient">Features</span></>
               ) : (
-                <>Why Choose <span className="text-gradient">SmartFit Hub</span></>
+                <>Why Choose <span className="text-gradient">SFitNex Hub</span></>
               )}
             </h2>
             <p className="text-lg md:text-xl leading-relaxed text-gray-300 max-w-prose mx-auto">

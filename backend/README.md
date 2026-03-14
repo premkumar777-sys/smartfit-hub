@@ -1,6 +1,6 @@
-# SmartFit Hub Backend - Next.js API
+# SFitNex Hub Backend - Next.js API
 
-This is the backend API for SmartFit Hub, built with Next.js 14 and handling Stripe payments.
+This is the backend API for SFitNex Hub, built with Next.js 14 and handling Stripe payments.
 
 ## 🚀 Quick Setup
 

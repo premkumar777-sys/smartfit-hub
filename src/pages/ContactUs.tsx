@@ -86,7 +86,7 @@ export default function ContactUs() {
                                         variant="outline"
                                         size="sm"
                                         className="border-green-500/50 text-green-400 hover:bg-green-500/10"
-                                        onClick={() => window.open("https://wa.me/917671862872?text=Hi, I have a query about SmartFit Hub", "_blank")}
+                                        onClick={() => window.open("https://wa.me/917671862872?text=Hi, I have a query about SFitNex Hub", "_blank")}
                                     >
                                         Chat on WhatsApp
                                     </Button>
@@ -105,7 +105,7 @@ export default function ContactUs() {
                                 <div>
                                     <h3 className="font-semibold text-lg mb-1">Business Type</h3>
                                     <p className="text-muted-foreground text-sm mb-3">
-                                        SmartFit Hub is an online-only digital fitness platform.
+                                        SFitNex Hub is an online-only digital fitness platform.
                                     </p>
                                     <p className="text-purple-400 text-sm">
                                         Operated Remotely | India

@@ -90,7 +90,7 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
                 return;
             }
 
-            console.log("SmartFit AI: Using Groq for high-speed chat...");
+            console.log("SFitNex: Using Groq for high-speed chat...");
 
             const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                 method: "POST",

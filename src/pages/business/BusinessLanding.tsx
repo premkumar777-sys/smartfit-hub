@@ -61,7 +61,7 @@ export default function BusinessLanding() {
                             transition={{ delay: 0.2 }}
                             className="text-xl text-gray-400 leading-relaxed"
                         >
-                            Enterprise-grade tools to manage, scale, and innovate your gym. From AI analytics to contactless entry, SmartFit Hub is your business partner.
+                            Enterprise-grade tools to manage, scale, and innovate your gym. From AI analytics to contactless entry, SFitNex Hub is your business partner.
                         </motion.p>
                         <motion.div
                             initial={{ opacity: 0, scale: 0.95 }}

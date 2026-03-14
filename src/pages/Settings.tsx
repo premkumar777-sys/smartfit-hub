@@ -599,7 +599,7 @@ export default function Settings() {
                             <CardContent className="space-y-2">
                                 <div className="flex justify-between text-sm">
                                     <span className="text-muted-foreground">Version</span>
-                                    <span className="font-medium">SmartFit 2.0</span>
+                                    <span className="font-medium">SFitNex 2.0</span>
                                 </div>
                                 <div className="flex justify-between text-sm">
                                     <span className="text-muted-foreground">Plan</span>
