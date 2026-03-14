@@ -23,11 +23,20 @@ export const SplashScreen = () => {
         <div className="relative z-10 flex flex-col items-center justify-center w-full h-full bg-[#0a0a0a] rounded-xl">
             {/* Logo inner glow/shadow */}
             <div className="relative mb-6">
+               <style>
+                 {`
+                   @keyframes logoPulse {
+                     0%, 100% { transform: scale(1); }
+                     50% { transform: scale(1.1); }
+                   }
+                 `}
+               </style>
                <div className="absolute inset-0 bg-[#00FF9C] blur-[20px] opacity-20 animate-pulse"></div>
                <img 
                  src="/favicon.png" 
                  alt="SmartFit Hub Logo" 
                  className="relative w-20 h-20 sm:w-24 sm:h-24 object-contain filter drop-shadow-[0_0_12px_rgba(0,255,156,0.5)] z-20"
+                 style={{ animation: 'logoPulse 2s ease-in-out infinite' }}
                />
             </div>
             
