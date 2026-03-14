@@ -66,31 +66,60 @@
 <body style="margin: 0; background: #0a0a0a;">
   <div id="root">
     <!-- Initial loading shown while React loads -->
-    <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #0a0a0a;">
-      <div style="text-align: center;">
-        <div style="position: relative; width: 112px; height: 112px; margin: 0 auto 16px;">
-          <div
-            style="position: absolute; inset: 0; border-radius: 50%; border: 3px solid transparent; border-top-color: #00FF9C; border-right-color: #00FF9C; animation: spin 1s linear infinite; filter: drop-shadow(0 0 8px rgba(0,255,156,0.5));">
-          </div>
-          <div
-            style="position: absolute; inset: 4px; border-radius: 50%; border: 2px solid transparent; border-top-color: rgba(0,255,156,0.3); animation: spin 1.5s linear infinite reverse;">
-          </div>
-          <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;">
-            <img src="/favicon.png" alt="SmartFit"
-              style="width: 64px; height: 64px; filter: drop-shadow(0 0 15px rgba(0,255,156,0.4));" />
-          </div>
+    <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #0a0a0a; overflow: hidden; position: relative; flex-direction: column;">
+      
+      <!-- Container for Spark Edge Animation -->
+      <div style="position: relative; display: flex; align-items: center; justify-content: center; padding: 4px; border-radius: 16px; width: 256px; height: 256px; overflow: hidden; box-shadow: 0 0 40px rgba(0,255,156,0.15); z-index: 10;">
+        
+        <!-- The rotating spark gradient -->
+        <div style="position: absolute; inset: -50%; background: conic-gradient(from 0deg, transparent 0 340deg, #00FF9C 360deg); animation: spin 3s linear infinite; z-index: 0;"></div>
+
+        <!-- The inner black card -->
+        <div style="position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; background: #0a0a0a; border-radius: 12px;">
+            <!-- Logo area -->
+            <div style="position: relative; margin-bottom: 24px;">
+               <div style="position: absolute; inset: 0; background: #00FF9C; filter: blur(20px); opacity: 0.2; animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;"></div>
+               <img src="/favicon.png" alt="SmartFit Hub Logo" style="position: relative; width: 80px; height: 80px; object-fit: contain; filter: drop-shadow(0 0 12px rgba(0,255,156,0.5)); z-index: 20;" />
+            </div>
+            
+            <!-- Text branding -->
+            <h1 style="font-size: 24px; font-weight: bold; color: white; letter-spacing: 0.05em; margin: 0 0 8px 0; font-family: system-ui, -apple-system, sans-serif;">
+              SmartFit<span style="color: #00FF9C;">Hub</span>
+            </h1>
+            
+            <div style="display: flex; align-items: center; gap: 8px; color: #a1a1aa; font-family: monospace; font-size: 14px; letter-spacing: 0.1em; margin-top: 16px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00FF9C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation: spin 1s linear infinite;">
+                <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
+              </svg>
+              <span>INITIALIZING</span>
+            </div>
         </div>
-        <p style="color: #888; font-family: system-ui, sans-serif; margin: 0;">Loading SmartFit...</p>
       </div>
+
+      <!-- Optional global ambient glow behind the card -->
+      <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 40vw; height: 40vw; max-width: 500px; max-height: 500px; background: #00FF9C; opacity: 0.03; filter: blur(100px); border-radius: 50%; pointer-events: none; z-index: 1;"></div>
     </div>
     <style>
       @keyframes spin {
-        0% {
-          transform: rotate(0deg);
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: .5; }
+      }
+      
+      @media (min-width: 640px) {
+        #root > div > div:nth-child(1) {
+          width: 320px !important;
+          height: 320px !important;
         }
-
-        100% {
-          transform: rotate(360deg);
+        #root img {
+          width: 96px !important;
+          height: 96px !important;
+        }
+        #root h1 {
+          font-size: 30px !important;
         }
       }
     </style>

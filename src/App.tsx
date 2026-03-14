@@ -47,13 +47,9 @@ const RoadToICN = lazy(() => import("./pages/RoadToICN"));
 const WorkoutSession = lazy(() => import("./pages/WorkoutSession"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
-const queryClient = new QueryClient();
+import { SplashScreen } from "@/components/SplashScreen";
 
-const LoadingScreen = () => (
-  <div className="min-h-screen flex items-center justify-center bg-background">
-    <Loader2 className="w-8 h-8 animate-spin text-primary" />
-  </div>
-);
+const queryClient = new QueryClient();
 
 const App = () => {
   return (
@@ -68,7 +64,7 @@ const App = () => {
             <ErrorBoundary>
               <FloatingChatbot />
               <Header />
-              <Suspense fallback={<LoadingScreen />}>
+              <Suspense fallback={<SplashScreen />}>
                 <Routes>
                   <Route path="/" element={<Home />} />
                   <Route path="/dashboard" element={<Dashboard />} />
