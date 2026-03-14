@@ -42,7 +42,7 @@ export const SplashScreen = () => {
             
             {/* Text branding */}
             <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-wider mb-2">
-              SmartFit<span className="text-[#00FF9C]">Hub</span>
+              SmartFit
             </h1>
             
             <div className="flex items-center space-x-2 text-zinc-400 font-mono text-sm tracking-widest mt-4">
