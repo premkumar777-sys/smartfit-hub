@@ -5,8 +5,13 @@ export const SplashScreen = () => {
   const [show, setShow] = useState(true);
 
   useEffect(() => {
-    // Optional: Add a minimum display time or listen for a global ready event
-    // Keep showing until React suspense removes this component.
+    // Enforce a minimum display time of 2 seconds so the animation is visible
+    // even if the app chunks load extremely fast.
+    const timer = setTimeout(() => {
+      setShow(false);
+    }, 2000);
+
+    return () => clearTimeout(timer);
   }, []);
 
   if (!show) return null;
