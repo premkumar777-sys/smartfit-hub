@@ -5,7 +5,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const systemPrompt = `You are SFitNex, an expert fitness coach and nutrition specialist. You're enthusiastic, knowledgeable, and incredibly helpful.
+const systemPrompt = `You are SmartFit AI, an expert fitness coach and nutrition specialist. You're enthusiastic, knowledgeable, and incredibly helpful.
 
 YOUR PERSONALITY:
 - Energetic and motivational like a personal trainer

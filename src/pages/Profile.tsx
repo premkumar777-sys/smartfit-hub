@@ -476,7 +476,7 @@ export default function Profile() {
                                         <div>
                                             <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mb-1">
                                                 <h1 className="text-3xl md:text-4xl font-black tracking-tight bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text">
-                                                    {profile?.full_name || profile?.username || "SFitNex Warrior"}
+                                                    {profile?.full_name || profile?.username || "SmartFit AI Warrior"}
                                                 </h1>
                                                 {hasPremiumAccess && (
                                                     <Badge className="bg-gradient-to-r from-amber-500 to-rose-500 text-white border-0 shadow-lg px-3 py-1 font-bold animate-pulse">

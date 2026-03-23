@@ -29,14 +29,14 @@ export default function TermsOfService() {
                     <section>
                         <h2 className="text-xl font-semibold text-white mb-3">1. Acceptance of Terms</h2>
                         <p className="text-gray-300 leading-relaxed">
-                            By accessing or using SFitNex Hub ("Service"), you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our Service.
+                            By accessing or using SmartFit AI Hub ("Service"), you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our Service.
                         </p>
                     </section>
 
                     <section>
                         <h2 className="text-xl font-semibold text-white mb-3">2. Description of Service</h2>
                         <p className="text-gray-300 leading-relaxed">
-                            SFitNex Hub is an AI-powered fitness platform offering personalized workout generation, nutrition planning, progress tracking, and related fitness services. The platform is available on a subscription basis with both free and premium tiers.
+                            SmartFit AI Hub is an AI-powered fitness platform offering personalized workout generation, nutrition planning, progress tracking, and related fitness services. The platform is available on a subscription basis with both free and premium tiers.
                         </p>
                     </section>
 
@@ -63,28 +63,28 @@ export default function TermsOfService() {
                     <section>
                         <h2 className="text-xl font-semibold text-white mb-3">5. Intellectual Property</h2>
                         <p className="text-gray-300 leading-relaxed">
-                            All content, features, and functionality of the Service (including AI-generated workout plans, UI design, logos, and text) are the exclusive property of SFitNex Hub. You may not copy, modify, or distribute any part of the Service without our written consent.
+                            All content, features, and functionality of the Service (including AI-generated workout plans, UI design, logos, and text) are the exclusive property of SmartFit AI Hub. You may not copy, modify, or distribute any part of the Service without our written consent.
                         </p>
                     </section>
 
                     <section>
                         <h2 className="text-xl font-semibold text-white mb-3">6. User-Generated Content</h2>
                         <p className="text-gray-300 leading-relaxed">
-                            You retain ownership of any content you submit (such as workout logs or progress photos). By submitting content, you grant SFitNex Hub a non-exclusive, royalty-free license to use, store, and process your content for the purpose of providing the Service.
+                            You retain ownership of any content you submit (such as workout logs or progress photos). By submitting content, you grant SmartFit AI Hub a non-exclusive, royalty-free license to use, store, and process your content for the purpose of providing the Service.
                         </p>
                     </section>
 
                     <section>
                         <h2 className="text-xl font-semibold text-white mb-3">7. Health Disclaimer</h2>
                         <p className="text-gray-300 leading-relaxed font-medium bg-red-500/10 p-4 rounded-lg border border-red-500/20">
-                            ⚠️ SFitNex Hub provides AI-generated fitness and nutrition suggestions for <strong>informational purposes only</strong>. This is <strong>not medical advice</strong>. Always consult a qualified healthcare professional before starting any new exercise or diet program, especially if you have pre-existing health conditions.
+                            ⚠️ SmartFit AI Hub provides AI-generated fitness and nutrition suggestions for <strong>informational purposes only</strong>. This is <strong>not medical advice</strong>. Always consult a qualified healthcare professional before starting any new exercise or diet program, especially if you have pre-existing health conditions.
                         </p>
                     </section>
 
                     <section>
                         <h2 className="text-xl font-semibold text-white mb-3">8. Limitation of Liability</h2>
                         <p className="text-gray-300 leading-relaxed">
-                            To the maximum extent permitted by law, SFitNex Hub shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including but not limited to loss of profits, data, or other intangible losses resulting from your use of the Service.
+                            To the maximum extent permitted by law, SmartFit AI Hub shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including but not limited to loss of profits, data, or other intangible losses resulting from your use of the Service.
                         </p>
                     </section>
 

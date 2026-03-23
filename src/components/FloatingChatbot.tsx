@@ -22,7 +22,7 @@ type Message = {
 };
 
 const suggestedQuestions = [
-  "What is SFitNex?",
+  "What is SmartFit AI?",
   "How does AI training work?",
   "Is this good for beginners?",
   "What features do you offer?",
@@ -153,7 +153,7 @@ export const FloatingChatbot = () => {
         whileHover={{
           scale: 1.1,
           rotate: 5,
-          shadow: "0 0 30px rgba(0,255,156,0.6)"
+          boxShadow: "0 0 30px rgba(0,255,156,0.6)"
         }}
         whileTap={{ scale: 0.9 }}
         initial={{ scale: 0, opacity: 0 }}
@@ -193,7 +193,7 @@ export const FloatingChatbot = () => {
                   <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-black animate-pulse" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-white tracking-tight text-lg">SFitNex</h3>
+                  <h3 className="font-bold text-white tracking-tight text-lg">SmartFit AI</h3>
                   <div className="flex items-center gap-1.5">
                     <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 font-bold uppercase tracking-widest border border-green-500/20">
                       Active
@@ -334,7 +334,7 @@ export const FloatingChatbot = () => {
                     type="text"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
-                    placeholder="Message SFitNex..."
+                    placeholder="Message SmartFit AI..."
                     disabled={isLoading}
                     className={cn(
                       "w-full px-6 py-4 rounded-2xl text-sm transition-all",
@@ -363,7 +363,7 @@ export const FloatingChatbot = () => {
                 </Button>
               </form>
               <p className="text-[10px] text-center mt-4 text-white uppercase tracking-widest font-medium">
-                Powered by SFitNex Advanced Neural Engine
+                Powered by SmartFit AI Advanced Neural Engine
               </p>
             </div>
           </motion.div>

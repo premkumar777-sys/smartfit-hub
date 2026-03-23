@@ -1,4 +1,4 @@
-// SFitNex Hub - AI Workout Generator Edge Function
+// SmartFit AI Hub - AI Workout Generator Edge Function
 // Uses Lovable AI Gateway (auto-provisioned, no API key required)
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
@@ -67,7 +67,7 @@ serve(async (req) => {
         if (isChatMode) {
             // Chat mode - use custom prompt directly with conversational AI
             prompt = customPrompt;
-            systemMessage = `You are SFitNex, a friendly and knowledgeable fitness coach. You're like a supportive gym buddy who happens to be an expert.
+            systemMessage = `You are SmartFit AI, a friendly and knowledgeable fitness coach. You're like a supportive gym buddy who happens to be an expert.
 
 Your personality:
 - Be warm, friendly, and encouraging - respond to greetings naturally ("Hey! Great to hear from you!" etc.)

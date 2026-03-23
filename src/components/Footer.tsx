@@ -14,7 +14,7 @@ export function Footer() {
                         <div className="md:col-span-1">
                             <Link to="/" className="flex items-center gap-2 mb-4">
                                 <Dumbbell className="w-6 h-6 text-primary" />
-                                <span className="font-bold text-lg">SFitNex Hub</span>
+                                <span className="font-bold text-lg">SmartFit AI Hub</span>
                             </Link>
                             <p className="text-sm text-muted-foreground mb-4">
                                 AI-powered fitness platform for personalized workouts, nutrition planning, and real-time coaching.
@@ -98,7 +98,7 @@ export function Footer() {
                     {/* Bottom Bar */}
                     <div className="border-t border-border mt-8 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
                         <p className="text-sm text-muted-foreground">
-                            © {currentYear} SFitNex Hub. All rights reserved.
+                            © {currentYear} SmartFit AI Hub. All rights reserved.
                         </p>
                         <p className="text-xs text-muted-foreground">
                             Made with 💚 for fitness enthusiasts

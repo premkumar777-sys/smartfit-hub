@@ -1,9 +1,9 @@
-# 🏋️ SFitNex — Your Intelligent Fitness Companion
+# 🏋️ SmartFit AI — Your Intelligent Fitness Companion
 
 🌐 **Live Demo:**  
 https://smart-fit-ai-kappa.vercel.app/
 
-SFitNex is an AI-powered fitness assistant designed to help:
+SmartFit AI is an AI-powered fitness assistant designed to help:
 - 💪 fitness enthusiasts
 - 🏃 beginners starting their workout journey
 - 🎯 users seeking personalized guidance

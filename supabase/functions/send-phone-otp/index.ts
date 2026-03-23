@@ -50,8 +50,8 @@ serve(async (req) => {
         // Rate limit: 60 seconds between OTP requests
         if (secondsSinceLastOtp < 60) {
           return new Response(
-            JSON.stringify({ 
-              error: `Please wait ${Math.ceil(60 - secondsSinceLastOtp)} seconds before requesting a new code` 
+            JSON.stringify({
+              error: `Please wait ${Math.ceil(60 - secondsSinceLastOtp)} seconds before requesting a new code`
             }),
             { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
           );
@@ -94,7 +94,7 @@ serve(async (req) => {
       }
 
       const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${twilioAccountSid}/Messages.json`;
-      const smsBody = `Your SFitNex verification code is: ${newOtp}. This code expires in 5 minutes.`;
+      const smsBody = `Your SmartFit AI verification code is: ${newOtp}. This code expires in 5 minutes.`;
 
       const twilioResponse = await fetch(twilioUrl, {
         method: "POST",
@@ -112,10 +112,10 @@ serve(async (req) => {
       if (!twilioResponse.ok) {
         const errorData = await twilioResponse.json();
         console.error("Twilio error:", errorData);
-        
+
         // Clean up the OTP we just stored
         await supabase.from("phone_otps").delete().eq("phone", phone);
-        
+
         return new Response(
           JSON.stringify({ error: "Failed to send SMS. Please check your phone number." }),
           { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -201,20 +201,20 @@ serve(async (req) => {
         if (createError.code === "phone_exists" || createError.message?.includes("Phone number already registered")) {
           // User exists - find them by listing with phone filter
           console.log("Phone exists, finding user by phone...");
-          
+
           // Use getUserById after getting from identities or search
           const { data: usersData } = await supabase.auth.admin.listUsers({
             page: 1,
             perPage: 1000,
           });
-          
+
           const foundUser = usersData?.users?.find((u) => {
             // Check both phone and phone identity
-            return u.phone === phone || 
-                   u.phone === phone.replace('+', '') ||
-                   u.identities?.some((id) => id.identity_data?.phone === phone);
+            return u.phone === phone ||
+              u.phone === phone.replace('+', '') ||
+              u.identities?.some((id) => id.identity_data?.phone === phone);
           });
-          
+
           if (foundUser) {
             userId = foundUser.id;
             console.log(`Found existing user: ${userId}`);
@@ -223,13 +223,13 @@ serve(async (req) => {
             console.log("User exists but not found in list, proceeding with session creation");
             // Generate deterministic userId based on phone for consistency
             const fakeEmail = `${phone.replace(/[^0-9]/g, '')}@phone.smartfit.local`;
-            
+
             // Try to sign in the existing user by generating link
             const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
               type: "magiclink",
               email: fakeEmail,
             });
-            
+
             if (linkData?.user) {
               userId = linkData.user.id;
               console.log(`Got user from link generation: ${userId}`);

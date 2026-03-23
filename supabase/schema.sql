@@ -1,4 +1,4 @@
--- SFitNex Hub Database Schema
+-- SmartFit AI Hub Database Schema
 -- Run this in Supabase SQL Editor (Dashboard > SQL Editor > New Query)
 
 -- ============================================

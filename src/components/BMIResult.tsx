@@ -68,7 +68,7 @@ const getEncouragingMessage = (status: string, bmi: number, gender: "male" | "fe
         case "very-high":
             return {
                 title: "🌟 Every Step Counts!",
-                message: "Start with small, achievable goals. SFitNex Hub is here to support your transformation journey!",
+                message: "Start with small, achievable goals. SmartFit AI Hub is here to support your transformation journey!",
                 icon: Heart,
                 gradient: "from-rose-500 to-pink-500",
             };
