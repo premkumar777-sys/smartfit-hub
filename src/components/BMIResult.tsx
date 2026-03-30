@@ -15,7 +15,7 @@ const getBMICategory = (bmi: number, gender: "male" | "female") => {
     if (gender === "male") {
         if (bmi < 20) return { category: "Underweight", color: "text-blue-400", bg: "bg-blue-500/20", status: "low" };
         if (bmi < 25) return { category: "Healthy", color: "text-emerald-400", bg: "bg-emerald-500/20", status: "healthy" };
-        if (bmi < 30) return { category: "Overweight", color: "text-amber-400", bg: "bg-amber-500/20", status: "high" };
+        if (bmi < 30) return { category: "overweight", color: "text-amber-400", bg: "bg-amber-500/20", status: "high" };
         return { category: "Obese", color: "text-red-400", bg: "bg-red-500/20", status: "very-high" };
     } else {
         // Female ranges are slightly different
