@@ -48,62 +48,41 @@ const Dashboard = () => {
 
   const loadDashboardData = async (userId: string) => {
     try {
-      // 1. Load profile
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      if (profileError && profileError.code !== 'PGRST116') {
-        console.error("Profile error:", profileError);
-      }
-
-      if (profileData) {
-        setProfile(profileData);
-      }
-
-      // 2. Load saved workouts
-      const { data: workoutsData, error: workoutsError } = await supabase
-        .from('workouts')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
-        .limit(5);
-
-      if (workoutsError) {
-        console.error("Workouts error:", workoutsError);
-      } else if (workoutsData) {
-        setSavedWorkouts(workoutsData);
-      }
-
-      // 3. Load weekly activity logs for charts
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
-      const { data: logsData } = await supabase
-        .from('activity_logs')
-        .select('*')
-        .eq('user_id', userId)
-        .gte('created_at', sevenDaysAgo.toISOString())
-        .order('created_at', { ascending: true });
-
-      if (logsData) {
-        setWeeklyLogs(logsData);
-      }
-
-      // 4. Load nutrition logs for today
+      
       const todayStart = new Date();
       todayStart.setHours(0, 0, 0, 0);
 
-      const { data: nutritionData } = await supabase
-        .from('nutrition_logs')
-        .select('*')
-        .eq('user_id', userId)
-        .gte('logged_at', todayStart.toISOString());
+      const [
+        profileRes,
+        workoutsRes,
+        logsRes,
+        nutritionRes,
+        feedRes
+      ] = await Promise.all([
+        supabase.from('profiles').select('*').eq('id', userId).single(),
+        supabase.from('workouts').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(5),
+        supabase.from('activity_logs').select('*').eq('user_id', userId).gte('created_at', sevenDaysAgo.toISOString()).order('created_at', { ascending: true }),
+        supabase.from('nutrition_logs').select('*').eq('user_id', userId).gte('logged_at', todayStart.toISOString()),
+        supabase.from('activity_logs').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(10)
+      ]);
 
-      if (nutritionData) {
-        const totals = nutritionData.reduce((acc, curr) => ({
+      if (profileRes.error && profileRes.error.code !== 'PGRST116') {
+        console.error("Profile error:", profileRes.error);
+      }
+      if (profileRes.data) setProfile(profileRes.data);
+
+      if (workoutsRes.error) {
+        console.error("Workouts error:", workoutsRes.error);
+      } else if (workoutsRes.data) {
+        setSavedWorkouts(workoutsRes.data);
+      }
+
+      if (logsRes.data) setWeeklyLogs(logsRes.data);
+
+      if (nutritionRes.data) {
+        const totals = nutritionRes.data.reduce((acc, curr) => ({
           calories: acc.calories + (curr.calories || 0),
           protein: acc.protein + (curr.protein || 0),
           carbs: acc.carbs + (curr.carbs || 0),
@@ -112,17 +91,7 @@ const Dashboard = () => {
         setNutritionToday(totals);
       }
 
-      // 5. Load recent activity feed
-      const { data: feedData } = await supabase
-        .from('activity_logs')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
-        .limit(10);
-
-      if (feedData) {
-        setActivityFeed(feedData);
-      }
+      if (feedRes.data) setActivityFeed(feedRes.data);
 
     } catch (err) {
       console.error("Error loading dashboard data:", err);
