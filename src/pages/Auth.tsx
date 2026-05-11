@@ -180,6 +180,7 @@ export default function Auth() {
           redirectTo: redirectUrl,
           queryParams: {
             access_type: 'offline',
+            prompt: 'consent',
           },
         },
       });
