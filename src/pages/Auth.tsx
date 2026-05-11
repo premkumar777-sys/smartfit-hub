@@ -38,7 +38,7 @@ export default function Auth() {
   const { toast } = useToast();
 
   // Get return URL from navigation state (for redirecting back after login from premium features)
-  const returnUrl = (location.state as { returnUrl?: string })?.returnUrl || "/";
+  const returnUrl = (location.state as { returnUrl?: string })?.returnUrl || "/dashboard";
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("login");
@@ -121,7 +121,7 @@ export default function Auth() {
     try {
       const validated = authSchema.parse({ email, password, username });
 
-      const redirectUrl = `${window.location.origin}/`;
+      const redirectUrl = `${window.location.origin}/dashboard`;
 
       const { error } = await supabase.auth.signUp({
         email: validated.email,
