@@ -223,7 +223,7 @@ const Dashboard = () => {
                 Start Workout
               </Link>
             </Button>
-            <Button variant="ghost" size="lg" onClick={() => navigate(-1)}>
+            <Button variant="ghost" size="lg" onClick={() => navigate("/")}>
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back
             </Button>
