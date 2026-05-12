@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Camera, Upload, X, Info, Sparkles, TrendingUp } from "lucide-react";
+import { Loader2, X, Info, Sparkles, TrendingUp, Send, CheckCircle2, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface FoodScannerProps {
     onScanComplete: (data: { calories: number; protein: number; carbs: number; fats: number; name: string }) => void;
@@ -15,6 +16,15 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
     const [result, setResult] = useState<{ name: string; calories: number; protein: number; carbs: number; fats: number } | null>(null);
     const [quotaExceeded, setQuotaExceeded] = useState(false);
     const [isLogging, setIsLogging] = useState(false);
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+    // Auto-resize textarea
+    useEffect(() => {
+        if (textareaRef.current) {
+            textareaRef.current.style.height = "auto";
+            textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 120) + "px";
+        }
+    }, [searchQuery]);
 
     const handleLogMeal = async () => {
         if (!result) return;
@@ -63,20 +73,19 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
         setLoading(true);
         setResult(null);
 
-        const possibleModels = ["llama-3.3-70b-versatile", "mixtral-8x7b-32768", "llama3-8b-8192"];
+        // We use the most reliable, fast model
+        const possibleModels = ["llama-3.1-8b-instant", "llama3-8b-8192"];
 
         try {
-            // Get Groq Key
             let groqKey = import.meta.env.VITE_GROQ_API_KEY || "";
 
-            // If not in env, check profile
             if (!groqKey) {
                 const { data: { user } } = await supabase.auth.getUser();
                 if (user) {
                     const { data: profile } = await supabase
                         .from("profiles")
                         .select("preferences")
-                        .eq("user_id", user.id)
+                        .eq("id", user.id) // Fixed user_id to id
                         .single();
                     groqKey = (profile?.preferences as any)?.groq_api_key || "";
                 }
@@ -90,8 +99,6 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
                 return;
             }
 
-            console.log("SmartFit AI: Using Groq for high-speed chat...");
-
             const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                 method: "POST",
                 headers: {
@@ -103,7 +110,7 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
                     messages: [
                         {
                             role: "system",
-                            content: "You are a specialized Nutrition AI. Analyze food descriptions and return ONLY a JSON object with: name, calories, protein, carbs, fats. No extra text."
+                            content: "You are a specialized Nutrition AI. Analyze food descriptions and return ONLY a JSON object with: name, calories, protein, carbs, fats. Ensure all macro values are NUMBERS, not strings. No extra text."
                         },
                         {
                             role: "user",
@@ -122,7 +129,13 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
             if (resultData.error) {
                 toast.error(resultData.error);
             } else {
-                setResult(resultData);
+                setResult({
+                    name: resultData.name,
+                    calories: Math.round(Number(resultData.calories) || 0),
+                    protein: Math.round(Number(resultData.protein) || 0),
+                    carbs: Math.round(Number(resultData.carbs) || 0),
+                    fats: Math.round(Number(resultData.fats) || 0),
+                });
                 toast.success("Nutrition facts retrieved! 🍎");
             }
         } catch (error: any) {
@@ -141,146 +154,175 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
     };
 
     return (
-        <Card className="glass border-primary/20 overflow-hidden shadow-2xl">
-            <CardHeader className="pb-4">
-                <div className="flex items-center justify-between mb-2">
-                    <CardTitle className="text-xl flex items-center gap-2">
-                        <div className="p-2 rounded-lg bg-primary/20">
-                            <Sparkles className="w-5 h-5 text-primary" />
-                        </div>
-                        Your's Nutritionist
-                    </CardTitle>
+        <Card className="glass border-white/10 bg-black/40 overflow-hidden shadow-2xl relative w-full backdrop-blur-2xl transition-all duration-500 hover:shadow-[0_0_30px_rgba(var(--primary),0.1)] hover:border-primary/30 group">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-50 pointer-events-none" />
+            
+            <CardHeader className="pb-4 relative z-10">
+                <div className="flex items-center gap-3 mb-1">
+                    <motion.div 
+                        initial={{ rotate: -10 }}
+                        animate={{ rotate: 10 }}
+                        transition={{ repeat: Infinity, duration: 2, repeatType: "reverse", ease: "easeInOut" }}
+                        className="p-2.5 rounded-xl bg-primary/10 border border-primary/30 shadow-[0_0_15px_rgba(var(--primary),0.2)]"
+                    >
+                        <Sparkles className="w-5 h-5 text-primary" />
+                    </motion.div>
+                    <div>
+                        <CardTitle className="text-xl font-black tracking-tight text-white flex items-center gap-2">
+                            Macro AI
+                            <span className="px-2 py-0.5 rounded-full bg-primary/20 text-primary text-[9px] uppercase tracking-[0.2em] font-black border border-primary/30">Intelligence</span>
+                        </CardTitle>
+                        <CardDescription className="text-white/50 text-xs">
+                            Type what you ate and let AI decode the nutrients instantly.
+                        </CardDescription>
+                    </div>
                 </div>
-                <CardDescription>
-                    Chat with your AI nutritionist to log meals instantly.
-                </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-                {!result ? (
-                    <div className="space-y-4">
-                        {quotaExceeded && (
-                            <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 mb-4 animate-in fade-in slide-in-from-top-2">
-                                <div className="flex items-start gap-3">
-                                    <div className="p-2 rounded-full bg-amber-500/20">
-                                        <Info className="w-5 h-5 text-amber-500" />
+            
+            <CardContent className="space-y-4 relative z-10">
+                <AnimatePresence mode="wait">
+                    {!result ? (
+                        <motion.div 
+                            key="input"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            transition={{ duration: 0.3 }}
+                            className="space-y-4"
+                        >
+                            {quotaExceeded && (
+                                <motion.div 
+                                    initial={{ opacity: 0, height: 0 }} 
+                                    animate={{ opacity: 1, height: "auto" }}
+                                    className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 overflow-hidden"
+                                >
+                                    <div className="flex items-start gap-3">
+                                        <div className="p-2 rounded-full bg-amber-500/20">
+                                            <Info className="w-4 h-4 text-amber-500" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <p className="text-sm font-bold text-amber-500 mb-1">AI limit reached</p>
+                                            <p className="text-xs text-white/50 mb-3 leading-relaxed">
+                                                Please add your own Groq API key in the settings, or wait a moment.
+                                            </p>
+                                        </div>
+                                        <button onClick={() => setQuotaExceeded(false)} className="text-white/40 hover:text-white transition-colors">
+                                            <X className="w-4 h-4" />
+                                        </button>
                                     </div>
-                                    <div className="flex-1">
-                                        <p className="text-sm font-bold text-amber-500 mb-1">Quota hit!</p>
-                                        <p className="text-xs text-muted-foreground mb-3">
-                                            The AI needs a short break. You can log calories directly below.
-                                        </p>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            className="text-xs h-8 border-amber-500/20 hover:bg-amber-500/10"
-                                            onClick={() => {
-                                                const manualLog = document.getElementById('manual-log-entry');
-                                                if (manualLog) manualLog.scrollIntoView({ behavior: 'smooth' });
-                                            }}
-                                        >
-                                            Log Manually
-                                        </Button>
-                                    </div>
-                                    <button onClick={() => setQuotaExceeded(false)} className="text-muted-foreground hover:text-white">
-                                        <X className="w-4 h-4" />
-                                    </button>
-                                </div>
-                            </div>
-                        )}
+                                </motion.div>
+                            )}
 
-                        <div className="space-y-3">
-                            <div className="relative">
+                            <div className="relative group/input">
                                 <textarea
-                                    placeholder="Tell me what you ate... (e.g., '3 scrambled eggs and bread')"
+                                    ref={textareaRef}
+                                    placeholder="e.g., '150g grilled chicken, half an avocado, and a cup of quinoa'"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="w-full h-32 bg-black/40 border border-white/20 rounded-xl p-4 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 placeholder:text-muted-foreground resize-none transition-all hover:border-primary/30"
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' && !e.shiftKey) {
+                                            e.preventDefault();
+                                            analyzeText(searchQuery);
+                                        }
+                                    }}
+                                    className="w-full min-h-[60px] max-h-[120px] bg-white/5 border border-white/10 rounded-2xl p-4 pr-12 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 placeholder:text-white/30 resize-none transition-all hover:border-white/20 text-white font-medium"
                                 />
-                                <div className="absolute bottom-3 right-3 flex items-center gap-2">
-                                    <span className="text-[10px] text-muted-foreground bg-black/60 px-2 py-1 rounded border border-white/20">
-                                        Enter to log
-                                    </span>
+                                
+                                {loading ? (
+                                    <div className="absolute right-3 top-4">
+                                        <div className="relative flex items-center justify-center w-8 h-8 rounded-full bg-primary/20">
+                                            <Loader2 className="w-4 h-4 text-primary animate-spin" />
+                                            <motion.div 
+                                                className="absolute inset-0 rounded-full border-2 border-primary/30 border-t-primary"
+                                                animate={{ rotate: 360 }}
+                                                transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                                            />
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <button
+                                        onClick={() => analyzeText(searchQuery)}
+                                        disabled={!searchQuery.trim()}
+                                        className="absolute right-3 top-4 w-8 h-8 rounded-full flex items-center justify-center bg-primary text-black transition-all hover:scale-110 active:scale-95 disabled:opacity-30 disabled:hover:scale-100"
+                                    >
+                                        <Send className="w-3 h-3 ml-0.5" />
+                                    </button>
+                                )}
+                            </div>
+                            
+                            <div className="flex items-center gap-4 text-[10px] uppercase tracking-[0.2em] text-white/30 font-black pl-1">
+                                <span className="flex items-center gap-1"><Zap className="w-3 h-3 text-yellow-500/50" /> Fast</span>
+                                <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3 text-emerald-500/50" /> Accurate</span>
+                            </div>
+                        </motion.div>
+                    ) : (
+                        <motion.div 
+                            key="result"
+                            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                            className="space-y-4"
+                        >
+                            <div className="p-5 rounded-2xl bg-gradient-to-br from-white/10 to-white/5 border border-white/10 relative overflow-hidden backdrop-blur-md">
+                                <div className="absolute -right-4 -top-4 w-24 h-24 bg-primary/20 blur-2xl rounded-full" />
+                                
+                                <h4 className="font-black text-xl mb-6 flex items-start justify-between text-white drop-shadow-md">
+                                    <span className="truncate pr-4 flex-1 leading-tight">{result.name}</span>
+                                    <div className="flex flex-col items-end text-right">
+                                        <span className="text-primary tracking-tighter text-3xl leading-none shadow-primary/20 drop-shadow-[0_0_10px_rgba(var(--primary),0.5)]">{result.calories}</span>
+                                        <span className="text-[10px] uppercase tracking-[0.2em] text-white/50">kcal</span>
+                                    </div>
+                                </h4>
+                                
+                                <div className="grid grid-cols-3 gap-3">
+                                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+                                        <MacroChip label="Protein" value={result.protein} color="blue" />
+                                    </motion.div>
+                                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+                                        <MacroChip label="Carbs" value={result.carbs} color="orange" />
+                                    </motion.div>
+                                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+                                        <MacroChip label="Fats" value={result.fats} color="yellow" />
+                                    </motion.div>
                                 </div>
                             </div>
-                            <Button
-                                onClick={() => analyzeText(searchQuery)}
-                                className="w-full py-6 bg-primary text-black font-bold text-base hover:bg-primary/90 shadow-[0_0_20px_rgba(var(--primary),0.3)] transition-all active:scale-[0.98]"
-                                disabled={loading || !searchQuery.trim()}
-                            >
-                                {loading ? (
-                                    <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Analyzing Nutrients...</>
-                                ) : (
-                                    <><Sparkles className="w-5 h-5 mr-2" /> Analyze Meal</>
-                                )}
-                            </Button>
-                            <div className="flex items-center justify-center gap-4 text-[11px] text-muted-foreground opacity-60">
-                                <span>Fast</span>
-                                <span>•</span>
-                                <span>Free</span>
-                                <span>•</span>
-                                <span>Accurate</span>
+
+                            <div className="flex gap-3">
+                                <Button
+                                    onClick={handleLogMeal}
+                                    disabled={isLogging}
+                                    className="flex-1 bg-primary hover:bg-primary/90 text-black font-black uppercase tracking-tighter h-12 rounded-xl transition-all shadow-[0_0_20px_rgba(var(--primary),0.3)] hover:scale-[1.02] active:scale-95"
+                                >
+                                    {isLogging ? <Loader2 className="w-5 h-5 animate-spin" /> : <><TrendingUp className="w-5 h-5 mr-2" /> Log to Dashboard</>}
+                                </Button>
+                                <Button 
+                                    onClick={handleDone} 
+                                    variant="outline" 
+                                    className="w-14 h-12 bg-white/5 border-white/10 hover:bg-white/10 hover:text-white transition-all rounded-xl"
+                                >
+                                    <X className="w-5 h-5 text-white/50" />
+                                </Button>
                             </div>
-                        </div>
-                    </div>
-                ) : (
-                    <div className="space-y-4 animate-in fade-in zoom-in-95 duration-300">
-                        <div className="p-4 rounded-xl bg-primary/10 border border-primary/50 relative overflow-hidden">
-                            <div className="absolute top-0 right-0 p-2 opacity-10">
-                                <SparklesIcon className="w-12 h-12" />
-                            </div>
-                            <h4 className="font-bold text-lg mb-4 flex items-center justify-between">
-                                <span className="truncate pr-4">{result.name}</span>
-                                <span className="text-primary whitespace-nowrap">{result.calories} <span className="text-[10px]">kcal</span></span>
-                            </h4>
-                            <div className="grid grid-cols-3 gap-2">
-                                <MacroItem label="Protein" value={`${result.protein}g`} />
-                                <MacroItem label="Carbs" value={`${result.carbs}g`} />
-                                <MacroItem label="Fats" value={`${result.fats}g`} />
-                            </div>
-                        </div>
-                        <div className="flex gap-2">
-                            <Button
-                                onClick={handleLogMeal}
-                                disabled={isLogging}
-                                className="w-full bg-emerald-500 hover:bg-emerald-600 text-black font-bold"
-                            >
-                                {isLogging ? <Loader2 className="w-4 h-4 animate-spin" /> : <TrendingUp className="w-4 h-4 mr-2" />}
-                                Log this meal
-                            </Button>
-                            <Button onClick={handleDone} variant="outline" className="w-full border-white/30 hover:bg-white/10">
-                                Done
-                            </Button>
-                        </div>
-                    </div>
-                )}
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </CardContent>
         </Card>
     );
 }
 
-function MacroItem({ label, value }: { label: string; value: string }) {
-    return (
-        <div className="bg-black/40 p-2 rounded-lg text-center border border-white/20">
-            <p className="text-[10px] uppercase text-white/60 font-black">{label}</p>
-            <p className="text-sm font-black text-white">{value}</p>
-        </div>
-    );
-}
+function MacroChip({ label, value, color }: { label: string; value: number; color: "blue" | "orange" | "yellow" }) {
+    const colorStyles = {
+        blue: "bg-blue-500/10 border-blue-500/30 text-blue-400 shadow-[0_0_10px_rgba(59,130,246,0.1)]",
+        orange: "bg-orange-500/10 border-orange-500/30 text-orange-400 shadow-[0_0_10px_rgba(249,115,22,0.1)]",
+        yellow: "bg-yellow-500/10 border-yellow-500/30 text-yellow-400 shadow-[0_0_10px_rgba(234,179,8,0.1)]"
+    };
 
-function SparklesIcon({ className }: { className?: string }) {
     return (
-        <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className={className}
-        >
-            <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
-            <path d="M5 3v4" /><path d="M3 5h4" /><path d="M21 17v4" /><path d="M19 19h4" />
-        </svg>
+        <div className={`p-3 rounded-xl border flex flex-col items-center justify-center relative overflow-hidden group ${colorStyles[color]}`}>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent pointer-events-none" />
+            <span className="text-[9px] uppercase tracking-[0.2em] opacity-70 mb-1 z-10 font-black">{label}</span>
+            <span className="text-lg font-black tracking-tighter z-10">{value}<span className="text-xs opacity-60 font-medium">g</span></span>
+        </div>
     );
 }

@@ -5,12 +5,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Container } from "@/components/Container";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, TrendingUp, Info, Scale, Ruler, User, Target, Zap, Waves, Sparkles, Flame, Activity as ActivityIcon, TrendingDown, History, Utensils, Calendar } from "lucide-react";
+import { Loader2, TrendingUp, Info, Scale, Ruler, User, Target, Zap, Waves, Sparkles, Activity as ActivityIcon, TrendingDown, History, Utensils, Calendar } from "lucide-react";
 import { FoodScanner } from "@/components/FoodScanner";
-import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, BarChart, Bar, Cell } from "recharts";
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { motion } from "framer-motion";
 
 type Activity = "sedentary" | "light" | "moderate" | "active" | "athlete";
 type Goal = "cut" | "recomp" | "bulk";
@@ -52,7 +52,6 @@ export default function Nutrition() {
     const loadData = async () => {
       const { data: { session } } = await supabase.auth.getSession();
 
-      // Load Profile
       if (session) {
         const { data } = await supabase
           .from('profiles')
@@ -72,7 +71,6 @@ export default function Nutrition() {
           if (data.daily_calories_target) setProtocolActivated(true);
         }
 
-        // Load Nutrition History
         const { data: logs } = await supabase
           .from('nutrition_logs')
           .select('*')
@@ -137,8 +135,8 @@ export default function Nutrition() {
     }
 
     try {
-      const { error } = await supabase
-        .from('activity_logs' as any) // Use activity_logs as a generic tracker if nutrition_logs is missing
+      await supabase
+        .from('activity_logs' as any)
         .insert({
           user_id: user.id,
           activity_type: 'nutrition',
@@ -146,7 +144,6 @@ export default function Nutrition() {
           created_at: new Date().toISOString()
         });
 
-      // Also try nutrition_logs if it exists (using any to bypass TS errors since types.ts is old)
       await supabase
         .from('nutrition_logs' as any)
         .insert({
@@ -160,7 +157,6 @@ export default function Nutrition() {
 
       toast.success("Progress logged effectively! 💪");
 
-      // Refresh local history
       const { data: logs } = await supabase
         .from('nutrition_logs' as any)
         .select('*')
@@ -181,17 +177,15 @@ export default function Nutrition() {
       setIsLogging(false);
     }
   };
+
   const handleUpdatePlan = async () => {
     if (!result) return;
     setIsUpdating(true);
 
-    // Immersive Overlay Sequence
     setShowOverlay(true);
     setOverlayStep(0);
 
-    // 3 steps, 2 seconds each
-    const stepsCount = 3;
-    for (let i = 0; i < stepsCount; i++) {
+    for (let i = 0; i < 3; i++) {
       setOverlayStep(i);
       await new Promise(r => setTimeout(r, 2000));
     }
@@ -212,16 +206,9 @@ export default function Nutrition() {
             updated_at: new Date().toISOString()
           }, { onConflict: 'id' });
 
-        if (error) {
-          console.error("Supabase error syncing nutrition:", error);
-          toast.error(`Sync failed: ${error.message}`);
-          throw error;
-        }
+        if (error) throw error;
       } catch (err: any) {
-        console.error("Error syncing nutrition to DB:", err);
-        if (!err.message?.includes("Sync failed")) {
-          toast.error("Failed to sync targets to cloud");
-        }
+        console.error("Error syncing nutrition:", err);
       }
     }
 
@@ -237,7 +224,6 @@ export default function Nutrition() {
     setIsGeneratingPlan(true);
 
     try {
-      // Get Groq Key (same logic as FoodScanner)
       let groqKey = import.meta.env.VITE_GROQ_API_KEY || "";
       if (!groqKey) {
         const { data: { user } } = await supabase.auth.getUser();
@@ -266,7 +252,7 @@ export default function Nutrition() {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          model: "llama-3.3-70b-versatile",
+          model: "llama-3.1-8b-instant",
           messages: [
             {
               role: "system",
@@ -307,435 +293,256 @@ export default function Nutrition() {
   };
 
   return (
-    <div className="min-h-screen py-16 relative overflow-hidden bg-[#0A0A0A]">
-      <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent opacity-30 pointer-events-none" />
+    <div className="min-h-screen py-16 relative overflow-hidden bg-black selection:bg-primary/30">
+      {/* Background Mesh */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,_var(--tw-gradient-stops))] from-primary/10 via-black to-black opacity-60" />
+        <motion.div 
+          animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.15, 0.1] }} 
+          transition={{ repeat: Infinity, duration: 10, ease: "easeInOut" }}
+          className="absolute top-[20%] -left-[10%] w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px]" 
+        />
+        <motion.div 
+          animate={{ scale: [1, 1.5, 1], opacity: [0.05, 0.1, 0.05] }} 
+          transition={{ repeat: Infinity, duration: 15, ease: "easeInOut", delay: 2 }}
+          className="absolute bottom-[10%] -right-[10%] w-[600px] h-[600px] bg-blue-500/20 rounded-full blur-[150px]" 
+        />
+      </div>
 
-      <Container className="relative z-10 max-w-5xl">
+      <Container className="relative z-10 max-w-6xl">
         <button
           onClick={() => navigate(-1)}
-          className="group inline-flex items-center text-sm text-muted-foreground hover:text-primary mb-6 transition-all"
+          className="group inline-flex items-center text-sm text-white/50 hover:text-primary mb-8 transition-all"
         >
           <span className="mr-2 group-hover:-translate-x-1 transition-transform">←</span>
           Return to Hub
         </button>
 
-        <div className="flex flex-col gap-12">
-          <div className="grid lg:grid-cols-12 gap-8">
-            {/* Inputs Column */}
-            {/* Inputs Column - Biological Signature UI */}
-            <div className="lg:col-span-12">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between px-2">
-                  <div className="space-y-1">
-                    <h3 className="text-sm font-black uppercase tracking-[0.3em] text-white">Biological Signature</h3>
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-widest opacity-60">Configure physiological baseline</p>
-                  </div>
-                </div>
+        {/* Hero */}
+        <div className="mb-12 space-y-2">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] uppercase font-black tracking-[0.3em] text-primary mb-2">
+            <Sparkles className="w-3 h-3" /> Intelligence Protocol v2.0
+          </motion.div>
+          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="text-5xl md:text-7xl font-black tracking-tighter text-white">
+            Precision <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-emerald-300 italic">Fueling</span>
+          </motion.h1>
+          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="text-white/50 text-base max-w-2xl font-medium">
+            Your nutritional architecture, decoded. Log meals via AI and calibrate your metabolic baseline.
+          </motion.p>
+        </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div className="group relative bg-white/5 border border-white/20 rounded-2xl p-4 transition-all hover:bg-white/10 hover:border-primary/50">
-                    <div className="absolute top-2 right-4 text-primary/40 group-hover:text-primary transition-colors">
-                      <User className="w-4 h-4" />
+        <div className="grid lg:grid-cols-12 gap-8">
+          
+          {/* Top Row: FoodScanner & Daily Target */}
+          <div className="lg:col-span-12 grid lg:grid-cols-12 gap-8">
+            
+            {/* Macro AI - Left Side */}
+            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }} className="lg:col-span-5 flex flex-col h-full">
+               <FoodScanner onScanComplete={() => { 
+                   // Refresh local history logic could go here, or we wait for state sync
+               }} />
+            </motion.div>
+
+            {/* Daily Target Dashboard - Right Side */}
+            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 }} className="lg:col-span-7">
+              <Card className="h-full bg-white/5 border-white/10 backdrop-blur-2xl rounded-3xl overflow-hidden shadow-2xl flex flex-col">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-[80px] pointer-events-none" />
+                <CardHeader className="border-b border-white/5 pb-4 relative z-10">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <CardTitle className="text-xs font-black uppercase tracking-[0.3em] text-white/60">Energy Dashboard</CardTitle>
+                      <CardDescription className="text-white/40">Your daily protocol target</CardDescription>
                     </div>
-                    <Label className="text-[9px] uppercase tracking-[0.2em] text-white/60 font-black mb-1 block">Years / Age</Label>
-                    <Input
-                      type="number"
-                      value={age}
-                      onChange={(e) => setAge(e.target.value)}
-                      placeholder="e.g. 28"
-                      className="bg-black/20 border border-white/20 focus:border-primary/50 rounded-lg text-2xl font-black px-3 py-1 h-auto focus-visible:ring-0 text-white tabular-nums transition-all"
-                    />
+                    {protocolActivated && (
+                      <div className="px-3 py-1 rounded-full bg-primary/20 border border-primary/30 text-primary text-[10px] font-black uppercase tracking-widest flex items-center gap-1">
+                        <ActivityIcon className="w-3 h-3" /> Active
+                      </div>
+                    )}
                   </div>
-
-                  <div className="group relative bg-white/5 border border-white/20 rounded-2xl p-4 transition-all hover:bg-white/10 hover:border-primary/50">
-                    <div className="absolute top-2 right-4 text-primary/40 group-hover:text-primary transition-colors">
-                      <Scale className="w-4 h-4" />
-                    </div>
-                    <Label className="text-[9px] uppercase tracking-[0.2em] text-white/60 font-black mb-1 block">Mass / Weight (kg)</Label>
-                    <Input
-                      type="number"
-                      value={weight}
-                      onChange={(e) => setWeight(e.target.value)}
-                      placeholder="e.g. 74kg"
-                      className="bg-black/20 border border-white/20 focus:border-primary/50 rounded-lg text-2xl font-black px-3 py-1 h-auto focus-visible:ring-0 text-white tabular-nums transition-all"
-                    />
-                  </div>
-
-                  <div className="group relative bg-white/5 border border-white/20 rounded-2xl p-4 transition-all hover:bg-white/10 hover:border-primary/50">
-                    <div className="absolute top-2 right-4 text-primary/40 group-hover:text-primary transition-colors">
-                      <Ruler className="w-5 h-5" />
-                    </div>
-                    <Label className="text-[9px] uppercase tracking-[0.2em] text-white/60 font-black mb-1 block">Stature / Height (cm)</Label>
-                    <Input
-                      type="number"
-                      value={height}
-                      onChange={(e) => setHeight(e.target.value)}
-                      placeholder="e.g. 180cm"
-                      className="bg-black/20 border border-white/20 focus:border-primary/50 rounded-lg text-2xl font-black px-3 py-1 h-auto focus-visible:ring-0 text-white tabular-nums transition-all"
-                    />
-                  </div>
-
-                  <button
-                    onClick={handleUpdatePlan}
-                    disabled={isUpdating}
-                    className="group relative h-full min-h-[80px] flex flex-col items-center justify-center bg-primary rounded-2xl transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50 overflow-hidden shadow-[0_0_20px_rgba(var(--primary),0.2)]"
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none" />
-                    <div className="relative z-10 flex flex-col items-center gap-1.5">
-                      {isUpdating ? (
-                        <Loader2 className="animate-spin w-6 h-6 text-black" />
-                      ) : (
-                        <>
-                          <Zap className="w-5 h-5 text-black group-hover:animate-pulse" />
-                          <span className="text-[11px] font-black text-black uppercase tracking-tighter text-center leading-tight px-4">Activate Mastery Protocol</span>
-                        </>
-                      )}
-                    </div>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Precision Config & Results */}
-            <div className="lg:col-span-4 space-y-6">
-              {/* Operational Directives (Goal) */}
-              <Card className="bg-black/40 border-white/20 backdrop-blur-xl shadow-2xl overflow-hidden rounded-[2.5rem] border-none ring-1 ring-white/20">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-black text-white/40 uppercase tracking-[0.3em] flex items-center justify-between">
-                    Operational Directives
-                    <Target className="w-4 h-4 text-primary" />
-                  </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 gap-3">
-                    {[
-                      { id: 'cut', label: 'Caloric Deficit', sub: 'Protocol: Lipid Oxidation', icon: <TrendingDown className="w-4 h-4" /> },
-                      { id: 'recomp', label: 'Maintenance', sub: 'Protocol: Metabolic Stasis', icon: <ActivityIcon className="w-4 h-4" /> },
-                      { id: 'bulk', label: 'Lean Bulk', sub: 'Protocol: Tissue Synthesis', icon: <TrendingUp className="w-4 h-4" /> }
-                    ].map((item) => (
-                      <button
-                        key={item.id}
-                        onClick={() => setGoal(item.id as Goal)}
-                        className={`group relative p-4 rounded-2xl border transition-all duration-300 text-left overflow-hidden ${goal === item.id
-                          ? "bg-primary/20 border-primary text-white shadow-[0_0_20px_rgba(var(--primary),0.1)]"
-                          : "bg-white/5 border-white/10 text-muted-foreground hover:bg-white/10 hover:border-white/30"
-                          }`}
-                      >
-                        <div className={`absolute top-0 left-0 w-1 h-full transition-all ${goal === item.id ? "bg-primary" : "bg-transparent"}`} />
-                        <div className="flex items-center justify-between relative z-10">
-                          <div className="space-y-1">
-                            <p className={`text-xs font-black uppercase tracking-widest ${goal === item.id ? "text-primary" : "text-white/40"}`}>{item.label}</p>
-                            <p className="text-[10px] opacity-60 font-medium">{item.sub}</p>
-                          </div>
-                          <div className={`p-2 rounded-xl transition-all ${goal === item.id ? "bg-primary text-black" : "bg-white/5 text-white/20"}`}>
-                            {item.icon}
-                          </div>
-                        </div>
-                      </button>
-                    ))}
+                <CardContent className="flex-1 p-6 relative z-10 flex flex-col justify-center space-y-8">
+                  <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+                    <div className="text-center md:text-left flex-1">
+                      <p className="text-7xl font-black text-white tracking-tighter tabular-nums drop-shadow-[0_0_15px_rgba(255,255,255,0.1)]">
+                        {result?.calories || 0}
+                      </p>
+                      <p className="text-[11px] font-black uppercase tracking-[0.3em] text-primary mt-2">Kcal Daily Target</p>
+                    </div>
+                    
+                    <div className="flex gap-4 md:gap-6 flex-wrap justify-center w-full md:w-auto">
+                      <TargetRing label="Protein" value={result?.protein} color="#3b82f6" />
+                      <TargetRing label="Carbs" value={result?.carbs} color="#f97316" />
+                      <TargetRing label="Fats" value={result?.fats} color="#eab308" />
+                    </div>
                   </div>
 
-
-                  <div className="pt-4 border-t border-white/5">
-                    <Label className="text-[10px] uppercase tracking-[0.4em] text-white/40 mb-4 block font-black">Metabolic Flux Level</Label>
-                    <div className="grid grid-cols-5 gap-1.5 p-1 bg-white/5 rounded-2xl border border-white/5">
-                      {(['sedentary', 'light', 'moderate', 'active', 'athlete'] as Activity[]).map((level, i) => (
-                        <button
-                          key={level}
-                          onClick={() => setActivity(level)}
-                          className={`h-10 rounded-xl flex flex-col items-center justify-center transition-all ${activity === level
-                            ? "bg-primary text-black shadow-lg"
-                            : "text-white/40 hover:bg-white/10 hover:text-white"
-                            }`}
-                        >
-                          <span className="text-[10px] font-black">{i + 1}</span>
-                          <div className={`w-1 h-1 rounded-full mt-0.5 ${activity === level ? "bg-black" : "bg-white/20"}`} />
-                        </button>
-                      ))}
-                    </div>
-                    <div className="flex justify-between mt-2 px-1">
-                      <span className="text-[9px] uppercase tracking-widest text-white/20 font-bold">Base</span>
-                      <span className="text-[9px] uppercase tracking-widest text-primary font-black">{activity.toUpperCase()}</span>
-                      <span className="text-[9px] uppercase tracking-widest text-white/20 font-bold">Peak</span>
-                    </div>
+                  <div className="pt-6 border-t border-white/5 grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <MetricMini label="BMR Baseline" value={result?.bmr} unit="kcal" />
+                    <MetricMini label="Maintenance" value={result?.tdee} unit="kcal" />
+                    <MetricMini label="Fiber Min." value={Math.round((result?.calories || 2000)/100*1.5)} unit="g" />
+                    <Button 
+                      onClick={handleLogIntake}
+                      disabled={isLogging || !result}
+                      className="w-full h-full bg-white/10 hover:bg-white/20 border border-white/10 text-white font-black uppercase tracking-widest text-[10px]"
+                    >
+                      {isLogging ? <Loader2 className="w-4 h-4 animate-spin" /> : "Log Target Int."}
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
-            </div>
+            </motion.div>
+          </div>
 
-            {/* Visual Results Dashboard */}
-            <div className="lg:col-span-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
-                {/* Calories Highlight */}
-                <Card className="bg-primary/5 border-primary/20 backdrop-blur-md rounded-[2.5rem] relative overflow-hidden md:col-span-2 p-8 flex flex-col items-center justify-center text-center">
-                  <Waves className="absolute bottom-0 left-0 w-full h-32 text-primary/10 -mb-8 pointer-events-none" />
-                  <div className="relative z-10 space-y-4">
-                    <p className="text-xs font-black uppercase tracking-[0.4em] text-primary">Daily Energy Target</p>
-                    <h2 className="text-8xl font-black text-white tracking-tighter tabular-nums drop-shadow-[0_0_30px_rgba(var(--primary),0.3)]">
-                      {result?.calories || 0}
-                    </h2>
-                    <p className="text-sm font-medium text-white/40 uppercase tracking-widest">Kilocalories / Protocol Day</p>
-
-                    <div className="pt-4 flex flex-wrap justify-center gap-3">
-                      <Button
-                        onClick={handleLogIntake}
-                        disabled={isLogging || !result}
-                        size="lg"
-                        className="bg-primary text-black font-black uppercase tracking-tighter rounded-2xl px-8 hover:scale-105 transition-all shadow-lg"
-                      >
-                        {isLogging ? <Loader2 className="w-5 h-5 animate-spin" /> : <TrendingUp className="w-5 h-5 mr-2" />}
-                        Log Today's Intake
-                      </Button>
-                    </div>
-                  </div>
-                </Card>
-
-                {/* Macro Breakdown */}
-                <div className="md:grid md:grid-cols-3 gap-4 md:col-span-2">
-                  <MetricBox label="Basal (BMR)" value={result?.bmr || 0} unit="kcal" sub="Absolute minimum" icon={<Zap className="w-4 h-4" />} />
-                  <MetricBox label="Maintenance" value={result?.tdee || 0} unit="kcal" sub="Energy balance" icon={<Waves className="w-4 h-4" />} />
-                  <MetricBox label="Protein" value={result?.protein || 0} unit="g" sub="Structure & Growth" icon={<Scale className="w-4 h-4" />} color="text-blue-400" />
-                  <MetricBox label="Carbohydrates" value={result?.carbs || 0} unit="g" sub="Energy Output" icon={<Zap className="w-4 h-4" />} color="text-orange-400" />
-                  <MetricBox label="Lipids (Fats)" value={result?.fats || 0} unit="g" sub="Cellular Integrity" icon={<Waves className="w-4 h-4" />} color="text-yellow-400" />
-                  <MetricBox label="Fiber" value={Math.round((result?.calories || 2000) / 100 * 1.5)} unit="g" sub="System Optimization" icon={<Info className="w-4 h-4" />} />
-                </div>
-
-                {/* Progress Visualization */}
-                <Card className="bg-black/40 border-white/20 backdrop-blur-xl rounded-[2.5rem] md:col-span-2 overflow-hidden border-none ring-1 ring-white/20 p-8 shadow-2xl">
-                  <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
-                    <div className="space-y-1">
-                      <h3 className="text-xl font-black text-white uppercase tracking-tighter flex items-center gap-2">
-                        <History className="w-5 h-5 text-primary" />
-                        Metabolic Analytics
-                      </h3>
-                      <p className="text-xs text-muted-foreground uppercase tracking-widest opacity-60">Caloric adherence trend (Last 30 entries)</p>
-                    </div>
-                  </div>
-
+          {/* Analytics & History Row */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="lg:col-span-12 grid lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2">
+              <Card className="bg-white/5 border-white/10 backdrop-blur-xl rounded-3xl overflow-hidden h-full">
+                <CardHeader>
+                  <CardTitle className="text-sm font-black text-white uppercase tracking-[0.2em] flex items-center gap-2">
+                    <History className="w-4 h-4 text-primary" /> Metabolic Analytics
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
                   {nutritionHistory.length > 0 ? (
                     <div className="h-[300px] w-full">
                       <ResponsiveContainer width="100%" height="100%">
                         <AreaChart data={nutritionHistory}>
                           <defs>
                             <linearGradient id="colorCal" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor="#00FF9C" stopOpacity={0.3} />
+                              <stop offset="5%" stopColor="#00FF9C" stopOpacity={0.5} />
                               <stop offset="95%" stopColor="#00FF9C" stopOpacity={0} />
                             </linearGradient>
                           </defs>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
-                          <XAxis
-                            dataKey="date"
-                            stroke="#888"
-                            fontSize={10}
-                            tickLine={false}
-                            axisLine={false}
-                          />
-                          <YAxis
-                            stroke="#888"
-                            fontSize={10}
-                            tickLine={false}
-                            axisLine={false}
-                            tickFormatter={(v) => `${v}k`}
-                          />
-                          <Tooltip
-                            contentStyle={{
-                              backgroundColor: '#111',
-                              border: '1px solid #444',
-                              borderRadius: '12px',
-                              fontSize: '12px'
-                            }}
-                          />
-                          <Area
-                            type="monotone"
-                            dataKey="calories"
-                            stroke="#00FF9C"
-                            fillOpacity={1}
-                            fill="url(#colorCal)"
-                            strokeWidth={3}
-                          />
+                          <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
+                          <XAxis dataKey="date" stroke="#ffffff40" fontSize={10} tickLine={false} axisLine={false} />
+                          <YAxis stroke="#ffffff40" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(v) => `${v}k`} />
+                          <Tooltip contentStyle={{ backgroundColor: '#000000', border: '1px solid #ffffff20', borderRadius: '12px', fontSize: '12px' }} />
+                          <Area type="monotone" dataKey="calories" stroke="#00FF9C" fill="url(#colorCal)" strokeWidth={3} />
                         </AreaChart>
                       </ResponsiveContainer>
                     </div>
                   ) : (
-                    <div className="h-[200px] flex flex-col items-center justify-center text-center space-y-4 border border-dashed border-white/20 rounded-3xl bg-white/5">
-                      <Calendar className="w-8 h-8 text-white/40" />
+                    <div className="h-[300px] flex flex-col items-center justify-center text-center space-y-4 border border-dashed border-white/10 rounded-2xl bg-white/5">
+                      <Calendar className="w-8 h-8 text-white/20" />
                       <div className="space-y-1">
-                        <p className="text-sm font-bold text-white/60">No historical data detected</p>
-                        <p className="text-[10px] text-white/40 uppercase tracking-widest">Start logging your fuel to see precision trends</p>
+                        <p className="text-sm font-bold text-white/60">Awaiting Data Streams</p>
+                        <p className="text-[10px] text-white/40 uppercase tracking-widest">Log meals to visualize trends</p>
                       </div>
                     </div>
                   )}
-                </Card>
-
-                {/* Recent Meals List */}
-                {nutritionHistory.length > 0 && (
-                  <Card className="bg-black/40 border-white/20 backdrop-blur-xl rounded-[2.5rem] md:col-span-2 overflow-hidden border-none ring-1 ring-white/20 p-8 shadow-2xl mt-6">
-                    <div className="space-y-1 mb-6">
-                      <h3 className="text-xl font-black text-white uppercase tracking-tighter flex items-center gap-2">
-                        <Utensils className="w-5 h-5 text-primary" />
-                        Recent Scans
-                      </h3>
-                      <p className="text-xs text-muted-foreground uppercase tracking-widest opacity-60">Your logged meals</p>
-                    </div>
-                    <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
-                      {[...nutritionHistory].reverse().map((log, i) => (
-                        <div key={log.id || i} className="p-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                          <div>
-                            <p className="text-sm font-black text-white">{log.meal_name || "Manual Log"}</p>
-                            <p className="text-[10px] text-white/40 uppercase tracking-widest">{log.date} • {new Date(log.logged_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
-                          </div>
-                          <div className="flex gap-4 text-center">
-                            <div>
-                              <p className="text-[10px] uppercase text-white/40 font-black">Calories</p>
-                              <p className="text-sm font-black text-primary">{log.calories} <span className="text-[10px] text-white/60">kcal</span></p>
-                            </div>
-                            <div>
-                              <p className="text-[10px] uppercase text-white/40 font-black">Protein</p>
-                              <p className="text-sm font-black text-blue-400">{log.protein}g</p>
-                            </div>
-                            <div>
-                              <p className="text-[10px] uppercase text-white/40 font-black">Carbs</p>
-                              <p className="text-sm font-black text-orange-400">{log.carbs}g</p>
-                            </div>
-                            <div>
-                              <p className="text-[10px] uppercase text-white/40 font-black">Fats</p>
-                              <p className="text-sm font-black text-yellow-400">{log.fats}g</p>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </Card>
-                )}
-              </div>
+                </CardContent>
+              </Card>
             </div>
 
-            {/* Bottom Tip */}
-            {/* AI Synergy Insight Consolidated Section */}
-            <div className={`lg:col-span-12 relative space-y-8 transition-all duration-1000 ${protocolActivated ? "opacity-100 translate-y-0" : "opacity-30 grayscale pointer-events-none select-none blur-sm"}`}>
-              {!protocolActivated && (
-                <div className="absolute inset-0 z-20 flex items-center justify-center p-8 text-center bg-black/20 backdrop-blur-[2px] rounded-[2.5rem]">
-                  <div className="bg-black/80 border border-primary/20 p-8 rounded-3xl shadow-2xl max-w-md animate-in zoom-in-95 duration-500">
-                    <Zap className="w-12 h-12 text-primary mx-auto mb-4 animate-pulse" />
-                    <h3 className="text-xl font-black text-white uppercase tracking-tighter mb-2">Protocol Activation Required</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">
-                      Sync your biological signature above to unlock the AI Core Analyzer and generate your precision strategy.
-                    </p>
-                  </div>
-                </div>
-              )}
-              <div className="text-center space-y-4">
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/20 text-[10px] uppercase font-bold tracking-[0.3em] text-primary">
-                  Intelligence Protocol v2.0
-                </div>
-                <h2 className="text-4xl md:text-6xl font-black tracking-tighter text-white">
-                  Precision <span className="text-primary italic">Fueling</span>
-                </h2>
-                <p className="text-muted-foreground text-sm max-w-2xl mx-auto leading-relaxed opacity-80">
-                  Your nutritional architecture, decoded. Use the AI Core to analyze fuel or calculate your metabolic baseline below.
-                </p>
-              </div>
+            <div className="lg:col-span-1">
+              <Card className="bg-white/5 border-white/10 backdrop-blur-xl rounded-3xl overflow-hidden h-full flex flex-col">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-sm font-black text-white uppercase tracking-[0.2em] flex items-center gap-2">
+                    <Utensils className="w-4 h-4 text-primary" /> Recent Scans
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="flex-1 overflow-y-auto max-h-[300px] space-y-3 pr-2 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+                  {nutritionHistory.length > 0 ? (
+                    [...nutritionHistory].reverse().map((log, i) => (
+                      <div key={log.id || i} className="p-4 rounded-2xl bg-black/40 border border-white/5 hover:bg-white/5 transition-colors group">
+                        <div className="flex justify-between items-start mb-2">
+                          <p className="text-sm font-black text-white truncate max-w-[150px]">{log.meal_name || "Manual Entry"}</p>
+                          <p className="text-[10px] font-black text-primary">{log.calories} kcal</p>
+                        </div>
+                        <div className="flex gap-3">
+                          <span className="text-[10px] font-bold text-blue-400">P:{log.protein}</span>
+                          <span className="text-[10px] font-bold text-orange-400">C:{log.carbs}</span>
+                          <span className="text-[10px] font-bold text-yellow-400">F:{log.fats}</span>
+                        </div>
+                        <p className="text-[9px] text-white/30 uppercase tracking-widest mt-2">{log.date} • {new Date(log.logged_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="p-4 text-center text-white/30 text-xs">No recent scans.</div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </motion.div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-                {/* AI Scanner */}
-                <div className="relative group">
-                  <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-purple-500/20 rounded-2xl blur-xl opacity-50 group-hover:opacity-100 transition duration-1000"></div>
-                  <div className="relative bg-black/60 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
-                    <FoodScanner onScanComplete={() => { }} />
-                  </div>
-                  <p className="text-center text-[10px] text-muted-foreground mt-4 uppercase tracking-[0.2em] opacity-40">
-                    Conversational Food Intelligence System
-                  </p>
-                </div>
-
-                {/* AI Strategy & Control */}
-                <div className="p-8 rounded-[2rem] bg-gradient-to-br from-neutral-900 to-black border border-white/5 shadow-2xl space-y-6 h-full flex flex-col justify-center">
-                  <div className="flex items-center gap-4 mb-2">
-                    <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
-                      <Sparkles className="w-6 h-6 text-primary" />
+          {/* Calibration Console */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }} className="lg:col-span-12 mt-8">
+            <Card className="bg-black border-white/10 ring-1 ring-white/10 rounded-[2.5rem] overflow-hidden relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-transparent pointer-events-none" />
+              <CardHeader className="border-b border-white/5 bg-white/5">
+                <CardTitle className="text-xl font-black text-white tracking-tight flex items-center gap-3">
+                  <User className="w-6 h-6 text-primary" /> Metabolic Calibration Console
+                </CardTitle>
+                <CardDescription className="text-white/50">Update your biological signature to recalculate energy targets.</CardDescription>
+              </CardHeader>
+              <CardContent className="p-8 grid lg:grid-cols-2 gap-12">
+                
+                {/* Inputs */}
+                <div className="space-y-8">
+                  <div className="space-y-4">
+                    <Label className="text-xs uppercase tracking-[0.2em] text-white/60 font-black">Biological Signature</Label>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-[10px] text-white/40 uppercase">Age</Label>
+                        <Input type="number" value={age} onChange={(e) => setAge(e.target.value)} className="bg-white/5 border-white/10 text-white font-bold h-12 rounded-xl focus-visible:ring-primary/50" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] text-white/40 uppercase">Weight (kg)</Label>
+                        <Input type="number" value={weight} onChange={(e) => setWeight(e.target.value)} className="bg-white/5 border-white/10 text-white font-bold h-12 rounded-xl focus-visible:ring-primary/50" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] text-white/40 uppercase">Height (cm)</Label>
+                        <Input type="number" value={height} onChange={(e) => setHeight(e.target.value)} className="bg-white/5 border-white/10 text-white font-bold h-12 rounded-xl focus-visible:ring-primary/50" />
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="text-xl font-black text-white tracking-tight uppercase tracking-widest">AI Synergy Insight</h4>
-                      <p className="text-[10px] text-primary/60 font-black uppercase tracking-[0.2em]">Strategy Optimization</p>
-                    </div>
                   </div>
 
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    Once your protocols are calibrated, use this strategy engine to generate custom meal plans aligned with your genetic target.
-                  </p>
+                  <div className="space-y-4">
+                    <Label className="text-xs uppercase tracking-[0.2em] text-white/60 font-black">Metabolic Flux (Activity)</Label>
+                    <div className="grid grid-cols-5 gap-2 p-1 bg-white/5 rounded-xl border border-white/5">
+                      {(['sedentary', 'light', 'moderate', 'active', 'athlete'] as Activity[]).map((level, i) => (
+                        <button key={level} onClick={() => setActivity(level)} className={`h-12 rounded-lg flex flex-col items-center justify-center transition-all ${activity === level ? "bg-primary text-black shadow-lg" : "text-white/40 hover:bg-white/10 hover:text-white"}`}>
+                          <span className="text-[10px] font-black">{i + 1}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
 
-                  <div className="space-y-4 pt-2">
-                    <Label className="text-[10px] uppercase tracking-[0.4em] text-white/40 font-black">Refine Dietary Identity</Label>
-                    <div className="flex flex-wrap gap-2">
+                {/* Goals & Sync */}
+                <div className="space-y-8 flex flex-col justify-between">
+                  <div className="space-y-4">
+                    <Label className="text-xs uppercase tracking-[0.2em] text-white/60 font-black">Operational Directive (Goal)</Label>
+                    <div className="grid grid-cols-1 gap-3">
                       {[
-                        { id: 'veg', label: 'Veg' },
-                        { id: 'non-veg', label: 'Non-Veg' },
-                        { id: 'mixed', label: 'Mixed' }
-                      ].map((diet) => (
-                        <button
-                          key={diet.id}
-                          onClick={() => setDietaryPreference(diet.id as any)}
-                          className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-tighter border transition-all ${dietaryPreference === diet.id
-                            ? "bg-primary/20 border-primary text-primary"
-                            : "bg-white/5 border-white/10 text-white/40 hover:bg-white/10"
-                            }`}
-                        >
-                          {diet.label}
+                        { id: 'cut', label: 'Caloric Deficit', sub: 'Protocol: Lipid Oxidation', icon: <TrendingDown className="w-4 h-4" /> },
+                        { id: 'recomp', label: 'Maintenance', sub: 'Protocol: Metabolic Stasis', icon: <ActivityIcon className="w-4 h-4" /> },
+                        { id: 'bulk', label: 'Lean Bulk', sub: 'Protocol: Tissue Synthesis', icon: <TrendingUp className="w-4 h-4" /> }
+                      ].map((item) => (
+                        <button key={item.id} onClick={() => setGoal(item.id as Goal)} className={`group relative p-4 rounded-xl border transition-all duration-300 text-left overflow-hidden ${goal === item.id ? "bg-primary/20 border-primary shadow-[0_0_20px_rgba(var(--primary),0.1)]" : "bg-white/5 border-white/10 hover:bg-white/10"}`}>
+                          <div className="flex items-center justify-between relative z-10">
+                            <div>
+                              <p className={`text-sm font-black uppercase tracking-widest ${goal === item.id ? "text-primary" : "text-white/40"}`}>{item.label}</p>
+                              <p className="text-[10px] text-white/30 font-medium mt-1">{item.sub}</p>
+                            </div>
+                            <div className={`p-2 rounded-lg transition-all ${goal === item.id ? "bg-primary text-black" : "bg-white/5 text-white/20"}`}>
+                              {item.icon}
+                            </div>
+                          </div>
                         </button>
                       ))}
                     </div>
                   </div>
 
-                  <div className="pt-4">
-                    <Button
-                      onClick={handleGenerateMealPlan}
-                      disabled={isGeneratingPlan || !result}
-                      className="bg-primary text-black font-black uppercase tracking-tighter rounded-xl px-8 py-6 hover:scale-105 transition-all shadow-[0_0_30px_rgba(var(--primary),0.2)] w-full"
-                    >
-                      {isGeneratingPlan ? (
-                        <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Cooking Protocol...</>
-                      ) : (
-                        <><Sparkles className="w-5 h-5 mr-2" /> Generate {dietaryPreference.toUpperCase()} Strategy</>
-                      )}
-                    </Button>
-                  </div>
+                  <Button onClick={handleUpdatePlan} disabled={isUpdating} className="w-full h-14 bg-white text-black hover:bg-gray-200 font-black uppercase tracking-widest rounded-xl text-xs">
+                    {isUpdating ? <Loader2 className="w-5 h-5 animate-spin" /> : "Calibrate & Sync Protocol"}
+                  </Button>
                 </div>
-              </div>
-            </div>
 
-            {/* Meal Plan Display */}
-            {mealPlan && (
-              <div className="lg:col-span-12 animate-in fade-in slide-in-from-bottom-8 duration-700">
-                <Card className="bg-white/5 border-white/10 rounded-[2.5rem] overflow-hidden backdrop-blur-md">
-                  <CardHeader className="bg-primary/10 border-b border-white/5 p-8">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <CardTitle className="text-2xl font-black text-white uppercase tracking-tighter">Precision Daily Protocol</CardTitle>
-                        <CardDescription className="text-primary font-bold">Generated for {dietaryPreference.toUpperCase()} • {result?.calories} kcal</CardDescription>
-                      </div>
-                      <div className="p-3 bg-primary rounded-2xl text-black">
-                        <Utensils className="w-6 h-6" />
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="p-8">
-                    <div className="prose prose-invert max-w-none whitespace-pre-wrap text-white/80 leading-relaxed font-medium">
-                      {mealPlan}
-                    </div>
-                    <div className="mt-8 flex justify-end">
-                      <Button
-                        variant="ghost"
-                        onClick={() => setMealPlan(null)}
-                        className="text-white/40 hover:text-white"
-                      >
-                        Clear Plan
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
-          </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
         </div>
       </Container>
 
@@ -783,18 +590,34 @@ export default function Nutrition() {
   );
 }
 
-function MetricBox({ label, value, unit, sub, icon, color }: { label: string; value: number | string; unit: string, sub: string, icon: React.ReactNode, color?: string }) {
+function TargetRing({ label, value, color }: { label: string; value?: number; color: string }) {
   return (
-    <div className="bg-white/5 border border-white/20 rounded-3xl p-6 hover:bg-white/10 transition-colors group shadow-lg">
-      <div className="flex items-center justify-between mb-4">
-        <div className={`p-2 rounded-xl bg-white/5 ${color || 'text-primary'} border border-white/20`}>
-          {icon}
-        </div>
-        <p className="text-[10px] uppercase font-black tracking-widest text-white/40">{unit}</p>
+    <div className="flex flex-col items-center">
+      <div className="relative w-16 h-16 rounded-full flex items-center justify-center bg-black/40 border border-white/5 shadow-inner mb-2" style={{ boxShadow: `inset 0 0 10px ${color}20, 0 0 15px ${color}10` }}>
+        <svg className="absolute inset-0 w-full h-full -rotate-90">
+          <circle cx="32" cy="32" r="30" stroke="rgba(255,255,255,0.05)" strokeWidth="4" fill="none" />
+          <motion.circle 
+            cx="32" cy="32" r="30" 
+            stroke={color} strokeWidth="4" fill="none" 
+            strokeDasharray="188.5" 
+            initial={{ strokeDashoffset: 188.5 }}
+            animate={{ strokeDashoffset: value ? 188.5 - (188.5 * 0.7) : 188.5 }} 
+            transition={{ duration: 1.5, ease: "easeOut" }}
+            strokeLinecap="round"
+          />
+        </svg>
+        <span className="text-sm font-black text-white relative z-10">{value || 0}<span className="text-[8px] opacity-50 ml-0.5">g</span></span>
       </div>
-      <p className="text-xs font-black text-white/60 mb-1 group-hover:text-white transition-colors uppercase tracking-wider">{label}</p>
-      <h4 className={`text-3xl font-black ${color || 'text-white'} tracking-tighter tabular-nums mb-1`}>{value}</h4>
-      <p className="text-[10px] text-white/40 font-medium">{sub}</p>
+      <span className="text-[9px] uppercase font-black text-white/50 tracking-widest">{label}</span>
+    </div>
+  )
+}
+
+function MetricMini({ label, value, unit }: { label: string; value?: number | string; unit: string }) {
+  return (
+    <div className="bg-white/5 rounded-xl p-3 border border-white/10 flex flex-col justify-center">
+      <p className="text-[9px] uppercase tracking-widest text-white/40 mb-1 font-bold">{label}</p>
+      <p className="text-lg font-black text-white">{value || 0} <span className="text-[10px] text-white/40">{unit}</span></p>
     </div>
   )
 }
