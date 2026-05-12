@@ -103,7 +103,7 @@ export default function AITrainer() {
             onError: (err) => {
                 console.error("Chat error:", err);
                 setIsLoading(false);
-                toast.error("Something went wrong. Please try again.");
+                toast.error(err.message || "Something went wrong. Please try again.");
                 inputRef.current?.focus();
             },
         });
