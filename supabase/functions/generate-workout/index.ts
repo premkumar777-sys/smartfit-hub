@@ -27,13 +27,15 @@ serve(async (req) => {
         // Initialize Supabase Client
         const supabaseClient = createClient(
             Deno.env.get("SUPABASE_URL") ?? "",
-            Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-            { auth: { persistSession: false } }
+            Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+            { 
+                global: { headers: { Authorization: authHeader } },
+                auth: { persistSession: false } 
+            }
         );
 
         // Get user from token
-        const token = authHeader.replace("Bearer ", "");
-        const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
+        const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
 
         if (userError || !user) {
             console.error("Auth error:", userError);
@@ -117,7 +119,7 @@ Keep it practical, achievable, and motivating.`;
                 "Content-Type": "application/json",
             },
             body: JSON.stringify({
-                model: "llama-3.3-70b-versatile",
+                model: "llama-3.1-8b-instant",
                 messages: [
                     { role: "system", content: systemMessage },
                     { role: "user", content: prompt }
