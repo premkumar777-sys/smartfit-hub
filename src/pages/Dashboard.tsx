@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Container } from "@/components/Container";
-import { Activity, Apple, Dumbbell, Target, TrendingUp, FileText, Trash2, ArrowLeft, Loader2 } from "lucide-react";
+import { Activity, Apple, Dumbbell, Target, TrendingUp, FileText, Trash2, ArrowLeft, Loader2, Bot, Video, LineChart, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import type { Tables } from "@/integrations/supabase/types";
@@ -283,6 +283,57 @@ const Dashboard = () => {
               <p className="text-sm text-muted-foreground">Current Streak</p>
             </div>
           </Card>
+        </div>
+
+        {/* Quick Access Features */}
+        <div className="space-y-4">
+          <h2 className="text-2xl font-bold flex items-center gap-2 leading-relaxed text-gray-300">
+            <Target className="text-primary h-6 w-6" />
+            Your Fitness Tools
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <Link to="/ai-workout" className="flex flex-col items-center justify-center p-4 rounded-xl bg-card border border-border hover:border-primary/50 hover:bg-card/80 transition-all text-center gap-3 group">
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Dumbbell className="w-6 h-6 text-primary" />
+              </div>
+              <span className="text-sm font-medium">AI Workout</span>
+            </Link>
+            
+            <Link to="/ai-trainer" className="flex flex-col items-center justify-center p-4 rounded-xl bg-card border border-border hover:border-primary/50 hover:bg-card/80 transition-all text-center gap-3 group">
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Bot className="w-6 h-6 text-primary" />
+              </div>
+              <span className="text-sm font-medium">AI Trainer</span>
+            </Link>
+
+            <Link to="/nutrition" className="flex flex-col items-center justify-center p-4 rounded-xl bg-card border border-border hover:border-orange-500/50 hover:bg-card/80 transition-all text-center gap-3 group">
+              <div className="w-12 h-12 rounded-full bg-orange-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Apple className="w-6 h-6 text-orange-500" />
+              </div>
+              <span className="text-sm font-medium">Nutrition</span>
+            </Link>
+
+            <Link to="/3d-trainer" className="flex flex-col items-center justify-center p-4 rounded-xl bg-card border border-border hover:border-accent/50 hover:bg-card/80 transition-all text-center gap-3 group">
+              <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Video className="w-6 h-6 text-accent" />
+              </div>
+              <span className="text-sm font-medium">3D Trainer</span>
+            </Link>
+
+            <Link to="/progress" className="flex flex-col items-center justify-center p-4 rounded-xl bg-card border border-border hover:border-primary/50 hover:bg-card/80 transition-all text-center gap-3 group">
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <LineChart className="w-6 h-6 text-primary" />
+              </div>
+              <span className="text-sm font-medium">Progress</span>
+            </Link>
+
+            <Link to="/gamification" className="flex flex-col items-center justify-center p-4 rounded-xl bg-card border border-border hover:border-yellow-500/50 hover:bg-card/80 transition-all text-center gap-3 group">
+              <div className="w-12 h-12 rounded-full bg-yellow-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Trophy className="w-6 h-6 text-yellow-500" />
+              </div>
+              <span className="text-sm font-medium">Rewards</span>
+            </Link>
+          </div>
         </div>
 
         {/* Main Content Grid */}
