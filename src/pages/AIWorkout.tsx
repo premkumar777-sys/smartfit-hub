@@ -136,8 +136,17 @@ const AIWorkout = () => {
   };
 
   return (
-    <div className="min-h-screen py-10 relative overflow-hidden">
-      <div className="absolute inset-0 gradient-hero opacity-20"></div>
+    <div className="min-h-screen py-10 relative overflow-hidden bg-black">
+      {/* Background Image Container */}
+      <div 
+        className="absolute inset-0 z-0 bg-cover bg-center bg-fixed bg-no-repeat transition-opacity duration-1000"
+        style={{ 
+          backgroundImage: `url('/workout-bg.jpg')`,
+        }}
+      />
+      {/* Dark Gradient Overlay to ensure text readability */}
+      <div className="absolute inset-0 z-0 bg-gradient-to-t from-black via-black/80 to-black/40" />
+      <div className="absolute inset-0 z-0 bg-[radial-gradient(circle_at_50%_0%,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent opacity-60" />
 
       <Container className="relative z-10">
         <div className="flex justify-between items-center mb-8">
