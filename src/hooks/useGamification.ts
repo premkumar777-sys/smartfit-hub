@@ -333,6 +333,7 @@ export function useGamification() {
 
         const today = new Date().toDateString();
         const yesterday = new Date(Date.now() - 86400000).toDateString();
+        const xpToAdd = data.lastProgressLogDate === today ? 0 : XP_REWARDS.PROGRESS_LOG;
 
         setData(prev => {
             let streakData = {};
@@ -353,14 +354,14 @@ export function useGamification() {
             const isAlreadyLoggedToday = prev.lastProgressLogDate === today;
             const newLogs = prev.progressLogs + 1;
 
-            // Only award XP if not already logged today
-            const xpToAdd = isAlreadyLoggedToday ? 0 : XP_REWARDS.PROGRESS_LOG;
+            // Only award XP if not already logged today (using prev to be absolutely safe for state)
+            const safeXpToAdd = isAlreadyLoggedToday ? 0 : XP_REWARDS.PROGRESS_LOG;
 
             const updatedData = {
                 ...prev,
                 ...streakData,
                 progressLogs: newLogs,
-                xp: prev.xp + xpToAdd,
+                xp: prev.xp + safeXpToAdd,
                 lastProgressLogDate: today,
             };
 
@@ -376,16 +377,16 @@ export function useGamification() {
                 updatedData.unlockedAchievements = [...prev.unlockedAchievements, ...newAchievements];
             }
 
-            if (xpToAdd > 0) {
-                console.log(`[Gamification] Progress log recorded. XP awarded: ${xpToAdd}. Total XP: ${updatedData.xp}`);
+            if (safeXpToAdd > 0) {
+                console.log(`[Gamification] Progress log recorded. XP awarded: ${safeXpToAdd}. Total XP: ${updatedData.xp}`);
             } else {
                 console.log(`[Gamification] Progress log recorded. Daily XP limit reached.`);
             }
             return updatedData;
         });
 
-        return XP_REWARDS.PROGRESS_LOG;
-    }, [checkAchievements, logActivity]);
+        return xpToAdd;
+    }, [checkAchievements, logActivity, data.lastProgressLogDate]);
 
     // Record daily login
     const recordDailyLogin = useCallback(() => {
