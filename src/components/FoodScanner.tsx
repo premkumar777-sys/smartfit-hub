@@ -31,16 +31,16 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
             const { error: logError } = await (supabase.from('activity_logs' as any).insert({
                 user_id: user.id,
                 activity_type: 'nutrition',
-                value: result.calories,
+                value: Math.round(result.calories),
                 created_at: new Date().toISOString()
             }));
 
             const { error: nutError } = await (supabase.from('nutrition_logs' as any).insert({
                 user_id: user.id,
-                calories: result.calories,
-                protein: result.protein,
-                carbs: result.carbs,
-                fats: result.fats,
+                calories: Math.round(result.calories),
+                protein: Math.round(result.protein),
+                carbs: Math.round(result.carbs),
+                fats: Math.round(result.fats),
                 meal_name: result.name,
                 logged_at: new Date().toISOString()
             }));
