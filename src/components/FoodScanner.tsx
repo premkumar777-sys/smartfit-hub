@@ -39,8 +39,8 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
             return;
         }
         
-        if (file.size > 4 * 1024 * 1024) {
-            toast.error("Image too large. Please select an image under 4MB");
+        if (file.size > 10 * 1024 * 1024) {
+            toast.error("Image too large. Please select an image under 10MB");
             return;
         }
 
