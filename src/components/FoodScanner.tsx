@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, X, Info, Sparkles, TrendingUp, Send, CheckCircle2, Zap } from "lucide-react";
+import { Loader2, X, Info, Sparkles, TrendingUp, Send, CheckCircle2, Zap, Camera } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
@@ -12,11 +12,14 @@ interface FoodScannerProps {
 
 export function FoodScanner({ onScanComplete }: FoodScannerProps) {
     const [searchQuery, setSearchQuery] = useState("");
+    const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState<{ name: string; calories: number; protein: number; carbs: number; fats: number } | null>(null);
     const [quotaExceeded, setQuotaExceeded] = useState(false);
     const [isLogging, setIsLogging] = useState(false);
+    
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Auto-resize textarea
     useEffect(() => {
@@ -25,6 +28,28 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
             textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 120) + "px";
         }
     }, [searchQuery]);
+
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Basic validation
+        if (!file.type.startsWith('image/')) {
+            toast.error("Please select a valid image file");
+            return;
+        }
+        
+        if (file.size > 4 * 1024 * 1024) {
+            toast.error("Image too large. Please select an image under 4MB");
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setSelectedImage(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+    };
 
     const handleLogMeal = async () => {
         if (!result) return;
@@ -69,12 +94,9 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
     };
 
     const analyzeText = async (query: string) => {
-        if (!query.trim()) return;
+        if (!query.trim() && !selectedImage) return;
         setLoading(true);
         setResult(null);
-
-        // We use the most reliable, fast model
-        const possibleModels = ["llama-3.1-8b-instant", "llama3-8b-8192"];
 
         try {
             let groqKey = import.meta.env.VITE_GROQ_API_KEY || "";
@@ -85,7 +107,7 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
                     const { data: profile } = await supabase
                         .from("profiles")
                         .select("preferences")
-                        .eq("id", user.id) // Fixed user_id to id
+                        .eq("id", user.id)
                         .single();
                     groqKey = (profile?.preferences as any)?.groq_api_key || "";
                 }
@@ -99,6 +121,45 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
                 return;
             }
 
+            // Determine model and payload based on whether an image is present
+            const isVision = !!selectedImage;
+            const model = isVision ? "llama-3.2-11b-vision-preview" : "llama-3.1-8b-instant";
+            
+            let messages;
+            let responseFormat;
+
+            if (isVision) {
+                messages = [
+                    {
+                        role: "user",
+                        content: [
+                            { 
+                                type: "text", 
+                                text: `You are a Nutrition AI. Look at this food image and make your best reasonable estimate of its macros based on the visual portion size. ${query ? `Additional context from user: "${query}". ` : ''}Return ONLY a JSON object with: "name" (string), "calories" (number), "protein" (number), "carbs" (number), "fats" (number). Ensure all macro values are NUMBERS. Do not include any markdown, explanation, or extra text outside the JSON block.` 
+                            },
+                            { 
+                                type: "image_url", 
+                                image_url: { url: selectedImage } 
+                            }
+                        ]
+                    }
+                ];
+                // Vision models on Groq currently do not always support strict JSON response_format
+                responseFormat = undefined;
+            } else {
+                messages = [
+                    {
+                        role: "system",
+                        content: "You are a specialized Nutrition AI. Analyze food descriptions and return ONLY a JSON object with: name, calories, protein, carbs, fats. Ensure all macro values are NUMBERS. No extra text."
+                    },
+                    {
+                        role: "user",
+                        content: `Analyze: ${query}`
+                    }
+                ];
+                responseFormat = { type: "json_object" };
+            }
+
             const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                 method: "POST",
                 headers: {
@@ -106,31 +167,40 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    model: possibleModels[0],
-                    messages: [
-                        {
-                            role: "system",
-                            content: "You are a specialized Nutrition AI. Analyze food descriptions and return ONLY a JSON object with: name, calories, protein, carbs, fats. Ensure all macro values are NUMBERS, not strings. No extra text."
-                        },
-                        {
-                            role: "user",
-                            content: `Analyze: ${query}`
-                        }
-                    ],
-                    response_format: { type: "json_object" }
+                    model: model,
+                    messages: messages,
+                    ...(responseFormat ? { response_format: responseFormat } : {})
                 })
             });
 
-            if (!response.ok) throw new Error(`Groq API Error: ${response.status}`);
+            if (!response.ok) {
+                const errText = await response.text();
+                throw new Error(`Groq API Error: ${response.status} - ${errText}`);
+            }
 
             const data = await response.json();
-            const resultData = JSON.parse(data.choices[0].message.content);
+            const rawContent = data.choices[0].message.content;
+            
+            // Robust parsing to handle potential markdown wrappers (especially from vision model)
+            let resultData;
+            try {
+                // Try direct parse first
+                resultData = JSON.parse(rawContent);
+            } catch (e) {
+                // Fallback: extract JSON from markdown code block
+                const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
+                if (jsonMatch) {
+                    resultData = JSON.parse(jsonMatch[0]);
+                } else {
+                    throw new Error("Could not parse AI response into JSON");
+                }
+            }
 
             if (resultData.error) {
                 toast.error(resultData.error);
             } else {
                 setResult({
-                    name: resultData.name,
+                    name: resultData.name || "Unknown Food",
                     calories: Math.round(Number(resultData.calories) || 0),
                     protein: Math.round(Number(resultData.protein) || 0),
                     carbs: Math.round(Number(resultData.carbs) || 0),
@@ -151,6 +221,10 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
     const handleDone = () => {
         setResult(null);
         setSearchQuery("");
+        setSelectedImage(null);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
     };
 
     return (
@@ -169,11 +243,11 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
                     </motion.div>
                     <div>
                         <CardTitle className="text-xl font-black tracking-tight text-white flex items-center gap-2">
-                            Macro AI
-                            <span className="px-2 py-0.5 rounded-full bg-primary/20 text-primary text-[9px] uppercase tracking-[0.2em] font-black border border-primary/30">Intelligence</span>
+                            Food Scanner
+                            <span className="px-2 py-0.5 rounded-full bg-primary/20 text-primary text-[9px] uppercase tracking-[0.2em] font-black border border-primary/30">AI Lens</span>
                         </CardTitle>
                         <CardDescription className="text-white/50 text-xs">
-                            Type what you ate and let AI decode the nutrients instantly.
+                            Snap a picture or type what you ate to decode nutrients.
                         </CardDescription>
                     </div>
                 </div>
@@ -213,45 +287,82 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
                                 </motion.div>
                             )}
 
-                            <div className="relative group/input">
-                                <textarea
-                                    ref={textareaRef}
-                                    placeholder="e.g., '150g grilled chicken, half an avocado, and a cup of quinoa'"
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter' && !e.shiftKey) {
-                                            e.preventDefault();
-                                            analyzeText(searchQuery);
-                                        }
-                                    }}
-                                    className="w-full min-h-[60px] max-h-[120px] bg-white/5 border border-white/10 rounded-2xl p-4 pr-12 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 placeholder:text-white/30 resize-none transition-all hover:border-white/20 text-white font-medium"
-                                />
-                                
-                                {loading ? (
-                                    <div className="absolute right-3 top-4">
-                                        <div className="relative flex items-center justify-center w-8 h-8 rounded-full bg-primary/20">
-                                            <Loader2 className="w-4 h-4 text-primary animate-spin" />
-                                            <motion.div 
-                                                className="absolute inset-0 rounded-full border-2 border-primary/30 border-t-primary"
-                                                animate={{ rotate: 360 }}
-                                                transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-                                            />
+                            <div className="relative bg-white/5 border border-white/10 rounded-2xl overflow-hidden transition-all hover:border-white/20 focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/50">
+                                {/* Image Preview Area */}
+                                {selectedImage && (
+                                    <div className="p-4 pb-0">
+                                        <div className="relative inline-block group/img">
+                                            <img src={selectedImage} alt="Food to analyze" className="h-24 w-24 object-cover rounded-xl border border-white/20 shadow-lg" />
+                                            <button 
+                                                onClick={() => {
+                                                    setSelectedImage(null);
+                                                    if (fileInputRef.current) fileInputRef.current.value = '';
+                                                }}
+                                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover/img:opacity-100 transition-opacity shadow-md"
+                                            >
+                                                <X className="w-3 h-3" />
+                                            </button>
                                         </div>
                                     </div>
-                                ) : (
-                                    <button
-                                        onClick={() => analyzeText(searchQuery)}
-                                        disabled={!searchQuery.trim()}
-                                        className="absolute right-3 top-4 w-8 h-8 rounded-full flex items-center justify-center bg-primary text-black transition-all hover:scale-110 active:scale-95 disabled:opacity-30 disabled:hover:scale-100"
-                                    >
-                                        <Send className="w-3 h-3 ml-0.5" />
-                                    </button>
                                 )}
+
+                                <div className="relative">
+                                    <textarea
+                                        ref={textareaRef}
+                                        placeholder="e.g., '150g grilled chicken' or attach an image..."
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' && !e.shiftKey) {
+                                                e.preventDefault();
+                                                analyzeText(searchQuery);
+                                            }
+                                        }}
+                                        className="w-full min-h-[60px] max-h-[120px] bg-transparent border-none p-4 pr-[88px] text-sm focus:outline-none focus:ring-0 placeholder:text-white/30 resize-none text-white font-medium"
+                                    />
+                                    
+                                    <div className="absolute right-2 bottom-3 flex items-center gap-1">
+                                        <input 
+                                            type="file" 
+                                            accept="image/*" 
+                                            capture="environment"
+                                            className="hidden" 
+                                            ref={fileInputRef}
+                                            onChange={handleImageChange}
+                                        />
+                                        <button
+                                            onClick={() => fileInputRef.current?.click()}
+                                            disabled={loading}
+                                            className="w-8 h-8 rounded-full flex items-center justify-center bg-white/10 text-white transition-all hover:bg-white/20 active:scale-95 disabled:opacity-30"
+                                        >
+                                            <Camera className="w-4 h-4" />
+                                        </button>
+                                        
+                                        {loading ? (
+                                            <div className="relative flex items-center justify-center w-8 h-8 rounded-full bg-primary/20">
+                                                <Loader2 className="w-4 h-4 text-primary animate-spin" />
+                                                <motion.div 
+                                                    className="absolute inset-0 rounded-full border-2 border-primary/30 border-t-primary"
+                                                    animate={{ rotate: 360 }}
+                                                    transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                                                />
+                                            </div>
+                                        ) : (
+                                            <button
+                                                onClick={() => analyzeText(searchQuery)}
+                                                disabled={(!searchQuery.trim() && !selectedImage)}
+                                                className="w-8 h-8 rounded-full flex items-center justify-center bg-primary text-black transition-all hover:scale-110 active:scale-95 disabled:opacity-30 disabled:hover:scale-100"
+                                            >
+                                                <Send className="w-3 h-3 ml-0.5" />
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
                             
                             <div className="flex items-center gap-4 text-[10px] uppercase tracking-[0.2em] text-white/30 font-black pl-1">
                                 <span className="flex items-center gap-1"><Zap className="w-3 h-3 text-yellow-500/50" /> Fast</span>
+                                <span className="flex items-center gap-1"><Camera className="w-3 h-3 text-blue-500/50" /> Vision</span>
                                 <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3 text-emerald-500/50" /> Accurate</span>
                             </div>
                         </motion.div>
