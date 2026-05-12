@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Container } from "@/components/Container";
-import { Dumbbell, Mail, Phone, Instagram, Twitter, Youtube } from "lucide-react";
+import { Dumbbell, Mail, Phone, Instagram, Twitter, MessageCircle } from "lucide-react";
 
 export function Footer() {
     const currentYear = new Date().getFullYear();
@@ -21,7 +21,7 @@ export function Footer() {
                             </p>
                             <div className="flex gap-3">
                                 <a
-                                    href="https://instagram.com/smartfithub"
+                                    href="https://www.instagram.com/smartfitaii/"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="p-2 rounded-lg bg-muted/50 hover:bg-primary/20 text-muted-foreground hover:text-primary transition-colors"
@@ -39,13 +39,13 @@ export function Footer() {
                                     <Twitter className="w-4 h-4" />
                                 </a>
                                 <a
-                                    href="https://youtube.com/@smartfithub"
+                                    href="https://chat.whatsapp.com/EiRKjJBISlW2HmtYwpnbxh"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="p-2 rounded-lg bg-muted/50 hover:bg-primary/20 text-muted-foreground hover:text-primary transition-colors"
-                                    aria-label="YouTube"
+                                    aria-label="WhatsApp Group"
                                 >
-                                    <Youtube className="w-4 h-4" />
+                                    <MessageCircle className="w-4 h-4" />
                                 </a>
                             </div>
                         </div>
