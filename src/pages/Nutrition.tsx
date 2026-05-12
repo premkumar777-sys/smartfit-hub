@@ -566,6 +566,47 @@ export default function Nutrition() {
                     </div>
                   )}
                 </Card>
+
+                {/* Recent Meals List */}
+                {nutritionHistory.length > 0 && (
+                  <Card className="bg-black/40 border-white/20 backdrop-blur-xl rounded-[2.5rem] md:col-span-2 overflow-hidden border-none ring-1 ring-white/20 p-8 shadow-2xl mt-6">
+                    <div className="space-y-1 mb-6">
+                      <h3 className="text-xl font-black text-white uppercase tracking-tighter flex items-center gap-2">
+                        <Utensils className="w-5 h-5 text-primary" />
+                        Recent Scans
+                      </h3>
+                      <p className="text-xs text-muted-foreground uppercase tracking-widest opacity-60">Your logged meals</p>
+                    </div>
+                    <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
+                      {[...nutritionHistory].reverse().map((log, i) => (
+                        <div key={log.id || i} className="p-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                          <div>
+                            <p className="text-sm font-black text-white">{log.meal_name || "Manual Log"}</p>
+                            <p className="text-[10px] text-white/40 uppercase tracking-widest">{log.date} • {new Date(log.logged_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                          </div>
+                          <div className="flex gap-4 text-center">
+                            <div>
+                              <p className="text-[10px] uppercase text-white/40 font-black">Calories</p>
+                              <p className="text-sm font-black text-primary">{log.calories} <span className="text-[10px] text-white/60">kcal</span></p>
+                            </div>
+                            <div>
+                              <p className="text-[10px] uppercase text-white/40 font-black">Protein</p>
+                              <p className="text-sm font-black text-blue-400">{log.protein}g</p>
+                            </div>
+                            <div>
+                              <p className="text-[10px] uppercase text-white/40 font-black">Carbs</p>
+                              <p className="text-sm font-black text-orange-400">{log.carbs}g</p>
+                            </div>
+                            <div>
+                              <p className="text-[10px] uppercase text-white/40 font-black">Fats</p>
+                              <p className="text-sm font-black text-yellow-400">{log.fats}g</p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </Card>
+                )}
               </div>
             </div>
 
