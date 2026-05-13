@@ -71,9 +71,17 @@ const Home = () => {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative overflow-hidden py-20">
+      <section className="relative overflow-hidden py-20 min-h-[85vh] flex items-center">
+        {/* Background Image */}
+        <div
+          className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: `url('/hero-bg.png')` }}
+        />
+        {/* Layered dark overlays for text readability */}
+        <div className="absolute inset-0 z-0 bg-gradient-to-b from-black/70 via-black/50 to-black" />
+        <div className="absolute inset-0 z-0 bg-gradient-to-r from-black/40 via-transparent to-black/40" />
 
-        <div className="relative z-10 max-w-4xl mx-auto px-6">
+        <div className="relative z-10 w-full max-w-4xl mx-auto px-6">
           <motion.div
             className="text-center space-y-8"
             initial={{ opacity: 0, y: 20 }}
