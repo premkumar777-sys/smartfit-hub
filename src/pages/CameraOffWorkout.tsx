@@ -21,7 +21,7 @@ import { AngleGuidance } from '@/components/AngleGuidance';
 import { WorkoutTimer } from '@/components/WorkoutTimer';
 import { useVoiceCoach } from '@/hooks/useVoiceCoach';
 
-type Exercise = 'squat' | 'pushup' | 'bicep' | 'overheadtriceps' | 'abs' | 'latpulls' | 'chestfly' | 'shoulderpress' | 'pullups' | 'idle';
+type Exercise = 'squat' | 'pushup' | 'bicep' | 'overheadtriceps' | 'abs' | 'latpulls' | 'chestfly' | 'shoulderpress' | 'pullups' | 'legpress' | 'totalshoulder' | 'tricepext' | 'upperbody' | 'backrelaxing' | 'barshoulder' | 'idle';
 
 interface ExerciseConfig {
   id: Exercise;
@@ -29,6 +29,7 @@ interface ExerciseConfig {
   duration: number;
   icon: React.ReactNode;
   description: string;
+  videoFile: string;
   voiceIntro: string;
   voiceMidCues: string[];
   voiceComplete: string;
@@ -41,6 +42,7 @@ const EXERCISES: ExerciseConfig[] = [
     duration: 30,
     icon: <Dumbbell className="w-5 h-5" />,
     description: 'Build lower body strength with proper squat form',
+    videoFile: 'squat.mp4',
     voiceIntro: 'Let\'s start with squats! Stand with feet shoulder-width apart. Keep your back straight and core engaged.',
     voiceMidCues: [
       'Lower down, keep those knees behind your toes!',
@@ -56,6 +58,7 @@ const EXERCISES: ExerciseConfig[] = [
     duration: 30,
     icon: <Dumbbell className="w-5 h-5" />,
     description: 'Strengthen chest, shoulders, and triceps',
+    videoFile: 'pushup.mp4',
     voiceIntro: 'Time for push-ups! Get into plank position. Keep your body in a straight line from head to heels.',
     voiceMidCues: [
       'Lower your chest to the ground, elbows at 45 degrees!',
@@ -71,6 +74,7 @@ const EXERCISES: ExerciseConfig[] = [
     duration: 30,
     icon: <Dumbbell className="w-5 h-5" />,
     description: 'Isolate and build your bicep muscles',
+    videoFile: 'bicep.mp4',
     voiceIntro: 'Bicep curls! Keep your elbows fixed at your sides. Control the movement up and down.',
     voiceMidCues: [
       'Squeeze at the top of the curl!',
@@ -86,6 +90,7 @@ const EXERCISES: ExerciseConfig[] = [
     duration: 30,
     icon: <Dumbbell className="w-5 h-5" />,
     description: 'Target your triceps with overhead extensions',
+    videoFile: 'overheadtriceps.mp4',
     voiceIntro: 'Overhead tricep extensions! Keep your core tight and elbows pointing forward.',
     voiceMidCues: [
       'Extend fully at the top!',
@@ -100,6 +105,7 @@ const EXERCISES: ExerciseConfig[] = [
     duration: 30,
     icon: <Dumbbell className="w-5 h-5" />,
     description: 'Strengthen your core and abs',
+    videoFile: 'abs.mp4',
     voiceIntro: 'Time to work the core! Keep your movements controlled and focus on the squeeze.',
     voiceMidCues: [
       'Breathe out on the exertion!',
@@ -114,6 +120,7 @@ const EXERCISES: ExerciseConfig[] = [
     duration: 30,
     icon: <Dumbbell className="w-5 h-5" />,
     description: 'Build a strong back with lat pulldowns',
+    videoFile: 'latpulls.mp4',
     voiceIntro: 'Lat pulldowns! Keep your chest up and pull through your elbows.',
     voiceMidCues: [
       'Squeeze your shoulder blades together!',
@@ -128,6 +135,7 @@ const EXERCISES: ExerciseConfig[] = [
     duration: 30,
     icon: <Dumbbell className="w-5 h-5" />,
     description: 'Isolate the pectoral muscles',
+    videoFile: 'chestfly.mp4',
     voiceIntro: 'Chest flys! Keep a slight bend in your elbows and open up the chest.',
     voiceMidCues: [
       'Feel the stretch at the bottom!',
@@ -142,6 +150,7 @@ const EXERCISES: ExerciseConfig[] = [
     duration: 30,
     icon: <Dumbbell className="w-5 h-5" />,
     description: 'Build your deltoids with overhead presses',
+    videoFile: 'shoulderpress.mp4',
     voiceIntro: 'Shoulder press time! Core engaged, press straight up.',
     voiceMidCues: [
       'Don\'t arch your lower back!',
@@ -156,6 +165,7 @@ const EXERCISES: ExerciseConfig[] = [
     duration: 30,
     icon: <Dumbbell className="w-5 h-5" />,
     description: 'The ultimate upper body bodyweight exercise',
+    videoFile: 'pullups.mp4',
     voiceIntro: 'Pull-ups! Hang with a full grip, engage your lats, and pull your chin over the bar.',
     voiceMidCues: [
       'Pull your elbows down and back!',
@@ -163,7 +173,97 @@ const EXERCISES: ExerciseConfig[] = [
       'Squeeze at the top!',
     ],
     voiceComplete: 'Amazing pull-ups! You are getting stronger.',
-  }
+  },
+  {
+    id: 'legpress',
+    name: 'Leg Press',
+    duration: 30,
+    icon: <Dumbbell className="w-5 h-5" />,
+    description: 'Build powerful quads and glutes on the leg press',
+    videoFile: 'LegPress.mp4',
+    voiceIntro: 'Leg press! Feet flat on the platform, shoulder-width apart. Push through your heels.',
+    voiceMidCues: [
+      'Full range of motion, lower slowly!',
+      'Keep your lower back pressed to the seat!',
+      'Drive through those heels!',
+    ],
+    voiceComplete: 'Leg press complete! Your quads are working!',
+  },
+  {
+    id: 'totalshoulder',
+    name: 'Total Shoulder',
+    duration: 30,
+    icon: <Dumbbell className="w-5 h-5" />,
+    description: 'Full deltoid workout hitting all three heads',
+    videoFile: 'TotalShoulder.mp4',
+    voiceIntro: 'Total shoulder workout! Keep your core tight and focus on each part of the deltoid.',
+    voiceMidCues: [
+      'Control the movement, feel the burn!',
+      'Keep your elbows slightly bent!',
+      'Squeeze at the top!',
+    ],
+    voiceComplete: 'Total shoulder workout complete! Great work!',
+  },
+  {
+    id: 'tricepext',
+    name: 'Tricep Extension',
+    duration: 30,
+    icon: <Dumbbell className="w-5 h-5" />,
+    description: 'Isolate and build your tricep muscles',
+    videoFile: 'tricep extension.mp4',
+    voiceIntro: 'Tricep extensions! Lock your elbows in and extend fully overhead.',
+    voiceMidCues: [
+      'Elbows fixed, only forearms move!',
+      'Full extension at the top!',
+      'Slow and controlled descent!',
+    ],
+    voiceComplete: 'Triceps destroyed! Excellent work.',
+  },
+  {
+    id: 'upperbody',
+    name: 'Upper Body',
+    duration: 45,
+    icon: <Dumbbell className="w-5 h-5" />,
+    description: 'Complete upper body strength training',
+    videoFile: 'UpperBody.mp4',
+    voiceIntro: 'Full upper body workout! Focus on chest, shoulders, and arms throughout.',
+    voiceMidCues: [
+      'Keep your core engaged the whole time!',
+      'Control every rep!',
+      'Almost halfway, keep pushing!',
+    ],
+    voiceComplete: 'Full upper body done! You crushed it!',
+  },
+  {
+    id: 'backrelaxing',
+    name: 'Back Relaxing',
+    duration: 30,
+    icon: <Dumbbell className="w-5 h-5" />,
+    description: 'Gentle back stretching and relaxation exercises',
+    videoFile: 'Back Relaxing.mp4',
+    voiceIntro: 'Back relaxation stretches! Move slowly and breathe deeply throughout.',
+    voiceMidCues: [
+      'Breathe deeply and release the tension!',
+      'Elongate your spine with each breath!',
+      'Let your back fully relax!',
+    ],
+    voiceComplete: 'Back stretches complete! Feel that relief!',
+  },
+  {
+    id: 'barshoulder',
+    name: 'Barbell Shoulder',
+    duration: 30,
+    icon: <Dumbbell className="w-5 h-5" />,
+    description: 'Heavy barbell shoulder press for mass building',
+    videoFile: 'BarShoulder.mp4',
+    voiceIntro: 'Barbell shoulder press! Grip the bar just outside shoulder-width, core tight, press it up!',
+    voiceMidCues: [
+      'Full lockout at the top!',
+      'Don\'t let your lower back arch!',
+      'Control the bar on the way down!',
+    ],
+    voiceComplete: 'Barbell shoulder press done! Massive delts incoming!',
+  },
 ];
 
 /**
@@ -449,7 +549,7 @@ export default function CameraOffWorkout() {
               ) : (
                 <video
                   key={selectedExercise}
-                  src={`/${selectedExercise}.mp4`}
+                  src={currentExerciseConfig?.videoFile ? `/${currentExerciseConfig.videoFile}` : `/${selectedExercise}.mp4`}
                   autoPlay
                   loop
                   muted
@@ -689,9 +789,9 @@ export default function CameraOffWorkout() {
               {/* Video Player */}
               <div className="relative aspect-video bg-black">
                 <video
+                  key={activeVideo.videoUrl}
                   src={activeVideo.videoUrl}
                   controls
-                  autoPlay
                   className="w-full h-full"
                   poster={activeVideo.thumbnail}
                 >
