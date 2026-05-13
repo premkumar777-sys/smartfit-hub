@@ -499,18 +499,6 @@ export default function CameraOffWorkout() {
           </div>
         </div>
 
-        {/* Info banner */}
-        <div className="mt-8 bg-muted/50 rounded-xl p-6 border border-border">
-          <h3 className="font-semibold mb-2 flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-primary" />
-            About 3D Trainer Mode
-          </h3>
-          <p className="text-muted-foreground text-sm">
-            This is a <strong>3D exercise demonstration system</strong>, not real-time form detection.
-            Watch the animated trainer to learn proper exercise form, then follow along at your own pace.
-            The angle guidance shows you the target positions to aim for during each exercise.
-          </p>
-        </div>
 
         {/* Workout Videos Section */}
         <div className="mt-12">
