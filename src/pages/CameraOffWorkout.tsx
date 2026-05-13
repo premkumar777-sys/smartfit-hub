@@ -20,7 +20,7 @@ import { AngleGuidance } from '@/components/AngleGuidance';
 import { WorkoutTimer } from '@/components/WorkoutTimer';
 import { useVoiceCoach } from '@/hooks/useVoiceCoach';
 
-type Exercise = 'squat' | 'pushup' | 'bicepCurl' | 'idle';
+type Exercise = 'squat' | 'pushup' | 'bicep' | 'overheadtriceps' | 'abs' | 'latpulls' | 'chestfly' | 'shoulderpress' | 'pullups' | 'idle';
 
 interface ExerciseConfig {
   id: Exercise;
@@ -65,7 +65,7 @@ const EXERCISES: ExerciseConfig[] = [
     voiceComplete: 'Push-ups complete! Great upper body work!',
   },
   {
-    id: 'bicepCurl',
+    id: 'bicep',
     name: 'Bicep Curls',
     duration: 30,
     icon: <Dumbbell className="w-5 h-5" />,
@@ -79,6 +79,90 @@ const EXERCISES: ExerciseConfig[] = [
     ],
     voiceComplete: 'Bicep curls finished! Feel that pump!',
   },
+  {
+    id: 'overheadtriceps',
+    name: 'Overhead Triceps',
+    duration: 30,
+    icon: <Dumbbell className="w-5 h-5" />,
+    description: 'Target your triceps with overhead extensions',
+    voiceIntro: 'Overhead tricep extensions! Keep your core tight and elbows pointing forward.',
+    voiceMidCues: [
+      'Extend fully at the top!',
+      'Control the weight on the way down!',
+      'Keep your elbows close to your head!',
+    ],
+    voiceComplete: 'Triceps are on fire! Great job.',
+  },
+  {
+    id: 'abs',
+    name: 'Core & Abs',
+    duration: 30,
+    icon: <Dumbbell className="w-5 h-5" />,
+    description: 'Strengthen your core and abs',
+    voiceIntro: 'Time to work the core! Keep your movements controlled and focus on the squeeze.',
+    voiceMidCues: [
+      'Breathe out on the exertion!',
+      'Keep your lower back flat!',
+      'Squeeze those abs tightly!',
+    ],
+    voiceComplete: 'Core workout complete! Feel the burn!',
+  },
+  {
+    id: 'latpulls',
+    name: 'Lat Pulls',
+    duration: 30,
+    icon: <Dumbbell className="w-5 h-5" />,
+    description: 'Build a strong back with lat pulldowns',
+    voiceIntro: 'Lat pulldowns! Keep your chest up and pull through your elbows.',
+    voiceMidCues: [
+      'Squeeze your shoulder blades together!',
+      'Control the weight as it goes up!',
+      'Keep that chest puffed out!',
+    ],
+    voiceComplete: 'Back workout complete! Excellent pulls.',
+  },
+  {
+    id: 'chestfly',
+    name: 'Chest Fly',
+    duration: 30,
+    icon: <Dumbbell className="w-5 h-5" />,
+    description: 'Isolate the pectoral muscles',
+    voiceIntro: 'Chest flys! Keep a slight bend in your elbows and open up the chest.',
+    voiceMidCues: [
+      'Feel the stretch at the bottom!',
+      'Squeeze your chest together at the top!',
+      'Keep your movements smooth!',
+    ],
+    voiceComplete: 'Chest flys done! Great isolation.',
+  },
+  {
+    id: 'shoulderpress',
+    name: 'Shoulder Press',
+    duration: 30,
+    icon: <Dumbbell className="w-5 h-5" />,
+    description: 'Build your deltoids with overhead presses',
+    voiceIntro: 'Shoulder press time! Core engaged, press straight up.',
+    voiceMidCues: [
+      'Don\'t arch your lower back!',
+      'Full extension at the top!',
+      'Control the eccentric phase!',
+    ],
+    voiceComplete: 'Shoulders are crushed! Well done.',
+  },
+  {
+    id: 'pullups',
+    name: 'Pull-ups',
+    duration: 30,
+    icon: <Dumbbell className="w-5 h-5" />,
+    description: 'The ultimate upper body bodyweight exercise',
+    voiceIntro: 'Pull-ups! Hang with a full grip, engage your lats, and pull your chin over the bar.',
+    voiceMidCues: [
+      'Pull your elbows down and back!',
+      'No swinging, keep it controlled!',
+      'Squeeze at the top!',
+    ],
+    voiceComplete: 'Amazing pull-ups! You are getting stronger.',
+  }
 ];
 
 /**
