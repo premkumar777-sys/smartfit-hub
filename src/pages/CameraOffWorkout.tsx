@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Container } from '@/components/Container';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 import { AngleGuidance } from '@/components/AngleGuidance';
 import { WorkoutTimer } from '@/components/WorkoutTimer';
@@ -401,26 +402,29 @@ export default function CameraOffWorkout() {
             {/* Exercise selector */}
             <div className="bg-card/80 backdrop-blur-sm rounded-xl p-4 border border-border">
               <p className="text-sm font-semibold mb-3">Select Exercise:</p>
-              <div className="grid grid-cols-3 gap-3">
-                {EXERCISES.map((exercise) => (
-                  <motion.button
-                    key={exercise.id}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => handleExerciseSelect(exercise.id)}
-                    disabled={isWorkoutActive}
-                    className={`p-4 rounded-xl border transition-all ${selectedExercise === exercise.id
-                      ? 'bg-primary text-primary-foreground border-primary'
-                      : 'bg-muted/50 border-border hover:border-primary/50'
-                      } ${isWorkoutActive ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  >
-                    <div className="flex flex-col items-center gap-2">
-                      {exercise.icon}
-                      <span className="text-sm font-medium">{exercise.name}</span>
-                    </div>
-                  </motion.button>
-                ))}
-              </div>
+              <Select 
+                value={selectedExercise === 'idle' ? '' : selectedExercise} 
+                onValueChange={(value) => handleExerciseSelect(value as Exercise)}
+                disabled={isWorkoutActive}
+              >
+                <SelectTrigger className="w-full h-14 bg-muted/50 border-border hover:border-primary/50 text-base">
+                  <SelectValue placeholder="Choose an exercise to practice" />
+                </SelectTrigger>
+                <SelectContent>
+                  {EXERCISES.map((exercise) => (
+                    <SelectItem 
+                      key={exercise.id} 
+                      value={exercise.id}
+                      className="cursor-pointer py-3"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="text-primary">{exercise.icon}</div>
+                        <span className="font-medium">{exercise.name}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Start/Stop button */}
