@@ -245,6 +245,30 @@ const WORKOUT_VIDEOS = [
     videoUrl: "pullups.mp4",
     category: "Upper Body",
   },
+  {
+    id: 10,
+    title: "Leg Press",
+    duration: "",
+    thumbnail: "/videos/thumbnails/legpress.png",
+    videoUrl: "Leg Press.mp4",
+    category: "Legs",
+  },
+  {
+    id: 11,
+    title: "Tricep Extension",
+    duration: "",
+    thumbnail: "/videos/thumbnails/tricepextension.png",
+    videoUrl: "tricep extension.mp4",
+    category: "Arms",
+  },
+  {
+    id: 12,
+    title: "Glutes",
+    duration: "",
+    thumbnail: "/videos/thumbnails/glutes.png",
+    videoUrl: "glutes.mp4",
+    category: "Legs",
+  },
 ];
 
 export default function CameraOffWorkout() {
