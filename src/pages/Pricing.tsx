@@ -1,9 +1,9 @@
 import { Button } from "@/components/ui/button";
-import { Check, Flame, Zap, Shield, Sparkles, Building2, User, ArrowRight, Video, Target, Trophy, Clock } from "lucide-react";
+import { Check, Flame, Zap, Shield, Sparkles, Building2, User, ArrowRight, Video, Target, Trophy, Clock, Dumbbell, Star } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Container } from "@/components/Container";
-import { COACHING_PLAN } from "@/config/payments";
+import { COACHING_PLAN, BODY_TRANSFORMATION_PLAN, openPaymentLink } from "@/config/payments";
 import { Badge } from "@/components/ui/badge";
 
 export default function Pricing() {
@@ -41,7 +41,7 @@ export default function Pricing() {
                     </motion.div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-20">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-20">
                     {/* Free Everything Card */}
                     <motion.div
                         initial={{ opacity: 0, x: -20 }}
@@ -93,11 +93,71 @@ export default function Pricing() {
                         </Button>
                     </motion.div>
 
+                    {/* Body Transformation Plan Card */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, delay: 0.1 }}
+                        className="relative flex flex-col p-8 rounded-3xl glass border border-amber-400/40 bg-amber-500/5 shadow-[0_0_40px_rgba(251,191,36,0.1)]"
+                    >
+                        <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-amber-400 text-black text-xs font-bold rounded-full flex items-center gap-1 shadow-[0_0_20px_rgba(251,191,36,0.4)]">
+                            <Star className="w-3 h-3 fill-current" />
+                            MOST POPULAR
+                        </div>
+
+                        <div className="flex items-center gap-4 mb-6">
+                            <div className="p-3 rounded-2xl bg-amber-400">
+                                <Dumbbell className="w-6 h-6 text-black" />
+                            </div>
+                            <div>
+                                <h3 className="text-2xl font-bold text-white font-outfit uppercase tracking-wider">Body Transformation</h3>
+                            </div>
+                        </div>
+
+                        <div className="mb-6">
+                            <div className="flex items-baseline gap-1">
+                                <span className="text-sm font-medium text-muted-foreground mr-1">₹</span>
+                                <span className="text-5xl font-bold text-white tracking-tight">{BODY_TRANSFORMATION_PLAN.price}</span>
+                                <span className="text-sm text-muted-foreground ml-2">/ 40 days</span>
+                            </div>
+                            <p className="mt-2 text-sm text-muted-foreground">
+                                A complete 40-day body overhaul with expert-guided coaching.
+                            </p>
+                        </div>
+
+                        <div className="space-y-4 mb-8 flex-1">
+                            {[
+                                "Custom 40-Day Workout Plan",
+                                "Personalized Nutrition Guide",
+                                "Daily Check-in & Accountability",
+                                "WhatsApp Coach Support",
+                                "Progress Tracking & Adjustments",
+                                "Before & After Analysis"
+                            ].map((feature) => (
+                                <div key={feature} className="flex items-start gap-3">
+                                    <div className="mt-1 p-0.5 rounded-full bg-amber-400/20">
+                                        <Check className="w-3 h-3 text-amber-400" />
+                                    </div>
+                                    <span className="text-sm text-gray-300">{feature}</span>
+                                </div>
+                            ))}
+                        </div>
+
+                        <Button
+                            size="lg"
+                            onClick={() => openPaymentLink(BODY_TRANSFORMATION_PLAN.link)}
+                            className="w-full font-bold bg-amber-400 text-black hover:bg-amber-300 shadow-[0_0_20px_rgba(251,191,36,0.3)]"
+                        >
+                            Start Transformation
+                            <ArrowRight className="ml-2 w-4 h-4" />
+                        </Button>
+                    </motion.div>
+
                     {/* Paid Add-on Card: Online Coaching */}
                     <motion.div
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.5 }}
+                        transition={{ duration: 0.5, delay: 0.2 }}
                         className="relative flex flex-col p-8 rounded-3xl glass border border-[#00FF9C]/30 bg-primary/5"
                     >
                         <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-[#00FF9C] text-black text-xs font-bold rounded-full flex items-center gap-1 shadow-[0_0_20px_rgba(0,255,156,0.3)]">
