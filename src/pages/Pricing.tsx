@@ -30,13 +30,13 @@ export default function Pricing() {
                         transition={{ duration: 0.5 }}
                     >
                         <Badge className="mb-4 bg-primary/10 text-primary border-primary/20 hover:bg-primary/20">
-                            Major Update: SmartFit AI 2.0
+                            SmartFit AI 2.0 — Choose Your Plan
                         </Badge>
                         <h1 className="text-4xl md:text-5xl lg:text-7xl font-bold leading-tight mb-4 text-white">
-                            Now <span className="text-gradient">Free for All</span>
+                            Simple, <span className="text-gradient">Transparent</span> Pricing
                         </h1>
                         <p className="text-lg md:text-xl text-muted-foreground">
-                            We've unlocked all our premium AI features for everyone. No subscriptions, no hidden fees. Just elite training tools at your fingertips.
+                            Start free with all core AI features, or level up with a guided transformation plan or 1:1 personal coaching.
                         </p>
                     </motion.div>
                 </div>
