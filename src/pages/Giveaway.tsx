@@ -6,6 +6,8 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
 
 const GIVEAWAY_START = new Date("2026-05-16T13:30:00Z"); // Temporarily set to past for testing
@@ -274,10 +276,19 @@ const EntryForm = () => {
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 const Giveaway = () => {
+  const navigate = useNavigate();
+  const { isAuthenticated, isLoading } = useAuth();
   const [phase, setPhase]     = useState<Phase>(getPhase());
   const [timeLeft, setTimeLeft] = useState<TimeLeft>(
     calcTimeLeft(phase === "before" ? GIVEAWAY_START : GIVEAWAY_END)
   );
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      toast.info("Please login or sign up to access the Giveaway Challenge! 🎁");
+      navigate("/auth", { state: { returnUrl: "/giveaway" } });
+    }
+  }, [isAuthenticated, isLoading, navigate]);
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -287,6 +298,15 @@ const Giveaway = () => {
     }, 1000);
     return () => clearInterval(id);
   }, []);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-background">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        <p className="text-muted-foreground animate-pulse">Loading Giveaway Challenge...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background relative overflow-x-hidden">
