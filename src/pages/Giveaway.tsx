@@ -58,7 +58,7 @@ const steps = [
 
 // ── Entry Form ──────────────────────────────────────────────────────────────
 const EntryForm = () => {
-  const [form, setForm] = useState({ name: "", instagram: "", email: "", phone: "" });
+  const [form, setForm] = useState({ name: "", instagram: "", email: "", phone: "", tshirtSize: "" });
   const [video, setVideo]   = useState<File | null>(null);
   const [agreed, setAgreed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -76,7 +76,7 @@ const EntryForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name || !form.instagram || !form.email) { toast.error("Please fill all required fields"); return; }
+    if (!form.name || !form.instagram || !form.email || !form.phone || !form.tshirtSize) { toast.error("Please fill all required fields"); return; }
     if (!video) { toast.error("Please upload your workout video"); return; }
     if (!agreed) { toast.error("Please confirm you have followed and liked the post"); return; }
 
@@ -104,7 +104,8 @@ const EntryForm = () => {
         name: form.name,
         instagram: form.instagram.startsWith("@") ? form.instagram : "@" + form.instagram,
         email: form.email,
-        phone: form.phone || null,
+        phone: form.phone,
+        tshirt_size: form.tshirtSize,
         video_url: videoUrl,
       });
 
@@ -183,12 +184,29 @@ const EntryForm = () => {
 
         {/* Phone */}
         <div className="space-y-1.5">
-          <label className="text-xs text-gray-400 uppercase tracking-wider font-semibold flex items-center gap-1.5"><Phone className="w-3.5 h-3.5" /> Phone Number <span className="text-gray-600 normal-case">(optional)</span></label>
+          <label className="text-xs text-gray-400 uppercase tracking-wider font-semibold flex items-center gap-1.5"><Phone className="w-3.5 h-3.5" /> Phone Number *</label>
           <input
-            type="tel" placeholder="+91 9876543210"
+            type="tel" required placeholder="+91 9876543210"
             value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
             className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-primary/50 transition-colors"
           />
+        </div>
+
+        {/* T-Shirt Size */}
+        <div className="space-y-1.5">
+          <label className="text-xs text-gray-400 uppercase tracking-wider font-semibold flex items-center gap-1.5"><Tag className="w-3.5 h-3.5" /> T-Shirt Size *</label>
+          <select
+            required
+            value={form.tshirtSize} onChange={e => setForm(f => ({ ...f, tshirtSize: e.target.value }))}
+            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-primary/50 transition-colors"
+          >
+            <option value="" disabled className="text-gray-500">Select Size</option>
+            <option value="S" className="bg-neutral-900 text-white">S (Small)</option>
+            <option value="M" className="bg-neutral-900 text-white">M (Medium)</option>
+            <option value="L" className="bg-neutral-900 text-white">L (Large)</option>
+            <option value="XL" className="bg-neutral-900 text-white">XL (Extra Large)</option>
+            <option value="XXL" className="bg-neutral-900 text-white">XXL (Double Extra Large)</option>
+          </select>
         </div>
       </div>
 
