@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-const GIVEAWAY_START = new Date("2026-05-17T13:30:00Z");
+const GIVEAWAY_START = new Date("2026-05-16T13:30:00Z"); // Temporarily set to past for testing
 const GIVEAWAY_END   = new Date("2026-05-25T18:29:00Z");
 const INSTAGRAM_URL  = "https://www.instagram.com/smartfitaii";
 const MAX_VIDEO_MB   = 100;
