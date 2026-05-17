@@ -53,7 +53,7 @@ const steps = [
   { n: 1, text: "Follow @smartfitaii on Instagram & turn on notifications to catch the live winner selection! 🔔" },
   { n: 2, text: "Like the giveaway post & Tag 3 fitness buddies in the comments (Each tag counts as an extra entry!) 💪" },
   { n: 3, text: "Share the giveaway post to your IG Story & tag @smartfitaii to unlock viral entry points 🚀" },
-  { n: 4, text: "Fill the form below and upload your 15-second workout video to complete your submission on our site! 🎥" },
+  { n: 4, text: "Fill the form below and upload your 40 pushups challenge video to complete your submission on our site! 🎥" },
 ];
 
 // ── Entry Form ──────────────────────────────────────────────────────────────
@@ -77,7 +77,7 @@ const EntryForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name || !form.instagram || !form.email || !form.phone || !form.tshirtSize) { toast.error("Please fill all required fields"); return; }
-    if (!video) { toast.error("Please upload your workout video"); return; }
+    if (!video) { toast.error("Please upload your 40 pushups challenge video"); return; }
     if (!agreed) { toast.error("Please confirm you have followed and liked the post"); return; }
 
     setSubmitting(true);
@@ -147,7 +147,7 @@ const EntryForm = () => {
     >
       <div className="text-center space-y-1">
         <h2 className="text-2xl md:text-3xl font-bold text-white">Submit Your <span className="text-gradient">Entry</span></h2>
-        <p className="text-gray-400 text-sm">Fill in your details and upload a short workout video</p>
+        <p className="text-gray-400 text-sm">Fill in your details and upload your 40 pushups challenge video</p>
       </div>
 
       {/* Fields */}
@@ -212,7 +212,7 @@ const EntryForm = () => {
 
       {/* Video Upload */}
       <div className="space-y-1.5">
-        <label className="text-xs text-gray-400 uppercase tracking-wider font-semibold flex items-center gap-1.5"><Upload className="w-3.5 h-3.5" /> Workout Video * <span className="text-gray-600 normal-case">(max {MAX_VIDEO_MB}MB · MP4 / MOV)</span></label>
+        <label className="text-xs text-gray-400 uppercase tracking-wider font-semibold flex items-center gap-1.5"><Upload className="w-3.5 h-3.5" /> 40 Pushups Video * <span className="text-gray-600 normal-case">(max {MAX_VIDEO_MB}MB · MP4 / MOV)</span></label>
         <div
           onClick={() => fileRef.current?.click()}
           onDragOver={e => { e.preventDefault(); setDragOver(true); }}
@@ -232,7 +232,7 @@ const EntryForm = () => {
             <div className="space-y-2">
               <Upload className="w-8 h-8 text-gray-500 mx-auto" />
               <p className="text-sm text-gray-400">Drag & drop your video here or <span className="text-primary font-semibold">click to browse</span></p>
-              <p className="text-xs text-gray-600">Show us your workout, a gym selfie reel, or your fitness journey!</p>
+              <p className="text-xs text-gray-600">Show us your raw power! Upload your video doing 40 pushups to complete the challenge.</p>
             </div>
           )}
         </div>
