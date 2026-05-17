@@ -72,7 +72,9 @@ const GIVEAWAY_START = new Date("2026-05-17T13:30:00Z"); // 17 May 7:00 PM IST
 const GiveawayBanner = () => {
   const [visible, setVisible] = useState(true);
   const now = new Date();
-  const isRelevant = now >= GIVEAWAY_START && now <= GIVEAWAY_END;
+  const isActive = now >= GIVEAWAY_START && now <= GIVEAWAY_END;
+  const isBefore = now < GIVEAWAY_START;
+  const isRelevant = now <= GIVEAWAY_END; // show from TODAY until giveaway ends
   if (!visible || !isRelevant) return null;
   return (
     <motion.div
@@ -85,13 +87,15 @@ const GiveawayBanner = () => {
       <div className="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-center gap-3">
         <Gift className="w-4 h-4 shrink-0 animate-bounce" />
         <span className="text-sm font-semibold tracking-wide">
-          🎁 GIVEAWAY LIVE! Win a SmartFit T-Shirt + Gym Shaker Bundle —
+          {isBefore
+            ? "🎁 GIVEAWAY TONIGHT at 7:00 PM IST! Win a SmartFit T-Shirt + Gym Shaker —"
+            : "🎁 GIVEAWAY LIVE! Win a SmartFit T-Shirt + Gym Shaker Bundle —"}
         </span>
         <Link
           to="/giveaway"
           className="underline underline-offset-2 text-sm font-bold hover:text-white/80 transition-colors flex items-center gap-1"
         >
-          Enter Now <ArrowRight className="w-3.5 h-3.5" />
+          {isBefore ? "See Details" : "Enter Now"} <ArrowRight className="w-3.5 h-3.5" />
         </Link>
         <button
           onClick={() => setVisible(false)}

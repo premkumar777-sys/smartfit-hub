@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Gift, Instagram, Trophy, Clock, CheckCircle2,
-  ArrowRight, Shirt, Star, Zap, Flame
+  ArrowRight, Tag, Star, Zap, Flame
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -53,7 +53,7 @@ const CountBlock = ({ value, label }: { value: number; label: string }) => (
 // ── Prize cards ───────────────────────────────────────────────────────────────
 const prizes = [
   {
-    icon: Shirt,
+    icon: Tag,
     title: "SmartFit T-Shirt",
     desc: "Exclusive branded athletic fit tee — wear your grind",
     color: "from-blue-500/20 to-primary/10",
