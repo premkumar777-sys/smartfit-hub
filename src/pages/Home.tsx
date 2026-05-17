@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Zap, Bot, Brain, Eye, BarChart3, Utensils, Calendar, QrCode, Trophy, Wrench, Sparkles, LineChart, Laptop, Calculator, Users, Clock, Shield, Star } from "lucide-react";
+import { ArrowRight, Zap, Bot, Brain, Eye, BarChart3, Utensils, Calendar, QrCode, Trophy, Wrench, Sparkles, LineChart, Laptop, Calculator, Users, Clock, Shield, Star, Gift, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { FeatureCard } from "@/components/FeatureCard";
@@ -65,11 +65,53 @@ const TypewriterText = ({
   );
 };
 
+// ── Giveaway banner (shows during active window) ────────────────────────────
+const GIVEAWAY_END = new Date("2026-05-25T18:29:00Z"); // 25 May 11:59 PM IST
+const GIVEAWAY_START = new Date("2026-05-17T13:30:00Z"); // 17 May 7:00 PM IST
+
+const GiveawayBanner = () => {
+  const [visible, setVisible] = useState(true);
+  const now = new Date();
+  const isRelevant = now >= GIVEAWAY_START && now <= GIVEAWAY_END;
+  if (!visible || !isRelevant) return null;
+  return (
+    <motion.div
+      className="relative z-50 bg-gradient-to-r from-primary/90 via-accent/80 to-primary/90 text-white"
+      initial={{ y: -60, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      exit={{ y: -60, opacity: 0 }}
+      transition={{ duration: 0.4 }}
+    >
+      <div className="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-center gap-3">
+        <Gift className="w-4 h-4 shrink-0 animate-bounce" />
+        <span className="text-sm font-semibold tracking-wide">
+          🎁 GIVEAWAY LIVE! Win a SmartFit T-Shirt + Gym Shaker Bundle —
+        </span>
+        <Link
+          to="/giveaway"
+          className="underline underline-offset-2 text-sm font-bold hover:text-white/80 transition-colors flex items-center gap-1"
+        >
+          Enter Now <ArrowRight className="w-3.5 h-3.5" />
+        </Link>
+        <button
+          onClick={() => setVisible(false)}
+          className="absolute right-4 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-white/20 transition-colors"
+          aria-label="Close banner"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+    </motion.div>
+  );
+};
+
 const Home = () => {
   const { user, isAuthenticated } = useAuth();
 
   return (
     <div className="min-h-screen">
+      {/* Giveaway announcement banner */}
+      <GiveawayBanner />
       {/* Hero Section */}
       <section className="relative overflow-hidden py-20 min-h-[85vh] flex items-center">
         {/* Background Image */}

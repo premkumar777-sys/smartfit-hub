@@ -45,6 +45,7 @@ const SecurityAccess = lazy(() => import("./pages/business/SecurityAccess"));
 const EquipmentIntegration = lazy(() => import("./pages/business/EquipmentIntegration"));
 const RoadToICN = lazy(() => import("./pages/RoadToICN"));
 const WorkoutSession = lazy(() => import("./pages/WorkoutSession"));
+const Giveaway = lazy(() => import("./pages/Giveaway"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 import { SplashScreen } from "@/components/SplashScreen";
@@ -100,6 +101,7 @@ const App = () => {
                   <Route path="/upgrade" element={<VerifyPayment />} />
                   <Route path="/road-to-icn" element={<RoadToICN />} />
                   <Route path="/workout-session" element={<WorkoutSession />} />
+                  <Route path="/giveaway" element={<Giveaway />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
