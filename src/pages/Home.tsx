@@ -67,7 +67,7 @@ const TypewriterText = ({
 
 // ── Giveaway banner (shows during active window) ────────────────────────────
 const GIVEAWAY_END = new Date("2026-05-25T18:29:00Z"); // 25 May 11:59 PM IST
-const GIVEAWAY_START = new Date("2026-05-16T13:30:00Z"); // Temporarily set to past for testing
+const GIVEAWAY_START = new Date("2026-05-17T13:30:00Z"); // 17 May 7:00 PM IST
 
 const GiveawayBanner = () => {
   const [visible, setVisible] = useState(true);

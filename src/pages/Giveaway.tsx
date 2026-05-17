@@ -10,7 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
 
-const GIVEAWAY_START = new Date("2026-05-16T13:30:00Z"); // Temporarily set to past for testing
+const GIVEAWAY_START = new Date("2026-05-17T13:30:00Z"); // 17 May 7:00 PM IST
 const GIVEAWAY_END   = new Date("2026-05-25T18:29:00Z");
 const INSTAGRAM_URL  = "https://www.instagram.com/smartfitaii";
 const MAX_VIDEO_MB   = 100;
