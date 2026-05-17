@@ -301,15 +301,16 @@ const Giveaway = () => {
         <motion.div className="text-center space-y-6" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}>
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/30 text-primary text-sm font-semibold">
             <Flame className="w-4 h-4 animate-pulse" />
-            {phase === "active" ? "GIVEAWAY IS LIVE" : phase === "before" ? "COMING TONIGHT" : "GIVEAWAY ENDED"}
+            {phase === "active" ? "🔥 40 PUSHUP CHALLENGE" : phase === "before" ? "⏳ CHALLENGE STARTS TONIGHT" : "🔒 CHALLENGE CLOSED"}
           </div>
           <h1 className="text-5xl md:text-7xl font-bold text-white leading-tight">
-            Win a <span className="text-gradient">SmartFit</span><br />Bundle 🎁
+            Drop & Give Us<br />
+            <span className="text-gradient">40 Pushups</span> ⚡
           </h1>
           <p className="text-lg md:text-xl text-gray-300 max-w-xl mx-auto leading-relaxed">
-            {phase === "active"  ? "The giveaway is live! Fill in the form below to enter." :
-             phase === "before"  ? "Something big is coming tonight at 7:00 PM IST. Get ready!" :
-             "This giveaway has ended. Stay tuned for the next one!"}
+            {phase === "active"  ? "Can you complete 40 clean pushups? Record your video, submit your details below, and win our premium fitness bundle! 🎁" :
+             phase === "before"  ? "The ultimate fitness challenge starts tonight at 7:00 PM IST. Get your triceps ready! 💪" :
+             "This challenge has ended. Stay tuned and follow @smartfitaii for the next epic event!"}
           </p>
         </motion.div>
 
