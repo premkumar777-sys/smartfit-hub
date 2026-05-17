@@ -50,10 +50,10 @@ const prizes = [
 ];
 
 const steps = [
-  { n: 1, text: "Follow @smartfitaii on Instagram" },
-  { n: 2, text: "Like the giveaway post" },
-  { n: 3, text: "Tag 2 friends in the comments" },
-  { n: 4, text: "Fill the form below & upload your workout video 🎥" },
+  { n: 1, text: "Follow @smartfitaii on Instagram & turn on notifications to catch the live winner selection! 🔔" },
+  { n: 2, text: "Like the giveaway post & Tag 3 fitness buddies in the comments (Each tag counts as an extra entry!) 💪" },
+  { n: 3, text: "Share the giveaway post to your IG Story & tag @smartfitaii to unlock viral entry points 🚀" },
+  { n: 4, text: "Fill the form below and upload your 15-second workout video to complete your submission on our site! 🎥" },
 ];
 
 // ── Entry Form ──────────────────────────────────────────────────────────────
