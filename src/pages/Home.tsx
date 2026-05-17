@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Zap, Bot, Brain, Eye, BarChart3, Utensils, Calendar, QrCode, Trophy, Wrench, Sparkles, LineChart, Laptop, Calculator } from "lucide-react";
+import { ArrowRight, Zap, Bot, Brain, Eye, BarChart3, Utensils, Calendar, QrCode, Trophy, Wrench, Sparkles, LineChart, Laptop, Calculator, Users, Clock, Shield, Star } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { FeatureCard } from "@/components/FeatureCard";
@@ -78,8 +78,8 @@ const Home = () => {
           style={{ backgroundImage: `url('/hero-bg.png')` }}
         />
         {/* Layered dark overlays for text readability */}
-        <div className="absolute inset-0 z-0 bg-gradient-to-b from-black/70 via-black/50 to-black" />
-        <div className="absolute inset-0 z-0 bg-gradient-to-r from-black/40 via-transparent to-black/40" />
+        <div className="absolute inset-0 z-0 bg-gradient-to-b from-black/65 via-black/40 to-black/80" />
+        <div className="absolute inset-0 z-0 bg-gradient-to-r from-black/35 via-transparent to-black/35" />
 
         <div className="relative z-10 w-full max-w-4xl mx-auto px-6">
           <motion.div
@@ -164,45 +164,60 @@ const Home = () => {
               )}
             </motion.div>
 
-            {/* Users stat - only show for non-authenticated users */}
+            {/* Trust bar - only show for non-authenticated users */}
             {!isAuthenticated && (
               <motion.div
-                className="flex justify-center pt-10"
+                className="flex flex-wrap justify-center gap-3 pt-10"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.8 }}
               >
-                <motion.div
-                  className="flex items-center gap-4 px-8 py-4 rounded-2xl bg-white/5 border border-primary/20 backdrop-blur-sm"
-                  initial={{ opacity: 0, scale: 0.85 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.5, delay: 1 }}
-                >
-                  {/* Avatar stack */}
-                  <div className="flex -space-x-3">
-                    {["🧑‍💪", "👩‍🏋️", "🏃", "💪"].map((emoji, i) => (
-                      <div
-                        key={i}
-                        className="w-9 h-9 rounded-full bg-primary/20 border-2 border-background flex items-center justify-center text-base"
-                      >
-                        {emoji}
-                      </div>
-                    ))}
-                  </div>
-                  <div className="flex flex-col items-start">
-                    <span className="text-2xl font-bold text-white leading-tight">2,500+</span>
-                    <span className="text-sm text-primary font-medium">Active Users</span>
-                  </div>
-                  <div className="w-px h-10 bg-white/10 mx-1" />
-                  <div className="flex flex-col items-start">
-                    <div className="flex items-center gap-1">
-                      {[1,2,3,4,5].map(s => (
-                        <svg key={s} className="w-4 h-4 text-yellow-400 fill-yellow-400" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-                      ))}
+                {[
+                  {
+                    icon: Users,
+                    value: "2,500+",
+                    label: "Active Users",
+                    iconColor: "text-primary",
+                    delay: 1.0,
+                  },
+                  {
+                    icon: Clock,
+                    value: "24/7",
+                    label: "AI Support",
+                    iconColor: "text-blue-400",
+                    delay: 1.1,
+                  },
+                  {
+                    icon: Star,
+                    value: "4.9 / 5",
+                    label: "User Rating",
+                    iconColor: "text-yellow-400",
+                    delay: 1.2,
+                  },
+                  {
+                    icon: Shield,
+                    value: "SSL Secured",
+                    label: "Data Protected",
+                    iconColor: "text-green-400",
+                    delay: 1.3,
+                  },
+                ].map((pill) => (
+                  <motion.div
+                    key={pill.value}
+                    className="flex items-center gap-2.5 px-5 py-3 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm hover:border-primary/30 hover:bg-white/8 transition-all duration-200"
+                    initial={{ opacity: 0, scale: 0.85 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.4, delay: pill.delay }}
+                  >
+                    <div className={`p-1.5 rounded-lg bg-white/5 ${pill.iconColor}`}>
+                      <pill.icon className="w-4 h-4" />
                     </div>
-                    <span className="text-sm text-gray-400">Trusted by athletes</span>
-                  </div>
-                </motion.div>
+                    <div className="flex flex-col items-start leading-tight">
+                      <span className="text-sm font-bold text-white">{pill.value}</span>
+                      <span className="text-xs text-gray-400">{pill.label}</span>
+                    </div>
+                  </motion.div>
+                ))}
               </motion.div>
             )}
           </motion.div>
@@ -328,24 +343,37 @@ const Home = () => {
 
 
       {/* CTA Section */}
-      <section className="py-16 relative overflow-hidden">
-        <div className="absolute inset-0 gradient-hero opacity-50"></div>
+      <section className="py-24 relative overflow-hidden">
+        {/* Ambient glow orbs */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[400px] bg-primary/15 rounded-full blur-[130px] pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[200px] bg-accent/10 rounded-full blur-[90px] pointer-events-none" />
         <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 relative z-10">
-          <div className="glass max-w-4xl mx-auto p-12 rounded-3xl text-center">
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6">
-              Ready to Transform Your Life?
+          <div className="glass-strong max-w-4xl mx-auto p-12 md:p-16 rounded-3xl text-center border border-primary/20">
+            {/* Subtle top glow line */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2/3 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent rounded-full" />
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6 text-white">
+              Ready to <span className="text-gradient">Transform</span> Your Life?
             </h2>
-            <p className="text-lg md:text-xl leading-relaxed text-gray-300 mb-8 max-w-prose mx-auto">
-              Start your fitness journey today with personalized AI-powered training and nutrition plans
+            <p className="text-lg md:text-xl leading-relaxed text-gray-300 mb-10 max-w-prose mx-auto">
+              Join 2,500+ athletes already training smarter with personalized AI-powered workouts and nutrition plans
             </p>
             <Button asChild variant="hero" size="xl">
               <Link to="/auth">
-                Continue to Dashboard <ArrowRight className="ml-2" />
+                Start Your Journey <ArrowRight className="ml-2" />
               </Link>
             </Button>
-            <div className="mt-6 space-y-2">
-              <p className="text-sm text-muted-foreground">🔒 Your data is securely stored.</p>
-              <p className="text-sm text-muted-foreground">✓ Protected login recommended for all users.</p>
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+              <span className="text-sm text-gray-400 flex items-center gap-1.5">
+                <Shield className="w-3.5 h-3.5 text-green-400" /> Data secured & encrypted
+              </span>
+              <span className="text-gray-600">·</span>
+              <span className="text-sm text-gray-400 flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5 text-blue-400" /> 24/7 AI support
+              </span>
+              <span className="text-gray-600">·</span>
+              <span className="text-sm text-gray-400 flex items-center gap-1.5">
+                <Star className="w-3.5 h-3.5 text-yellow-400" /> 4.9 / 5 rated
+              </span>
             </div>
           </div>
         </div>
