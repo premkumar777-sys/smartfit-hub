@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Gift, Instagram, Trophy, Clock, CheckCircle2,
-  ArrowRight, Tag, Zap, Flame, Upload, X, Loader2, PartyPopper, User, Mail, Phone, AtSign
+  ArrowRight, Tag, Zap, Flame, Upload, X, Loader2, PartyPopper, User, Mail, Phone, AtSign, Users
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -282,6 +282,19 @@ const Giveaway = () => {
   const [timeLeft, setTimeLeft] = useState<TimeLeft>(
     calcTimeLeft(phase === "before" ? GIVEAWAY_START : GIVEAWAY_END)
   );
+  const [entryCount, setEntryCount] = useState(147);
+
+  useEffect(() => {
+    // Fetch live entries from Supabase to add to the base 147 count for social proof
+    supabase
+      .from("giveaway_entries" as any)
+      .select("id", { count: "exact", head: true })
+      .then(({ count }) => {
+        if (count !== null) {
+          setEntryCount(147 + count);
+        }
+      });
+  }, []);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -319,9 +332,15 @@ const Giveaway = () => {
 
         {/* Hero */}
         <motion.div className="text-center space-y-6" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}>
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/30 text-primary text-sm font-semibold">
-            <Flame className="w-4 h-4 animate-pulse" />
-            {phase === "active" ? "🔥 40 PUSHUP CHALLENGE" : phase === "before" ? "⏳ CHALLENGE STARTS TONIGHT" : "🔒 CHALLENGE CLOSED"}
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/30 text-primary text-sm font-semibold">
+              <Flame className="w-4 h-4 animate-pulse" />
+              {phase === "active" ? "🔥 40 PUSHUP CHALLENGE" : phase === "before" ? "⏳ CHALLENGE STARTS TONIGHT" : "🔒 CHALLENGE CLOSED"}
+            </div>
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/10 border border-green-500/30 text-green-400 text-sm font-semibold shadow-[0_0_15px_rgba(34,197,94,0.1)]">
+              <Users className="w-4 h-4" />
+              {entryCount} Athletes Joined
+            </div>
           </div>
           <h1 className="text-5xl md:text-7xl font-bold text-white leading-tight">
             Drop & Give Us<br />
