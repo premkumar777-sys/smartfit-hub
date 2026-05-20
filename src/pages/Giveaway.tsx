@@ -60,7 +60,7 @@ const steps = [
 
 // ── Entry Form ──────────────────────────────────────────────────────────────
 const EntryForm = () => {
-  const [form, setForm] = useState({ name: "", instagram: "", email: "", phone: "", tshirtSize: "", address: "" });
+  const [form, setForm] = useState({ name: "", instagram: "", email: "", phone: "", tshirtSize: "" });
   const [video, setVideo]   = useState<File | null>(null);
   const [agreed, setAgreed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -78,7 +78,7 @@ const EntryForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name || !form.instagram || !form.email || !form.phone || !form.tshirtSize || !form.address) { toast.error("Please fill all required fields"); return; }
+    if (!form.name || !form.instagram || !form.email || !form.phone || !form.tshirtSize) { toast.error("Please fill all required fields"); return; }
     if (!video) { toast.error("Please upload your 40 pushups challenge video"); return; }
     if (!agreed) { toast.error("Please confirm you have followed and liked the post"); return; }
 
@@ -109,7 +109,6 @@ const EntryForm = () => {
         phone: form.phone,
         tshirt_size: form.tshirtSize,
         video_url: videoUrl,
-        address: form.address,
       });
 
       if (dbErr) throw new Error("Submission failed: " + dbErr.message);
@@ -212,15 +211,7 @@ const EntryForm = () => {
           </select>
         </div>
 
-        {/* Address */}
-        <div className="space-y-1.5 md:col-span-2">
-          <label className="text-xs text-gray-400 uppercase tracking-wider font-semibold flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" /> Full Address *</label>
-          <textarea
-            required placeholder="123 Street Name, City, State, Pincode"
-            value={form.address} onChange={e => setForm(f => ({ ...f, address: e.target.value }))}
-            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-primary/50 transition-colors min-h-[100px] resize-y"
-          />
-        </div>
+
       </div>
 
       {/* Video Upload */}
