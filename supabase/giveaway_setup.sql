@@ -32,3 +32,23 @@ create policy "Anyone can submit a giveaway entry"
 create policy "Only service role can read entries"
   on public.giveaway_entries for select
   using (false); -- update this to your admin check if needed
+
+-- 4. Create storage bucket for videos
+insert into storage.buckets (id, name, public)
+values ('giveaway-videos', 'giveaway-videos', true)
+on conflict (id) do nothing;
+
+-- 5. Set up RLS for the storage bucket
+-- Drop existing policies if needed
+drop policy if exists "Giveaway videos are publicly accessible." on storage.objects;
+drop policy if exists "Anyone can upload giveaway videos." on storage.objects;
+
+-- Allow public access to view videos
+create policy "Giveaway videos are publicly accessible."
+on storage.objects for select
+using ( bucket_id = 'giveaway-videos' );
+
+-- Allow authenticated users to upload videos
+create policy "Anyone can upload giveaway videos."
+on storage.objects for insert
+with check ( bucket_id = 'giveaway-videos' AND auth.role() = 'authenticated' );
