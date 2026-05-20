@@ -9,6 +9,7 @@ create table if not exists public.giveaway_entries (
   phone        text not null,
   tshirt_size  text not null,
   video_url    text not null,
+  address      text,
   submitted_at timestamptz default now()
 );
 
@@ -16,6 +17,8 @@ create table if not exists public.giveaway_entries (
 -- ALTER TABLE public.giveaway_entries ADD COLUMN IF NOT EXISTS tshirt_size text not null;
 -- ALTER TABLE public.giveaway_entries ALTER COLUMN phone SET NOT NULL;
 -- ALTER TABLE public.giveaway_entries ALTER COLUMN video_url SET NOT NULL;
+ALTER TABLE public.giveaway_entries ADD COLUMN IF NOT EXISTS address text;
+-- NOTIFY pgrst, 'reload schema'; -- If cache hasn't refreshed
 
 -- 2. Allow anyone to insert (public giveaway)
 alter table public.giveaway_entries enable row level security;
