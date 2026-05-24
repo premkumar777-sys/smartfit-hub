@@ -115,6 +115,7 @@ const AIWorkout = () => {
         "strength": "Strength Focus",
         "flexibility": "Mobility & Flexibility",
         "general-fitness": "Balanced Fitness",
+        "body-recomposition": "Body Recomposition",
       }[formData.goal] || "Balanced Fitness";
 
       const { error } = await supabase.from('workouts').insert({
@@ -279,6 +280,7 @@ const AIWorkout = () => {
                       <SelectContent>
                         <SelectItem value="weight-loss">Weight Loss</SelectItem>
                         <SelectItem value="muscle-gain">Muscle Gain</SelectItem>
+                        <SelectItem value="body-recomposition">Body Recomposition</SelectItem>
                         <SelectItem value="endurance">Endurance</SelectItem>
                         <SelectItem value="strength">Strength</SelectItem>
                         <SelectItem value="flexibility">Flexibility</SelectItem>
