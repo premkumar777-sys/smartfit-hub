@@ -71,6 +71,7 @@ export function Footer() {
                                 <li><Link to="/terms" className="text-muted-foreground hover:text-foreground transition-colors">Terms of Service</Link></li>
                                 <li><Link to="/shipping" className="text-muted-foreground hover:text-foreground transition-colors">Shipping Policy</Link></li>
                                 <li><Link to="/refund" className="text-muted-foreground hover:text-foreground transition-colors">Refund Policy</Link></li>
+                                <li><Link to="/delete-account" className="text-muted-foreground hover:text-foreground transition-colors">Delete Account</Link></li>
                                 <li><Link to="/contact" className="text-muted-foreground hover:text-foreground transition-colors">Contact Us</Link></li>
                             </ul>
                         </div>

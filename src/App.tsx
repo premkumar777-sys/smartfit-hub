@@ -39,6 +39,7 @@ const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const RefundPolicy = lazy(() => import("./pages/RefundPolicy"));
 const ShippingPolicy = lazy(() => import("./pages/ShippingPolicy"));
 const ContactUs = lazy(() => import("./pages/ContactUs"));
+const DeleteAccount = lazy(() => import("./pages/DeleteAccount"));
 const BusinessLanding = lazy(() => import("./pages/business/BusinessLanding"));
 const PaymentSolutions = lazy(() => import("./pages/business/PaymentSolutions"));
 const SecurityAccess = lazy(() => import("./pages/business/SecurityAccess"));
@@ -97,6 +98,7 @@ const App = () => {
                   <Route path="/refund" element={<RefundPolicy />} />
                   <Route path="/shipping" element={<ShippingPolicy />} />
                   <Route path="/contact" element={<ContactUs />} />
+                  <Route path="/delete-account" element={<DeleteAccount />} />
                   <Route path="/payment-success" element={<PaymentSuccess />} />
                   <Route path="/upgrade" element={<VerifyPayment />} />
                   <Route path="/road-to-icn" element={<RoadToICN />} />
