@@ -62,7 +62,7 @@ export default function Gamification() {
         try {
             const { data: { session } } = await supabase.auth.getSession();
             const { data, error } = await supabase
-                .from("profiles")
+                .from("leaderboard" as any)
                 .select("id, username, xp, level, streak, avatar_emoji")
                 .order("xp", { ascending: false })
                 .limit(10);

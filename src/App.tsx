@@ -12,6 +12,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { Loader2 } from "lucide-react";
 import { InstallPrompt } from "@/components/InstallPrompt";
+import CookieConsent from "@/components/CookieConsent";
 
 // Lazy load pages
 const Home = lazy(() => import("./pages/Home"));
@@ -61,6 +62,7 @@ const App = () => {
           <Toaster />
           <Sonner />
           <InstallPrompt />
+          <CookieConsent />
           <BrowserRouter>
             <ScrollToTop />
             <ErrorBoundary>

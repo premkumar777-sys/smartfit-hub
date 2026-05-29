@@ -175,7 +175,7 @@ export default function Settings() {
     };
 
     const handleLogout = async () => { await supabase.auth.signOut(); navigate("/"); };
-    const handleDeleteAccount = () => toast.error("Contact support to delete your account.");
+    const handleDeleteAccount = () => navigate("/delete-account");
 
     if (loading) {
         return (
