@@ -62,9 +62,9 @@ const App = () => {
           <Toaster />
           <Sonner />
           <InstallPrompt />
-          <CookieConsent />
           <BrowserRouter>
             <ScrollToTop />
+            <CookieConsent />
             <ErrorBoundary>
               <FloatingChatbot />
               <Header />
