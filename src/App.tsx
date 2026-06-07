@@ -51,6 +51,7 @@ const Giveaway = lazy(() => import("./pages/Giveaway"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 import { SplashScreen } from "@/components/SplashScreen";
+import { BottomNavigation } from "@/components/BottomNavigation";
 
 const queryClient = new QueryClient();
 
@@ -110,6 +111,7 @@ const App = () => {
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>
+              <BottomNavigation />
               <Footer />
             </ErrorBoundary>
           </BrowserRouter>

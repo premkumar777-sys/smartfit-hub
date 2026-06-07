@@ -347,7 +347,7 @@ export default function Progress() {
   }
 
   return (
-    <div className="min-h-screen py-16 relative overflow-hidden">
+    <div className="min-h-screen pt-4 pb-28 lg:py-16 relative overflow-hidden">
       <div className="absolute inset-0 gradient-hero opacity-15" />
       <Container className="relative z-10">
         <Button

@@ -200,7 +200,7 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen py-20">
+    <div className="min-h-screen pt-6 pb-28 lg:py-20">
       <Container className="space-y-8">
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">

@@ -293,7 +293,7 @@ export default function Nutrition() {
   };
 
   return (
-    <div className="min-h-screen py-16 relative overflow-hidden bg-black selection:bg-primary/30">
+    <div className="min-h-screen pt-6 pb-28 lg:py-16 relative overflow-hidden bg-black selection:bg-primary/30">
       {/* Background Mesh */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,_var(--tw-gradient-stops))] from-primary/10 via-black to-black opacity-60" />
