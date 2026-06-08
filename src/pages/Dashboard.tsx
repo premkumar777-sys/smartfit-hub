@@ -39,6 +39,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const gamification = useGamification();
+  const { user, isLoading: authLoading } = useAuth();
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [savedWorkouts, setSavedWorkouts] = useState<Workout[]>([]);
@@ -125,24 +126,14 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) {
+    if (!authLoading) {
+      if (!user) {
         navigate("/auth");
       } else {
-        loadDashboardData(session.user.id);
+        loadDashboardData(user.id);
       }
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (!session) {
-        navigate("/auth");
-      } else if (event === 'SIGNED_IN') {
-        loadDashboardData(session.user.id);
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [navigate]);
+    }
+  }, [user, authLoading, navigate]);
 
   // Process weekly data for chart
   const weeklyChartData = useMemo(() => {
@@ -181,7 +172,7 @@ const Dashboard = () => {
     return workoutDays.size;
   }, [weeklyLogs]);
 
-  if (isInitialLoading || !gamification.isLoaded) {
+  if (authLoading || isInitialLoading || !gamification.isLoaded) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />

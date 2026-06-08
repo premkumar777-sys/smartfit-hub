@@ -53,27 +53,31 @@ export function MobileMenu({ children, className, onMenuToggle }: MobileMenuProp
     <>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="p-2 text-gray-300 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4CC9F0] rounded-lg transition-colors"
+        className="w-12 h-12 flex items-center justify-center text-gray-300 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4CC9F0] rounded-lg transition-colors relative"
         aria-label="Toggle mobile menu"
         aria-expanded={isOpen}
       >
-        {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        <div className="w-6 h-4 relative flex flex-col justify-between">
+          <span className={cn("w-full h-0.5 bg-current rounded-full transition-all duration-300 transform", isOpen ? "rotate-45 translate-y-[7px]" : "")}></span>
+          <span className={cn("w-full h-0.5 bg-current rounded-full transition-all duration-300", isOpen ? "opacity-0" : "")}></span>
+          <span className={cn("w-full h-0.5 bg-current rounded-full transition-all duration-300 transform", isOpen ? "-rotate-45 -translate-y-[7px]" : "")}></span>
+        </div>
       </button>
 
       {isOpen && createPortal(
         <>
           {/* Backdrop */}
           <div
-            className="fixed inset-0 bg-black/80 backdrop-blur-md z-[10000] animate-in fade-in duration-300"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[10000] animate-in fade-in duration-300"
             onClick={() => setIsOpen(false)}
           />
 
-          {/* Mobile Menu Panel */}
+          {/* Mobile Menu Drawer Panel */}
           <div
             ref={menuRef}
             className={cn(
-              "fixed inset-0 z-[10001] bg-gray-900/98 overflow-y-auto",
-              "animate-in fade-in slide-in-from-right-4 duration-300",
+              "fixed right-0 top-0 bottom-0 z-[10001] w-[85%] max-w-sm bg-gray-950/98 overflow-y-auto shadow-2xl border-l border-white/5",
+              "animate-in slide-in-from-right duration-300 ease-out",
               className
             )}
           >
@@ -81,10 +85,10 @@ export function MobileMenu({ children, className, onMenuToggle }: MobileMenuProp
               <Logo />
               <button
                 onClick={() => setIsOpen(false)}
-                className="p-2 text-gray-400 hover:text-white transition-colors"
+                className="w-12 h-12 flex items-center justify-center text-gray-400 hover:text-white transition-colors hover:bg-white/5 rounded-lg"
                 aria-label="Close menu"
               >
-                <X className="w-8 h-8" />
+                <X className="w-6 h-6" />
               </button>
             </div>
             <nav className="p-6 pb-24 space-y-8" role="navigation" aria-label="Mobile Navigation">

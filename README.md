@@ -3,6 +3,9 @@
 🌐 **Live Demo:**  
 www.smartfitai.in
 
+📖 **Developer Hub:**  
+For a deep-dive into our startup vision, B2B/B2C feature catalogs, technical architecture, database schemas, and local environment setup, please refer to our [Startup & Developer Playbook (STARTUP.md)](./STARTUP.md).
+
 SmartFit AI is an AI-powered fitness assistant designed to help:
 - 💪 fitness enthusiasts
 - 🏃 beginners starting their workout journey

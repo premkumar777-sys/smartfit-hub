@@ -38,6 +38,8 @@ import {
 import { toast } from "sonner";
 import { useSubscription } from "@/hooks/useSubscription";
 import { Tables } from "@/integrations/supabase/types";
+import { useAuth } from "@/hooks/use-auth";
+import { useGamification } from "@/hooks/useGamification";
 import {
     Sheet,
     SheetContent,
@@ -87,14 +89,7 @@ type Profile = ProfileBase & {
 };
 type Workout = Tables<"workouts">;
 
-interface StreakData {
-    currentStreak: number;
-    bestStreak: number;
-    lastActiveDate: string;
-    totalActiveDays: number;
-}
-
-const STREAK_STORAGE_KEY = "smartfit-streak-data";
+// StreakData and STREAK_STORAGE_KEY removed in favor of useGamification
 
 const getStreakBadge = (streak: number) => {
     if (streak >= 100) return { label: "Fitness Legend", icon: "🏆", color: "bg-yellow-500" };
@@ -116,6 +111,8 @@ const FITNESS_GOALS = [
 export default function Profile() {
     const navigate = useNavigate();
     const { hasPremiumAccess } = useSubscription();
+    const gamification = useGamification();
+    const { user: authUser, isLoading: authLoading } = useAuth();
 
     const [user, setUser] = useState<any>(null);
     const [profile, setProfile] = useState<Profile | null>(null);
@@ -132,119 +129,22 @@ export default function Profile() {
     const [editGoal, setEditGoal] = useState("");
     const [uploading, setUploading] = useState(false);
 
-    // Streak state
-    const [streak, setStreak] = useState<StreakData>({
-        currentStreak: 0,
-        bestStreak: 0,
-        lastActiveDate: "",
-        totalActiveDays: 0
-    });
-
-    // Load and update streak
-    useEffect(() => {
-        const loadStreak = async () => {
-            const { data: { user: authUser } } = await supabase.auth.getUser();
-            const stored = localStorage.getItem(STREAK_STORAGE_KEY);
-            const today = new Date().toISOString().split('T')[0];
-
-            let currentStreakData: StreakData | null = null;
-
-            // Priority 1: Load from Supabase (Source of Truth)
-            if (authUser) {
-                const { data: profileData } = await supabase
-                    .from('profiles')
-                    .select('streak, updated_at')
-                    .eq('id', authUser.id)
-                    .single();
-
-                if (profileData) {
-                    currentStreakData = {
-                        currentStreak: profileData.streak || 0,
-                        bestStreak: profileData.streak || 0, // Fallback to current if best not in schema yet
-                        lastActiveDate: profileData.updated_at?.split('T')[0] || "",
-                        totalActiveDays: profileData.streak || 0
-                    };
-                }
-            }
-
-            // Priority 2: Fallback to LocalStorage if not logged in or profile missing
-            if (!currentStreakData && stored) {
-                currentStreakData = JSON.parse(stored);
-            }
-
-            if (!currentStreakData) {
-                // Initialize new user if no data found
-                currentStreakData = {
-                    currentStreak: 0,
-                    bestStreak: 0,
-                    lastActiveDate: "",
-                    totalActiveDays: 0
-                };
-            }
-
-            const lastDate = currentStreakData.lastActiveDate;
-            let newStreak: StreakData;
-
-            if (lastDate === today) {
-                // Already logged in today
-                setStreak(currentStreakData);
-                return;
-            } else {
-                const yesterday = new Date();
-                yesterday.setDate(yesterday.getDate() - 1);
-                const yesterdayStr = yesterday.toISOString().split('T')[0];
-
-                if (lastDate === yesterdayStr) {
-                    // Consecutive day - increment streak
-                    newStreak = {
-                        currentStreak: currentStreakData.currentStreak + 1,
-                        bestStreak: Math.max(currentStreakData.bestStreak, currentStreakData.currentStreak + 1),
-                        lastActiveDate: today,
-                        totalActiveDays: currentStreakData.totalActiveDays + 1
-                    };
-                } else {
-                    // Missed days - reset streak
-                    newStreak = {
-                        currentStreak: 1,
-                        bestStreak: currentStreakData.bestStreak,
-                        lastActiveDate: today,
-                        totalActiveDays: currentStreakData.totalActiveDays + 1
-                    };
-                }
-            }
-
-            localStorage.setItem(STREAK_STORAGE_KEY, JSON.stringify(newStreak));
-            setStreak(newStreak);
-
-            // Sync to Supabase if logged in
-            if (authUser) {
-                await supabase
-                    .from('profiles')
-                    .upsert({ id: authUser.id, streak: newStreak.currentStreak }, { onConflict: 'id' });
-            }
-        };
-
-        loadStreak();
-    }, []);
+    // Map streak from central gamification hook
+    const streak = {
+        currentStreak: gamification.currentStreak,
+        bestStreak: gamification.longestStreak,
+        totalActiveDays: gamification.totalWorkouts || gamification.currentStreak
+    };
 
     // Load user data
     useEffect(() => {
-        const loadUserData = async () => {
+        const loadUserData = async (userId: string) => {
             try {
-                const { data: { user: authUser } } = await supabase.auth.getUser();
-
-                if (!authUser) {
-                    navigate("/auth");
-                    return;
-                }
-
-                setUser(authUser);
-
                 // Load profile
                 const { data: profileData } = await supabase
                     .from('profiles')
                     .select('*')
-                    .eq('id', authUser.id)
+                    .eq('id', userId)
                     .single();
 
                 if (profileData) {
@@ -260,7 +160,7 @@ export default function Profile() {
                 const { data: workoutsData } = await supabase
                     .from('workouts')
                     .select('*')
-                    .eq('user_id', authUser.id)
+                    .eq('user_id', userId)
                     .order('created_at', { ascending: false })
                     .limit(5);
 
@@ -275,8 +175,15 @@ export default function Profile() {
             }
         };
 
-        loadUserData();
-    }, [navigate]);
+        if (!authLoading) {
+            if (!authUser) {
+                navigate("/auth");
+            } else {
+                setUser(authUser);
+                loadUserData(authUser.id);
+            }
+        }
+    }, [authUser, authLoading, navigate]);
 
     const handleOpenEdit = () => {
         setEditUsername(profile?.username || "");
@@ -374,7 +281,7 @@ export default function Profile() {
         navigate("/");
     };
 
-    if (loading) {
+    if (authLoading || loading || !gamification.isLoaded) {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <Loader2 className="w-8 h-8 animate-spin text-primary" />

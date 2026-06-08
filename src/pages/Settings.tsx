@@ -39,6 +39,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useTheme } from "@/components/ThemeProvider";
+import { useAuth } from "@/hooks/use-auth";
 
 interface UserPreferences {
     notifications: { email: boolean; push: boolean; streakReminder: boolean };
@@ -87,6 +88,7 @@ const FITNESS_GOALS = [
 export default function Settings() {
     const navigate = useNavigate();
     const { theme: currentTheme, setTheme } = useTheme();
+    const { user: authUser, isLoading: authLoading } = useAuth();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [user, setUser] = useState<any>(null);
@@ -101,16 +103,12 @@ export default function Settings() {
     const [changingPw, setChangingPw] = useState(false);
 
     useEffect(() => {
-        const loadSettings = async () => {
+        const loadSettings = async (userId: string) => {
             try {
-                const { data: { user: authUser } } = await supabase.auth.getUser();
-                if (!authUser) { navigate("/auth"); return; }
-                setUser(authUser);
-
                 const { data: profile } = await supabase
                     .from("profiles")
                     .select("preferences")
-                    .eq("id", authUser.id)
+                    .eq("id", userId)
                     .single();
 
                 if (profile?.preferences) {
@@ -125,8 +123,16 @@ export default function Settings() {
                 setLoading(false);
             }
         };
-        loadSettings();
-    }, [navigate, setTheme]);
+
+        if (!authLoading) {
+            if (!authUser) {
+                navigate("/auth");
+            } else {
+                setUser(authUser);
+                loadSettings(authUser.id);
+            }
+        }
+    }, [authUser, authLoading, navigate, setTheme, currentTheme]);
 
     const handlePref = (updater: (prev: UserPreferences) => UserPreferences) => {
         setPreferences(prev => { const next = updater(prev); setHasChanges(true); return next; });
@@ -177,7 +183,7 @@ export default function Settings() {
     const handleLogout = async () => { await supabase.auth.signOut(); navigate("/"); };
     const handleDeleteAccount = () => navigate("/delete-account");
 
-    if (loading) {
+    if (authLoading || loading) {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <Loader2 className="w-8 h-8 animate-spin text-primary" />

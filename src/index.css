@@ -133,6 +133,11 @@ All colors MUST be HSL.
     @apply bg-background text-foreground font-sans antialiased;
   }
 
+  /* Prevent automatic mobile input zooming */
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+
   h1,
   h2,
   h3,
