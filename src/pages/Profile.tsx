@@ -51,6 +51,7 @@ import {
 } from "@/components/ui/sheet";
 import { Progress } from "@/components/ui/progress";
 import { motion, AnimatePresence } from "framer-motion";
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
 const containerVariants = {
     hidden: { opacity: 0 },
@@ -117,6 +118,7 @@ export default function Profile() {
     const [user, setUser] = useState<any>(null);
     const [profile, setProfile] = useState<Profile | null>(null);
     const [workouts, setWorkouts] = useState<Workout[]>([]);
+    const [progressLogs, setProgressLogs] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
     const [saving, setSaving] = useState(false);
@@ -167,6 +169,32 @@ export default function Profile() {
                 if (workoutsData) {
                     setWorkouts(workoutsData);
                 }
+
+                // Load progress logs for weight chart
+                let loadedLogs: any[] = [];
+                const { data: logsData, error: logsError } = await supabase
+                    .from('progress_logs')
+                    .select('*')
+                    .eq('user_id', userId)
+                    .order('date', { ascending: true })
+                    .limit(15);
+
+                if (!logsError && logsData) {
+                    loadedLogs = logsData;
+                } else {
+                    const saved = localStorage.getItem("smartfit_progress_v1");
+                    if (saved) {
+                        try {
+                            const parsed = JSON.parse(saved);
+                            loadedLogs = parsed
+                                .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime())
+                                .slice(-15);
+                        } catch (e) {
+                            console.error("Error parsing progress logs from localStorage:", e);
+                        }
+                    }
+                }
+                setProgressLogs(loadedLogs);
             } catch (error) {
                 console.error("Error loading user data:", error);
                 toast.error("Failed to load profile data");
@@ -505,6 +533,84 @@ export default function Profile() {
                                                 </div>
                                             ))}
                                         </div>
+                                    </CardContent>
+                                </Card>
+                            </motion.div>
+
+                            {/* NEURAL PROGRESS TIMELINE CARD */}
+                            <motion.div variants={itemVariants}>
+                                <Card className="glass border-primary/20 rounded-2xl overflow-hidden">
+                                    <CardHeader className="pb-3 border-b border-white/5 flex flex-row items-center justify-between">
+                                        <CardTitle className="text-sm font-bold tracking-wider uppercase text-muted-foreground flex items-center gap-2">
+                                            <TrendingUp className="w-4 h-4 text-primary" />
+                                            Neural Progress Track
+                                        </CardTitle>
+                                        <Link to="/progress">
+                                            <Button variant="ghost" size="xs" className="text-[10px] font-bold rounded-full border border-white/10 px-2.5 h-6">
+                                                VIEW DASHBOARD
+                                            </Button>
+                                        </Link>
+                                    </CardHeader>
+                                    <CardContent className="p-4">
+                                        {progressLogs.length === 0 ? (
+                                            <div className="py-8 text-center space-y-3">
+                                                <Activity className="w-7 h-7 text-muted-foreground/45 mx-auto" />
+                                                <div>
+                                                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">No Sync Logs Found</p>
+                                                    <p className="text-[10px] text-muted-foreground/60 mt-0.5">Log your weight in the dashboard to populate neural data.</p>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="space-y-4">
+                                                <div className="h-44 w-full mt-2">
+                                                    <ResponsiveContainer width="100%" height="100%">
+                                                        <AreaChart data={progressLogs}>
+                                                            <defs>
+                                                                <linearGradient id="profileWeightGradient" x1="0" y1="0" x2="0" y2="1">
+                                                                    <stop offset="5%" stopColor="#00FF9C" stopOpacity={0.25} />
+                                                                    <stop offset="95%" stopColor="#00FF9C" stopOpacity={0} />
+                                                                </linearGradient>
+                                                            </defs>
+                                                            <XAxis 
+                                                                dataKey="date" 
+                                                                stroke="#666" 
+                                                                fontSize={9}
+                                                                tickFormatter={(str) => {
+                                                                    try {
+                                                                        const date = new Date(str);
+                                                                        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                                                                    } catch {
+                                                                        return str;
+                                                                    }
+                                                                }}
+                                                            />
+                                                            <YAxis 
+                                                                stroke="#666" 
+                                                                fontSize={9} 
+                                                                domain={['auto', 'auto']}
+                                                                tickFormatter={(v) => `${v}kg`}
+                                                            />
+                                                            <Tooltip
+                                                                contentStyle={{
+                                                                    backgroundColor: '#0a0a0a',
+                                                                    border: '1px solid rgba(255,255,255,0.1)',
+                                                                    borderRadius: '12px'
+                                                                }}
+                                                                labelStyle={{ color: '#888', fontSize: '10px', fontWeight: 'bold' }}
+                                                                itemStyle={{ color: '#00FF9C', fontSize: '11px', fontWeight: 'bold' }}
+                                                            />
+                                                            <Area
+                                                                type="monotone"
+                                                                dataKey="weight"
+                                                                stroke="#00FF9C"
+                                                                strokeWidth={2}
+                                                                fill="url(#profileWeightGradient)"
+                                                            />
+                                                        </AreaChart>
+                                                    </ResponsiveContainer>
+                                                </div>
+                                            </div>
+                                        )}
                                     </CardContent>
                                 </Card>
                             </motion.div>
