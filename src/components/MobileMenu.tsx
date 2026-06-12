@@ -53,7 +53,7 @@ export function MobileMenu({ children, className, onMenuToggle }: MobileMenuProp
     <>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-12 h-12 flex items-center justify-center text-gray-300 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4CC9F0] rounded-lg transition-colors relative"
+        className="w-12 h-12 -ml-3 flex items-center justify-center text-gray-300 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4CC9F0] rounded-lg transition-colors relative"
         aria-label="Toggle mobile menu"
         aria-expanded={isOpen}
       >

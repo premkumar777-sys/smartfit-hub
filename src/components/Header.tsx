@@ -204,7 +204,7 @@ export function Header() {
         )}
       >
         <nav
-          className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 text-white" // Force text white in nav
+          className="max-w-7xl mx-auto px-3 sm:px-8 lg:px-12 text-white" // Force text white in nav
           role="navigation"
           aria-label="Main Navigation"
         >
@@ -485,7 +485,7 @@ export function Header() {
             </div>
 
             {/* Mobile Auth Menu */}
-            <div className="flex lg:hidden items-center">
+            <div className="flex lg:hidden items-center -mr-2">
               <AuthMenu />
             </div>
           </div>
