@@ -335,290 +335,272 @@ export default function Profile() {
                         </div>
                     </motion.div>
 
-                    {/* MAIN BENTO GRID */}
-                    <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-12 gap-4 auto-rows-min">
-
-                        {/* 1. HERO CARD (User Identity) */}
-                        <motion.div
-                            variants={itemVariants}
-                            className="col-span-1 md:col-span-4 lg:col-span-8 md:row-span-2 relative group"
-                        >
-                            <Card className="glass h-auto md:h-full border-primary/20 overflow-hidden relative">
-                                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 blur-3xl group-hover:bg-primary/10 transition-colors" />
-                                <CardContent className="p-8 h-auto md:h-full flex flex-col md:flex-row gap-8 items-center md:items-start text-center md:text-left relative z-10">
-                                    {/* Avatar with Ring */}
-                                    <div className="relative group/avatar">
-                                        <div className="absolute -inset-1 rounded-full bg-gradient-to-tr from-primary via-purple-500 to-orange-500 opacity-20 group-hover/avatar:opacity-40 blur transition-opacity" />
-                                        <Avatar className="w-32 h-32 border-4 border-background relative z-10 shadow-xl">
-                                            <AvatarImage src={profile?.avatar_url || undefined} className="object-cover" />
-                                            <AvatarFallback className="bg-primary/10 text-primary text-4xl font-black">
-                                                {initials}
-                                            </AvatarFallback>
-                                        </Avatar>
-
-                                        <label className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 rounded-full cursor-pointer opacity-0 group-hover/avatar:opacity-100 transition-all duration-300 backdrop-blur-sm scale-95 group-hover/avatar:scale-100">
-                                            {uploading ? (
-                                                <Loader2 className="w-8 h-8 animate-spin text-white" />
-                                            ) : (
-                                                <Camera className="w-8 h-8 text-white" />
-                                            )}
-                                            <input
-                                                type="file"
-                                                accept="image/*"
-                                                className="hidden"
-                                                onChange={handleAvatarUpload}
-                                                disabled={uploading}
-                                            />
-                                        </label>
-
-                                        {hasPremiumAccess && (
-                                            <div className="absolute -bottom-1 -right-1 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full p-2 z-30 shadow-lg border-2 border-background">
-                                                <Crown className="w-5 h-5 text-black" />
-                                            </div>
-                                        )}
+                    {/* REDESIGNED MAIN LAYOUT */}
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                        {/* LEFT COLUMN: HERO IDENTITY CARD & BIOMETRICS */}
+                        <div className="col-span-1 lg:col-span-8 space-y-6">
+                            {/* HERO PROFILE CARD */}
+                            <motion.div variants={itemVariants}>
+                                <Card className="glass border-primary/20 overflow-hidden relative rounded-3xl shadow-2xl">
+                                    {/* Premium Banner */}
+                                    <div className="h-32 bg-gradient-to-r from-primary/30 via-purple-600/20 to-orange-500/30 relative overflow-hidden">
+                                        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent" />
+                                        <div className="absolute top-4 right-4 bg-black/40 backdrop-blur-md border border-white/10 rounded-full px-3 py-1 text-[10px] font-bold tracking-widest text-primary uppercase">
+                                            NEURAL LINK ACTIVE
+                                        </div>
                                     </div>
 
-                                    {/* User Details */}
-                                    <div className="flex-1 space-y-4">
-                                        <div>
-                                            <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mb-1">
-                                                <h1 className="text-3xl md:text-4xl font-black tracking-tight bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text">
-                                                    {profile?.full_name || profile?.username || "SmartFit AI Warrior"}
-                                                </h1>
+                                    <CardContent className="p-6 pt-0 relative">
+                                        {/* Avatar Overflowing */}
+                                        <div className="flex flex-col sm:flex-row items-center sm:items-end gap-5 -mt-16 mb-4">
+                                            <div className="relative group/avatar">
+                                                <div className="absolute -inset-1 rounded-full bg-gradient-to-tr from-primary via-purple-500 to-orange-500 opacity-30 group-hover/avatar:opacity-60 blur transition-opacity" />
+                                                <Avatar className="w-28 h-28 border-4 border-background relative z-10 shadow-2xl">
+                                                    <AvatarImage src={profile?.avatar_url || undefined} className="object-cover" />
+                                                    <AvatarFallback className="bg-primary/10 text-primary text-3xl font-black">
+                                                        {initials}
+                                                    </AvatarFallback>
+                                                </Avatar>
+
+                                                <label className="absolute inset-0 z-20 flex items-center justify-center bg-black/55 rounded-full cursor-pointer opacity-0 group-hover/avatar:opacity-100 transition-all duration-300 backdrop-blur-sm">
+                                                    {uploading ? (
+                                                        <Loader2 className="w-6 h-6 animate-spin text-white" />
+                                                    ) : (
+                                                        <Camera className="w-6 h-6 text-white" />
+                                                    )}
+                                                    <input
+                                                        type="file"
+                                                        accept="image/*"
+                                                        className="hidden"
+                                                        onChange={handleAvatarUpload}
+                                                        disabled={uploading}
+                                                    />
+                                                </label>
+
                                                 {hasPremiumAccess && (
-                                                    <Badge className="bg-gradient-to-r from-amber-500 to-rose-500 text-white border-0 shadow-lg px-3 py-1 font-bold animate-pulse">
-                                                        PRO
-                                                    </Badge>
+                                                    <div className="absolute -bottom-1 -right-1 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full p-1.5 z-30 shadow-lg border-2 border-background">
+                                                        <Crown className="w-4 h-4 text-black" />
+                                                    </div>
                                                 )}
                                             </div>
-                                            <p className="text-primary font-medium flex items-center justify-center md:justify-start gap-2">
-                                                @{profile?.username || "warrior"}
-                                                <span className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_8px_hsl(var(--neon-green))]" />
-                                            </p>
+
+                                            {/* Name & Handle */}
+                                            <div className="text-center sm:text-left flex-1 space-y-1.5 pt-2">
+                                                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5">
+                                                    <h1 className="text-2xl md:text-3xl font-black tracking-tight bg-gradient-to-br from-white to-gray-400 bg-clip-text text-transparent uppercase">
+                                                        {profile?.full_name || profile?.username || "SmartFit Warrior"}
+                                                    </h1>
+                                                    {hasPremiumAccess && (
+                                                        <Badge className="bg-gradient-to-r from-amber-500 to-rose-500 text-white border-0 shadow-lg px-2.5 py-0.5 text-[10px] font-black tracking-wider uppercase animate-pulse">
+                                                            PRO
+                                                        </Badge>
+                                                    )}
+                                                </div>
+                                                <div className="flex flex-wrap justify-center sm:justify-start items-center gap-3">
+                                                    <p className="text-primary text-xs font-bold flex items-center gap-1.5">
+                                                        @{profile?.username || "warrior"}
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_8px_hsl(var(--neon-green))]" />
+                                                    </p>
+                                                    <span className="text-muted-foreground/40 text-xs">|</span>
+                                                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                                        <MapPin className="w-3.5 h-3.5" />
+                                                        {profile?.location || "Earth"}
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
 
+                                        {/* Bio */}
                                         {profile?.bio && (
-                                            <p className="text-muted-foreground leading-relaxed max-w-xl line-clamp-2 md:line-clamp-none">
+                                            <p className="text-sm text-gray-300 leading-relaxed max-w-2xl text-center sm:text-left border-t border-white/5 pt-4 mt-2">
                                                 {profile.bio}
                                             </p>
                                         )}
 
-                                        <div className="flex flex-wrap justify-center md:justify-start gap-4 pt-2">
-                                            <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/30 px-3 py-1.5 rounded-full border border-border/50">
-                                                <MapPin className="w-3.5 h-3.5" />
-                                                {profile?.location || "Earth"}
-                                            </div>
-                                            <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/30 px-3 py-1.5 rounded-full border border-border/50">
-                                                <Calendar className="w-3.5 h-3.5" />
-                                                Joined {new Date(profile?.created_at || Date.now()).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
-                                            </div>
-                                        </div>
-
-                                        <div className="pt-4 flex flex-wrap gap-3 justify-center md:justify-start">
-                                            <Button onClick={handleOpenEdit} className="rounded-full px-6 shadow-glow transition-transform hover:scale-105 active:scale-95">
-                                                <Edit2 className="w-4 h-4 mr-2" />
+                                        {/* Actions */}
+                                        <div className="flex flex-wrap gap-2.5 pt-5 justify-center sm:justify-start border-t border-white/5 mt-4">
+                                            <Button onClick={handleOpenEdit} size="sm" className="rounded-full px-5 shadow-glow transition-transform hover:scale-105 active:scale-95 text-xs font-bold">
+                                                <Edit2 className="w-3.5 h-3.5 mr-1.5" />
                                                 Edit Profile
                                             </Button>
-                                            <Button variant="outline" className="rounded-full px-6 hover:bg-primary/5 transition-all" onClick={() => navigate('/settings')}>
-                                                <Settings className="w-4 h-4 mr-2 text-muted-foreground" />
+                                            <Button variant="outline" size="sm" className="rounded-full px-5 hover:bg-primary/5 transition-all text-xs font-bold border-white/10" onClick={() => navigate('/settings')}>
+                                                <Settings className="w-3.5 h-3.5 mr-1.5 text-muted-foreground" />
                                                 Settings
                                             </Button>
                                         </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        </motion.div>
-
-                        {/* 2. STREAK CARD (Mini Bento) */}
-                        <motion.div
-                            variants={itemVariants}
-                            className="col-span-1 md:col-span-2 lg:col-span-4 md:row-span-2"
-                        >
-                            <Card className="glass h-auto md:h-full border-orange-500/20 overflow-hidden relative group">
-                                <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                                <CardContent className="p-8 h-auto md:h-full flex flex-col items-center justify-center text-center relative z-10">
-                                    <div className="relative mb-4">
-                                        <div className="absolute inset-0 bg-orange-500/20 blur-2xl rounded-full" />
-                                        <Flame className="w-16 h-16 text-orange-500 relative z-10 drop-shadow-[0_0_15px_rgba(249,115,22,0.5)]" />
-                                    </div>
-                                    <h3 className="text-4xl md:text-5xl font-black mb-1">
-                                        {streak.currentStreak}
-                                    </h3>
-                                    <p className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-6">
-                                        Daily Streak
-                                    </p>
-
-                                    <div className="w-full space-y-4">
-                                        <div className="flex justify-between items-end">
-                                            <div className="text-left">
-                                                <p className="text-xs text-muted-foreground font-semibold">BEST STREAK</p>
-                                                <p className="text-xl font-bold">{streak.bestStreak} Days</p>
-                                            </div>
-                                            <div className="text-right">
-                                                <p className="text-xs text-muted-foreground font-semibold">TOTAL ACTIVE</p>
-                                                <p className="text-xl font-bold">{streak.totalActiveDays} Days</p>
-                                            </div>
-                                        </div>
-
-                                        {streakBadge && (
-                                            <div className={`${streakBadge.color} rounded-xl p-3 flex items-center justify-center gap-2 shadow-lg`}>
-                                                <span className="text-xl">{streakBadge.icon}</span>
-                                                <span className="font-bold text-white text-sm">{streakBadge.label}</span>
-                                            </div>
-                                        )}
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        </motion.div>
-
-                        {/* 3. EXPERIENCE CARD (Real stats from profiles table) */}
-                        <motion.div
-                            variants={itemVariants}
-                            className="col-span-1 md:col-span-2 lg:col-span-4"
-                        >
-                            <Card className="glass border-primary/20 p-6 h-auto md:h-full flex flex-col justify-between">
-                                <div className="flex justify-between items-start mb-4">
-                                    <div className="p-2 bg-primary/10 rounded-xl">
-                                        <Zap className="w-5 h-5 text-primary" />
-                                    </div>
-                                    <div className="text-right">
-                                        <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Level</p>
-                                        <p className="text-2xl font-black text-primary">{(profile as any)?.level || 1}</p>
-                                    </div>
-                                </div>
-                                <div className="space-y-2">
-                                    <div className="flex justify-between text-xs font-bold">
-                                        <span className="text-muted-foreground uppercase">Experience</span>
-                                        <span>{(profile as any)?.xp || 0} XP</span>
-                                    </div>
-                                    <Progress value={((profile as any)?.xp || 0) % 100} className="h-2 bg-primary/10" />
-                                </div>
-                            </Card>
-                        </motion.div>
-
-                        {/* 4. BIO-STATS BENTO GRID (4 small cards) */}
-                        {[
-                            { label: "Age", value: profile?.age || "--", suffix: " yrs", icon: Calendar, color: "text-blue-500", bg: "bg-blue-500/10" },
-                            { label: "Weight", value: profile?.weight || "--", suffix: " kg", icon: Activity, color: "text-green-500", bg: "bg-green-500/10" },
-                            { label: "Height", value: profile?.height || "--", suffix: " cm", icon: TrendingUp, color: "text-purple-500", bg: "bg-purple-500/10" },
-                            { label: "Goal", value: (profile?.fitness_goal || "Not set").split(' ')[0], suffix: "", icon: Target, color: "text-orange-500", bg: "bg-orange-500/10" }
-                        ].map((stat, i) => (
-                            <motion.div
-                                key={stat.label}
-                                variants={itemVariants}
-                                className="col-span-1 md:col-span-1 lg:col-span-2"
-                            >
-                                <Card className="glass border-primary/10 p-5 h-auto md:h-full hover:border-primary/30 transition-colors">
-                                    <div className={`${stat.bg} ${stat.color} w-8 h-8 rounded-lg flex items-center justify-center mb-3`}>
-                                        <stat.icon className="w-4 h-4" />
-                                    </div>
-                                    <p className="text-[10px] uppercase font-black tracking-widest text-muted-foreground mb-1">
-                                        {stat.label}
-                                    </p>
-                                    <p className="text-xl font-black truncate">
-                                        {stat.value}<span className="text-sm font-normal text-muted-foreground ml-0.5">{stat.suffix}</span>
-                                    </p>
+                                    </CardContent>
                                 </Card>
                             </motion.div>
-                        ))}
 
-                        {/* 5. RECENT WORKOUTS (List Card) */}
-                        <motion.div
-                            variants={itemVariants}
-                            className="col-span-1 md:col-span-4 lg:col-span-8 overflow-hidden"
-                        >
-                            <Card className="glass border-primary/20 h-auto md:h-full">
-                                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                                    <CardTitle className="text-lg font-bold flex items-center gap-2">
-                                        <Dumbbell className="w-5 h-5 text-primary" />
-                                        Activity Forge
-                                    </CardTitle>
-                                    <Link to="/ai-workout">
-                                        <Button variant="ghost" size="sm" className="h-8 text-xs font-bold rounded-full border border-border/50">
-                                            CREATE NEW
-                                        </Button>
-                                    </Link>
-                                </CardHeader>
-                                <CardContent>
-                                    {workouts.length === 0 ? (
-                                        <div className="py-12 text-center space-y-4">
-                                            <div className="w-16 h-16 bg-muted/30 rounded-full flex items-center justify-center mx-auto">
-                                                <BookOpen className="w-8 h-8 text-muted-foreground" />
-                                            </div>
+                            {/* STATS OVERVIEW DASHBOARD */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                {/* STREAK WIDGET */}
+                                <motion.div variants={itemVariants}>
+                                    <Card className="glass border-orange-500/20 overflow-hidden relative group rounded-2xl">
+                                        <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                        <CardContent className="p-5 flex items-center justify-between relative z-10">
                                             <div className="space-y-1">
-                                                <p className="text-sm font-bold text-muted-foreground uppercase tracking-wider">No Forge Records Found</p>
-                                                <p className="text-xs text-muted-foreground/60">Generate an AI workout to start your legacy.</p>
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Daily Streak</p>
+                                                <h3 className="text-3xl font-black text-white">{streak.currentStreak} Days</h3>
+                                                <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-semibold mt-1">
+                                                    <span>BEST: {streak.bestStreak}</span>
+                                                    <span>•</span>
+                                                    <span>TOTAL: {streak.totalActiveDays}</span>
+                                                </div>
+                                            </div>
+                                            <div className="relative">
+                                                <div className="absolute inset-0 bg-orange-500/25 blur-xl rounded-full" />
+                                                <Flame className="w-12 h-12 text-orange-500 relative z-10 animate-pulse" />
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                </motion.div>
+
+                                {/* LEVEL & EXPERIENCE */}
+                                <motion.div variants={itemVariants}>
+                                    <Card className="glass border-primary/20 p-5 rounded-2xl flex flex-col justify-between h-full">
+                                        <div className="flex justify-between items-center mb-2">
+                                            <div>
+                                                <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Neural Level</p>
+                                                <p className="text-xl font-black text-primary">Level {(profile as any)?.level || 1}</p>
+                                            </div>
+                                            <div className="p-2 bg-primary/15 rounded-xl">
+                                                <Zap className="w-5 h-5 text-primary" />
                                             </div>
                                         </div>
-                                    ) : (
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                            {workouts.map((workout) => (
-                                                <div
-                                                    key={workout.id}
-                                                    className="flex items-center justify-between p-4 bg-muted/20 hover:bg-muted/40 rounded-2xl border border-border/50 group/workout transition-all cursor-pointer"
-                                                >
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="w-10 h-10 rounded-xl bg-background flex items-center justify-center border border-border/50 group-hover/workout:scale-110 transition-transform">
-                                                            <Dumbbell className="w-5 h-5 text-primary" />
-                                                        </div>
-                                                        <div className="min-w-0">
-                                                            <h4 className="font-bold text-sm truncate uppercase tracking-tight">{workout.title}</h4>
-                                                            <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground">
-                                                                <Calendar className="w-3 h-3" />
-                                                                {new Date(workout.created_at).toLocaleDateString()}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <ChevronRight className="w-4 h-4 text-muted-foreground group-hover/workout:translate-x-1 transition-transform" />
+                                        <div className="space-y-1.5">
+                                            <div className="flex justify-between text-[10px] font-bold">
+                                                <span className="text-muted-foreground uppercase">Experience</span>
+                                                <span>{(profile as any)?.xp || 0} XP</span>
+                                            </div>
+                                            <Progress value={((profile as any)?.xp || 0) % 100} className="h-1.5 bg-primary/10" />
+                                        </div>
+                                    </Card>
+                                </motion.div>
+                            </div>
+
+                            {/* BIOMETRICS PANEL */}
+                            <motion.div variants={itemVariants}>
+                                <Card className="glass border-white/10 rounded-2xl overflow-hidden">
+                                    <CardHeader className="pb-3 border-b border-white/5">
+                                        <CardTitle className="text-sm font-bold tracking-wider uppercase text-muted-foreground flex items-center gap-2">
+                                            <User className="w-4 h-4 text-primary" />
+                                            Biometric Parameters
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="p-0">
+                                        <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-y sm:divide-y-0 divide-white/5 text-center">
+                                            {[
+                                                { label: "Age", value: profile?.age || "--", suffix: " Yrs", color: "text-blue-400" },
+                                                { label: "Weight", value: profile?.weight || "--", suffix: " Kg", color: "text-green-400" },
+                                                { label: "Height", value: profile?.height || "--", suffix: " Cm", color: "text-purple-400" },
+                                                { label: "Fitness Goal", value: (profile?.fitness_goal || "Not Set").split(' ')[0], suffix: "", color: "text-orange-400" }
+                                            ].map((stat, idx) => (
+                                                <div key={idx} className="p-5 flex flex-col justify-center items-center">
+                                                    <span className="text-[9px] uppercase font-black tracking-widest text-muted-foreground mb-1">{stat.label}</span>
+                                                    <span className={`text-lg font-black ${stat.color}`}>
+                                                        {stat.value}
+                                                        <span className="text-xs font-normal text-muted-foreground ml-0.5">{stat.suffix}</span>
+                                                    </span>
                                                 </div>
                                             ))}
                                         </div>
-                                    )}
-                                </CardContent>
-                            </Card>
-                        </motion.div>
-
-                        {/* 6. QUICK ACTIONS (Square cards) */}
-                        <motion.div
-                            variants={itemVariants}
-                            className="col-span-1 md:col-span-4 lg:col-span-4"
-                        >
-                            <div className="grid grid-cols-2 gap-4 h-auto md:h-full">
-                                <Card
-                                    className="glass border-primary/20 p-6 h-auto md:h-full flex flex-col justify-center items-center text-center cursor-pointer hover:bg-primary/5 transition-colors group"
-                                    onClick={() => navigate("/ai-workout")}
-                                >
-                                    <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                                        <Zap className="w-6 h-6 text-primary" />
-                                    </div>
-                                    <p className="text-xs font-black uppercase tracking-widest">New</p>
-                                    <p className="text-xs font-black uppercase tracking-widest text-primary">Forge</p>
+                                    </CardContent>
                                 </Card>
-                                {!hasPremiumAccess && (
-                                    <Card
-                                        className="bg-gradient-to-br from-amber-500 to-rose-600 border-0 p-6 flex flex-col justify-center items-center text-center cursor-pointer hover:opacity-90 transition-all shadow-xl group"
-                                        onClick={() => navigate("/upgrade")}
-                                    >
-                                        <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                                            <Crown className="w-6 h-6 text-white" />
-                                        </div>
-                                        <p className="text-xs font-black uppercase tracking-widest text-white">Go</p>
-                                        <p className="text-xs font-black uppercase tracking-widest text-white/80">PRO</p>
-                                    </Card>
-                                )}
-                                <Card
-                                    className="glass border-destructive/20 p-6 flex flex-col justify-center items-center text-center cursor-pointer hover:bg-destructive/5 transition-colors group lg:col-span-2"
-                                    onClick={handleLogout}
-                                >
-                                    <div className="w-12 h-12 rounded-2xl bg-destructive/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                                        <LogOut className="w-6 h-6 text-destructive" />
-                                    </div>
-                                    <p className="text-xs font-black uppercase tracking-widest text-destructive">Terminate</p>
-                                    <p className="text-xs font-black uppercase tracking-widest text-destructive/80">Session</p>
-                                </Card>
-                            </div>
-                        </motion.div>
+                            </motion.div>
+                        </div>
 
+                        {/* RIGHT COLUMN: WORKOUTS ACTIVITY & QUICK ACTIONS */}
+                        <div className="col-span-1 lg:col-span-4 space-y-6">
+                            {/* ACTIVITY FORGE */}
+                            <motion.div variants={itemVariants}>
+                                <Card className="glass border-primary/20 rounded-3xl overflow-hidden flex flex-col">
+                                    <CardHeader className="flex flex-row items-center justify-between pb-3 border-b border-white/5">
+                                        <CardTitle className="text-sm font-bold tracking-wider uppercase text-muted-foreground flex items-center gap-2">
+                                            <Dumbbell className="w-4 h-4 text-primary" />
+                                            Activity Forge
+                                        </CardTitle>
+                                        <Link to="/ai-workout">
+                                            <Button variant="ghost" size="xs" className="text-[10px] font-bold rounded-full border border-white/10 px-2.5 h-6">
+                                                NEW FORGE
+                                            </Button>
+                                        </Link>
+                                    </CardHeader>
+                                    <CardContent className="p-4 space-y-3">
+                                        {workouts.length === 0 ? (
+                                            <div className="py-8 text-center space-y-3">
+                                                <BookOpen className="w-7 h-7 text-muted-foreground/45 mx-auto" />
+                                                <div>
+                                                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">No Records</p>
+                                                    <p className="text-[10px] text-muted-foreground/60 mt-0.5">Generate a workout to begin.</p>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="space-y-2.5">
+                                                {workouts.map((workout) => (
+                                                    <div
+                                                        key={workout.id}
+                                                        className="flex items-center justify-between p-3.5 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/5 group/workout transition-all cursor-pointer"
+                                                    >
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-9 h-9 rounded-xl bg-background flex items-center justify-center border border-white/5 group-hover/workout:scale-105 transition-transform">
+                                                                <Dumbbell className="w-4.5 h-4.5 text-primary" />
+                                                            </div>
+                                                            <div className="min-w-0">
+                                                                <h4 className="font-bold text-xs truncate uppercase tracking-tight text-gray-200">{workout.title}</h4>
+                                                                <span className="text-[9px] font-bold text-muted-foreground block mt-0.5">
+                                                                    {new Date(workout.created_at).toLocaleDateString()}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                        <ChevronRight className="w-4 h-4 text-muted-foreground group-hover/workout:translate-x-0.5 transition-transform" />
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </CardContent>
+                                </Card>
+                            </motion.div>
+
+                            {/* QUICK ACTIONS PANEL */}
+                            <motion.div variants={itemVariants}>
+                                <Card className="glass border-white/10 rounded-3xl p-4">
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <Card
+                                            className="bg-white/5 border border-white/5 p-4 flex flex-col justify-center items-center text-center cursor-pointer hover:bg-primary/5 hover:border-primary/20 transition-all rounded-2xl group"
+                                            onClick={() => navigate("/ai-workout")}
+                                        >
+                                            <Zap className="w-5 h-5 text-primary mb-2 group-hover:scale-110 transition-transform" />
+                                            <span className="text-[10px] font-black uppercase tracking-wider text-gray-300">New Forge</span>
+                                        </Card>
+                                        {!hasPremiumAccess ? (
+                                            <Card
+                                                className="bg-gradient-to-br from-amber-500 to-rose-600 border-0 p-4 flex flex-col justify-center items-center text-center cursor-pointer hover:opacity-90 transition-all rounded-2xl shadow-xl group"
+                                                onClick={() => navigate("/upgrade")}
+                                            >
+                                                <Crown className="w-5 h-5 text-white mb-2 group-hover:scale-110 transition-transform" />
+                                                <span className="text-[10px] font-black uppercase tracking-wider text-white">Go PRO</span>
+                                            </Card>
+                                        ) : (
+                                            <Card
+                                                className="bg-white/5 border border-white/5 p-4 flex flex-col justify-center items-center text-center cursor-pointer hover:bg-primary/5 hover:border-primary/20 transition-all rounded-2xl group"
+                                                onClick={() => navigate("/progress")}
+                                            >
+                                                <Trophy className="w-5 h-5 text-primary mb-2 group-hover:scale-110 transition-transform" />
+                                                <span className="text-[10px] font-black uppercase tracking-wider text-gray-300">Milestones</span>
+                                            </Card>
+                                        )}
+                                        <Card
+                                            className="bg-red-500/5 border border-red-500/10 p-4 flex flex-col justify-center items-center text-center cursor-pointer hover:bg-red-500/10 hover:border-red-500/30 transition-all rounded-2xl col-span-2 group"
+                                            onClick={handleLogout}
+                                        >
+                                            <LogOut className="w-5 h-5 text-red-400 mb-2 group-hover:scale-110 transition-transform" />
+                                            <span className="text-[10px] font-black uppercase tracking-wider text-red-400">Abort Session (Logout)</span>
+                                        </Card>
+                                    </div>
+                                </Card>
+                            </motion.div>
+                        </div>
                     </div>
                 </motion.div>
             </Container>
