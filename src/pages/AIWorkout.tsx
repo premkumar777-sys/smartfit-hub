@@ -171,7 +171,7 @@ const AIWorkout = () => {
         </div>
 
         <div className="grid md:grid-cols-2 gap-6 w-full">
-          <Card className="glass border-primary/20">
+          <Card className="glass border-primary/20 w-full min-w-0 overflow-hidden p-4 sm:p-6">
             <CardHeader>
               <CardTitle>Your Information</CardTitle>
               <CardDescription>
@@ -312,7 +312,7 @@ const AIWorkout = () => {
             </CardContent>
           </Card>
 
-          <Card className="glass border-primary/20">
+          <Card className="glass border-primary/20 w-full min-w-0 overflow-hidden p-4 sm:p-6">
             <CardHeader>
               <CardTitle>Your Personalized Plan</CardTitle>
               <CardDescription>
@@ -322,8 +322,8 @@ const AIWorkout = () => {
             <CardContent className="pt-0">
               {workoutPlan ? (
                 <div className="space-y-6">
-                  <div className="prose prose-invert prose-green max-w-none">
-                    <div className="bg-black/20 rounded-xl p-5 border border-white/5 shadow-inner leading-relaxed">
+                  <div className="prose prose-invert prose-green max-w-none w-full">
+                    <div className="bg-black/20 rounded-xl p-4 sm:p-5 border border-white/5 shadow-inner leading-relaxed break-words overflow-x-auto w-full">
                       {workoutPlan.split('\n').map((line, i) => {
                         if (line.startsWith('## ')) {
                           return <h2 key={i} className="text-2xl font-bold text-primary mt-6 mb-4">{line.replace('## ', '')}</h2>;
@@ -332,7 +332,7 @@ const AIWorkout = () => {
                           return <h3 key={i} className="text-xl font-semibold text-white mt-4 mb-2">{line.replace('### ', '')}</h3>;
                         }
                         if (line.startsWith('- ')) {
-                          return <li key={i} className="text-gray-300 ml-4 py-1 list-disc">{line.replace('- ', '')}</li>;
+                          return <li key={i} className="text-gray-300 ml-4 py-1 list-disc list-inside">{line.replace('- ', '')}</li>;
                         }
                         if (line.startsWith('**') && line.endsWith('**')) {
                           return <p key={i} className="font-bold text-white my-2">{line.replace(/\*\*/g, '')}</p>;
