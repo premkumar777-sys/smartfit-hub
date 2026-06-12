@@ -20,7 +20,11 @@ import {
     ArrowUpDown,
     Waves,
     Footprints,
+    Sparkles,
 } from "lucide-react";
+import { WorkoutSummaryLogModal } from "@/components/WorkoutSummaryLogModal";
+import { WorkoutSummaryData } from "@/components/WorkoutSummaryCard";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/Container";
 import { toast } from "sonner";
@@ -214,6 +218,8 @@ const WorkoutSession = () => {
     });
     const [sessionActive, setSessionActive] = useState(false);
     const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
+    const [isLogModalOpen, setIsLogModalOpen] = useState(false);
+    const [prefilledData, setPrefilledData] = useState<Partial<WorkoutSummaryData>>({});
 
     // Refs
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -580,6 +586,81 @@ const WorkoutSession = () => {
         return `${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
     };
 
+    const getMuscleGroupsForExercise = (ex: Exercise): string[] => {
+        switch (ex) {
+            case "squat": return ["Legs", "Glutes", "Core"];
+            case "pushup": return ["Chest", "Triceps", "Shoulders"];
+            case "bicepCurl": return ["Biceps", "Forearms"];
+            case "lunge": return ["Legs", "Glutes"];
+            case "shoulderPress": return ["Shoulders", "Triceps"];
+            case "tricepExtension": return ["Triceps"];
+            case "lateralRaise": return ["Shoulders"];
+            case "romanianDeadlift": return ["Legs", "Glutes", "Back"];
+            case "jumpingJack": return ["Full Body", "Cardio"];
+            default: return ["Full Body"];
+        }
+    };
+
+    const handleFinishWorkout = () => {
+        stopCamera();
+
+        const activeEx = EXERCISES.find((e) => e.id === selectedExercise);
+        const routine = activeEx ? `${activeEx.name.toUpperCase()} SESSION` : "AI WORKOUT";
+        const min = Math.floor(sessionStats.duration / 60);
+        const sec = sessionStats.duration % 60;
+        const durStr = min > 0 ? `${min}M ${sec}S` : `${sec}S`;
+        const estKcal = Math.round((sessionStats.duration / 60) * 8 + sessionStats.totalReps * 0.5);
+
+        setPrefilledData({
+            routineName: routine,
+            duration: durStr || "1M",
+            sets: Math.ceil(sessionStats.totalReps / 10) || 1,
+            volume: `${sessionStats.totalReps * 15}KG`,
+            kcal: estKcal || 20,
+            muscleGroups: activeEx ? getMuscleGroupsForExercise(activeEx.id) : ["Full Body"],
+            exercises: activeEx ? [{ name: activeEx.name, weight: `${sessionStats.totalReps} Reps` }] : [],
+            personalRecordsCount: sessionStats.totalReps > 10 ? 1 : 0
+        });
+
+        setIsLogModalOpen(true);
+    };
+
+    const saveWorkoutLog = async (workout: WorkoutSummaryData) => {
+        const id = (typeof crypto !== 'undefined' && typeof crypto.randomUUID === "function" ? crypto.randomUUID() : Math.random().toString(36).substring(2));
+        const newWorkout = { ...workout, id };
+
+        const savedWorkouts = localStorage.getItem("smartfit_completed_workouts_v1");
+        let workoutsList = savedWorkouts ? JSON.parse(savedWorkouts) : [];
+        workoutsList = [newWorkout, ...workoutsList];
+        localStorage.setItem("smartfit_completed_workouts_v1", JSON.stringify(workoutsList));
+
+        toast.success("Workout logged! View it in the Progress page.");
+
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                await supabase.from("completed_workouts").insert({
+                    id,
+                    user_id: user.id,
+                    routine_name: workout.routineName,
+                    date: workout.date,
+                    duration: workout.duration,
+                    sets: workout.sets,
+                    volume: workout.volume,
+                    kcal: workout.kcal,
+                    muscle_groups: workout.muscleGroups,
+                    exercises: workout.exercises,
+                    personal_records_count: workout.personalRecordsCount,
+                    photo_url: workout.photoUrl
+                });
+            }
+        } catch (e) {
+            // ignore table doesn't exist
+        }
+
+        navigate("/progress");
+    };
+
     const exerciseConfig = EXERCISES.find((e) => e.id === selectedExercise);
 
     // ─── Render ─────────────────────────────────────────
@@ -752,16 +833,29 @@ const WorkoutSession = () => {
                         {/* Camera controls */}
                         <div className="flex gap-3 mt-4">
                             {!isCameraOn ? (
-                                <Button
-                                    variant="hero"
-                                    size="lg"
-                                    className="flex-1"
-                                    onClick={startCamera}
-                                    disabled={!selectedExercise || isModelLoading}
-                                >
-                                    <Camera className="mr-2 h-5 w-5" />
-                                    {isModelLoading ? "Loading AI..." : "Start Camera"}
-                                </Button>
+                                <div className="flex flex-col sm:flex-row gap-3 w-full">
+                                    <Button
+                                        variant="hero"
+                                        size="lg"
+                                        className="flex-1"
+                                        onClick={startCamera}
+                                        disabled={!selectedExercise || isModelLoading}
+                                    >
+                                        <Camera className="mr-2 h-5 w-5" />
+                                        {isModelLoading ? "Loading AI..." : "Start Camera"}
+                                    </Button>
+                                    {(sessionStats.duration > 0 || sessionStats.totalReps > 0) && (
+                                        <Button
+                                            variant="outline"
+                                            size="lg"
+                                            className="flex-1 border-primary/30 text-primary hover:bg-primary/10"
+                                            onClick={handleFinishWorkout}
+                                        >
+                                            <Sparkles className="mr-2 h-5 w-5 text-primary animate-pulse" />
+                                            Complete & Share Workout
+                                        </Button>
+                                    )}
+                                </div>
                             ) : (
                                 <>
                                     <Button
@@ -772,6 +866,15 @@ const WorkoutSession = () => {
                                     >
                                         <CameraOff className="mr-2 h-5 w-5" />
                                         Stop Camera
+                                    </Button>
+                                    <Button
+                                        variant="hero"
+                                        size="lg"
+                                        className="flex-1"
+                                        onClick={handleFinishWorkout}
+                                    >
+                                        <Sparkles className="mr-2 h-5 w-5" />
+                                        Complete Workout
                                     </Button>
                                     <Button variant="outline" size="lg" onClick={resetSession}>
                                         <RotateCcw className="mr-2 h-5 w-5" />
@@ -917,6 +1020,13 @@ const WorkoutSession = () => {
                     </div>
                 </div>
             </Container>
+
+            <WorkoutSummaryLogModal
+                isOpen={isLogModalOpen}
+                onClose={() => setIsLogModalOpen(false)}
+                onSave={saveWorkoutLog}
+                initialData={prefilledData}
+            />
         </div>
     );
 };
