@@ -626,11 +626,6 @@ export default function Profile() {
                                             <Dumbbell className="w-4 h-4 text-primary" />
                                             Activity Forge
                                         </CardTitle>
-                                        <Link to="/ai-workout">
-                                            <Button variant="ghost" size="xs" className="text-[10px] font-bold rounded-full border border-white/10 px-2.5 h-6">
-                                                NEW FORGE
-                                            </Button>
-                                        </Link>
                                     </CardHeader>
                                     <CardContent className="p-4 space-y-3">
                                         {workouts.length === 0 ? (
@@ -665,45 +660,6 @@ export default function Profile() {
                                             </div>
                                         )}
                                     </CardContent>
-                                </Card>
-                            </motion.div>
-
-                            {/* QUICK ACTIONS PANEL */}
-                            <motion.div variants={itemVariants}>
-                                <Card className="glass border-white/10 rounded-3xl p-4">
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <Card
-                                            className="bg-white/5 border border-white/5 p-4 flex flex-col justify-center items-center text-center cursor-pointer hover:bg-primary/5 hover:border-primary/20 transition-all rounded-2xl group"
-                                            onClick={() => navigate("/ai-workout")}
-                                        >
-                                            <Zap className="w-5 h-5 text-primary mb-2 group-hover:scale-110 transition-transform" />
-                                            <span className="text-[10px] font-black uppercase tracking-wider text-gray-300">New Forge</span>
-                                        </Card>
-                                        {!hasPremiumAccess ? (
-                                            <Card
-                                                className="bg-gradient-to-br from-amber-500 to-rose-600 border-0 p-4 flex flex-col justify-center items-center text-center cursor-pointer hover:opacity-90 transition-all rounded-2xl shadow-xl group"
-                                                onClick={() => navigate("/upgrade")}
-                                            >
-                                                <Crown className="w-5 h-5 text-white mb-2 group-hover:scale-110 transition-transform" />
-                                                <span className="text-[10px] font-black uppercase tracking-wider text-white">Go PRO</span>
-                                            </Card>
-                                        ) : (
-                                            <Card
-                                                className="bg-white/5 border border-white/5 p-4 flex flex-col justify-center items-center text-center cursor-pointer hover:bg-primary/5 hover:border-primary/20 transition-all rounded-2xl group"
-                                                onClick={() => navigate("/progress")}
-                                            >
-                                                <Trophy className="w-5 h-5 text-primary mb-2 group-hover:scale-110 transition-transform" />
-                                                <span className="text-[10px] font-black uppercase tracking-wider text-gray-300">Milestones</span>
-                                            </Card>
-                                        )}
-                                        <Card
-                                            className="bg-red-500/5 border border-red-500/10 p-4 flex flex-col justify-center items-center text-center cursor-pointer hover:bg-red-500/10 hover:border-red-500/30 transition-all rounded-2xl col-span-2 group"
-                                            onClick={handleLogout}
-                                        >
-                                            <LogOut className="w-5 h-5 text-red-400 mb-2 group-hover:scale-110 transition-transform" />
-                                            <span className="text-[10px] font-black uppercase tracking-wider text-red-400">Abort Session (Logout)</span>
-                                        </Card>
-                                    </div>
                                 </Card>
                             </motion.div>
                         </div>
