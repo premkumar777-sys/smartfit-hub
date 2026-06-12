@@ -345,7 +345,7 @@ export default function Profile() {
                         >
                             <Card className="glass h-auto md:h-full border-primary/20 overflow-hidden relative">
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 blur-3xl group-hover:bg-primary/10 transition-colors" />
-                                <CardContent className="p-8 h-full flex flex-col md:flex-row gap-8 items-center md:items-start text-center md:text-left relative z-10">
+                                <CardContent className="p-8 h-auto md:h-full flex flex-col md:flex-row gap-8 items-center md:items-start text-center md:text-left relative z-10">
                                     {/* Avatar with Ring */}
                                     <div className="relative group/avatar">
                                         <div className="absolute -inset-1 rounded-full bg-gradient-to-tr from-primary via-purple-500 to-orange-500 opacity-20 group-hover/avatar:opacity-40 blur transition-opacity" />
@@ -436,7 +436,7 @@ export default function Profile() {
                         >
                             <Card className="glass h-auto md:h-full border-orange-500/20 overflow-hidden relative group">
                                 <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                                <CardContent className="p-8 h-full flex flex-col items-center justify-center text-center relative z-10">
+                                <CardContent className="p-8 h-auto md:h-full flex flex-col items-center justify-center text-center relative z-10">
                                     <div className="relative mb-4">
                                         <div className="absolute inset-0 bg-orange-500/20 blur-2xl rounded-full" />
                                         <Flame className="w-16 h-16 text-orange-500 relative z-10 drop-shadow-[0_0_15px_rgba(249,115,22,0.5)]" />
