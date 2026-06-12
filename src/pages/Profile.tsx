@@ -51,7 +51,8 @@ import {
 } from "@/components/ui/sheet";
 import { Progress } from "@/components/ui/progress";
 import { motion, AnimatePresence } from "framer-motion";
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { AreaChart, Area, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts";
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 
 const containerVariants = {
     hidden: { opacity: 0 },
@@ -74,6 +75,12 @@ const itemVariants = {
             damping: 15
         }
     }
+};
+
+const tabContentVariants = {
+    initial: { opacity: 0, y: 15 },
+    animate: { opacity: 1, y: 0, transition: { duration: 0.2 } },
+    exit: { opacity: 0, y: -15, transition: { duration: 0.2 } }
 };
 
 type ProfileBase = Tables<"profiles">;
@@ -118,7 +125,9 @@ export default function Profile() {
     const [user, setUser] = useState<any>(null);
     const [profile, setProfile] = useState<Profile | null>(null);
     const [workouts, setWorkouts] = useState<Workout[]>([]);
+    const [allWorkouts, setAllWorkouts] = useState<Workout[]>([]);
     const [progressLogs, setProgressLogs] = useState<any[]>([]);
+    const [activeTab, setActiveTab] = useState<string>("summary");
     const [loading, setLoading] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
     const [saving, setSaving] = useState(false);
@@ -163,11 +172,11 @@ export default function Profile() {
                     .from('workouts')
                     .select('*')
                     .eq('user_id', userId)
-                    .order('created_at', { ascending: false })
-                    .limit(5);
+                    .order('created_at', { ascending: false });
 
                 if (workoutsData) {
-                    setWorkouts(workoutsData);
+                    setAllWorkouts(workoutsData);
+                    setWorkouts(workoutsData.slice(0, 5));
                 }
 
                 // Load progress logs for weight chart
@@ -323,6 +332,111 @@ export default function Profile() {
 
     const streakBadge = getStreakBadge(streak.currentStreak);
 
+    const renderHeatmap = () => {
+        const workoutDates = new Set(
+            allWorkouts.map(w => new Date(w.created_at).toDateString())
+        );
+        const startDate = new Date(2026, 0, 1);
+        const endDate = new Date(2026, 11, 31);
+        
+        const days: { date: Date | null; count: number }[] = [];
+        
+        // Pad the beginning of the year so that the grid starts on Sunday
+        const startDayOfWeek = startDate.getDay(); // 4 (Thursday)
+        for (let i = 0; i < startDayOfWeek; i++) {
+            days.push({ date: null, count: 0 });
+        }
+        
+        let current = new Date(startDate);
+        while (current <= endDate) {
+            const dateStr = current.toDateString();
+            const count = workoutDates.has(dateStr) ? 1 : 0;
+            days.push({ date: new Date(current), count });
+            current.setDate(current.getDate() + 1);
+        }
+
+        const getIntensityClass = (count: number, isRestDay: boolean) => {
+            if (count > 0) return "bg-red-600 border-red-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]"; // Active day
+            if (isRestDay) return "bg-emerald-500/20 border-emerald-500/30 text-emerald-400"; // Rest Day
+            return "bg-white/5 border-white/5"; // Missed / No workout
+        };
+
+        const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+        return (
+            <Card className="glass border-white/10 rounded-2xl p-5 overflow-hidden">
+                <CardHeader className="p-0 pb-4 border-b border-white/5 flex flex-row items-center justify-between">
+                    <CardTitle className="text-xs font-bold tracking-wider uppercase text-muted-foreground flex items-center gap-2">
+                        <Calendar className="w-4 h-4 text-red-500" />
+                        2026 Workout Heatmap
+                    </CardTitle>
+                    <div className="flex gap-3 text-[9px] font-bold text-muted-foreground">
+                        <div className="flex items-center gap-1">
+                            <span className="w-2.5 h-2.5 rounded-sm bg-red-600" /> Active
+                        </div>
+                        <div className="flex items-center gap-1">
+                            <span className="w-2.5 h-2.5 rounded-sm bg-emerald-500/20 border border-emerald-500/30" /> Rest
+                        </div>
+                        <div className="flex items-center gap-1">
+                            <span className="w-2.5 h-2.5 rounded-sm bg-white/5" /> Missed
+                        </div>
+                    </div>
+                </CardHeader>
+                <CardContent className="p-0 pt-4 overflow-x-auto custom-scrollbar">
+                    <TooltipProvider>
+                        <div className="min-w-[700px] flex gap-2">
+                            {/* Day labels column */}
+                            <div className="grid grid-rows-7 gap-[3px] text-[8px] font-medium text-muted-foreground/60 pr-1 select-none pt-4">
+                                {weekDays.map((day, idx) => (
+                                    <div key={idx} className="h-2.5 flex items-center justify-end leading-none">
+                                        {idx % 2 === 1 ? day : ""}
+                                    </div>
+                                ))}
+                            </div>
+                            {/* Grid of days */}
+                            <div className="flex-1 space-y-1">
+                                {/* Months label bar */}
+                                <div className="flex text-[8px] font-bold text-muted-foreground/60 select-none pb-1 h-3 relative">
+                                    {months.map((month, idx) => {
+                                        const leftPct = (idx / 12) * 100;
+                                        return (
+                                            <div key={idx} className="absolute text-[8px]" style={{ left: `${leftPct}%` }}>
+                                                {month}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                                <div className="grid grid-flow-col grid-rows-7 gap-[3px]">
+                                    {days.map((d, idx) => {
+                                        if (!d.date) {
+                                            return <div key={`pad-${idx}`} className="w-2.5 h-2.5 bg-transparent" />;
+                                        }
+                                        const isRestDay = d.date.getDay() === 0 || d.date.getDay() === 6; // Assume weekends are rest days if no workout
+                                        const dateLabel = d.date.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+                                        const statusLabel = d.count > 0 ? "Workout Completed" : isRestDay ? "Rest Day" : "Rest/Missed";
+                                        return (
+                                            <Tooltip key={idx}>
+                                                <TooltipTrigger asChild>
+                                                    <div 
+                                                        className={`w-2.5 h-2.5 rounded-[2px] border transition-all ${getIntensityClass(d.count, isRestDay)}`} 
+                                                    />
+                                                </TooltipTrigger>
+                                                <TooltipContent className="bg-[#0a0a0a] text-[10px] px-2 py-1 border border-white/10 rounded-md text-white z-50">
+                                                    <span className="font-bold">{dateLabel}</span>: {statusLabel}
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        </div>
+                    </TooltipProvider>
+                </CardContent>
+            </Card>
+        );
+    };
+
     return (
         <div className="min-h-screen pt-24 pb-12 overflow-x-hidden">
             <Container>
@@ -363,307 +477,389 @@ export default function Profile() {
                         </div>
                     </motion.div>
 
-                    {/* REDESIGNED MAIN LAYOUT */}
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                        {/* LEFT COLUMN: HERO IDENTITY CARD & BIOMETRICS */}
-                        <div className="col-span-1 lg:col-span-8 space-y-6">
-                            {/* HERO PROFILE CARD */}
-                            <motion.div variants={itemVariants}>
-                                <Card className="glass border-primary/20 overflow-hidden relative rounded-3xl shadow-2xl">
-                                    {/* Premium Banner */}
-                                    <div className="h-32 bg-gradient-to-r from-primary/30 via-purple-600/20 to-orange-500/30 relative overflow-hidden">
-                                        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent" />
-                                        <div className="absolute top-4 right-4 bg-black/40 backdrop-blur-md border border-white/10 rounded-full px-3 py-1 text-[10px] font-bold tracking-widest text-primary uppercase">
-                                            NEURAL LINK ACTIVE
+                    {/* REDESIGNED PROFILE HERO CARD */}
+                    <motion.div variants={itemVariants}>
+                        <Card className="glass border-white/5 overflow-hidden relative rounded-3xl shadow-2xl">
+                            {/* Premium Banner with gym-themed image */}
+                            <div className="h-48 bg-cover bg-center relative" style={{ backgroundImage: "url('/workout-bg.jpg')" }}>
+                                <div className="absolute inset-0 bg-gradient-to-t from-[#0d0d0d] via-black/45 to-transparent" />
+                                <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-md border border-white/10 rounded-full px-3 py-1 text-[10px] font-bold tracking-widest text-red-500 uppercase">
+                                    NEURAL LINK ACTIVE
+                                </div>
+                            </div>
+
+                            <CardContent className="p-6 pt-0 relative">
+                                {/* Avatar & Details Section */}
+                                <div className="flex flex-col sm:flex-row items-center sm:items-end gap-5 -mt-16 mb-6 px-4">
+                                    <div className="relative group/avatar">
+                                        <div className="absolute -inset-1 rounded-2xl bg-gradient-to-tr from-red-600 via-purple-600 to-orange-500 opacity-40 group-hover/avatar:opacity-80 blur transition-opacity" />
+                                        <Avatar className="w-32 h-32 rounded-2xl border-4 border-[#0d0d0d] relative z-10 shadow-2xl">
+                                            <AvatarImage src={profile?.avatar_url || undefined} className="object-cover" />
+                                            <AvatarFallback className="bg-primary/10 text-primary text-3xl font-black rounded-2xl">
+                                                {initials}
+                                            </AvatarFallback>
+                                        </Avatar>
+
+                                        <label className="absolute inset-0 z-20 flex items-center justify-center bg-black/55 rounded-2xl cursor-pointer opacity-0 group-hover/avatar:opacity-100 transition-all duration-300 backdrop-blur-sm">
+                                            {uploading ? (
+                                                <Loader2 className="w-6 h-6 animate-spin text-white" />
+                                            ) : (
+                                                <Camera className="w-6 h-6 text-white" />
+                                            )}
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                className="hidden"
+                                                onChange={handleAvatarUpload}
+                                                disabled={uploading}
+                                            />
+                                        </label>
+
+                                        {hasPremiumAccess && (
+                                            <div className="absolute -bottom-1 -right-1 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full p-1.5 z-30 shadow-lg border-2 border-background">
+                                                <Crown className="w-4 h-4 text-black" />
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Name & Badges */}
+                                    <div className="text-center sm:text-left flex-1 space-y-1 md:pb-2">
+                                        <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5">
+                                            <h1 className="text-3xl font-black tracking-tight text-white uppercase italic">
+                                                {profile?.full_name || profile?.username || "SmartFit Warrior"}
+                                            </h1>
+                                            <Badge className="bg-gradient-to-r from-red-600 to-rose-700 text-white border-0 shadow-lg px-3 py-1 text-[10px] font-black tracking-wider uppercase animate-pulse">
+                                                {hasPremiumAccess ? "PRO MEMBER" : "ACTIVE ATHLETE"}
+                                            </Badge>
+                                            <Badge className="bg-white/10 hover:bg-white/10 text-gray-300 border border-white/10 px-3 py-1 text-[10px] font-black tracking-wider uppercase">
+                                                SmartFit AI Hub
+                                            </Badge>
+                                        </div>
+                                        <div className="flex flex-wrap justify-center sm:justify-start items-center gap-3">
+                                            <p className="text-red-500 text-xs font-bold flex items-center gap-1.5">
+                                                @{profile?.username || "warrior"}
+                                                <span className="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.7)]" />
+                                            </p>
+                                            <span className="text-muted-foreground/40 text-xs">|</span>
+                                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                                <MapPin className="w-3.5 h-3.5" />
+                                                {profile?.location || "Earth"}
+                                            </div>
                                         </div>
                                     </div>
 
-                                    <CardContent className="p-6 pt-0 relative">
-                                        {/* Avatar Overflowing */}
-                                        <div className="flex flex-col sm:flex-row items-center sm:items-end gap-5 -mt-16 mb-4">
-                                            <div className="relative group/avatar">
-                                                <div className="absolute -inset-1 rounded-full bg-gradient-to-tr from-primary via-purple-500 to-orange-500 opacity-30 group-hover/avatar:opacity-60 blur transition-opacity" />
-                                                <Avatar className="w-28 h-28 border-4 border-background relative z-10 shadow-2xl">
-                                                    <AvatarImage src={profile?.avatar_url || undefined} className="object-cover" />
-                                                    <AvatarFallback className="bg-primary/10 text-primary text-3xl font-black">
-                                                        {initials}
-                                                    </AvatarFallback>
-                                                </Avatar>
+                                    {/* Actions */}
+                                    <div className="flex gap-2.5 sm:-mt-12">
+                                        <Button onClick={handleOpenEdit} size="sm" className="rounded-full px-5 bg-red-600 hover:bg-red-700 text-white transition-transform hover:scale-105 active:scale-95 text-xs font-bold animate-shimmer">
+                                            <Edit2 className="w-3.5 h-3.5 mr-1.5" />
+                                            Edit Profile
+                                        </Button>
+                                        <Button variant="outline" size="sm" className="rounded-full px-5 hover:bg-white/5 transition-all text-xs font-bold border-white/10 text-white" onClick={() => navigate('/settings')}>
+                                            <Settings className="w-3.5 h-3.5 mr-1.5 text-muted-foreground" />
+                                            Settings
+                                        </Button>
+                                    </div>
+                                </div>
 
-                                                <label className="absolute inset-0 z-20 flex items-center justify-center bg-black/55 rounded-full cursor-pointer opacity-0 group-hover/avatar:opacity-100 transition-all duration-300 backdrop-blur-sm">
-                                                    {uploading ? (
-                                                        <Loader2 className="w-6 h-6 animate-spin text-white" />
-                                                    ) : (
-                                                        <Camera className="w-6 h-6 text-white" />
-                                                    )}
-                                                    <input
-                                                        type="file"
-                                                        accept="image/*"
-                                                        className="hidden"
-                                                        onChange={handleAvatarUpload}
-                                                        disabled={uploading}
+                                {/* Custom Scrollable Tab Navigation */}
+                                <div className="border-t border-white/10 -mx-6 mt-6 flex overflow-x-auto no-scrollbar scroll-smooth">
+                                    {[
+                                        { id: "summary", label: "Summary" },
+                                        { id: "biometrics", label: "Biometrics" },
+                                        { id: "workouts", label: "Workouts" },
+                                        { id: "progress", label: "Progress" },
+                                        { id: "activity", label: "Activity" }
+                                    ].map((tab) => {
+                                        const isActive = activeTab === tab.id;
+                                        return (
+                                            <button
+                                                key={tab.id}
+                                                onClick={() => setActiveTab(tab.id)}
+                                                className={`px-6 py-4 text-[10px] font-black uppercase tracking-widest border-b-2 transition-all duration-300 relative whitespace-nowrap ${
+                                                    isActive
+                                                        ? "border-red-600 text-white bg-white/5"
+                                                        : "border-transparent text-muted-foreground hover:text-white hover:bg-white/2"
+                                                }`}
+                                            >
+                                                {tab.label}
+                                                {isActive && (
+                                                    <motion.div
+                                                        layoutId="activeTabUnderline"
+                                                        className="absolute bottom-0 left-0 right-0 h-[2px] bg-red-600 shadow-[0_0_10px_#ef4444]"
                                                     />
-                                                </label>
-
-                                                {hasPremiumAccess && (
-                                                    <div className="absolute -bottom-1 -right-1 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full p-1.5 z-30 shadow-lg border-2 border-background">
-                                                        <Crown className="w-4 h-4 text-black" />
-                                                    </div>
                                                 )}
-                                            </div>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </motion.div>
 
-                                            {/* Name & Handle */}
-                                            <div className="text-center sm:text-left flex-1 space-y-1.5 pt-2">
-                                                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5">
-                                                    <h1 className="text-2xl md:text-3xl font-black tracking-tight bg-gradient-to-br from-white to-gray-400 bg-clip-text text-transparent uppercase">
-                                                        {profile?.full_name || profile?.username || "SmartFit Warrior"}
-                                                    </h1>
-                                                    {hasPremiumAccess && (
-                                                        <Badge className="bg-gradient-to-r from-amber-500 to-rose-500 text-white border-0 shadow-lg px-2.5 py-0.5 text-[10px] font-black tracking-wider uppercase animate-pulse">
-                                                            PRO
-                                                        </Badge>
-                                                    )}
-                                                </div>
-                                                <div className="flex flex-wrap justify-center sm:justify-start items-center gap-3">
-                                                    <p className="text-primary text-xs font-bold flex items-center gap-1.5">
-                                                        @{profile?.username || "warrior"}
-                                                        <span className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_8px_hsl(var(--neon-green))]" />
-                                                    </p>
-                                                    <span className="text-muted-foreground/40 text-xs">|</span>
-                                                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                                        <MapPin className="w-3.5 h-3.5" />
-                                                        {profile?.location || "Earth"}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Bio */}
-                                        {profile?.bio && (
-                                            <p className="text-sm text-gray-300 leading-relaxed max-w-2xl text-center sm:text-left border-t border-white/5 pt-4 mt-2">
-                                                {profile.bio}
-                                            </p>
-                                        )}
-
-                                        {/* Actions */}
-                                        <div className="flex flex-wrap gap-2.5 pt-5 justify-center sm:justify-start border-t border-white/5 mt-4">
-                                            <Button onClick={handleOpenEdit} size="sm" className="rounded-full px-5 shadow-glow transition-transform hover:scale-105 active:scale-95 text-xs font-bold">
-                                                <Edit2 className="w-3.5 h-3.5 mr-1.5" />
-                                                Edit Profile
-                                            </Button>
-                                            <Button variant="outline" size="sm" className="rounded-full px-5 hover:bg-primary/5 transition-all text-xs font-bold border-white/10" onClick={() => navigate('/settings')}>
-                                                <Settings className="w-3.5 h-3.5 mr-1.5 text-muted-foreground" />
-                                                Settings
-                                            </Button>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            </motion.div>
-
-                            {/* STATS OVERVIEW DASHBOARD */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                {/* STREAK WIDGET */}
-                                <motion.div variants={itemVariants}>
-                                    <Card className="glass border-orange-500/20 overflow-hidden relative group rounded-2xl">
-                                        <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                                        <CardContent className="p-5 flex items-center justify-between relative z-10">
-                                            <div className="space-y-1">
-                                                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Daily Streak</p>
-                                                <h3 className="text-3xl font-black text-white">{streak.currentStreak} Days</h3>
-                                                <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-semibold mt-1">
-                                                    <span>BEST: {streak.bestStreak}</span>
-                                                    <span>•</span>
-                                                    <span>TOTAL: {streak.totalActiveDays}</span>
-                                                </div>
-                                            </div>
-                                            <div className="relative">
-                                                <div className="absolute inset-0 bg-orange-500/25 blur-xl rounded-full" />
-                                                <Flame className="w-12 h-12 text-orange-500 relative z-10 animate-pulse" />
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-                                </motion.div>
-
-                                {/* LEVEL & EXPERIENCE */}
-                                <motion.div variants={itemVariants}>
-                                    <Card className="glass border-primary/20 p-5 rounded-2xl flex flex-col justify-between h-full">
-                                        <div className="flex justify-between items-center mb-2">
-                                            <div>
-                                                <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Neural Level</p>
-                                                <p className="text-xl font-black text-primary">Level {(profile as any)?.level || 1}</p>
-                                            </div>
-                                            <div className="p-2 bg-primary/15 rounded-xl">
-                                                <Zap className="w-5 h-5 text-primary" />
-                                            </div>
-                                        </div>
-                                        <div className="space-y-1.5">
-                                            <div className="flex justify-between text-[10px] font-bold">
-                                                <span className="text-muted-foreground uppercase">Experience</span>
-                                                <span>{(profile as any)?.xp || 0} XP</span>
-                                            </div>
-                                            <Progress value={((profile as any)?.xp || 0) % 100} className="h-1.5 bg-primary/10" />
-                                        </div>
-                                    </Card>
-                                </motion.div>
-                            </div>
-
-                            {/* BIOMETRICS PANEL */}
-                            <motion.div variants={itemVariants}>
-                                <Card className="glass border-white/10 rounded-2xl overflow-hidden">
-                                    <CardHeader className="pb-3 border-b border-white/5">
-                                        <CardTitle className="text-sm font-bold tracking-wider uppercase text-muted-foreground flex items-center gap-2">
-                                            <User className="w-4 h-4 text-primary" />
-                                            Biometric Parameters
-                                        </CardTitle>
-                                    </CardHeader>
-                                    <CardContent className="p-0">
-                                        <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-y sm:divide-y-0 divide-white/5 text-center">
-                                            {[
-                                                { label: "Age", value: profile?.age || "--", suffix: " Yrs", color: "text-blue-400" },
-                                                { label: "Weight", value: profile?.weight || "--", suffix: " Kg", color: "text-green-400" },
-                                                { label: "Height", value: profile?.height || "--", suffix: " Cm", color: "text-purple-400" },
-                                                { label: "Fitness Goal", value: (profile?.fitness_goal || "Not Set").split(' ')[0], suffix: "", color: "text-orange-400" }
-                                            ].map((stat, idx) => (
-                                                <div key={idx} className="p-5 flex flex-col justify-center items-center">
-                                                    <span className="text-[9px] uppercase font-black tracking-widest text-muted-foreground mb-1">{stat.label}</span>
-                                                    <span className={`text-lg font-black ${stat.color}`}>
-                                                        {stat.value}
-                                                        <span className="text-xs font-normal text-muted-foreground ml-0.5">{stat.suffix}</span>
+                    {/* DYNAMIC TAB SECTIONS */}
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            key={activeTab}
+                            variants={tabContentVariants}
+                            initial="initial"
+                            animate="animate"
+                            exit="exit"
+                            className="space-y-6"
+                        >
+                            {/* SUMMARY TAB */}
+                            {activeTab === "summary" && (
+                                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                                    {/* Left summary cards (Goal & Bio) */}
+                                    <div className="col-span-1 lg:col-span-4 space-y-6">
+                                        {/* Fitness Vision Card */}
+                                        <Card className="glass border-white/10 rounded-2xl p-5">
+                                            <CardHeader className="p-0 pb-3 border-b border-white/5">
+                                                <CardTitle className="text-xs font-bold tracking-wider uppercase text-muted-foreground flex items-center gap-2">
+                                                    <Target className="w-4 h-4 text-red-500" />
+                                                    Fitness Protocol & Vision
+                                                </CardTitle>
+                                            </CardHeader>
+                                            <CardContent className="p-0 pt-4 space-y-3">
+                                                <div>
+                                                    <span className="text-[9px] uppercase font-black tracking-widest text-muted-foreground block">Active Goal</span>
+                                                    <span className="text-lg font-black text-red-500 uppercase tracking-tight">
+                                                        {profile?.fitness_goal || "Not Set"}
                                                     </span>
                                                 </div>
-                                            ))}
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            </motion.div>
-
-                            {/* NEURAL PROGRESS TIMELINE CARD */}
-                            <motion.div variants={itemVariants}>
-                                <Card className="glass border-primary/20 rounded-2xl overflow-hidden">
-                                    <CardHeader className="pb-3 border-b border-white/5 flex flex-row items-center justify-between">
-                                        <CardTitle className="text-sm font-bold tracking-wider uppercase text-muted-foreground flex items-center gap-2">
-                                            <TrendingUp className="w-4 h-4 text-primary" />
-                                            Neural Progress Track
-                                        </CardTitle>
-                                        <Link to="/progress">
-                                            <Button variant="ghost" size="xs" className="text-[10px] font-bold rounded-full border border-white/10 px-2.5 h-6">
-                                                VIEW DASHBOARD
-                                            </Button>
-                                        </Link>
-                                    </CardHeader>
-                                    <CardContent className="p-4">
-                                        {progressLogs.length === 0 ? (
-                                            <div className="py-8 text-center space-y-3">
-                                                <Activity className="w-7 h-7 text-muted-foreground/45 mx-auto" />
-                                                <div>
-                                                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">No Sync Logs Found</p>
-                                                    <p className="text-[10px] text-muted-foreground/60 mt-0.5">Log your weight in the dashboard to populate neural data.</p>
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            <div className="space-y-4">
-                                                <div className="h-44 w-full mt-2">
-                                                    <ResponsiveContainer width="100%" height="100%">
-                                                        <AreaChart data={progressLogs}>
-                                                            <defs>
-                                                                <linearGradient id="profileWeightGradient" x1="0" y1="0" x2="0" y2="1">
-                                                                    <stop offset="5%" stopColor="#00FF9C" stopOpacity={0.25} />
-                                                                    <stop offset="95%" stopColor="#00FF9C" stopOpacity={0} />
-                                                                </linearGradient>
-                                                            </defs>
-                                                            <XAxis 
-                                                                dataKey="date" 
-                                                                stroke="#666" 
-                                                                fontSize={9}
-                                                                tickFormatter={(str) => {
-                                                                    try {
-                                                                        const date = new Date(str);
-                                                                        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                                                                    } catch {
-                                                                        return str;
-                                                                    }
-                                                                }}
-                                                            />
-                                                            <YAxis 
-                                                                stroke="#666" 
-                                                                fontSize={9} 
-                                                                domain={['auto', 'auto']}
-                                                                tickFormatter={(v) => `${v}kg`}
-                                                            />
-                                                            <Tooltip
-                                                                contentStyle={{
-                                                                    backgroundColor: '#0a0a0a',
-                                                                    border: '1px solid rgba(255,255,255,0.1)',
-                                                                    borderRadius: '12px'
-                                                                }}
-                                                                labelStyle={{ color: '#888', fontSize: '10px', fontWeight: 'bold' }}
-                                                                itemStyle={{ color: '#00FF9C', fontSize: '11px', fontWeight: 'bold' }}
-                                                            />
-                                                            <Area
-                                                                type="monotone"
-                                                                dataKey="weight"
-                                                                stroke="#00FF9C"
-                                                                strokeWidth={2}
-                                                                fill="url(#profileWeightGradient)"
-                                                            />
-                                                        </AreaChart>
-                                                    </ResponsiveContainer>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </CardContent>
-                                </Card>
-                            </motion.div>
-                        </div>
-
-                        {/* RIGHT COLUMN: WORKOUTS ACTIVITY & QUICK ACTIONS */}
-                        <div className="col-span-1 lg:col-span-4 space-y-6">
-                            {/* ACTIVITY FORGE */}
-                            <motion.div variants={itemVariants}>
-                                <Card className="glass border-primary/20 rounded-3xl overflow-hidden flex flex-col">
-                                    <CardHeader className="flex flex-row items-center justify-between pb-3 border-b border-white/5">
-                                        <CardTitle className="text-sm font-bold tracking-wider uppercase text-muted-foreground flex items-center gap-2">
-                                            <Dumbbell className="w-4 h-4 text-primary" />
-                                            Activity Forge
-                                        </CardTitle>
-                                    </CardHeader>
-                                    <CardContent className="p-4 space-y-3">
-                                        {workouts.length === 0 ? (
-                                            <div className="py-8 text-center space-y-3">
-                                                <BookOpen className="w-7 h-7 text-muted-foreground/45 mx-auto" />
-                                                <div>
-                                                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">No Records</p>
-                                                    <p className="text-[10px] text-muted-foreground/60 mt-0.5">Generate a workout to begin.</p>
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            <div className="space-y-2.5">
-                                                {workouts.map((workout) => (
-                                                    <div
-                                                        key={workout.id}
-                                                        className="flex items-center justify-between p-3.5 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/5 group/workout transition-all cursor-pointer"
-                                                    >
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="w-9 h-9 rounded-xl bg-background flex items-center justify-center border border-white/5 group-hover/workout:scale-105 transition-transform">
-                                                                <Dumbbell className="w-4.5 h-4.5 text-primary" />
-                                                            </div>
-                                                            <div className="min-w-0">
-                                                                <h4 className="font-bold text-xs truncate uppercase tracking-tight text-gray-200">{workout.title}</h4>
-                                                                <span className="text-[9px] font-bold text-muted-foreground block mt-0.5">
-                                                                    {new Date(workout.created_at).toLocaleDateString()}
-                                                                </span>
-                                                            </div>
-                                                        </div>
-                                                        <ChevronRight className="w-4 h-4 text-muted-foreground group-hover/workout:translate-x-0.5 transition-transform" />
+                                                {profile?.bio && (
+                                                    <div>
+                                                        <span className="text-[9px] uppercase font-black tracking-widest text-muted-foreground block">Identity status</span>
+                                                        <p className="text-xs text-gray-300 leading-relaxed mt-1 italic">
+                                                            "{profile.bio}"
+                                                        </p>
                                                     </div>
-                                                ))}
+                                                )}
+                                            </CardContent>
+                                        </Card>
+                                    </div>
+
+                                    {/* Heatmap Card */}
+                                    <div className="col-span-1 lg:col-span-8">
+                                        {renderHeatmap()}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* BIOMETRICS TAB */}
+                            {activeTab === "biometrics" && (
+                                <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
+                                    <motion.div variants={itemVariants}>
+                                        <Card className="glass border-white/10 rounded-3xl overflow-hidden">
+                                            <CardHeader className="pb-3 border-b border-white/5">
+                                                <CardTitle className="text-sm font-bold tracking-wider uppercase text-muted-foreground flex items-center gap-2">
+                                                    <User className="w-4 h-4 text-red-500" />
+                                                    Biometric Parameters
+                                                </CardTitle>
+                                            </CardHeader>
+                                            <CardContent className="p-0">
+                                                <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-y sm:divide-y-0 divide-white/5 text-center">
+                                                    {[
+                                                        { label: "Age", value: profile?.age || "--", suffix: " Yrs", color: "text-blue-400" },
+                                                        { label: "Weight", value: profile?.weight || "--", suffix: " Kg", color: "text-green-400" },
+                                                        { label: "Height", value: profile?.height || "--", suffix: " Cm", color: "text-purple-400" },
+                                                        { label: "Fitness Goal", value: (profile?.fitness_goal || "Not Set").split(' ')[0], suffix: "", color: "text-orange-400" }
+                                                    ].map((stat, idx) => (
+                                                        <div key={idx} className="p-6 flex flex-col justify-center items-center">
+                                                            <span className="text-[9px] uppercase font-black tracking-widest text-muted-foreground mb-1.5">{stat.label}</span>
+                                                            <span className={`text-2xl font-black ${stat.color}`}>
+                                                                {stat.value}
+                                                                <span className="text-xs font-normal text-muted-foreground ml-0.5">{stat.suffix}</span>
+                                                            </span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    </motion.div>
+                                </div>
+                            )}
+
+                            {/* WORKOUTS TAB */}
+                            {activeTab === "workouts" && (
+                                <div className="grid grid-cols-1 gap-6">
+                                    <motion.div variants={itemVariants}>
+                                        <Card className="glass border-white/10 rounded-3xl overflow-hidden flex flex-col">
+                                            <CardHeader className="flex flex-row items-center justify-between pb-3 border-b border-white/5">
+                                                <CardTitle className="text-sm font-bold tracking-wider uppercase text-muted-foreground flex items-center gap-2">
+                                                    <Dumbbell className="w-4 h-4 text-red-500" />
+                                                    Workout Activity Log
+                                                </CardTitle>
+                                            </CardHeader>
+                                            <CardContent className="p-6">
+                                                {allWorkouts.length === 0 ? (
+                                                    <div className="py-12 text-center space-y-3">
+                                                        <BookOpen className="w-10 h-10 text-muted-foreground/45 mx-auto" />
+                                                        <div>
+                                                            <p className="text-sm font-bold text-muted-foreground uppercase tracking-wider">No Records</p>
+                                                            <p className="text-xs text-muted-foreground/60 mt-1">Generate a workout to begin tracking your routines.</p>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                        {allWorkouts.map((workout) => (
+                                                            <div
+                                                                key={workout.id}
+                                                                className="flex items-center justify-between p-4 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/5 group/workout transition-all cursor-pointer"
+                                                            >
+                                                                <div className="flex items-center gap-3">
+                                                                    <div className="w-10 h-10 rounded-xl bg-background flex items-center justify-center border border-white/5 group-hover/workout:scale-105 transition-transform">
+                                                                        <Dumbbell className="w-5 h-5 text-red-500" />
+                                                                    </div>
+                                                                    <div className="min-w-0">
+                                                                        <h4 className="font-bold text-sm truncate uppercase tracking-tight text-gray-200">{workout.title}</h4>
+                                                                        <span className="text-[10px] font-bold text-muted-foreground block mt-0.5">
+                                                                            {new Date(workout.created_at).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                                <ChevronRight className="w-4 h-4 text-muted-foreground group-hover/workout:translate-x-0.5 transition-transform" />
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </CardContent>
+                                        </Card>
+                                    </motion.div>
+                                </div>
+                            )}
+
+                            {/* PROGRESS TAB */}
+                            {activeTab === "progress" && (
+                                <div className="grid grid-cols-1 gap-6">
+                                    <motion.div variants={itemVariants}>
+                                        <Card className="glass border-white/10 rounded-3xl overflow-hidden">
+                                            <CardHeader className="pb-3 border-b border-white/5 flex flex-row items-center justify-between">
+                                                <CardTitle className="text-sm font-bold tracking-wider uppercase text-muted-foreground flex items-center gap-2">
+                                                    <TrendingUp className="w-4 h-4 text-red-500" />
+                                                    Neural Progress Track (Weight Trend)
+                                                </CardTitle>
+                                                <Link to="/progress">
+                                                    <Button variant="ghost" size="xs" className="text-[10px] font-bold rounded-full border border-white/10 px-2.5 h-6">
+                                                        VIEW DETAILED DASHBOARD
+                                                    </Button>
+                                                </Link>
+                                            </CardHeader>
+                                            <CardContent className="p-6">
+                                                {progressLogs.length === 0 ? (
+                                                    <div className="py-12 text-center space-y-3">
+                                                        <Activity className="w-10 h-10 text-muted-foreground/45 mx-auto" />
+                                                        <div>
+                                                            <p className="text-sm font-bold text-muted-foreground uppercase tracking-wider">No Sync Logs Found</p>
+                                                            <p className="text-xs text-muted-foreground/60 mt-1">Log your weight in the dashboard to populate neural data.</p>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="space-y-4">
+                                                        <div className="h-64 w-full mt-2">
+                                                            <ResponsiveContainer width="100%" height="100%">
+                                                                <AreaChart data={progressLogs}>
+                                                                    <defs>
+                                                                        <linearGradient id="profileWeightGradient" x1="0" y1="0" x2="0" y2="1">
+                                                                            <stop offset="5%" stopColor="#ef4444" stopOpacity={0.25} />
+                                                                            <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                                                                        </linearGradient>
+                                                                    </defs>
+                                                                    <XAxis 
+                                                                        dataKey="date" 
+                                                                        stroke="#666" 
+                                                                        fontSize={10}
+                                                                        tickFormatter={(str) => {
+                                                                            try {
+                                                                                const date = new Date(str);
+                                                                                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                                                                            } catch {
+                                                                                return str;
+                                                                            }
+                                                                        }}
+                                                                    />
+                                                                    <YAxis 
+                                                                        stroke="#666" 
+                                                                        fontSize={10} 
+                                                                        domain={['auto', 'auto']}
+                                                                        tickFormatter={(v) => `${v}kg`}
+                                                                    />
+                                                                    <RechartsTooltip
+                                                                        contentStyle={{
+                                                                            backgroundColor: '#0a0a0a',
+                                                                            border: '1px solid rgba(255,255,255,0.1)',
+                                                                            borderRadius: '12px'
+                                                                        }}
+                                                                        labelStyle={{ color: '#888', fontSize: '10px', fontWeight: 'bold' }}
+                                                                        itemStyle={{ color: '#ef4444', fontSize: '11px', fontWeight: 'bold' }}
+                                                                    />
+                                                                    <Area
+                                                                        type="monotone"
+                                                                        dataKey="weight"
+                                                                        stroke="#ef4444"
+                                                                        strokeWidth={2}
+                                                                        fill="url(#profileWeightGradient)"
+                                                                    />
+                                                                </AreaChart>
+                                                            </ResponsiveContainer>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </CardContent>
+                                        </Card>
+                                    </motion.div>
+                                </div>
+                            )}
+
+                            {/* ACTIVITY TAB */}
+                            {activeTab === "activity" && (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                    {/* STREAK WIDGET */}
+                                    <motion.div variants={itemVariants}>
+                                        <Card className="glass border-orange-500/20 overflow-hidden relative group rounded-2xl h-full">
+                                            <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                            <CardContent className="p-6 flex items-center justify-between relative z-10">
+                                                <div className="space-y-1">
+                                                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Daily Streak</p>
+                                                    <h3 className="text-3xl font-black text-white">{streak.currentStreak} Days</h3>
+                                                    <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-semibold mt-1">
+                                                        <span>BEST: {streak.bestStreak}</span>
+                                                        <span>•</span>
+                                                        <span>TOTAL: {streak.totalActiveDays}</span>
+                                                    </div>
+                                                </div>
+                                                <div className="relative">
+                                                    <div className="absolute inset-0 bg-orange-500/25 blur-xl rounded-full" />
+                                                    <Flame className="w-12 h-12 text-orange-500 relative z-10 animate-pulse" />
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    </motion.div>
+
+                                    {/* LEVEL & EXPERIENCE */}
+                                    <motion.div variants={itemVariants}>
+                                        <Card className="glass border-red-500/20 p-6 rounded-2xl flex flex-col justify-between h-full">
+                                            <div className="flex justify-between items-center mb-4">
+                                                <div>
+                                                    <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Neural Level</p>
+                                                    <p className="text-xl font-black text-red-500">Level {(profile as any)?.level || 1}</p>
+                                                </div>
+                                                <div className="p-2 bg-red-500/15 rounded-xl">
+                                                    <Zap className="w-5 h-5 text-red-500" />
+                                                </div>
                                             </div>
-                                        )}
-                                    </CardContent>
-                                </Card>
-                            </motion.div>
-                        </div>
-                    </div>
+                                            <div className="space-y-2">
+                                                <div className="flex justify-between text-[10px] font-bold">
+                                                    <span className="text-muted-foreground uppercase">Experience</span>
+                                                    <span className="text-white">{(profile as any)?.xp || 0} XP</span>
+                                                </div>
+                                                <Progress value={((profile as any)?.xp || 0) % 100} className="h-1.5 bg-red-500/10" />
+                                            </div>
+                                        </Card>
+                                    </motion.div>
+                                </div>
+                            )}
+                        </motion.div>
+                    </AnimatePresence>
                 </motion.div>
             </Container>
 
