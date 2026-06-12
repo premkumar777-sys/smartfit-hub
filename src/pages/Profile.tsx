@@ -526,17 +526,9 @@ export default function Profile() {
                                             <h1 className="text-3xl font-black tracking-tight text-white uppercase italic">
                                                 {profile?.full_name || profile?.username || "SmartFit Warrior"}
                                             </h1>
-                                            <Badge className="bg-gradient-to-r from-red-600 to-rose-700 text-white border-0 shadow-lg px-3 py-1 text-[10px] font-black tracking-wider uppercase animate-pulse">
-                                                {hasPremiumAccess ? "PRO MEMBER" : "ACTIVE ATHLETE"}
-                                            </Badge>
 
                                         </div>
-                                        <div className="flex flex-wrap justify-center sm:justify-start items-center gap-3">
-                                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                                <MapPin className="w-3.5 h-3.5" />
-                                                {profile?.location || "Earth"}
-                                            </div>
-                                        </div>
+
                                     </div>
 
                                     {/* Actions */}
