@@ -318,6 +318,51 @@ export default function Profile() {
         navigate("/");
     };
 
+    const handleGymCheckIn = async () => {
+        if (!user) return;
+        
+        try {
+            const checkInWorkout = {
+                user_id: user.id,
+                title: "Gym Check-In",
+                content: `Checked in to gym session at ${new Date().toLocaleTimeString()}`,
+                goal: "Attendance",
+                created_at: new Date().toISOString()
+            };
+            
+            // Insert check-in workout
+            const { data, error } = await supabase
+                .from('workouts')
+                .insert([checkInWorkout])
+                .select()
+                .single();
+                
+            if (error) {
+                console.error("Error logging check-in:", error);
+                toast.error("Failed to check in: " + error.message);
+                return;
+            }
+            
+            // Award XP & Record Activity in gamification hook
+            gamification.recordWorkout(30); // 30 minutes check-in session
+            
+            // Update local state instantly so heatmap and check-in status update
+            setAllWorkouts(prev => [data, ...prev]);
+            setWorkouts(prev => [data, ...prev.slice(0, 4)]);
+            
+            toast.success("Checked in successfully! Streak updated! 💪");
+        } catch (err: any) {
+            console.error("Check-in error:", err);
+            toast.error("Failed to check in");
+        }
+    };
+
+    const todayStr = new Date().toDateString();
+    const hasCheckedInToday = allWorkouts.some(
+        w => w.title === "Gym Check-In" && new Date(w.created_at).toDateString() === todayStr
+    );
+    const totalCheckIns = allWorkouts.filter(w => w.title === "Gym Check-In").length;
+
     if (authLoading || loading || !gamification.isLoaded) {
         return (
             <div className="min-h-screen flex items-center justify-center">
@@ -630,17 +675,17 @@ export default function Profile() {
 
                             {/* BIOMETRICS TAB */}
                             {activeTab === "biometrics" && (
-                                <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <motion.div variants={itemVariants}>
-                                        <Card className="glass border-white/10 rounded-3xl overflow-hidden">
+                                        <Card className="glass border-white/10 rounded-3xl overflow-hidden h-full flex flex-col justify-between">
                                             <CardHeader className="pb-3 border-b border-white/5">
                                                 <CardTitle className="text-sm font-bold tracking-wider uppercase text-muted-foreground flex items-center gap-2">
                                                     <User className="w-4 h-4 text-red-500" />
                                                     Biometric Parameters
                                                 </CardTitle>
                                             </CardHeader>
-                                            <CardContent className="p-0">
-                                                <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-y sm:divide-y-0 divide-white/5 text-center">
+                                            <CardContent className="p-0 flex-1 flex flex-col justify-center">
+                                                <div className="grid grid-cols-2 divide-x divide-y divide-white/5 text-center">
                                                     {[
                                                         { label: "Age", value: profile?.age || "--", suffix: " Yrs", color: "text-blue-400" },
                                                         { label: "Weight", value: profile?.weight || "--", suffix: " Kg", color: "text-green-400" },
@@ -655,6 +700,58 @@ export default function Profile() {
                                                             </span>
                                                         </div>
                                                     ))}
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    </motion.div>
+
+                                    <motion.div variants={itemVariants}>
+                                        <Card className="glass border-white/10 rounded-3xl overflow-hidden h-full flex flex-col justify-between animate-fade-in">
+                                            <CardHeader className="pb-3 border-b border-white/5">
+                                                <CardTitle className="text-sm font-bold tracking-wider uppercase text-muted-foreground flex items-center gap-2">
+                                                    <CheckCircle className="w-4 h-4 text-red-500" />
+                                                    Gym Attendance
+                                                </CardTitle>
+                                            </CardHeader>
+                                            <CardContent className="p-6 flex-1 flex flex-col justify-between space-y-6">
+                                                <div className="grid grid-cols-2 gap-4 text-center">
+                                                    <div className="bg-white/5 rounded-2xl p-4 border border-white/5 flex flex-col justify-center items-center">
+                                                        <span className="text-[9px] uppercase font-black tracking-widest text-muted-foreground block mb-1">Total Visits</span>
+                                                        <span className="text-2xl font-black text-red-500">{totalCheckIns}</span>
+                                                    </div>
+                                                    <div className="bg-white/5 rounded-2xl p-4 border border-white/5 flex flex-col justify-center items-center">
+                                                        <span className="text-[9px] uppercase font-black tracking-widest text-muted-foreground block mb-1">Active Streak</span>
+                                                        <span className="text-2xl font-black text-orange-500 flex items-center justify-center gap-1">
+                                                            <Flame className="w-5 h-5 text-orange-500 animate-pulse" />
+                                                            {streak.currentStreak}
+                                                        </span>
+                                                    </div>
+                                                </div>
+
+                                                <div className="space-y-3 pt-2">
+                                                    {hasCheckedInToday ? (
+                                                        <Button 
+                                                            disabled 
+                                                            className="w-full py-6 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold text-sm cursor-not-allowed flex items-center justify-center gap-2"
+                                                        >
+                                                            <CheckCircle className="w-4 h-4 text-emerald-400" />
+                                                            Checked In Today 🎉
+                                                        </Button>
+                                                    ) : (
+                                                        <Button 
+                                                            onClick={handleGymCheckIn}
+                                                            className="w-full py-6 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-bold text-sm transition-transform hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(239,68,68,0.4)] animate-shimmer"
+                                                        >
+                                                            <Zap className="w-4 h-4 text-white animate-bounce" />
+                                                            Check In Today
+                                                        </Button>
+                                                    )}
+                                                    <p className="text-[10px] text-center text-muted-foreground/60">
+                                                        {hasCheckedInToday 
+                                                            ? "Awesome job! Come back tomorrow to keep your streak alive." 
+                                                            : "Tap check-in to register today's session and update your consistency heatmap."
+                                                        }
+                                                    </p>
                                                 </div>
                                             </CardContent>
                                         </Card>
@@ -691,7 +788,11 @@ export default function Profile() {
                                                             >
                                                                 <div className="flex items-center gap-3">
                                                                     <div className="w-10 h-10 rounded-xl bg-background flex items-center justify-center border border-white/5 group-hover/workout:scale-105 transition-transform">
-                                                                        <Dumbbell className="w-5 h-5 text-red-500" />
+                                                                        {workout.title === "Gym Check-In" ? (
+                                                                            <CheckCircle className="w-5 h-5 text-emerald-400" />
+                                                                        ) : (
+                                                                            <Dumbbell className="w-5 h-5 text-red-500" />
+                                                                        )}
                                                                     </div>
                                                                     <div className="min-w-0">
                                                                         <h4 className="font-bold text-sm truncate uppercase tracking-tight text-gray-200">{workout.title}</h4>
