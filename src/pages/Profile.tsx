@@ -378,9 +378,13 @@ export default function Profile() {
     const streakBadge = getStreakBadge(streak.currentStreak);
 
     const renderHeatmap = () => {
-        const workoutDates = new Set(
-            allWorkouts.map(w => new Date(w.created_at).toDateString())
-        );
+        // Calculate activity counts per date string
+        const activityCounts: Record<string, number> = {};
+        allWorkouts.forEach(w => {
+            const dateStr = new Date(w.created_at).toDateString();
+            activityCounts[dateStr] = (activityCounts[dateStr] || 0) + 1;
+        });
+
         const startDate = new Date(2026, 0, 1);
         const endDate = new Date(2026, 11, 31);
         
@@ -395,84 +399,105 @@ export default function Profile() {
         let current = new Date(startDate);
         while (current <= endDate) {
             const dateStr = current.toDateString();
-            const count = workoutDates.has(dateStr) ? 1 : 0;
+            const count = activityCounts[dateStr] || 0;
             days.push({ date: new Date(current), count });
             current.setDate(current.getDate() + 1);
         }
 
-        const getIntensityClass = (count: number, isRestDay: boolean) => {
-            if (count > 0) return "bg-red-600 border-red-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]"; // Active day
-            if (isRestDay) return "bg-emerald-500/20 border-emerald-500/30 text-emerald-400"; // Rest Day
-            return "bg-white/5 border-white/5"; // Missed / No workout
+        // LeetCode Color Scale
+        const getIntensityClass = (count: number) => {
+            if (count === 0) return "bg-[#18181b] border-white/[0.03]"; // Level 0
+            if (count === 1) return "bg-[#0e4429] border-[#0e4429]/20"; // Level 1 (LeetCode L1)
+            if (count === 2) return "bg-[#006d32] border-[#006d32]/20"; // Level 2 (LeetCode L2)
+            if (count === 3) return "bg-[#26a641] border-[#26a641]/20"; // Level 3 (LeetCode L3)
+            return "bg-[#39d353] border-[#39d353]/20 shadow-[0_0_8px_rgba(57,211,83,0.3)]"; // Level 4+
         };
 
         const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
         const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
+        const totalActiveDays = Object.keys(activityCounts).length;
+
         return (
             <Card className="glass border-white/10 rounded-2xl p-5 overflow-hidden">
-                <CardHeader className="p-0 pb-4 border-b border-white/5 flex flex-row items-center justify-between">
-                    <CardTitle className="text-xs font-bold tracking-wider uppercase text-muted-foreground flex items-center gap-2">
-                        <Calendar className="w-4 h-4 text-red-500" />
-                        2026 Workout Heatmap
-                    </CardTitle>
-                    <div className="flex gap-3 text-[9px] font-bold text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                            <span className="w-2.5 h-2.5 rounded-sm bg-red-600" /> Active
-                        </div>
-                        <div className="flex items-center gap-1">
-                            <span className="w-2.5 h-2.5 rounded-sm bg-emerald-500/20 border border-emerald-500/30" /> Rest
-                        </div>
-                        <div className="flex items-center gap-1">
-                            <span className="w-2.5 h-2.5 rounded-sm bg-white/5" /> Missed
+                <CardHeader className="p-0 pb-4 border-b border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                        <CardTitle className="text-sm font-bold tracking-tight text-white flex items-center gap-2">
+                            <Calendar className="w-4 h-4 text-emerald-500" />
+                            {allWorkouts.length} activities in 2026
+                        </CardTitle>
+                        <p className="text-[10px] text-muted-foreground mt-0.5">
+                            Active days: {totalActiveDays} days | Max streak: {streak.longestStreak || 0} days
+                        </p>
+                    </div>
+                    {/* Streaks and Info */}
+                    <div className="flex items-center gap-4 text-xs">
+                        <div className="flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-3 py-1 rounded-full font-black text-[10px] tracking-wider uppercase animate-pulse">
+                            <Flame className="w-3.5 h-3.5" />
+                            Streak: {streak.currentStreak} Days
                         </div>
                     </div>
                 </CardHeader>
-                <CardContent className="p-0 pt-4 overflow-x-auto custom-scrollbar">
+                <CardContent className="p-0 pt-5 overflow-x-auto custom-scrollbar">
                     <TooltipProvider>
-                        <div className="min-w-[700px] flex gap-2">
-                            {/* Day labels column */}
-                            <div className="grid grid-rows-7 gap-[3px] text-[8px] font-medium text-muted-foreground/60 pr-1 select-none pt-4">
-                                {weekDays.map((day, idx) => (
-                                    <div key={idx} className="h-2.5 flex items-center justify-end leading-none">
-                                        {idx % 2 === 1 ? day : ""}
-                                    </div>
-                                ))}
-                            </div>
-                            {/* Grid of days */}
-                            <div className="flex-1 space-y-1">
-                                {/* Months label bar */}
-                                <div className="flex text-[8px] font-bold text-muted-foreground/60 select-none pb-1 h-3 relative">
-                                    {months.map((month, idx) => {
-                                        const leftPct = (idx / 12) * 100;
-                                        return (
-                                            <div key={idx} className="absolute text-[8px]" style={{ left: `${leftPct}%` }}>
-                                                {month}
-                                            </div>
-                                        );
-                                    })}
+                        <div className="min-w-[700px] flex flex-col gap-4">
+                            <div className="flex gap-2">
+                                {/* Day labels column */}
+                                <div className="grid grid-rows-7 gap-[3px] text-[8px] font-medium text-muted-foreground/60 pr-1 select-none pt-4">
+                                    {weekDays.map((day, idx) => (
+                                        <div key={idx} className="h-2.5 flex items-center justify-end leading-none">
+                                            {idx % 2 === 1 ? day : ""}
+                                        </div>
+                                    ))}
                                 </div>
-                                <div className="grid grid-flow-col grid-rows-7 gap-[3px]">
-                                    {days.map((d, idx) => {
-                                        if (!d.date) {
-                                            return <div key={`pad-${idx}`} className="w-2.5 h-2.5 bg-transparent" />;
-                                        }
-                                        const isRestDay = d.date.getDay() === 0 || d.date.getDay() === 6; // Assume weekends are rest days if no workout
-                                        const dateLabel = d.date.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
-                                        const statusLabel = d.count > 0 ? "Workout Completed" : isRestDay ? "Rest Day" : "Rest/Missed";
-                                        return (
-                                            <Tooltip key={idx}>
-                                                <TooltipTrigger asChild>
-                                                    <div 
-                                                        className={`w-2.5 h-2.5 rounded-[2px] border transition-all ${getIntensityClass(d.count, isRestDay)}`} 
-                                                    />
-                                                </TooltipTrigger>
-                                                <TooltipContent className="bg-[#0a0a0a] text-[10px] px-2 py-1 border border-white/10 rounded-md text-white z-50">
-                                                    <span className="font-bold">{dateLabel}</span>: {statusLabel}
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        );
-                                    })}
+                                {/* Grid of days */}
+                                <div className="flex-1 space-y-1">
+                                    {/* Months label bar */}
+                                    <div className="flex text-[8px] font-bold text-muted-foreground/60 select-none pb-1 h-3 relative">
+                                        {months.map((month, idx) => {
+                                            const leftPct = (idx / 12) * 100;
+                                            return (
+                                                <div key={idx} className="absolute text-[8px]" style={{ left: `${leftPct}%` }}>
+                                                    {month}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                    <div className="grid grid-flow-col grid-rows-7 gap-[3px]">
+                                        {days.map((d, idx) => {
+                                            if (!d.date) {
+                                                return <div key={`pad-${idx}`} className="w-2.5 h-2.5 bg-transparent" />;
+                                            }
+                                            const dateLabel = d.date.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+                                            const statusLabel = d.count > 0 ? `${d.count} activities` : "No activity";
+                                            return (
+                                                <Tooltip key={idx}>
+                                                    <TooltipTrigger asChild>
+                                                        <div 
+                                                            className={`w-2.5 h-2.5 rounded-[2px] border transition-all ${getIntensityClass(d.count)}`} 
+                                                        />
+                                                    </TooltipTrigger>
+                                                    <TooltipContent className="bg-[#0a0a0a] text-[10px] px-2 py-1 border border-white/10 rounded-md text-white z-50">
+                                                        <span className="font-bold">{dateLabel}</span>: {statusLabel}
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {/* LeetCode Heatmap Legend */}
+                            <div className="flex justify-between items-center text-[9px] font-medium text-muted-foreground/60 pt-2 border-t border-white/5">
+                                <span>Learn more about training consistency</span>
+                                <div className="flex items-center gap-1 pr-2">
+                                    <span>Less</span>
+                                    <span className="w-2.5 h-2.5 rounded-[1px] bg-[#18181b] border border-white/[0.03]" />
+                                    <span className="w-2.5 h-2.5 rounded-[1px] bg-[#0e4429] border border-[#0e4429]/20" />
+                                    <span className="w-2.5 h-2.5 rounded-[1px] bg-[#006d32] border border-[#006d32]/20" />
+                                    <span className="w-2.5 h-2.5 rounded-[1px] bg-[#26a641] border border-[#26a641]/20" />
+                                    <span className="w-2.5 h-2.5 rounded-[1px] bg-[#39d353] border border-[#39d353]/20" />
+                                    <span>More</span>
                                 </div>
                             </div>
                         </div>
