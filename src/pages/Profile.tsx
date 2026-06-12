@@ -483,9 +483,7 @@ export default function Profile() {
                             {/* Premium Banner with gym-themed image */}
                             <div className="h-48 bg-cover bg-center relative" style={{ backgroundImage: "url('/workout-bg.jpg')" }}>
                                 <div className="absolute inset-0 bg-gradient-to-t from-[#0d0d0d] via-black/45 to-transparent" />
-                                <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-md border border-white/10 rounded-full px-3 py-1 text-[10px] font-bold tracking-widest text-red-500 uppercase">
-                                    NEURAL LINK ACTIVE
-                                </div>
+
                             </div>
 
                             <CardContent className="p-6 pt-0 relative">
@@ -531,16 +529,9 @@ export default function Profile() {
                                             <Badge className="bg-gradient-to-r from-red-600 to-rose-700 text-white border-0 shadow-lg px-3 py-1 text-[10px] font-black tracking-wider uppercase animate-pulse">
                                                 {hasPremiumAccess ? "PRO MEMBER" : "ACTIVE ATHLETE"}
                                             </Badge>
-                                            <Badge className="bg-white/10 hover:bg-white/10 text-gray-300 border border-white/10 px-3 py-1 text-[10px] font-black tracking-wider uppercase">
-                                                SmartFit AI Hub
-                                            </Badge>
+
                                         </div>
                                         <div className="flex flex-wrap justify-center sm:justify-start items-center gap-3">
-                                            <p className="text-red-500 text-xs font-bold flex items-center gap-1.5">
-                                                @{profile?.username || "warrior"}
-                                                <span className="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.7)]" />
-                                            </p>
-                                            <span className="text-muted-foreground/40 text-xs">|</span>
                                             <div className="flex items-center gap-1 text-xs text-muted-foreground">
                                                 <MapPin className="w-3.5 h-3.5" />
                                                 {profile?.location || "Earth"}
