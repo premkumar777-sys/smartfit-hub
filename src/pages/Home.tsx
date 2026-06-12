@@ -221,7 +221,7 @@ const Home = () => {
                 {[
                   {
                     icon: Users,
-                    value: "2,500+",
+                    value: "6,000+",
                     label: "Active Users",
                     iconColor: "text-primary",
                     delay: 1.0,
@@ -401,7 +401,7 @@ const Home = () => {
               Ready to <span className="text-gradient">Transform</span> Your Life?
             </h2>
             <p className="text-lg md:text-xl leading-relaxed text-gray-300 mb-10 max-w-prose mx-auto">
-              Join 2,500+ athletes already training smarter with personalized AI-powered workouts and nutrition plans
+              Join 6,000+ athletes already training smarter with personalized AI-powered workouts and nutrition plans
             </p>
             <Button asChild variant="hero" size="xl">
               <Link to="/auth">

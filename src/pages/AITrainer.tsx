@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Container } from "@/components/Container";
@@ -8,6 +8,7 @@ import { ArrowLeft, Send, Bot, User, Dumbbell, Heart, Flame, Apple, Target, Load
 import { streamChat } from "@/lib/streamChat";
 import { toast } from "sonner";
 import { useGamification, XP_REWARDS } from "@/hooks/useGamification";
+import { supabase } from "@/integrations/supabase/client";
 
 type Message = {
     id: string;
@@ -26,6 +27,7 @@ const quickActions = [
 
 
 export default function AITrainer() {
+    const navigate = useNavigate();
     const [messages, setMessages] = useState<Message[]>([
         {
             id: "welcome",
@@ -54,6 +56,14 @@ export default function AITrainer() {
 
     const sendMessage = async (content: string) => {
         if (!content.trim() || isLoading) return;
+
+        // Check authentication first
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+            toast.error("Please sign in or create an account to chat with the AI Trainer.");
+            navigate("/auth", { state: { returnUrl: "/ai-trainer" } });
+            return;
+        }
 
         const userMessage: Message = {
             id: Date.now().toString(),
@@ -103,7 +113,13 @@ export default function AITrainer() {
             onError: (err) => {
                 console.error("Chat error:", err);
                 setIsLoading(false);
-                toast.error(err.message || "Something went wrong. Please try again.");
+                const errorMessage = err.message || "";
+                if (errorMessage.includes("token") || errorMessage.includes("401") || errorMessage.includes("non-2xx") || errorMessage.includes("Unauthorized")) {
+                    toast.error("Please sign in or create an account to chat with the AI Trainer.");
+                    navigate("/auth", { state: { returnUrl: "/ai-trainer" } });
+                } else {
+                    toast.error(errorMessage || "Something went wrong. Please try again.");
+                }
                 inputRef.current?.focus();
             },
         });
@@ -121,7 +137,7 @@ export default function AITrainer() {
     return (
         <div className="min-h-screen pt-4 pb-28 lg:py-16 relative overflow-hidden">
             <div className="absolute inset-0 gradient-hero opacity-15" />
-            <Container className="relative z-10 h-[calc(100vh-11rem)] lg:h-[calc(100vh-8rem)] flex flex-col">
+            <Container className="relative z-10 h-[calc(100vh-11rem)] h-[calc(100dvh-11rem)] lg:h-[calc(100vh-8rem)] flex flex-col">
                 <Link
                     to="/"
                     className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4"
@@ -162,8 +178,8 @@ export default function AITrainer() {
                     ))}
                 </div>
 
-                <Card className="flex-1 glass border-primary/20 flex flex-col overflow-hidden h-full">
-                    <CardContent className="flex-1 overflow-y-auto p-4 space-y-4">
+                <Card className="flex-1 glass border-primary/20 flex flex-col overflow-hidden w-full min-w-0 h-full">
+                    <CardContent className="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-4 w-full">
                         {messages.map((message) => (
                             <div
                                 key={message.id}
@@ -182,12 +198,12 @@ export default function AITrainer() {
                                     )}
                                 </div>
                                 <div
-                                    className={`max-w-[80%] rounded-2xl px-4 py-3 ${message.role === "user"
+                                    className={`max-w-[85%] sm:max-w-[80%] rounded-2xl px-4 py-3 break-words overflow-hidden ${message.role === "user"
                                         ? "bg-primary text-primary-foreground rounded-br-sm"
                                         : "bg-gray-800/80 text-foreground rounded-bl-sm"
                                         }`}
                                 >
-                                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                                    <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
                                     <p className="text-xs opacity-50 mt-1">
                                         {message.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                                     </p>
@@ -220,7 +236,7 @@ export default function AITrainer() {
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
                                 placeholder="Ask me anything about fitness..."
-                                className="flex-1"
+                                className="flex-1 text-base"
                                 disabled={isLoading}
                             />
                             <Button type="submit" variant="hero" disabled={isLoading || !input.trim()}>
