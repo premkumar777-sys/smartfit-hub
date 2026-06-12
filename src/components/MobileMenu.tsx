@@ -76,8 +76,8 @@ export function MobileMenu({ children, className, onMenuToggle }: MobileMenuProp
           <div
             ref={menuRef}
             className={cn(
-              "fixed right-0 top-0 bottom-0 z-[10001] w-[85%] max-w-sm bg-gray-950/98 overflow-y-auto shadow-2xl border-l border-white/5",
-              "animate-in slide-in-from-right duration-300 ease-out",
+              "fixed left-0 top-0 bottom-0 z-[10001] w-[85%] max-w-sm bg-gray-950/98 overflow-y-auto shadow-2xl border-r border-white/5",
+              "animate-in slide-in-from-left duration-300 ease-out",
               className
             )}
           >
