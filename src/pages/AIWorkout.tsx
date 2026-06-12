@@ -39,6 +39,14 @@ const AIWorkout = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Check authentication first with getUser (server validated)
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast.error("Please sign in or create an account to generate a personalized workout plan.");
+      navigate("/auth", { state: { returnUrl: "/ai-workout" } });
+      return;
+    }
+
     // Explicit validation for goal and gender since they are custom Selects
     if (!formData.goal) {
       toast.error("Please select a fitness goal");
@@ -89,7 +97,15 @@ const AIWorkout = () => {
       }
     } catch (err) {
       console.error("Error generating workout:", err);
-      toast.error(err instanceof Error ? err.message : "Could not generate workout. Please try again.");
+      const errorMessage = err instanceof Error ? err.message : "";
+      
+      // If it is a 401 or Edge Function non-2xx error, it's likely auth-related
+      if (errorMessage.includes("non-2xx") || errorMessage.includes("401") || errorMessage.includes("status code 4")) {
+        toast.error("Please sign in or create an account to generate a personalized workout plan.");
+        navigate("/auth", { state: { returnUrl: "/ai-workout" } });
+      } else {
+        toast.error(errorMessage || "Could not generate workout. Please try again.");
+      }
     } finally {
       setIsLoading(false);
     }
