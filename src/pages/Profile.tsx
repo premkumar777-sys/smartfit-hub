@@ -341,9 +341,9 @@ export default function Profile() {
                         {/* 1. HERO CARD (User Identity) */}
                         <motion.div
                             variants={itemVariants}
-                            className="col-span-1 md:col-span-4 lg:col-span-8 row-span-2 relative group"
+                            className="col-span-1 md:col-span-4 lg:col-span-8 md:row-span-2 relative group"
                         >
-                            <Card className="glass h-full border-primary/20 overflow-hidden relative">
+                            <Card className="glass h-auto md:h-full border-primary/20 overflow-hidden relative">
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 blur-3xl group-hover:bg-primary/10 transition-colors" />
                                 <CardContent className="p-8 h-full flex flex-col md:flex-row gap-8 items-center md:items-start text-center md:text-left relative z-10">
                                     {/* Avatar with Ring */}
@@ -432,9 +432,9 @@ export default function Profile() {
                         {/* 2. STREAK CARD (Mini Bento) */}
                         <motion.div
                             variants={itemVariants}
-                            className="col-span-1 md:col-span-2 lg:col-span-4 row-span-2"
+                            className="col-span-1 md:col-span-2 lg:col-span-4 md:row-span-2"
                         >
-                            <Card className="glass h-full border-orange-500/20 overflow-hidden relative group">
+                            <Card className="glass h-auto md:h-full border-orange-500/20 overflow-hidden relative group">
                                 <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                                 <CardContent className="p-8 h-full flex flex-col items-center justify-center text-center relative z-10">
                                     <div className="relative mb-4">
@@ -476,7 +476,7 @@ export default function Profile() {
                             variants={itemVariants}
                             className="col-span-1 md:col-span-2 lg:col-span-4"
                         >
-                            <Card className="glass border-primary/20 p-6 h-full flex flex-col justify-between">
+                            <Card className="glass border-primary/20 p-6 h-auto md:h-full flex flex-col justify-between">
                                 <div className="flex justify-between items-start mb-4">
                                     <div className="p-2 bg-primary/10 rounded-xl">
                                         <Zap className="w-5 h-5 text-primary" />
@@ -508,7 +508,7 @@ export default function Profile() {
                                 variants={itemVariants}
                                 className="col-span-1 md:col-span-1 lg:col-span-2"
                             >
-                                <Card className="glass border-primary/10 p-5 h-full hover:border-primary/30 transition-colors">
+                                <Card className="glass border-primary/10 p-5 h-auto md:h-full hover:border-primary/30 transition-colors">
                                     <div className={`${stat.bg} ${stat.color} w-8 h-8 rounded-lg flex items-center justify-center mb-3`}>
                                         <stat.icon className="w-4 h-4" />
                                     </div>
@@ -527,7 +527,7 @@ export default function Profile() {
                             variants={itemVariants}
                             className="col-span-1 md:col-span-4 lg:col-span-8 overflow-hidden"
                         >
-                            <Card className="glass border-primary/20 h-full">
+                            <Card className="glass border-primary/20 h-auto md:h-full">
                                 <CardHeader className="flex flex-row items-center justify-between pb-2">
                                     <CardTitle className="text-lg font-bold flex items-center gap-2">
                                         <Dumbbell className="w-5 h-5 text-primary" />
@@ -583,9 +583,9 @@ export default function Profile() {
                             variants={itemVariants}
                             className="col-span-1 md:col-span-4 lg:col-span-4"
                         >
-                            <div className="grid grid-cols-2 gap-4 h-full">
+                            <div className="grid grid-cols-2 gap-4 h-auto md:h-full">
                                 <Card
-                                    className="glass border-primary/20 p-6 flex flex-col justify-center items-center text-center cursor-pointer hover:bg-primary/5 transition-colors group"
+                                    className="glass border-primary/20 p-6 h-auto md:h-full flex flex-col justify-center items-center text-center cursor-pointer hover:bg-primary/5 transition-colors group"
                                     onClick={() => navigate("/ai-workout")}
                                 >
                                     <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
