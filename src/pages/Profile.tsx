@@ -37,7 +37,8 @@ import {
     MoreVertical,
     Trash2,
     Sparkles,
-    Download
+    Download,
+    Plus
 } from "lucide-react";
 import { toast } from "sonner";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -59,6 +60,7 @@ import { AreaChart, Area, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveCo
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { WorkoutSummaryCard, WorkoutSummaryData } from "@/components/WorkoutSummaryCard";
+import { WorkoutSummaryLogModal } from "@/components/WorkoutSummaryLogModal";
 import { toPng } from "html-to-image";
 
 const containerVariants = {
@@ -135,6 +137,7 @@ export default function Profile() {
     const [allWorkouts, setAllWorkouts] = useState<Workout[]>([]);
     const [completedWorkouts, setCompletedWorkouts] = useState<WorkoutSummaryData[]>([]);
     const [selectedWorkoutForCard, setSelectedWorkoutForCard] = useState<WorkoutSummaryData | null>(null);
+    const [isLogModalOpen, setIsLogModalOpen] = useState(false);
     const [progressLogs, setProgressLogs] = useState<any[]>([]);
     const [activeTab, setActiveTab] = useState<string>("summary");
     const [loading, setLoading] = useState(true);
@@ -419,6 +422,85 @@ export default function Profile() {
             } catch (err) {
                 console.error("Error deleting completed workout:", err);
             }
+        }
+    };
+
+    const handleSaveWorkout = async (data: WorkoutSummaryData) => {
+        // Generate a new id for the local state if it doesn't exist
+        const workoutWithId = {
+            ...data,
+            id: (data as any).id || `local-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
+        };
+
+        // Add to local state
+        setCompletedWorkouts(prev => [workoutWithId, ...prev]);
+
+        // Sync to localStorage
+        const savedWorkouts = localStorage.getItem("smartfit_completed_workouts_v1");
+        let currentList: any[] = [];
+        if (savedWorkouts) {
+            try {
+                currentList = JSON.parse(savedWorkouts);
+            } catch (e) {
+                console.error(e);
+            }
+        }
+        localStorage.setItem("smartfit_completed_workouts_v1", JSON.stringify([workoutWithId, ...currentList]));
+
+        // Sync to Supabase completed_workouts table
+        if (user) {
+            try {
+                const dbRow = {
+                    user_id: user.id,
+                    routine_name: data.routineName,
+                    date: data.date,
+                    duration: data.duration,
+                    sets: data.sets,
+                    volume: data.volume,
+                    kcal: data.kcal,
+                    muscle_groups: data.muscleGroups,
+                    exercises: data.exercises,
+                    personal_records_count: data.personalRecordsCount,
+                    photo_url: data.photoUrl
+                };
+
+                const { data: insertedData, error } = await supabase
+                    .from('completed_workouts')
+                    .insert([dbRow])
+                    .select()
+                    .single();
+
+                if (error) {
+                    console.error("Error logging workout to supabase:", error);
+                    toast.error("Logged locally, but failed to sync to server.");
+                } else if (insertedData) {
+                    // Update local state with the actual database-generated id and fields
+                    const syncedWorkout: WorkoutSummaryData = {
+                        id: insertedData.id,
+                        routineName: insertedData.routine_name,
+                        date: insertedData.date,
+                        duration: insertedData.duration,
+                        sets: insertedData.sets,
+                        volume: insertedData.volume,
+                        kcal: insertedData.kcal,
+                        muscleGroups: insertedData.muscle_groups || [],
+                        exercises: insertedData.exercises || [],
+                        personalRecordsCount: insertedData.personal_records_count || 0,
+                        photoUrl: insertedData.photo_url
+                    };
+                    
+                    // Update localStorage list
+                    const updatedSaved = [syncedWorkout, ...currentList];
+                    localStorage.setItem("smartfit_completed_workouts_v1", JSON.stringify(updatedSaved));
+
+                    setCompletedWorkouts(prev => prev.map(w => w.id === workoutWithId.id ? syncedWorkout : w));
+                    toast.success("Workout logged and synced successfully! 🎉");
+                }
+            } catch (err) {
+                console.error("Error logging workout:", err);
+            }
+        } else {
+            toast.success("Workout logged successfully! 🎉");
         }
     };
 
@@ -863,6 +945,14 @@ export default function Profile() {
                                                     <Trophy className="w-4 h-4 text-red-500" />
                                                     Completed Workout Sessions
                                                 </CardTitle>
+                                                <Button
+                                                    onClick={() => setIsLogModalOpen(true)}
+                                                    size="sm"
+                                                    className="font-bold text-xs bg-red-600 hover:bg-red-700 text-white rounded-full flex items-center gap-1.5 shadow-[0_0_15px_rgba(239,68,68,0.3)] transition-all hover:scale-[1.03]"
+                                                >
+                                                    <Plus className="w-3.5 h-3.5" />
+                                                    Log Completed Workout
+                                                </Button>
                                             </CardHeader>
                                             <CardContent className="p-6">
                                                 {completedWorkouts.length === 0 ? (
@@ -1293,6 +1383,13 @@ export default function Profile() {
                     </div>
                 </DialogContent>
             </Dialog>
+
+            {/* Log Completed Workout Summary Creator Modal */}
+            <WorkoutSummaryLogModal
+                isOpen={isLogModalOpen}
+                onClose={() => setIsLogModalOpen(false)}
+                onSave={handleSaveWorkout}
+            />
         </div>
     );
 }
