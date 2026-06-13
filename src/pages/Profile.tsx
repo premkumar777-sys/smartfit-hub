@@ -408,25 +408,20 @@ export default function Profile() {
             current.setDate(current.getDate() + 1);
         }
 
-        // Binary: present or absent
+        // Empty = dark cell, Active = transparent (logo only)
         const getIntensityClass = (count: number) => {
             if (count === 0) return "bg-[#18181b] border-white/[0.03]";
-            return "bg-[#26a641] border-[#26a641]/20 shadow-[0_0_6px_rgba(57,211,83,0.25)]";
+            return "bg-transparent border-transparent";
         };
 
-        // Render SmartFit logo inside active cells
+        // Render SmartFit logo filling the full cell for active days
         const renderCellLogo = (workouts: Workout[]) => {
             if (workouts.length === 0) return null;
-
-            const hasCheckIn = workouts.some(w => w.title === "Gym Check-In");
-            const hasWorkoutPlan = workouts.some(w => w.title !== "Gym Check-In");
-            const isBoth = hasCheckIn && hasWorkoutPlan;
-
             return (
                 <img
                     src="/favicon.png"
                     alt="SmartFit"
-                    className={`w-[14px] h-[14px] object-contain select-none pointer-events-none ${isBoth ? "drop-shadow-[0_0_4px_rgba(57,211,83,0.8)]" : "opacity-90"}`}
+                    className="w-full h-full object-contain select-none pointer-events-none"
                 />
             );
         };
