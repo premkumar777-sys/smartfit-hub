@@ -13,4 +13,4 @@ Allow: /
 User-agent: *
 Allow: /
 
-Sitemap: https://smartfitai.in/sitemap.xml
+Sitemap: https://www.smartfitai.in/sitemap.xml
