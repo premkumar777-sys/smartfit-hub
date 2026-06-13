@@ -1,5 +1,7 @@
+import { useState, useEffect } from "react";
 import { Clock, Dumbbell, TrendingUp, Flame, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface WorkoutSummaryData {
   routineName: string;
@@ -25,12 +27,66 @@ interface WorkoutSummaryCardProps {
 
 export function WorkoutSummaryCard({
   data,
-  userName = "SHREE PHANINDRA",
-  userAvatarInitials = "SP",
-  userSubtitle = "Elite Coaching · smartfit.ai",
+  userName,
+  userAvatarInitials,
+  userSubtitle,
   className,
   id
 }: WorkoutSummaryCardProps) {
+  const [profileName, setProfileName] = useState<string>(userName || "");
+  const [profileInitials, setProfileInitials] = useState<string>(userAvatarInitials || "");
+  const [profileSubtitle, setProfileSubtitle] = useState<string>(userSubtitle || "");
+
+  useEffect(() => {
+    if (userName) setProfileName(userName);
+    if (userAvatarInitials) setProfileInitials(userAvatarInitials);
+    if (userSubtitle) setProfileSubtitle(userSubtitle);
+
+    if (!userName || !userAvatarInitials || !userSubtitle) {
+      const fetchUser = async () => {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', user.id)
+              .single();
+
+            if (profile) {
+              if (!userName) {
+                setProfileName(profile.full_name || profile.username || user.email?.split('@')[0] || "SmartFit Warrior");
+              }
+              if (!userAvatarInitials) {
+                const init = profile.username 
+                  ? profile.username.slice(0, 2).toUpperCase()
+                  : user.email?.slice(0, 2).toUpperCase() || "SF";
+                setProfileInitials(init);
+              }
+              if (!userSubtitle) {
+                setProfileSubtitle(profile.fitness_goal || "SmartFit Elite");
+              }
+            } else {
+              if (!userName) setProfileName(user.email?.split('@')[0] || "SmartFit Warrior");
+              if (!userAvatarInitials) setProfileInitials(user.email?.slice(0, 2).toUpperCase() || "SF");
+              if (!userSubtitle) setProfileSubtitle("SmartFit Elite");
+            }
+          } else {
+            if (!userName) setProfileName("SmartFit Warrior");
+            if (!userAvatarInitials) setProfileInitials("SF");
+            if (!userSubtitle) setProfileSubtitle("Elite Coaching · smartfit.ai");
+          }
+        } catch (e) {
+          console.error(e);
+          if (!userName) setProfileName("SmartFit Warrior");
+          if (!userAvatarInitials) setProfileInitials("SF");
+          if (!userSubtitle) setProfileSubtitle("Elite Coaching · smartfit.ai");
+        }
+      };
+      fetchUser();
+    }
+  }, [userName, userAvatarInitials, userSubtitle]);
+
   // Default dark gym image if none provided
   const backgroundStyle = {
     backgroundImage: `linear-gradient(to bottom, rgba(10, 10, 10, 0.3) 0%, rgba(10, 10, 10, 0.6) 40%, rgba(10, 10, 10, 0.98) 85%), url(${
@@ -54,14 +110,14 @@ export function WorkoutSummaryCard({
         <div className="flex items-center gap-3">
           {/* Initials Badge */}
           <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-600 to-red-500 flex items-center justify-center font-bold text-lg text-white tracking-wider shadow-lg shadow-red-500/20">
-            {userAvatarInitials}
+            {profileInitials}
           </div>
           <div>
             <h4 className="font-extrabold text-sm tracking-wide uppercase text-white leading-tight">
-              {userName}
+              {profileName}
             </h4>
             <p className="text-[10px] text-gray-400 font-medium">
-              {userSubtitle}
+              {profileSubtitle}
             </p>
           </div>
         </div>
