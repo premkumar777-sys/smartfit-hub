@@ -109,46 +109,62 @@ export function WorkoutSummaryCard({
       <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/10 rounded-full blur-3xl pointer-events-none"></div>
       <div className="absolute bottom-12 left-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
-      {/* Top Header Row */}
-      <div className="flex items-center justify-between z-10 bg-black/25 backdrop-blur-md border border-white/5 rounded-2xl p-2.5">
-        <div className="flex items-center gap-3">
-          {/* Initials Badge */}
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-red-600 to-orange-500 flex items-center justify-center font-black text-base text-white tracking-widest shadow-lg shadow-red-500/20">
-            {profileInitials}
+      {/* Top Section Group */}
+      <div className="z-10 flex flex-col gap-4">
+        {/* Floating user header row */}
+        <div className="flex items-center justify-between bg-black/30 backdrop-blur-md border border-white/10 rounded-2xl p-2.5">
+          <div className="flex items-center gap-3">
+            {/* Initials Badge */}
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-red-600 to-orange-500 flex items-center justify-center font-black text-base text-white tracking-widest shadow-lg shadow-red-500/20">
+              {profileInitials}
+            </div>
+            <div>
+              <h4 className="font-black text-xs tracking-wide uppercase text-white leading-tight">
+                {profileName}
+              </h4>
+              <p className="text-[9px] text-gray-400 font-bold uppercase tracking-wider mt-0.5">
+                {profileSubtitle}
+              </p>
+            </div>
           </div>
-          <div>
-            <h4 className="font-black text-xs tracking-wide uppercase text-white leading-tight">
-              {profileName}
-            </h4>
-            <p className="text-[9px] text-gray-400 font-bold uppercase tracking-wider mt-0.5">
-              {profileSubtitle}
-            </p>
+
+          {/* Done Pill */}
+          <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[9px] font-black uppercase tracking-wider">
+            <Check className="w-3 h-3 text-emerald-400 stroke-[3]" />
+            DONE
           </div>
         </div>
 
-        {/* Done Pill */}
-        <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[9px] font-black uppercase tracking-wider">
-          <Check className="w-3 h-3 text-emerald-400 stroke-[3]" />
-          DONE
+        {/* Routine Title, Date & Muscle Badges */}
+        <div className="space-y-2">
+          <div>
+            <h2 className="text-3xl font-black uppercase tracking-tight bg-gradient-to-r from-white via-white to-gray-300 bg-clip-text text-transparent">
+              {data.routineName}
+            </h2>
+            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-0.5">
+              {data.date}
+            </p>
+          </div>
+
+          <div className="flex flex-wrap gap-1">
+            {data.muscleGroups.map((group) => (
+              <span
+                key={group}
+                className="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-white text-[9px] font-black uppercase tracking-wider"
+              >
+                {group}
+              </span>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Routine Title, Date, & Stats Grid Container */}
-      <div className="mt-auto space-y-4 z-10">
-        {/* Workout Routine Title & Date */}
-        <div className="space-y-0.5">
-          <h2 className="text-3xl font-black uppercase tracking-tight bg-gradient-to-r from-white via-white to-gray-300 bg-clip-text text-transparent">
-            {data.routineName}
-          </h2>
-          <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
-            {data.date}
-          </p>
-        </div>
-
+      {/* Middle/Bottom Section Group */}
+      <div className="z-10 flex flex-col gap-4 mt-auto">
         {/* Glassmorphic Stats Grid */}
         <div className="grid grid-cols-4 gap-2">
           {/* Time Stat */}
-          <div className="flex flex-col items-center justify-center text-center bg-white/5 border border-white/5 rounded-xl py-2 px-1 backdrop-blur-md">
+          <div className="flex flex-col items-center justify-center text-center bg-black/40 border border-white/10 rounded-xl py-2 px-1 backdrop-blur-md">
             <Clock className="w-3.5 h-3.5 text-red-500 mb-1" />
             <span className="text-xs font-black text-white tracking-tight">
               {data.duration}
@@ -159,7 +175,7 @@ export function WorkoutSummaryCard({
           </div>
 
           {/* Sets Stat */}
-          <div className="flex flex-col items-center justify-center text-center bg-white/5 border border-white/5 rounded-xl py-2 px-1 backdrop-blur-md">
+          <div className="flex flex-col items-center justify-center text-center bg-black/40 border border-white/10 rounded-xl py-2 px-1 backdrop-blur-md">
             <Dumbbell className="w-3.5 h-3.5 text-red-500 mb-1" />
             <span className="text-xs font-black text-white tracking-tight">
               {data.sets}
@@ -170,7 +186,7 @@ export function WorkoutSummaryCard({
           </div>
 
           {/* Volume Stat */}
-          <div className="flex flex-col items-center justify-center text-center bg-white/5 border border-white/5 rounded-xl py-2 px-1 backdrop-blur-md">
+          <div className="flex flex-col items-center justify-center text-center bg-black/40 border border-white/10 rounded-xl py-2 px-1 backdrop-blur-md">
             <TrendingUp className="w-3.5 h-3.5 text-red-500 mb-1" />
             <span className="text-xs font-black text-white tracking-tight">
               {data.volume}
@@ -181,7 +197,7 @@ export function WorkoutSummaryCard({
           </div>
 
           {/* Kcal Stat */}
-          <div className="flex flex-col items-center justify-center text-center bg-white/5 border border-white/5 rounded-xl py-2 px-1 backdrop-blur-md">
+          <div className="flex flex-col items-center justify-center text-center bg-black/40 border border-white/10 rounded-xl py-2 px-1 backdrop-blur-md">
             <Flame className="w-3.5 h-3.5 text-red-500 mb-1" />
             <span className="text-xs font-black text-white tracking-tight">
               {data.kcal}
@@ -192,21 +208,14 @@ export function WorkoutSummaryCard({
           </div>
         </div>
 
-        {/* Muscle Targets Badges */}
-        <div className="flex flex-wrap gap-1">
-          {data.muscleGroups.map((group) => (
-            <span
-              key={group}
-              className="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-white text-[9px] font-black uppercase tracking-wider"
-            >
-              {group}
-            </span>
-          ))}
-        </div>
+        {/* Exercises List & PR Alert Panel */}
+        <div className="space-y-2.5 bg-black/50 border border-white/10 rounded-2xl p-3.5 backdrop-blur-md">
+          <div className="flex justify-between items-center pb-1.5 border-b border-white/5">
+            <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider">Exercises Logged</span>
+            <span className="text-[9px] font-black text-red-500 uppercase tracking-wider">{data.exercises.length} Total</span>
+          </div>
 
-        {/* Exercises List */}
-        <div className="space-y-1.5 bg-black/40 border border-white/5 rounded-2xl p-3 backdrop-blur-md">
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             {data.exercises.slice(0, 4).map((ex, idx) => (
               <div key={idx} className="flex justify-between items-center text-[11px] leading-tight">
                 <span className="flex items-center gap-1.5 font-bold text-gray-200">
