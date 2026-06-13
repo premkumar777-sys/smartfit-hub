@@ -34,7 +34,10 @@ import {
     ChevronRight,
     Share2,
     Settings,
-    MoreVertical
+    MoreVertical,
+    Trash2,
+    Sparkles,
+    Download
 } from "lucide-react";
 import { toast } from "sonner";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -54,6 +57,9 @@ import { Progress } from "@/components/ui/progress";
 import { motion, AnimatePresence } from "framer-motion";
 import { AreaChart, Area, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { WorkoutSummaryCard, WorkoutSummaryData } from "@/components/WorkoutSummaryCard";
+import { toPng } from "html-to-image";
 
 const containerVariants = {
     hidden: { opacity: 0 },
@@ -127,6 +133,8 @@ export default function Profile() {
     const [profile, setProfile] = useState<Profile | null>(null);
     const [workouts, setWorkouts] = useState<Workout[]>([]);
     const [allWorkouts, setAllWorkouts] = useState<Workout[]>([]);
+    const [completedWorkouts, setCompletedWorkouts] = useState<WorkoutSummaryData[]>([]);
+    const [selectedWorkoutForCard, setSelectedWorkoutForCard] = useState<WorkoutSummaryData | null>(null);
     const [progressLogs, setProgressLogs] = useState<any[]>([]);
     const [activeTab, setActiveTab] = useState<string>("summary");
     const [loading, setLoading] = useState(true);
@@ -178,6 +186,44 @@ export default function Profile() {
                 if (workoutsData) {
                     setAllWorkouts(workoutsData);
                     setWorkouts(workoutsData.slice(0, 5));
+                }
+
+                // Load completed workouts from localStorage
+                const savedWorkouts = localStorage.getItem("smartfit_completed_workouts_v1");
+                if (savedWorkouts) {
+                    try {
+                        setCompletedWorkouts(JSON.parse(savedWorkouts));
+                    } catch (e) {
+                        console.error(e);
+                    }
+                }
+
+                try {
+                    const { data: completedWorkoutsData, error: completedError } = await supabase
+                        .from('completed_workouts')
+                        .select('*')
+                        .eq('user_id', userId)
+                        .order('date', { ascending: false });
+
+                    if (!completedError && completedWorkoutsData) {
+                        const mapped: WorkoutSummaryData[] = completedWorkoutsData.map((row: any) => ({
+                            id: row.id,
+                            routineName: row.routine_name,
+                            date: row.date,
+                            duration: row.duration,
+                            sets: row.sets,
+                            volume: row.volume,
+                            kcal: row.kcal,
+                            muscleGroups: row.muscle_groups || [],
+                            exercises: row.exercises || [],
+                            personalRecordsCount: row.personal_records_count || 0,
+                            photoUrl: row.photo_url
+                        }));
+                        setCompletedWorkouts(mapped);
+                        localStorage.setItem("smartfit_completed_workouts_v1", JSON.stringify(mapped));
+                    }
+                } catch (err) {
+                    console.error("Failed to load completed workouts from Supabase:", err);
                 }
 
                 // Load progress logs for weight chart
@@ -355,6 +401,24 @@ export default function Profile() {
         } catch (err: any) {
             console.error("Check-in error:", err);
             toast.error("Failed to check in");
+        }
+    };
+
+    const deleteWorkout = async (id: string) => {
+        setCompletedWorkouts((prev) => {
+            const updated = prev.filter((w: any) => w.id !== id);
+            localStorage.setItem("smartfit_completed_workouts_v1", JSON.stringify(updated));
+            return updated;
+        });
+
+        toast.success("Workout log deleted");
+
+        if (user) {
+            try {
+                await supabase.from("completed_workouts").delete().eq("id", id);
+            } catch (err) {
+                console.error("Error deleting completed workout:", err);
+            }
         }
     };
 
@@ -790,13 +854,98 @@ export default function Profile() {
 
                             {/* WORKOUTS TAB */}
                             {activeTab === "workouts" && (
-                                <div className="grid grid-cols-1 gap-6">
+                                <div className="grid grid-cols-1 gap-8 animate-fade-in">
+                                    {/* Completed Workout Sessions Grid */}
+                                    <motion.div variants={itemVariants}>
+                                        <Card className="glass border-white/10 rounded-3xl overflow-hidden flex flex-col">
+                                            <CardHeader className="flex flex-row items-center justify-between pb-3 border-b border-white/5">
+                                                <CardTitle className="text-sm font-bold tracking-wider uppercase text-muted-foreground flex items-center gap-2">
+                                                    <Trophy className="w-4 h-4 text-red-500" />
+                                                    Completed Workout Sessions
+                                                </CardTitle>
+                                            </CardHeader>
+                                            <CardContent className="p-6">
+                                                {completedWorkouts.length === 0 ? (
+                                                    <div className="py-12 text-center space-y-3">
+                                                        <Flame className="w-10 h-10 text-muted-foreground/45 mx-auto animate-pulse" />
+                                                        <div>
+                                                            <p className="text-sm font-bold text-muted-foreground uppercase tracking-wider">No completed workouts yet</p>
+                                                            <p className="text-xs text-muted-foreground/60 mt-1">Start pose-detection training or log a manual session in the Progress page!</p>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                                                        {completedWorkouts.map((workout: any) => (
+                                                            <Card
+                                                                key={workout.id}
+                                                                className="bg-black/40 border-white/5 hover:border-red-500/30 transition-all flex flex-col justify-between rounded-2xl overflow-hidden"
+                                                            >
+                                                                <CardHeader className="pb-3 p-4">
+                                                                    <div className="flex justify-between items-start">
+                                                                        <div className="min-w-0 flex-1">
+                                                                            <span className="text-[9px] text-red-500 uppercase font-black tracking-widest block">
+                                                                                {workout.date}
+                                                                            </span>
+                                                                            <CardTitle className="text-base font-black uppercase tracking-tight mt-1 truncate text-white">
+                                                                                {workout.routineName}
+                                                                            </CardTitle>
+                                                                        </div>
+                                                                        <Button
+                                                                            variant="ghost"
+                                                                            size="icon"
+                                                                            onClick={() => deleteWorkout(workout.id)}
+                                                                            className="text-red-400 hover:text-red-300 hover:bg-red-500/10 shrink-0 h-8 w-8 rounded-full"
+                                                                        >
+                                                                            <Trash2 className="w-4 h-4" />
+                                                                        </Button>
+                                                                    </div>
+                                                                </CardHeader>
+                                                                <CardContent className="space-y-4 p-4 pt-0">
+                                                                    {/* Quick Stats Grid */}
+                                                                    <div className="grid grid-cols-2 gap-2 bg-white/5 border border-white/5 rounded-xl p-3 text-center">
+                                                                        <div>
+                                                                            <p className="text-[8px] text-muted-foreground uppercase tracking-widest font-bold">Time</p>
+                                                                            <p className="text-xs font-black text-gray-200 mt-0.5">{workout.duration}</p>
+                                                                        </div>
+                                                                        <div>
+                                                                            <p className="text-[8px] text-muted-foreground uppercase tracking-widest font-bold">Sets</p>
+                                                                            <p className="text-xs font-black text-gray-200 mt-0.5">{workout.sets}</p>
+                                                                        </div>
+                                                                        <div>
+                                                                            <p className="text-[8px] text-muted-foreground uppercase tracking-widest font-bold">Volume</p>
+                                                                            <p className="text-xs font-black text-gray-200 mt-0.5">{workout.volume}</p>
+                                                                        </div>
+                                                                        <div>
+                                                                            <p className="text-[8px] text-muted-foreground uppercase tracking-widest font-bold">Calories</p>
+                                                                            <p className="text-xs font-black text-gray-200 mt-0.5">~{workout.kcal} kcal</p>
+                                                                        </div>
+                                                                    </div>
+
+                                                                    {/* Action Button */}
+                                                                    <Button
+                                                                        onClick={() => setSelectedWorkoutForCard(workout)}
+                                                                        className="w-full font-bold flex items-center justify-center gap-1.5 border-white/10 hover:bg-white/5 text-[10px] h-8 rounded-lg text-white"
+                                                                        variant="outline"
+                                                                    >
+                                                                        <Sparkles className="w-3.5 h-3.5 text-red-500" />
+                                                                        View Share Card
+                                                                    </Button>
+                                                                </CardContent>
+                                                            </Card>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </CardContent>
+                                        </Card>
+                                    </motion.div>
+
+                                    {/* Gym Check-Ins & Activity Log */}
                                     <motion.div variants={itemVariants}>
                                         <Card className="glass border-white/10 rounded-3xl overflow-hidden flex flex-col">
                                             <CardHeader className="flex flex-row items-center justify-between pb-3 border-b border-white/5">
                                                 <CardTitle className="text-sm font-bold tracking-wider uppercase text-muted-foreground flex items-center gap-2">
                                                     <Dumbbell className="w-4 h-4 text-red-500" />
-                                                    Workout Activity Log
+                                                    Activity Log & History
                                                 </CardTitle>
                                             </CardHeader>
                                             <CardContent className="p-6">
@@ -805,7 +954,7 @@ export default function Profile() {
                                                         <BookOpen className="w-10 h-10 text-muted-foreground/45 mx-auto" />
                                                         <div>
                                                             <p className="text-sm font-bold text-muted-foreground uppercase tracking-wider">No Records</p>
-                                                            <p className="text-xs text-muted-foreground/60 mt-1">Generate a workout to begin tracking your routines.</p>
+                                                            <p className="text-xs text-muted-foreground/60 mt-1">Generate a workout or check in to begin tracking your activity history.</p>
                                                         </div>
                                                     </div>
                                                 ) : (
@@ -1052,6 +1201,98 @@ export default function Profile() {
                     </div>
                 </SheetContent>
             </Sheet>
+            {/* Share Card Modal (View Only) */}
+            <Dialog
+                open={!!selectedWorkoutForCard}
+                onOpenChange={(open) => !open && setSelectedWorkoutForCard(null)}
+            >
+                <DialogContent className="bg-gray-950 border border-white/10 text-white rounded-3xl p-6 flex flex-col items-center justify-between max-w-sm">
+                    <DialogHeader className="w-full text-center">
+                        <DialogTitle className="text-xl font-black">Your Share Card</DialogTitle>
+                        <DialogDescription className="text-gray-400">
+                            Download or share this card to show off your progress.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    {selectedWorkoutForCard && (
+                        <div className="my-6">
+                            <div id="workout-summary-card-capture-view">
+                                <WorkoutSummaryCard 
+                                    data={selectedWorkoutForCard} 
+                                    className="w-[320px]" 
+                                    userName={profile?.full_name || profile?.username || "SmartFit Warrior"}
+                                    userAvatarInitials={initials}
+                                    userSubtitle={profile?.fitness_goal || "SmartFit Elite"}
+                                />
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="w-full grid grid-cols-2 gap-3">
+                        <Button
+                            onClick={async () => {
+                                const cardEl = document.getElementById("workout-summary-card-capture-view");
+                                if (!cardEl) return;
+                                try {
+                                    const dataUrl = await toPng(cardEl, {
+                                        cacheBust: true,
+                                        useCORS: true,
+                                        quality: 1.0,
+                                        pixelRatio: 2
+                                    });
+                                    const link = document.createElement("a");
+                                    link.download = `smartfit-workout-${Date.now()}.png`;
+                                    link.href = dataUrl;
+                                    link.click();
+                                    toast.success("Card downloaded!");
+                                } catch (e) {
+                                    toast.error("Failed to export image");
+                                }
+                            }}
+                            variant="outline"
+                            className="font-bold border-white/10 hover:bg-white/5"
+                        >
+                            <Download className="w-4 h-4 mr-2" />
+                            Download
+                        </Button>
+                        <Button
+                            onClick={async () => {
+                                const cardEl = document.getElementById("workout-summary-card-capture-view");
+                                if (!cardEl) return;
+                                try {
+                                    const dataUrl = await toPng(cardEl, {
+                                        cacheBust: true,
+                                        useCORS: true,
+                                        quality: 0.95,
+                                        pixelRatio: 2
+                                    });
+                                    const res = await fetch(dataUrl);
+                                    const blob = await res.blob();
+                                    const file = new File([blob], `workout-summary.png`, { type: "image/png" });
+                                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                                        await navigator.share({
+                                            files: [file],
+                                            title: "My SmartFit Workout Card"
+                                        });
+                                    } else {
+                                        const link = document.createElement("a");
+                                        link.download = `smartfit-workout-${Date.now()}.png`;
+                                        link.href = dataUrl;
+                                        link.click();
+                                    }
+                                } catch (e) {
+                                    toast.error("Failed to share");
+                                }
+                            }}
+                            variant="outline"
+                            className="font-bold border-white/10 hover:bg-white/5"
+                        >
+                            <Share2 className="w-4 h-4 mr-2" />
+                            Share
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
