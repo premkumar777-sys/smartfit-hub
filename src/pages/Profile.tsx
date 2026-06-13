@@ -24,6 +24,7 @@ import {
     Crown,
     Loader2,
     CheckCircle,
+    Check,
     Camera,
     MapPin,
     BookOpen,
@@ -378,29 +379,32 @@ export default function Profile() {
     const streakBadge = getStreakBadge(streak.currentStreak);
 
     const renderHeatmap = () => {
-        // Calculate activity counts per date string
-        const activityCounts: Record<string, number> = {};
+        // Calculate activities per date string
+        const activitiesByDate: Record<string, Workout[]> = {};
         allWorkouts.forEach(w => {
             const dateStr = new Date(w.created_at).toDateString();
-            activityCounts[dateStr] = (activityCounts[dateStr] || 0) + 1;
+            if (!activitiesByDate[dateStr]) {
+                activitiesByDate[dateStr] = [];
+            }
+            activitiesByDate[dateStr].push(w);
         });
 
         const startDate = new Date(2026, 0, 1);
         const endDate = new Date(2026, 11, 31);
         
-        const days: { date: Date | null; count: number }[] = [];
+        const days: { date: Date | null; workouts: Workout[] }[] = [];
         
         // Pad the beginning of the year so that the grid starts on Sunday
         const startDayOfWeek = startDate.getDay(); // 4 (Thursday)
         for (let i = 0; i < startDayOfWeek; i++) {
-            days.push({ date: null, count: 0 });
+            days.push({ date: null, workouts: [] });
         }
         
         let current = new Date(startDate);
         while (current <= endDate) {
             const dateStr = current.toDateString();
-            const count = activityCounts[dateStr] || 0;
-            days.push({ date: new Date(current), count });
+            const dayWorkouts = activitiesByDate[dateStr] || [];
+            days.push({ date: new Date(current), workouts: dayWorkouts });
             current.setDate(current.getDate() + 1);
         }
 
@@ -413,10 +417,26 @@ export default function Profile() {
             return "bg-[#39d353] border-[#39d353]/20 shadow-[0_0_8px_rgba(57,211,83,0.3)]"; // Level 4+
         };
 
+        // Render appropriate status logo
+        const renderCellLogo = (workouts: Workout[]) => {
+            if (workouts.length === 0) return null;
+            
+            const hasCheckIn = workouts.some(w => w.title === "Gym Check-In");
+            const hasWorkoutPlan = workouts.some(w => w.title !== "Gym Check-In");
+            
+            if (hasCheckIn && hasWorkoutPlan) {
+                return <Flame className="w-2.5 h-2.5 text-white animate-pulse" strokeWidth={3.5} />;
+            } else if (hasCheckIn) {
+                return <Check className="w-2.5 h-2.5 text-emerald-100" strokeWidth={4} />;
+            } else {
+                return <Dumbbell className="w-2.5 h-2.5 text-red-100" strokeWidth={3} />;
+            }
+        };
+
         const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
         const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-        const totalActiveDays = Object.keys(activityCounts).length;
+        const totalActiveDays = Object.keys(activitiesByDate).length;
 
         return (
             <Card className="glass border-white/10 rounded-2xl p-5 overflow-hidden">
@@ -443,9 +463,9 @@ export default function Profile() {
                         <div className="min-w-[700px] flex flex-col gap-4">
                             <div className="flex gap-2">
                                 {/* Day labels column */}
-                                <div className="grid grid-rows-7 gap-[3px] text-[8px] font-medium text-muted-foreground/60 pr-1 select-none pt-4">
+                                <div className="grid grid-rows-7 gap-[5px] text-[8px] font-medium text-muted-foreground/60 pr-1 select-none pt-4">
                                     {weekDays.map((day, idx) => (
-                                        <div key={idx} className="h-2.5 flex items-center justify-end leading-none">
+                                        <div key={idx} className="h-[20px] flex items-center justify-end leading-none">
                                             {idx % 2 === 1 ? day : ""}
                                         </div>
                                     ))}
@@ -463,19 +483,22 @@ export default function Profile() {
                                             );
                                         })}
                                     </div>
-                                    <div className="grid grid-flow-col grid-rows-7 gap-[3px]">
+                                    <div className="grid grid-flow-col grid-rows-7 gap-[5px]">
                                         {days.map((d, idx) => {
                                             if (!d.date) {
-                                                return <div key={`pad-${idx}`} className="w-2.5 h-2.5 bg-transparent" />;
+                                                return <div key={`pad-${idx}`} className="w-[20px] h-[20px] bg-transparent" />;
                                             }
+                                            const count = d.workouts.length;
                                             const dateLabel = d.date.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
-                                            const statusLabel = d.count > 0 ? `${d.count} activities` : "No activity";
+                                            const statusLabel = count > 0 ? `${count} activities` : "No activity";
                                             return (
                                                 <Tooltip key={idx}>
                                                     <TooltipTrigger asChild>
                                                         <div 
-                                                            className={`w-2.5 h-2.5 rounded-[2px] border transition-all ${getIntensityClass(d.count)}`} 
-                                                        />
+                                                            className={`w-[20px] h-[20px] rounded-[4px] border transition-all flex items-center justify-center cursor-pointer ${getIntensityClass(count)}`} 
+                                                        >
+                                                            {renderCellLogo(d.workouts)}
+                                                        </div>
                                                     </TooltipTrigger>
                                                     <TooltipContent className="bg-[#0a0a0a] text-[10px] px-2 py-1 border border-white/10 rounded-md text-white z-50">
                                                         <span className="font-bold">{dateLabel}</span>: {statusLabel}
