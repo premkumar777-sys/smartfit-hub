@@ -417,20 +417,21 @@ export default function Profile() {
             return "bg-[#39d353] border-[#39d353]/20 shadow-[0_0_8px_rgba(57,211,83,0.3)]"; // Level 4+
         };
 
-        // Render appropriate status logo
+        // Render SmartFit logo inside active cells
         const renderCellLogo = (workouts: Workout[]) => {
             if (workouts.length === 0) return null;
-            
+
             const hasCheckIn = workouts.some(w => w.title === "Gym Check-In");
             const hasWorkoutPlan = workouts.some(w => w.title !== "Gym Check-In");
-            
-            if (hasCheckIn && hasWorkoutPlan) {
-                return <Flame className="w-2.5 h-2.5 text-white animate-pulse" strokeWidth={3.5} />;
-            } else if (hasCheckIn) {
-                return <Check className="w-2.5 h-2.5 text-emerald-100" strokeWidth={4} />;
-            } else {
-                return <Dumbbell className="w-2.5 h-2.5 text-red-100" strokeWidth={3} />;
-            }
+            const isBoth = hasCheckIn && hasWorkoutPlan;
+
+            return (
+                <img
+                    src="/favicon.png"
+                    alt="SmartFit"
+                    className={`w-[14px] h-[14px] object-contain select-none pointer-events-none ${isBoth ? "drop-shadow-[0_0_4px_rgba(57,211,83,0.8)]" : "opacity-90"}`}
+                />
+            );
         };
 
         const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
