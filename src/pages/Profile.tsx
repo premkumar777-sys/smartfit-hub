@@ -408,13 +408,10 @@ export default function Profile() {
             current.setDate(current.getDate() + 1);
         }
 
-        // LeetCode Color Scale
+        // Binary: present or absent
         const getIntensityClass = (count: number) => {
-            if (count === 0) return "bg-[#18181b] border-white/[0.03]"; // Level 0
-            if (count === 1) return "bg-[#0e4429] border-[#0e4429]/20"; // Level 1 (LeetCode L1)
-            if (count === 2) return "bg-[#006d32] border-[#006d32]/20"; // Level 2 (LeetCode L2)
-            if (count === 3) return "bg-[#26a641] border-[#26a641]/20"; // Level 3 (LeetCode L3)
-            return "bg-[#39d353] border-[#39d353]/20 shadow-[0_0_8px_rgba(57,211,83,0.3)]"; // Level 4+
+            if (count === 0) return "bg-[#18181b] border-white/[0.03]";
+            return "bg-[#26a641] border-[#26a641]/20 shadow-[0_0_6px_rgba(57,211,83,0.25)]";
         };
 
         // Render SmartFit logo inside active cells
@@ -511,19 +508,7 @@ export default function Profile() {
                                 </div>
                             </div>
                             
-                            {/* LeetCode Heatmap Legend */}
-                            <div className="flex justify-between items-center text-[9px] font-medium text-muted-foreground/60 pt-2 border-t border-white/5">
-                                <span>Learn more about training consistency</span>
-                                <div className="flex items-center gap-1 pr-2">
-                                    <span>Less</span>
-                                    <span className="w-2.5 h-2.5 rounded-[1px] bg-[#18181b] border border-white/[0.03]" />
-                                    <span className="w-2.5 h-2.5 rounded-[1px] bg-[#0e4429] border border-[#0e4429]/20" />
-                                    <span className="w-2.5 h-2.5 rounded-[1px] bg-[#006d32] border border-[#006d32]/20" />
-                                    <span className="w-2.5 h-2.5 rounded-[1px] bg-[#26a641] border border-[#26a641]/20" />
-                                    <span className="w-2.5 h-2.5 rounded-[1px] bg-[#39d353] border border-[#39d353]/20" />
-                                    <span>More</span>
-                                </div>
-                            </div>
+
                         </div>
                     </TooltipProvider>
                 </CardContent>
