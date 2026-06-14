@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import type { Tables } from "@/integrations/supabase/types";
 import { useAuth } from "@/hooks/use-auth";
 import { useGamification } from "@/hooks/useGamification";
+import { WorkoutSummaryData } from "@/components/WorkoutSummaryCard";
 
 type ProfileBase = Tables<"profiles">;
 type Profile = ProfileBase & {
@@ -35,6 +36,52 @@ interface ActivityLog {
   created_at: string;
 }
 
+// Helper to parse duration string (e.g., "1H 16M", "45M", "1M 15S", "20S") to minutes
+const parseDurationToMinutes = (durStr: string): number => {
+  if (!durStr) return 0;
+  let minutes = 0;
+  
+  const hourMatch = durStr.match(/(\d+)\s*[hH]/);
+  const minMatch = durStr.match(/(\d+)\s*[mM]/);
+  const secMatch = durStr.match(/(\d+)\s*[sS]/);
+  
+  if (hourMatch) {
+    minutes += parseInt(hourMatch[1]) * 60;
+  }
+  if (minMatch) {
+    minutes += parseInt(minMatch[1]);
+  }
+  if (!hourMatch && !minMatch && secMatch) {
+    minutes += Math.max(1, Math.round(parseInt(secMatch[1]) / 60));
+  }
+  
+  if (!hourMatch && !minMatch && !secMatch) {
+    const num = parseInt(durStr);
+    if (!isNaN(num)) return num;
+  }
+  
+  return minutes;
+};
+
+// Helper to parse date string or created_at to a valid Date object
+const parseWorkoutDateToObj = (dateStr: string, createdAt?: string): Date => {
+  if (createdAt) {
+    const d = new Date(createdAt);
+    if (!isNaN(d.getTime())) return d;
+  }
+  
+  if (!dateStr) return new Date();
+  
+  const parsed = new Date(dateStr);
+  if (!isNaN(parsed.getTime())) return parsed;
+  
+  const currentYear = new Date().getFullYear();
+  const parsedWithYear = new Date(`${dateStr}, ${currentYear}`);
+  if (!isNaN(parsedWithYear.getTime())) return parsedWithYear;
+  
+  return new Date();
+};
+
 const Dashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -45,6 +92,17 @@ const Dashboard = () => {
   const [savedWorkouts, setSavedWorkouts] = useState<Workout[]>([]);
   const [weeklyLogs, setWeeklyLogs] = useState<ActivityLog[]>([]);
   const [activityFeed, setActivityFeed] = useState<ActivityLog[]>([]);
+  const [completedWorkouts, setCompletedWorkouts] = useState<WorkoutSummaryData[]>(() => {
+    const saved = localStorage.getItem("smartfit_completed_workouts_v1");
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    return [];
+  });
   const [nutritionToday, setNutritionToday] = useState({ calories: 0, protein: 0, carbs: 0, fats: 0 });
 
   const loadDashboardData = async (userId: string) => {
@@ -94,6 +152,36 @@ const Dashboard = () => {
 
       if (feedRes.data) setActivityFeed(feedRes.data);
 
+      // Load completed workouts from Supabase
+      try {
+        const { data: completedWorkoutsData, error: completedError } = await supabase
+          .from('completed_workouts')
+          .select('*')
+          .eq('user_id', userId)
+          .order('date', { ascending: false });
+
+        if (!completedError && completedWorkoutsData) {
+          const mapped: WorkoutSummaryData[] = completedWorkoutsData.map((row: any) => ({
+            id: row.id,
+            routineName: row.routine_name,
+            date: row.date,
+            duration: row.duration,
+            sets: row.sets,
+            volume: row.volume,
+            kcal: row.kcal,
+            muscleGroups: row.muscle_groups || [],
+            exercises: row.exercises || [],
+            personalRecordsCount: row.personal_records_count || 0,
+            photoUrl: row.photo_url,
+            created_at: row.created_at
+          }));
+          setCompletedWorkouts(mapped);
+          localStorage.setItem("smartfit_completed_workouts_v1", JSON.stringify(mapped));
+        }
+      } catch (err) {
+        console.error("Failed to load completed workouts in dashboard:", err);
+      }
+
     } catch (err) {
       console.error("Error loading dashboard data:", err);
     } finally {
@@ -135,7 +223,7 @@ const Dashboard = () => {
     }
   }, [user, authLoading, navigate]);
 
-  // Process weekly data for chart
+  // Process weekly data for chart combining activity_logs and completed_workouts
   const weeklyChartData = useMemo(() => {
     const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     const chartData = [];
@@ -147,30 +235,109 @@ const Dashboard = () => {
       const dayName = days[date.getDay()];
       const dateString = date.toDateString();
 
+      // Hours from activity_logs
       const logsForDay = weeklyLogs.filter(log => new Date(log.created_at).toDateString() === dateString);
-      const duration = logsForDay
+      const logDuration = logsForDay
         .filter(l => l.activity_type === 'workout')
         .reduce((sum, curr) => sum + curr.value, 0);
 
+      // Hours from completed_workouts
+      const workoutsForDay = completedWorkouts.filter(workout => {
+        const wDate = parseWorkoutDateToObj(workout.date, (workout as any).created_at);
+        return wDate.toDateString() === dateString;
+      });
+      const workoutDuration = workoutsForDay.reduce((sum, w) => {
+        return sum + parseDurationToMinutes(w.duration);
+      }, 0);
+
+      const totalMinutes = logDuration + workoutDuration;
+
       chartData.push({
         day: dayName,
-        hours: duration / 60, // convert minutes to hours for chart scaling
-        completed: duration > 0,
+        hours: totalMinutes / 60, // convert minutes to hours for chart scaling
+        completed: totalMinutes > 0,
         fullDate: dateString
       });
     }
     return chartData;
-  }, [weeklyLogs]);
+  }, [weeklyLogs, completedWorkouts]);
 
-  // Workouts this week (count of unique days with workouts)
+  // Workouts this week (count of unique days with workouts in the last 7 days)
   const workoutsThisWeek = useMemo(() => {
-    const workoutDays = new Set(
-      weeklyLogs
-        .filter(l => l.activity_type === 'workout')
-        .map(l => new Date(l.created_at).toDateString())
-    );
+    const now = new Date();
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(now.getDate() - 7);
+    sevenDaysAgo.setHours(0, 0, 0, 0);
+
+    const workoutDays = new Set<string>();
+
+    completedWorkouts.forEach(w => {
+      const wDate = parseWorkoutDateToObj(w.date, (w as any).created_at);
+      if (wDate >= sevenDaysAgo) {
+        workoutDays.add(wDate.toDateString());
+      }
+    });
+
+    weeklyLogs
+      .filter(l => l.activity_type === 'workout')
+      .forEach(l => {
+        const lDate = new Date(l.created_at);
+        if (lDate >= sevenDaysAgo) {
+          workoutDays.add(lDate.toDateString());
+        }
+      });
+
     return workoutDays.size;
-  }, [weeklyLogs]);
+  }, [weeklyLogs, completedWorkouts]);
+
+  // Combine activity_logs and completed_workouts for a rich activity feed
+  const combinedActivityFeed = useMemo(() => {
+    const feed: Array<{
+      id: string;
+      activity_type: string;
+      value: number;
+      created_at: string;
+      displayTitle: string;
+      displayDesc: string;
+    }> = [];
+
+    // Add activity logs
+    activityFeed.forEach(log => {
+      let desc = 'Interacted with AI';
+      if (log.activity_type === 'workout') {
+        desc = `${log.value} mins session`;
+      } else if (log.activity_type === 'nutrition') {
+        desc = `${log.value} calories`;
+      }
+      
+      feed.push({
+        id: log.id,
+        activity_type: log.activity_type,
+        value: log.value,
+        created_at: log.created_at,
+        displayTitle: `${log.activity_type.charAt(0).toUpperCase() + log.activity_type.slice(1)} Logged`,
+        displayDesc: desc
+      });
+    });
+
+    // Add completed workouts
+    completedWorkouts.forEach(w => {
+      const wDate = parseWorkoutDateToObj(w.date, (w as any).created_at);
+      feed.push({
+        id: w.id || `workout-${wDate.getTime()}`,
+        activity_type: 'workout',
+        value: parseDurationToMinutes(w.duration),
+        created_at: wDate.toISOString(),
+        displayTitle: 'Workout Completed',
+        displayDesc: `${w.routineName} (${w.duration})`
+      });
+    });
+
+    // Sort by created_at descending and limit to 10
+    return feed
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      .slice(0, 10);
+  }, [activityFeed, completedWorkouts]);
 
   if (authLoading || isInitialLoading || !gamification.isLoaded) {
     return (
@@ -471,7 +638,7 @@ const Dashboard = () => {
                     <div
                       className={`w-full rounded-t-lg transition-all duration-300 hover:scale-x-105 ${day.completed ? 'gradient-primary shadow-[0_0_15px_rgba(0,255,156,0.3)]' : 'bg-muted/30'
                         }`}
-                      style={{ height: `${Math.max(5, (day.hours / 3) * 100)}%` }} // Max scale 3 hours
+                      style={{ height: `${Math.min(100, Math.max(5, (day.hours / 3) * 100))}%` }} // Max scale 3 hours
                       title={`${day.day}: ${(day.hours * 60).toFixed(0)} mins`}
                     ></div>
                   </div>
@@ -490,8 +657,8 @@ const Dashboard = () => {
             </div>
 
             <div className="space-y-4">
-              {activityFeed.length > 0 ? (
-                activityFeed.map((log) => (
+              {combinedActivityFeed.length > 0 ? (
+                combinedActivityFeed.map((log) => (
                   <div key={log.id} className="flex items-start gap-4 p-3 rounded-lg bg-muted/20 border border-white/5">
                     <div className={`mt-1 p-2 rounded-lg ${log.activity_type === 'workout' ? 'bg-primary/20 text-primary' :
                       log.activity_type === 'nutrition' ? 'bg-orange-500/20 text-orange-500' :
@@ -504,11 +671,9 @@ const Dashboard = () => {
                             <Activity className="w-4 h-4" />}
                     </div>
                     <div>
-                      <p className="text-sm font-medium capitalize">{log.activity_type} Logged</p>
+                      <p className="text-sm font-medium capitalize">{log.displayTitle}</p>
                       <p className="text-xs text-muted-foreground">
-                        {log.activity_type === 'workout' ? `${log.value} mins session` :
-                          log.activity_type === 'nutrition' ? `${log.value} calories` :
-                            'Interacted with AI'}
+                        {log.displayDesc}
                       </p>
                       <p className="text-[10px] text-muted-foreground mt-1">
                         {new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
