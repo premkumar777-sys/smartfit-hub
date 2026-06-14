@@ -144,7 +144,7 @@ export const FloatingChatbot = () => {
       <motion.button
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "fixed bottom-6 right-6 z-50 w-16 h-16 rounded-full shadow-[0_0_20px_rgba(0,255,156,0.4)]",
+          "fixed bottom-24 right-4 lg:bottom-6 lg:right-6 z-[60] w-16 h-16 rounded-full shadow-[0_0_20px_rgba(0,255,156,0.4)]",
           "bg-gradient-to-br from-[#00FF9C] via-[#4CC9F0] to-[#7B2CBF]",
           "flex items-center justify-center transition-all duration-500",
           "border border-white/20 backdrop-blur-sm",
@@ -174,8 +174,8 @@ export const FloatingChatbot = () => {
             exit={{ opacity: 0, y: 100, scale: 0.8, filter: "blur(10px)" }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
             className={cn(
-              "fixed bottom-6 right-6 z-50 w-[400px] max-w-[calc(100vw-2rem)]",
-              "h-[650px] max-h-[calc(100vh-6rem)]",
+              "fixed bottom-24 right-4 lg:bottom-6 lg:right-6 z-[60] w-[400px] max-w-[calc(100vw-2rem)]",
+              "h-[550px] max-h-[calc(100vh-10rem)]",
               "bg-black/80 backdrop-blur-2xl border border-white/10 rounded-[2rem] shadow-[0_0_50px_rgba(0,0,0,0.5)]",
               "flex flex-col overflow-hidden ring-1 ring-white/20"
             )}
