@@ -137,6 +137,7 @@ export default function Profile() {
     const [allWorkouts, setAllWorkouts] = useState<Workout[]>([]);
     const [completedWorkouts, setCompletedWorkouts] = useState<WorkoutSummaryData[]>([]);
     const [selectedWorkoutForCard, setSelectedWorkoutForCard] = useState<WorkoutSummaryData | null>(null);
+    const [selectedWorkoutForView, setSelectedWorkoutForView] = useState<Workout | null>(null);
     const [isLogModalOpen, setIsLogModalOpen] = useState(false);
     const [progressLogs, setProgressLogs] = useState<any[]>([]);
     const [activeTab, setActiveTab] = useState<string>("summary");
@@ -1052,6 +1053,7 @@ export default function Profile() {
                                                         {allWorkouts.map((workout) => (
                                                             <div
                                                                 key={workout.id}
+                                                                onClick={() => setSelectedWorkoutForView(workout)}
                                                                 className="flex items-center justify-between p-4 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/5 group/workout transition-all cursor-pointer"
                                                             >
                                                                 <div className="flex items-center gap-3">
@@ -1379,6 +1381,75 @@ export default function Profile() {
                         >
                             <Share2 className="w-4 h-4 mr-2" />
                             Share
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* View Workout Plan Modal */}
+            <Dialog
+                open={!!selectedWorkoutForView}
+                onOpenChange={(open) => !open && setSelectedWorkoutForView(null)}
+            >
+                <DialogContent className="bg-gray-950 border border-white/10 text-white rounded-3xl p-6 sm:p-8 max-w-2xl max-h-[85vh] overflow-y-auto">
+                    <DialogHeader className="w-full">
+                        <DialogTitle className="text-2xl font-black flex items-center gap-2">
+                            <Dumbbell className="w-6 h-6 text-red-500" />
+                            {selectedWorkoutForView?.title || "Workout Plan Details"}
+                        </DialogTitle>
+                        <DialogDescription className="text-gray-400">
+                            {selectedWorkoutForView?.created_at && (
+                                <>Generated on {new Date(selectedWorkoutForView.created_at).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</>
+                            )}
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    {selectedWorkoutForView && (
+                        <div className="my-4">
+                            {selectedWorkoutForView.title === "Gym Check-In" ? (
+                                <div className="text-center py-8 space-y-4">
+                                    <CheckCircle className="w-16 h-16 text-emerald-400 mx-auto" />
+                                    <p className="text-gray-200 text-lg font-bold">Gym Check-In Logged!</p>
+                                    <p className="text-muted-foreground text-sm max-w-md mx-auto">
+                                        You checked in to the gym on this day. Keep showing up and pushing your limits to maintain your streak!
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="prose prose-invert prose-red max-w-none w-full">
+                                    <div className="bg-white/5 rounded-xl p-4 sm:p-5 border border-white/5 shadow-inner leading-relaxed break-words overflow-x-auto w-full max-h-[50vh] overflow-y-auto">
+                                        {selectedWorkoutForView.content ? (
+                                            selectedWorkoutForView.content.split('\n').map((line, i) => {
+                                                if (line.startsWith('## ')) {
+                                                    return <h2 key={i} className="text-xl font-bold text-red-500 mt-6 mb-4">{line.replace('## ', '')}</h2>;
+                                                }
+                                                if (line.startsWith('### ')) {
+                                                    return <h3 key={i} className="text-lg font-semibold text-white mt-4 mb-2">{line.replace('### ', '')}</h3>;
+                                                }
+                                                if (line.startsWith('- ')) {
+                                                    return <li key={i} className="text-gray-300 ml-4 py-1 list-disc list-inside">{line.replace('- ', '')}</li>;
+                                                }
+                                                if (line.startsWith('**') && line.endsWith('**')) {
+                                                    return <p key={i} className="font-bold text-white my-2">{line.replace(/\*\*/g, '')}</p>;
+                                                }
+                                                if (line.trim() === '') return <br key={i} />;
+                                                return <p key={i} className="text-gray-300 my-2">{line}</p>;
+                                            })
+                                        ) : (
+                                            <p className="text-muted-foreground italic">No workout content logged.</p>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    <div className="w-full flex justify-end">
+                        <Button
+                            onClick={() => setSelectedWorkoutForView(null)}
+                            variant="outline"
+                            className="font-bold border-white/10 hover:bg-white/5 rounded-xl px-6"
+                        >
+                            Close Intel
                         </Button>
                     </div>
                 </DialogContent>
