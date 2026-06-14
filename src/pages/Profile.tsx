@@ -1391,11 +1391,11 @@ export default function Profile() {
                 open={!!selectedWorkoutForView}
                 onOpenChange={(open) => !open && setSelectedWorkoutForView(null)}
             >
-                <DialogContent className="bg-gray-950 border border-white/10 text-white rounded-3xl p-6 sm:p-8 max-w-2xl max-h-[85vh] overflow-y-auto">
+                <DialogContent className="bg-gray-950 border border-white/10 text-white rounded-3xl p-6 sm:p-8 w-[calc(100vw-1.5rem)] sm:w-full max-w-2xl max-h-[85vh] overflow-y-auto">
                     <DialogHeader className="w-full">
-                        <DialogTitle className="text-2xl font-black flex items-center gap-2">
-                            <Dumbbell className="w-6 h-6 text-red-500" />
-                            {selectedWorkoutForView?.title || "Workout Plan Details"}
+                        <DialogTitle className="text-xl sm:text-2xl font-black flex items-center gap-2 flex-wrap leading-tight break-words">
+                            <Dumbbell className="w-5 h-5 sm:w-6 sm:h-6 text-red-500 shrink-0" />
+                            <span className="flex-1 min-w-0 break-words">{selectedWorkoutForView?.title || "Workout Plan Details"}</span>
                         </DialogTitle>
                         <DialogDescription className="text-gray-400">
                             {selectedWorkoutForView?.created_at && (
@@ -1419,6 +1419,9 @@ export default function Profile() {
                                     <div className="bg-white/5 rounded-xl p-4 sm:p-5 border border-white/5 shadow-inner leading-relaxed break-words overflow-x-auto w-full max-h-[50vh] overflow-y-auto">
                                         {selectedWorkoutForView.content ? (
                                             selectedWorkoutForView.content.split('\n').map((line, i) => {
+                                                if (/^[=\-_*\s]{3,}$/.test(line.trim())) {
+                                                    return <hr key={i} className="border-white/10 my-4" />;
+                                                }
                                                 if (line.startsWith('## ')) {
                                                     return <h2 key={i} className="text-xl font-bold text-red-500 mt-6 mb-4">{line.replace('## ', '')}</h2>;
                                                 }
@@ -1426,13 +1429,13 @@ export default function Profile() {
                                                     return <h3 key={i} className="text-lg font-semibold text-white mt-4 mb-2">{line.replace('### ', '')}</h3>;
                                                 }
                                                 if (line.startsWith('- ')) {
-                                                    return <li key={i} className="text-gray-300 ml-4 py-1 list-disc list-inside">{line.replace('- ', '')}</li>;
+                                                    return <li key={i} className="text-gray-300 ml-4 py-1 list-disc list-inside break-words">{line.replace('- ', '')}</li>;
                                                 }
                                                 if (line.startsWith('**') && line.endsWith('**')) {
-                                                    return <p key={i} className="font-bold text-white my-2">{line.replace(/\*\*/g, '')}</p>;
+                                                    return <p key={i} className="font-bold text-white my-2 break-words">{line.replace(/\*\*/g, '')}</p>;
                                                 }
                                                 if (line.trim() === '') return <br key={i} />;
-                                                return <p key={i} className="text-gray-300 my-2">{line}</p>;
+                                                return <p key={i} className="text-gray-300 my-2 break-words">{line}</p>;
                                             })
                                         ) : (
                                             <p className="text-muted-foreground italic">No workout content logged.</p>
