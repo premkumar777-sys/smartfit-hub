@@ -39,12 +39,18 @@ export default function AITrainer() {
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const chatContainerRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
     const gamification = useGamification();
 
     const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        if (chatContainerRef.current) {
+            chatContainerRef.current.scrollTo({
+                top: chatContainerRef.current.scrollHeight,
+                behavior: "smooth"
+            });
+        }
     };
 
     useEffect(() => {
@@ -179,7 +185,7 @@ export default function AITrainer() {
                 </div>
 
                 <Card className="flex-1 glass border-primary/20 flex flex-col overflow-hidden w-full min-w-0 h-full">
-                    <CardContent className="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-4 w-full">
+                    <CardContent ref={chatContainerRef} className="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-4 w-full">
                         {messages.map((message) => (
                             <div
                                 key={message.id}
