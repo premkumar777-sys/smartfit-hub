@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Container } from "@/components/Container";
-import { Dumbbell, Mail, Phone, Instagram, Twitter, MessageCircle } from "lucide-react";
+import { Mail, Phone, Instagram, Linkedin, MessageCircle } from "lucide-react";
 
 export function Footer() {
     const currentYear = new Date().getFullYear();
@@ -13,8 +13,13 @@ export function Footer() {
                         {/* Brand Column */}
                         <div className="md:col-span-1">
                             <Link to="/" className="flex items-center gap-2 mb-4">
-                                <Dumbbell className="w-6 h-6 text-primary" />
-                                <span className="font-bold text-lg">SmartFit AI Hub</span>
+                                <img
+                                    src="/favicon.png"
+                                    alt="SmartFitAI"
+                                    className="w-8 h-8 object-contain"
+                                    style={{ filter: "drop-shadow(0 0 8px rgba(0, 255, 156, 0.4))" }}
+                                />
+                                <span className="font-bold text-lg text-white">SmartFitAI</span>
                             </Link>
                             <p className="text-sm text-muted-foreground mb-4">
                                 AI-powered fitness platform for personalized workouts, nutrition planning, and real-time coaching.
@@ -30,13 +35,13 @@ export function Footer() {
                                     <Instagram className="w-4 h-4" />
                                 </a>
                                 <a
-                                    href="https://twitter.com/smartfithub"
+                                    href="https://www.linkedin.com/company/112396192/"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="p-2 rounded-lg bg-muted/50 hover:bg-primary/20 text-muted-foreground hover:text-primary transition-colors"
-                                    aria-label="Twitter"
+                                    aria-label="LinkedIn"
                                 >
-                                    <Twitter className="w-4 h-4" />
+                                    <Linkedin className="w-4 h-4" />
                                 </a>
                                 <a
                                     href="https://chat.whatsapp.com/EiRKjJBISlW2HmtYwpnbxh"
@@ -99,7 +104,7 @@ export function Footer() {
                     {/* Bottom Bar */}
                     <div className="border-t border-border mt-8 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
                         <p className="text-sm text-muted-foreground">
-                            © {currentYear} SmartFit AI Hub. All rights reserved.
+                            © {currentYear} SmartFitAI. All rights reserved.
                         </p>
                         <p className="text-xs text-muted-foreground">
                             Made with 💚 for fitness enthusiasts
