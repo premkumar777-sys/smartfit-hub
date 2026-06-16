@@ -197,14 +197,21 @@ export function Header() {
     <>
       <header
         className={cn(
-          "sticky top-0 z-50 transition-all duration-300 border-b border-white/10",
-          "bg-[#0a0a0a] backdrop-blur-md", // Enforced solid dark background
+          "sticky top-0 z-50 transition-all duration-300 border-b border-white/10 overflow-hidden",
           isScrolled ? "py-2 shadow-lg" : "py-4",
           "pb-safe pt-safe"
         )}
       >
+        {/* Background Image Layer with high opacity */}
+        <div 
+          className="absolute inset-0 z-0 bg-cover bg-top bg-no-repeat opacity-95 pointer-events-none"
+          style={{ backgroundImage: `url('/hero-bg.png')` }}
+        />
+        {/* Dark overlay for contrast and readability */}
+        <div className="absolute inset-0 z-0 bg-black/75 backdrop-blur-md pointer-events-none" />
+
         <nav
-          className="max-w-7xl mx-auto px-3 sm:px-8 lg:px-12 text-white" // Force text white in nav
+          className="relative z-10 max-w-7xl mx-auto px-3 sm:px-8 lg:px-12 text-white" // Force text white in nav
           role="navigation"
           aria-label="Main Navigation"
         >
