@@ -29,13 +29,13 @@ export default function CookieConsent() {
         <AnimatePresence>
             {isVisible && (
                 <motion.div
-                    initial={{ x: -100, opacity: 0 }}
-                    animate={{ x: 0, opacity: 1 }}
-                    exit={{ x: -100, opacity: 0 }}
+                    initial={{ y: 50, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: 50, opacity: 0 }}
                     transition={{ type: "spring", stiffness: 100, damping: 15 }}
-                    className="fixed bottom-0 left-0 z-50 p-4 md:p-6 w-full max-w-sm md:max-w-md pointer-events-none"
+                    className="fixed bottom-24 left-4 right-4 sm:bottom-6 sm:left-6 sm:right-auto z-50 p-0 w-auto sm:w-[380px] pointer-events-none"
                 >
-                    <div className="w-full bg-neutral-950/90 border border-white/10 backdrop-blur-xl rounded-2xl p-5 md:p-6 shadow-[10px_-10px_50px_rgba(0,180,255,0.15)] flex flex-col gap-4 pointer-events-auto relative overflow-hidden">
+                    <div className="w-full bg-[#0a0a0a]/95 border border-white/10 backdrop-blur-xl rounded-2xl p-5 shadow-[10px_-10px_50px_rgba(0,180,255,0.15)] flex flex-col gap-4 pointer-events-auto relative overflow-hidden">
                         {/* Glow effect */}
                         <div className="absolute -top-10 -left-10 w-24 h-24 bg-primary/10 rounded-full blur-2xl pointer-events-none"></div>
                         
