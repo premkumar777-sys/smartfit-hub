@@ -52,6 +52,9 @@ export default function Auth() {
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_OUT" || event === "SIGNED_IN") {
+        sessionStorage.removeItem("smartfit_checkin_prompted");
+      }
       if (session) {
         navigate(returnUrl, { replace: true });
       }
