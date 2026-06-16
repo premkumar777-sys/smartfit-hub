@@ -1351,7 +1351,6 @@ export default function Profile() {
                                 if (!cardEl) return;
                                 try {
                                     const dataUrl = await toPng(cardEl, {
-                                        cacheBust: true,
                                         useCORS: true,
                                         quality: 1.0,
                                         pixelRatio: 2
@@ -1377,7 +1376,6 @@ export default function Profile() {
                                 if (!cardEl) return;
                                 try {
                                     const dataUrl = await toPng(cardEl, {
-                                        cacheBust: true,
                                         useCORS: true,
                                         quality: 0.95,
                                         pixelRatio: 2

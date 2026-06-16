@@ -105,7 +105,6 @@ export function WorkoutSummaryLogModal({
 
     try {
       const dataUrl = await toPng(cardEl, {
-        cacheBust: true,
         useCORS: true,
         quality: 1.0,
         pixelRatio: 2
@@ -127,7 +126,6 @@ export function WorkoutSummaryLogModal({
 
     try {
       const dataUrl = await toPng(cardEl, {
-        cacheBust: true,
         useCORS: true,
         quality: 0.95,
         pixelRatio: 2

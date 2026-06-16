@@ -101,7 +101,7 @@ export function WorkoutSummaryCard({
       <img
         src={imageUrl}
         alt="Workout Background"
-        crossOrigin="anonymous"
+        crossOrigin={imageUrl.startsWith("blob:") || imageUrl.startsWith("data:") ? undefined : "anonymous"}
         className="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none"
       />
       <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/50 to-[#0a0a0a]/95 z-0 pointer-events-none" />
