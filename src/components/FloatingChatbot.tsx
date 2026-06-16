@@ -231,25 +231,42 @@ export const FloatingChatbot = () => {
       <motion.button
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "fixed bottom-24 right-4 lg:bottom-6 lg:right-6 z-[60] w-16 h-16 rounded-full shadow-[0_0_20px_rgba(0,255,156,0.4)]",
-          "bg-gradient-to-br from-[#00FF9C] via-[#4CC9F0] to-[#7B2CBF]",
-          "flex items-center justify-center transition-all duration-500",
-          "border border-white/20 backdrop-blur-sm",
+          "fixed bottom-24 right-4 lg:bottom-6 lg:right-6 z-[60] w-16 h-16 rounded-2xl flex items-center justify-center",
+          "bg-[#0a0a0a]/90 border border-white/10 backdrop-blur-md shadow-2xl",
           isOpen && "scale-0 opacity-0 rotate-180"
         )}
         whileHover={{
-          scale: 1.1,
-          rotate: 5,
-          boxShadow: "0 0 30px rgba(0,255,156,0.6)"
+          scale: 1.08,
+          borderColor: "rgba(0, 255, 156, 0.4)",
         }}
-        whileTap={{ scale: 0.9 }}
+        whileTap={{ scale: 0.95 }}
         initial={{ scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: "spring", stiffness: 260, damping: 20 }}
         aria-label="Open chat"
       >
-        <div className="absolute inset-0 rounded-full bg-white/10 animate-pulse" />
-        <Bot className="w-8 h-8 text-black drop-shadow-sm relative z-10" />
-        <span className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-[#0a0a0a] z-20" />
+        {/* Animated breathing glow rings */}
+        <div className="absolute -inset-[3px] rounded-2xl bg-gradient-to-tr from-[#00FF9C] via-[#4CC9F0] to-[#7B2CBF] opacity-70 blur-[3px] animate-pulse" />
+        
+        {/* Inner containment card */}
+        <div className="absolute inset-[1px] rounded-[13px] bg-[#0a0a0a] z-0" />
+        
+        {/* Logo containing orb */}
+        <div className="relative z-10 w-11 h-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center p-1.5 overflow-hidden shadow-inner group">
+          <img 
+            src="/favicon.png" 
+            alt="SmartFitAI Chatbot Launcher" 
+            className="w-full h-full object-contain filter drop-shadow-[0_0_8px_rgba(0,255,156,0.6)] transform group-hover:scale-110 transition-transform duration-300"
+          />
+          {/* Subtle reflection overlay */}
+          <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+        </div>
+
+        {/* Online Status Dot */}
+        <span className="absolute -top-1 -right-1 flex h-4 w-4 z-20">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+          <span className="relative inline-flex rounded-full h-4 w-4 bg-green-500 border-2 border-[#0a0a0a]" />
+        </span>
       </motion.button>
 
       {/* Chat Panel */}
