@@ -74,13 +74,13 @@ export function WorkoutSummaryCard({
           } else {
             if (!userName) setProfileName("SmartFit Warrior");
             if (!userAvatarInitials) setProfileInitials("SF");
-            if (!userSubtitle) setProfileSubtitle("Elite Coaching · smartfit.ai");
+            if (!userSubtitle) setProfileSubtitle("Elite Coaching · smartfitai.in");
           }
         } catch (e) {
           console.error(e);
           if (!userName) setProfileName("SmartFit Warrior");
           if (!userAvatarInitials) setProfileInitials("SF");
-          if (!userSubtitle) setProfileSubtitle("Elite Coaching · smartfit.ai");
+          if (!userSubtitle) setProfileSubtitle("Elite Coaching · smartfitai.in");
         }
       };
       fetchUser();
@@ -242,7 +242,7 @@ export function WorkoutSummaryCard({
               <img src="/favicon.png" alt="SmartFitAI Logo" className="w-3.5 h-3.5 object-contain" />
               SmartFitAI
             </span>
-            <span>smartfitai.com</span>
+            <span>smartfitai.in</span>
           </div>
         </div>
       </div>
