@@ -479,7 +479,7 @@ export const FloatingChatbot = () => {
                     placeholder="Message SmartFit AI..."
                     disabled={isLoading}
                     className={cn(
-                      "w-full px-6 py-4 rounded-2xl text-sm transition-all",
+                      "w-full px-6 py-4 rounded-2xl text-base sm:text-sm transition-all",
                       "bg-white/5 border border-white/10 outline-none text-white",
                       "placeholder:text-white/30",
                       "focus:bg-white/10 focus:border-[#4CC9F0]/50 focus:ring-4 focus:ring-[#4CC9F0]/10",
