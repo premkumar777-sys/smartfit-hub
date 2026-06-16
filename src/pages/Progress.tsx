@@ -969,7 +969,7 @@ export default function Progress() {
                     pixelRatio: 2
                   });
                   const link = document.createElement("a");
-                  link.download = `smartfit-workout-${Date.now()}.png`;
+                  link.download = `smartfitai-workout-${Date.now()}.png`;
                   link.href = dataUrl;
                   link.click();
                   toast.success("Card downloaded!");
@@ -1003,7 +1003,7 @@ export default function Progress() {
                     });
                   } else {
                     const link = document.createElement("a");
-                    link.download = `smartfit-workout-${Date.now()}.png`;
+                    link.download = `smartfitai-workout-${Date.now()}.png`;
                     link.href = dataUrl;
                     link.click();
                   }

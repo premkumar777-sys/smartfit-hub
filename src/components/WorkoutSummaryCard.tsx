@@ -235,6 +235,15 @@ export function WorkoutSummaryCard({
               <span>{data.personalRecordsCount} New Personal Records!</span>
             </div>
           )}
+
+          {/* Brand Watermark */}
+          <div className="flex items-center justify-between pt-2 mt-2 border-t border-white/5 text-[9px] text-gray-500 font-bold uppercase tracking-wider">
+            <span className="flex items-center gap-1">
+              <img src="/favicon.png" alt="SmartFitAI Logo" className="w-3.5 h-3.5 object-contain" />
+              SmartFitAI
+            </span>
+            <span>smartfitai.com</span>
+          </div>
         </div>
       </div>
 
