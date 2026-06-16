@@ -175,7 +175,7 @@ export const FloatingChatbot = () => {
     let assistantSoFar = "";
 
     const upsertAssistant = (chunk: string) => {
-      assistantSoFar += chunk;
+      assistantSoFar += chunk.replace(/\p{Emoji_Presentation}|\p{Extended_Pictographic}/gu, "");
       setMessages((prev) => {
         const last = prev[prev.length - 1];
         if (last?.role === "assistant" && prev.length > 0 && prev[prev.length - 2]?.content === text) {
@@ -199,7 +199,7 @@ export const FloatingChatbot = () => {
         setIsLoading(false);
         const fallback: Message = {
           role: "assistant",
-          content: "I'm having a moment! Please try again. 💪",
+          content: "I'm having a moment! Please try again.",
         };
         setMessages((prev) => {
           const last = prev[prev.length - 1];

@@ -113,7 +113,7 @@ export default function AITrainer() {
         {
             id: "welcome",
             role: "assistant",
-            content: "Hey there! 💪 I'm your AI Personal Trainer. I'm here to help you with workout tips, form guidance, nutrition advice, and anything fitness-related. What would you like to know today?",
+            content: "Hey there! I'm your AI Personal Trainer. I'm here to help you with workout tips, form guidance, nutrition advice, and anything fitness-related. What would you like to know today?",
             timestamp: new Date(),
         },
     ]);
@@ -171,7 +171,7 @@ export default function AITrainer() {
         const assistantId = (Date.now() + 1).toString();
 
         const upsertAssistant = (chunk: string) => {
-            assistantSoFar += chunk;
+            assistantSoFar += chunk.replace(/\p{Emoji_Presentation}|\p{Extended_Pictographic}/gu, "");
             const msg: Message = {
                 id: assistantId,
                 role: "assistant",
