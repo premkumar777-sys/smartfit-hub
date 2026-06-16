@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Container } from "@/components/Container";
@@ -144,6 +144,29 @@ export default function Profile() {
     const [loading, setLoading] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
     const [saving, setSaving] = useState(false);
+
+    const heatmapScrollRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (activeTab === "summary" && !loading) {
+            const timer = setTimeout(() => {
+                if (heatmapScrollRef.current) {
+                    const container = heatmapScrollRef.current;
+                    const currentMonth = new Date().getMonth(); // 0 to 11
+                    const maxScroll = container.scrollWidth - container.clientWidth;
+                    if (maxScroll > 0) {
+                        const targetX = (container.scrollWidth * (currentMonth / 12));
+                        const centeredX = targetX - (container.clientWidth / 2) + 20;
+                        container.scrollTo({
+                            left: Math.max(0, Math.min(maxScroll, centeredX)),
+                            behavior: "smooth"
+                        });
+                    }
+                }
+            }, 300);
+            return () => clearTimeout(timer);
+        }
+    }, [activeTab, loading, allWorkouts]);
 
     // Edit form state
     const [editUsername, setEditUsername] = useState("");
@@ -536,13 +559,14 @@ export default function Profile() {
             activitiesByDate[dateStr].push(w);
         });
 
-        const startDate = new Date(2026, 0, 1);
-        const endDate = new Date(2026, 11, 31);
+        const currentYear = new Date().getFullYear();
+        const startDate = new Date(currentYear, 0, 1);
+        const endDate = new Date(currentYear, 11, 31);
         
         const days: { date: Date | null; workouts: Workout[] }[] = [];
         
         // Pad the beginning of the year so that the grid starts on Sunday
-        const startDayOfWeek = startDate.getDay(); // 4 (Thursday)
+        const startDayOfWeek = startDate.getDay();
         for (let i = 0; i < startDayOfWeek; i++) {
             days.push({ date: null, workouts: [] });
         }
@@ -584,7 +608,7 @@ export default function Profile() {
                     <div>
                         <CardTitle className="text-sm font-bold tracking-tight text-white flex items-center gap-2">
                             <Calendar className="w-4 h-4 text-emerald-500" />
-                            {allWorkouts.length} activities in 2026
+                            {allWorkouts.length} activities in {currentYear}
                         </CardTitle>
                         <p className="text-[10px] text-muted-foreground mt-0.5">
                             Active days: {totalActiveDays} days | Max streak: {streak.longestStreak || 0} days
@@ -598,7 +622,7 @@ export default function Profile() {
                         </div>
                     </div>
                 </CardHeader>
-                <CardContent className="p-0 pt-5 overflow-x-auto custom-scrollbar">
+                <CardContent ref={heatmapScrollRef} className="p-0 pt-5 overflow-x-auto custom-scrollbar">
                     <TooltipProvider>
                         <div className="min-w-[700px] flex flex-col gap-4">
                             <div className="flex gap-2">
