@@ -125,19 +125,26 @@ export default function AITrainer() {
 
     const gamification = useGamification();
 
-    const scrollToBottom = () => {
+    const scrollToBottom = (behavior: ScrollBehavior = "smooth", force = false) => {
         if (chatContainerRef.current) {
-            chatContainerRef.current.scrollTo({
-                top: chatContainerRef.current.scrollHeight,
-                behavior: "smooth"
-            });
+            const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
+            const isCloseToBottom = scrollHeight - scrollTop - clientHeight < 120;
+            if (force || isCloseToBottom) {
+                chatContainerRef.current.scrollTo({
+                    top: scrollHeight,
+                    behavior
+                });
+            }
         }
     };
 
     useEffect(() => {
-        // Only scroll smoothly if there are more than just the welcome message
-        if (messages.length > 1) {
-            scrollToBottom();
+        if (messages.length <= 1) return;
+        const lastMessage = messages[messages.length - 1];
+        if (lastMessage.role === "user") {
+            scrollToBottom("smooth", true);
+        } else {
+            scrollToBottom("auto", false);
         }
     }, [messages]);
 

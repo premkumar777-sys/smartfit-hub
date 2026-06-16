@@ -141,17 +141,27 @@ export const FloatingChatbot = () => {
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const scrollToBottom = () => {
+  const scrollToBottom = (behavior: ScrollBehavior = "smooth", force = false) => {
     if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTo({
-        top: chatContainerRef.current.scrollHeight,
-        behavior: "smooth"
-      });
+      const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
+      const isCloseToBottom = scrollHeight - scrollTop - clientHeight < 120;
+      if (force || isCloseToBottom) {
+        chatContainerRef.current.scrollTo({
+          top: scrollHeight,
+          behavior
+        });
+      }
     }
   };
 
   useEffect(() => {
-    scrollToBottom();
+    if (messages.length === 0) return;
+    const lastMessage = messages[messages.length - 1];
+    if (lastMessage.role === "user") {
+      scrollToBottom("smooth", true);
+    } else {
+      scrollToBottom("auto", false);
+    }
   }, [messages]);
 
   useEffect(() => {
