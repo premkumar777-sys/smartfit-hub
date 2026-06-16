@@ -255,7 +255,7 @@ export default function Auth() {
         {/* Bottom Tagline */}
         <div className="relative z-10 space-y-4 max-w-sm">
           <h2 className="text-2xl lg:text-3xl font-black leading-tight text-white">
-            Empowering our <span className="text-red-500">global community</span> to build their <span className="text-red-500">ultimate physique</span>.
+            Empowering our <span className="text-[#00ff9c]">global community</span> to build their <span className="text-[#00ff9c]">ultimate physique</span>.
           </h2>
           <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">SmartFitAI Platform</p>
         </div>
@@ -307,7 +307,7 @@ export default function Auth() {
                     name="email"
                     type="email"
                     placeholder="name@smartfitai.in"
-                    className="pl-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-red-600 focus:ring-red-600 text-white rounded-xl h-12 transition-all"
+                    className="pl-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-[#00ff9c] focus:ring-[#00ff9c] text-white rounded-xl h-12 transition-all"
                     required
                     maxLength={255}
                   />
@@ -323,7 +323,7 @@ export default function Auth() {
                     name="password"
                     type="password"
                     placeholder="••••••••"
-                    className="pl-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-red-600 focus:ring-red-600 text-white rounded-xl h-12 transition-all"
+                    className="pl-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-[#00ff9c] focus:ring-[#00ff9c] text-white rounded-xl h-12 transition-all"
                     required
                     minLength={8}
                     maxLength={100}
@@ -333,7 +333,7 @@ export default function Auth() {
 
               <Button 
                 type="submit" 
-                className="w-full bg-red-600 hover:bg-red-500 text-white font-black h-12 rounded-xl transition-all uppercase text-xs tracking-wider"
+                className="w-full bg-[#00ff9c] hover:bg-[#00e08b] text-black font-black h-12 rounded-xl transition-all uppercase text-xs tracking-wider"
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -357,7 +357,7 @@ export default function Auth() {
                     name="username"
                     type="text"
                     placeholder="Your username"
-                    className="pl-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-red-600 focus:ring-red-600 text-white rounded-xl h-12 transition-all"
+                    className="pl-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-[#00ff9c] focus:ring-[#00ff9c] text-white rounded-xl h-12 transition-all"
                     required
                     minLength={2}
                     maxLength={50}
@@ -374,7 +374,7 @@ export default function Auth() {
                     name="email"
                     type="email"
                     placeholder="name@smartfitai.in"
-                    className="pl-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-red-600 focus:ring-red-600 text-white rounded-xl h-12 transition-all"
+                    className="pl-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-[#00ff9c] focus:ring-[#00ff9c] text-white rounded-xl h-12 transition-all"
                     required
                     maxLength={255}
                   />
@@ -390,7 +390,7 @@ export default function Auth() {
                     name="password"
                     type="password"
                     placeholder="••••••••"
-                    className="pl-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-red-600 focus:ring-red-600 text-white rounded-xl h-12 transition-all"
+                    className="pl-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-[#00ff9c] focus:ring-[#00ff9c] text-white rounded-xl h-12 transition-all"
                     required
                     minLength={8}
                     maxLength={100}
@@ -403,7 +403,7 @@ export default function Auth() {
 
               <Button 
                 type="submit" 
-                className="w-full bg-red-600 hover:bg-red-500 text-white font-black h-12 rounded-xl transition-all uppercase text-xs tracking-wider"
+                className="w-full bg-[#00ff9c] hover:bg-[#00e08b] text-black font-black h-12 rounded-xl transition-all uppercase text-xs tracking-wider"
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -429,11 +429,11 @@ export default function Auth() {
           </div>
 
           {/* OAuth Buttons */}
-          <div className="flex gap-4">
+          <div className="w-full">
             <Button
               type="button"
               variant="outline"
-              className="flex-1 flex items-center justify-center gap-2.5 h-12 bg-transparent border-white/10 hover:bg-white/5 hover:text-white rounded-xl text-white font-bold transition-all text-xs"
+              className="w-full flex items-center justify-center gap-2.5 h-12 bg-transparent border-white/10 hover:bg-white/5 hover:text-white rounded-xl text-white font-bold transition-all text-xs"
               onClick={handleGoogleLogin}
               disabled={isGoogleLoading}
             >
@@ -443,16 +443,6 @@ export default function Auth() {
                 <GoogleIcon />
               )}
               <span>Login with Google</span>
-            </Button>
-
-            <Button
-              type="button"
-              variant="outline"
-              className="flex-1 flex items-center justify-center gap-2.5 h-12 bg-transparent border-white/10 hover:bg-white/5 hover:text-white rounded-xl text-white font-bold transition-all text-xs"
-              onClick={() => toast({ title: "Apple Auth", description: "Apple authentication is currently being configured." })}
-            >
-              <AppleIcon />
-              <span>Login with Apple</span>
             </Button>
           </div>
 
