@@ -10,6 +10,7 @@ import type { Tables } from "@/integrations/supabase/types";
 import { useAuth } from "@/hooks/use-auth";
 import { useGamification } from "@/hooks/useGamification";
 import { WorkoutSummaryData } from "@/components/WorkoutSummaryCard";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 type ProfileBase = Tables<"profiles">;
 type Profile = ProfileBase & {
@@ -104,6 +105,8 @@ const Dashboard = () => {
     return [];
   });
   const [nutritionToday, setNutritionToday] = useState({ calories: 0, protein: 0, carbs: 0, fats: 0 });
+  const [showCheckInReminder, setShowCheckInReminder] = useState(false);
+  const [isCheckingIn, setIsCheckingIn] = useState(false);
 
   const loadDashboardData = async (userId: string) => {
     try {
@@ -182,6 +185,30 @@ const Dashboard = () => {
         console.error("Failed to load completed workouts in dashboard:", err);
       }
 
+      // Check if user checked in today
+      try {
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+
+        const { data: todayCheckIns, error: checkInError } = await supabase
+          .from('workouts')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('title', 'Gym Check-In')
+          .gte('created_at', todayStart.toISOString())
+          .limit(1);
+
+        const hasCheckedIn = !checkInError && todayCheckIns && todayCheckIns.length > 0;
+        const alreadyPrompted = sessionStorage.getItem("smartfit_checkin_prompted") === "true";
+
+        if (!hasCheckedIn && !alreadyPrompted) {
+          setShowCheckInReminder(true);
+          sessionStorage.setItem("smartfit_checkin_prompted", "true");
+        }
+      } catch (err) {
+        console.error("Failed to check daily check-in:", err);
+      }
+
     } catch (err) {
       console.error("Error loading dashboard data:", err);
     } finally {
@@ -210,6 +237,54 @@ const Dashboard = () => {
         description: "Failed to delete workout.",
         variant: "destructive",
       });
+    }
+  };
+
+  const handleGymCheckIn = async () => {
+    if (!user) return;
+    setIsCheckingIn(true);
+    try {
+      const checkInWorkout = {
+        user_id: user.id,
+        title: "Gym Check-In",
+        content: `Checked in to gym session at ${new Date().toLocaleTimeString()}`,
+        goal: "Attendance",
+        created_at: new Date().toISOString()
+      };
+      
+      const { data, error } = await supabase
+        .from('workouts')
+        .insert([checkInWorkout])
+        .select()
+        .single();
+        
+      if (error) {
+        console.error("Error logging check-in:", error);
+        toast({
+          title: "Check-in failed",
+          description: error.message,
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Award XP
+      gamification.recordWorkout(30); // 30 minutes check-in session
+      
+      toast({
+        title: "Checked In! 💪",
+        description: "Gym check-in logged! Streak updated & 30 XP awarded.",
+      });
+      setShowCheckInReminder(false);
+    } catch (err) {
+      console.error("Check-in error:", err);
+      toast({
+        title: "Check-in failed",
+        description: "An unexpected error occurred.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsCheckingIn(false);
     }
   };
 
@@ -690,6 +765,44 @@ const Dashboard = () => {
           </Card>
         </div>
       </Container>
+
+      {/* Gym Check-in daily reminder modal */}
+      <Dialog open={showCheckInReminder} onOpenChange={setShowCheckInReminder}>
+        <DialogContent className="bg-gray-950 border border-white/10 text-white rounded-3xl p-6 sm:p-8 w-[calc(100vw-1.5rem)] sm:w-full max-w-md text-center flex flex-col items-center justify-center">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-red-600 to-orange-500 flex items-center justify-center mb-4 shadow-lg shadow-red-500/20">
+            <Trophy className="w-8 h-8 text-white animate-bounce" />
+          </div>
+          <DialogHeader className="w-full text-center">
+            <DialogTitle className="text-2xl font-black tracking-tight text-white">Daily Gym Check-In</DialogTitle>
+            <DialogDescription className="text-gray-400 mt-2 text-sm leading-relaxed">
+              Don't forget to register your gym session today! Check-in to update your consistency heatmap, keep your daily streak alive, and claim <span className="text-orange-400 font-bold">30 XP</span>!
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col sm:flex-row gap-3 w-full mt-6">
+            <Button
+              onClick={handleGymCheckIn}
+              disabled={isCheckingIn}
+              className="flex-1 bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-500 hover:to-orange-400 text-white font-black py-6 rounded-2xl border-0 shadow-lg shadow-red-500/20 transition-all duration-300 hover:scale-[1.02]"
+            >
+              {isCheckingIn ? (
+                <>
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  Checking In...
+                </>
+              ) : (
+                "Check-In Now 💪"
+              )}
+            </Button>
+            <Button
+              onClick={() => setShowCheckInReminder(false)}
+              variant="outline"
+              className="flex-1 border-white/10 hover:bg-white/5 text-white font-bold py-6 rounded-2xl"
+            >
+              Maybe Later
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
