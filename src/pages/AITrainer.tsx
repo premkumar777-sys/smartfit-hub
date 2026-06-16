@@ -128,7 +128,7 @@ export default function AITrainer() {
     const scrollToBottom = (behavior: ScrollBehavior = "smooth", force = false) => {
         if (chatContainerRef.current) {
             const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
-            const isCloseToBottom = scrollHeight - scrollTop - clientHeight < 120;
+            const isCloseToBottom = scrollHeight - scrollTop - clientHeight < 15;
             if (force || isCloseToBottom) {
                 chatContainerRef.current.scrollTo({
                     top: scrollHeight,
