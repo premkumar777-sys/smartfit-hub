@@ -113,7 +113,7 @@ export function WorkoutSummaryCard({
       {/* Top Section Group */}
       <div className="z-10 flex flex-col gap-4">
         {/* Floating user header row */}
-        <div className="flex items-center justify-between bg-black/30 backdrop-blur-md border border-white/10 rounded-2xl p-2.5">
+        <div className="flex items-center justify-between bg-black/70 border border-white/10 rounded-2xl p-2.5">
           <div className="flex items-center gap-3">
             {/* Initials Badge */}
             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-red-600 to-orange-500 flex items-center justify-center font-black text-base text-white tracking-widest shadow-lg shadow-red-500/20">
@@ -165,7 +165,7 @@ export function WorkoutSummaryCard({
         {/* Glassmorphic Stats Grid */}
         <div className="grid grid-cols-4 gap-2">
           {/* Time Stat */}
-          <div className="flex flex-col items-center justify-center text-center bg-black/40 border border-white/10 rounded-xl py-2 px-1 backdrop-blur-md">
+          <div className="flex flex-col items-center justify-center text-center bg-black/75 border border-white/10 rounded-xl py-2 px-1">
             <Clock className="w-3.5 h-3.5 text-red-500 mb-1" />
             <span className="text-xs font-black text-white tracking-tight">
               {data.duration}
@@ -176,7 +176,7 @@ export function WorkoutSummaryCard({
           </div>
 
           {/* Sets Stat */}
-          <div className="flex flex-col items-center justify-center text-center bg-black/40 border border-white/10 rounded-xl py-2 px-1 backdrop-blur-md">
+          <div className="flex flex-col items-center justify-center text-center bg-black/75 border border-white/10 rounded-xl py-2 px-1">
             <Dumbbell className="w-3.5 h-3.5 text-red-500 mb-1" />
             <span className="text-xs font-black text-white tracking-tight">
               {data.sets}
@@ -187,7 +187,7 @@ export function WorkoutSummaryCard({
           </div>
 
           {/* Volume Stat */}
-          <div className="flex flex-col items-center justify-center text-center bg-black/40 border border-white/10 rounded-xl py-2 px-1 backdrop-blur-md">
+          <div className="flex flex-col items-center justify-center text-center bg-black/75 border border-white/10 rounded-xl py-2 px-1">
             <TrendingUp className="w-3.5 h-3.5 text-red-500 mb-1" />
             <span className="text-xs font-black text-white tracking-tight">
               {data.volume}
@@ -198,7 +198,7 @@ export function WorkoutSummaryCard({
           </div>
 
           {/* Kcal Stat */}
-          <div className="flex flex-col items-center justify-center text-center bg-black/40 border border-white/10 rounded-xl py-2 px-1 backdrop-blur-md">
+          <div className="flex flex-col items-center justify-center text-center bg-black/75 border border-white/10 rounded-xl py-2 px-1">
             <Flame className="w-3.5 h-3.5 text-red-500 mb-1" />
             <span className="text-xs font-black text-white tracking-tight">
               {data.kcal}
@@ -210,7 +210,7 @@ export function WorkoutSummaryCard({
         </div>
 
         {/* Exercises List & PR Alert Panel */}
-        <div className="space-y-2.5 bg-black/50 border border-white/10 rounded-2xl p-3.5 backdrop-blur-md">
+        <div className="space-y-2.5 bg-black/80 border border-white/10 rounded-2xl p-3.5">
           <div className="flex justify-between items-center pb-1.5 border-b border-white/5">
             <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider">Exercises Logged</span>
             <span className="text-[9px] font-black text-red-500 uppercase tracking-wider">{data.exercises.length} Total</span>
