@@ -278,17 +278,18 @@ export const FloatingChatbot = () => {
             exit={{ opacity: 0, y: 100, scale: 0.8, filter: "blur(10px)" }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
             className={cn(
-              "fixed bottom-24 right-4 lg:bottom-6 lg:right-6 z-[60] w-[400px] max-w-[calc(100vw-2rem)]",
-              "h-[550px] max-h-[calc(100vh-10rem)]",
-              "bg-black/80 backdrop-blur-2xl border border-white/10 rounded-[2rem] shadow-[0_0_50px_rgba(0,0,0,0.5)]",
-              "flex flex-col overflow-hidden ring-1 ring-white/20"
+              "fixed bottom-0 right-0 left-0 sm:bottom-6 sm:right-6 sm:left-auto z-[60]",
+              "w-full sm:w-[400px] sm:max-w-[calc(100vw-2rem)]",
+              "h-[88dvh] sm:h-[550px] sm:max-h-[calc(100vh-10rem)]",
+              "bg-black/95 backdrop-blur-2xl border-t border-x border-white/10 sm:border rounded-t-[2rem] sm:rounded-[2rem] shadow-[0_0_50px_rgba(0,0,0,0.5)]",
+              "flex flex-col overflow-hidden ring-0 sm:ring-1 ring-white/20"
             )}
           >
             {/* Dynamic Neon Border Glow */}
-            <div className="absolute inset-0 rounded-[2rem] pointer-events-none opacity-20 bg-gradient-to-tr from-[#00FF9C]/20 via-transparent to-[#7B2CBF]/20" />
+            <div className="absolute inset-0 rounded-t-[2rem] sm:rounded-[2rem] pointer-events-none opacity-20 bg-gradient-to-tr from-[#00FF9C]/20 via-transparent to-[#7B2CBF]/20" />
 
             {/* Header */}
-            <div className="relative flex items-center justify-between p-6 border-b border-white/10 bg-white/5">
+            <div className="relative flex items-center justify-between p-4 sm:p-6 border-b border-white/10 bg-white/5">
               <div className="flex items-center gap-4">
                 <div className="relative">
                   <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center p-1.5 rotate-3 overflow-hidden shadow-inner">
@@ -354,9 +355,9 @@ export const FloatingChatbot = () => {
                   <motion.div
                     initial={{ scale: 0.5, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    className="w-20 h-20 rounded-3xl bg-gradient-to-br from-[#00FF9C]/20 to-[#4CC9F0]/20 flex items-center justify-center ring-1 ring-white/10"
+                    className="w-20 h-20 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center p-4 ring-1 ring-white/10 shadow-lg"
                   >
-                    <Sparkles className="w-10 h-10 text-[#00FF9C]" />
+                    <img src="/favicon.png" alt="SmartFitAI Brand Logo" className="w-full h-full object-contain filter drop-shadow-[0_0_8px_rgba(0,255,156,0.4)]" />
                   </motion.div>
                   <div className="space-y-2">
                     <h4 className="text-2xl font-bold text-white tracking-tight">
@@ -454,7 +455,7 @@ export const FloatingChatbot = () => {
             </div>
 
             {/* Input Form */}
-            <div className="p-6 bg-white/5 border-t border-white/10">
+            <div className="p-4 sm:p-6 bg-white/5 border-t border-white/10">
               <form
                 onSubmit={handleSubmit}
                 className="relative flex gap-3 items-center"
@@ -475,9 +476,6 @@ export const FloatingChatbot = () => {
                       "disabled:opacity-50"
                     )}
                   />
-                  {!input && (
-                    <Sparkles className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 pointer-events-none group-focus-within:text-[#00FF9C]/50 transition-colors" />
-                  )}
                 </div>
                 <Button
                   type="submit"
@@ -493,9 +491,6 @@ export const FloatingChatbot = () => {
                   <Send className="w-6 h-6" />
                 </Button>
               </form>
-              <p className="text-[10px] text-center mt-4 text-white uppercase tracking-widest font-medium">
-                Powered by SmartFit AI Advanced Neural Engine
-              </p>
             </div>
           </motion.div>
         )}
