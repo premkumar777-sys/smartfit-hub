@@ -23,44 +23,22 @@ const CYCLING_WORDS = [
 const TypewriterText = ({
   prefix,
   words = CYCLING_WORDS,
-  delay = 80,
 }: {
   prefix: string;
   words?: string[];
-  delay?: number;
 }) => {
   const [wordIndex, setWordIndex] = useState(0);
-  const [charIndex, setCharIndex] = useState(0);
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  const currentWord = words[wordIndex % words.length];
-  const displayText = prefix + currentWord.slice(0, charIndex);
 
   useEffect(() => {
-    let timeout: NodeJS.Timeout;
-
-    if (!isDeleting && charIndex < currentWord.length) {
-      // Typing the rotating word
-      timeout = setTimeout(() => setCharIndex((c) => c + 1), delay);
-    } else if (!isDeleting && charIndex === currentWord.length) {
-      // Pause after full word is typed
-      timeout = setTimeout(() => setIsDeleting(true), 2000);
-    } else if (isDeleting && charIndex > 0) {
-      // Deleting only the rotating word
-      timeout = setTimeout(() => setCharIndex((c) => c - 1), delay / 2);
-    } else if (isDeleting && charIndex === 0) {
-      // Move to next word
-      setIsDeleting(false);
+    const interval = setInterval(() => {
       setWordIndex((i) => (i + 1) % words.length);
-    }
-
-    return () => clearTimeout(timeout);
-  }, [charIndex, isDeleting, currentWord, delay, words]);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [words]);
 
   return (
     <span>
-      {displayText}
-      <span className="ml-1 inline-block w-[2px] h-[0.8em] bg-primary cursor-blink align-middle" />
+      {prefix}{words[wordIndex]}
     </span>
   );
 };
