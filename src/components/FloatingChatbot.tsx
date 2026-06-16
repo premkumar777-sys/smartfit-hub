@@ -51,6 +51,87 @@ const playNotificationSound = () => {
   }
 };
 
+const parseInlineMarkdown = (text: string) => {
+  const parts: React.ReactNode[] = [];
+  let remaining = text;
+  let keyIdx = 0;
+  
+  while (remaining.length > 0) {
+    const boldMatch = remaining.match(/\*\*(.*?)\*\*/);
+    if (boldMatch && boldMatch.index !== undefined) {
+      if (boldMatch.index > 0) {
+        parts.push(remaining.substring(0, boldMatch.index));
+      }
+      parts.push(
+        <strong key={`bold-${keyIdx++}`} className="font-extrabold text-[#00FF9C]">
+          {boldMatch[1]}
+        </strong>
+      );
+      remaining = remaining.substring(boldMatch.index + boldMatch[0].length);
+    } else {
+      parts.push(remaining);
+      break;
+    }
+  }
+  return parts.length > 0 ? parts : text;
+};
+
+const formatMessageContent = (text: string) => {
+  if (!text) return null;
+  const lines = text.split("\n");
+  
+  return lines.map((line, idx) => {
+    // Headings
+    if (line.startsWith("### ")) {
+      return (
+        <h4 key={idx} className="font-bold text-sm text-white mt-3 mb-1 first:mt-0">
+          {line.slice(4)}
+        </h4>
+      );
+    }
+    if (line.startsWith("## ")) {
+      return (
+        <h3 key={idx} className="font-extrabold text-base text-white mt-4 mb-2 first:mt-0">
+          {line.slice(3)}
+        </h3>
+      );
+    }
+    if (line.startsWith("# ")) {
+      return (
+        <h2 key={idx} className="font-black text-lg text-white mt-4 mb-2 first:mt-0">
+          {line.slice(2)}
+        </h2>
+      );
+    }
+    
+    // Lists
+    const listMatch = line.match(/^[\*\-\+]\s+(.*)/);
+    if (listMatch) {
+      return (
+        <ul key={idx} className="list-disc list-inside ml-2 my-1 text-white/95">
+          <li className="leading-relaxed">{parseInlineMarkdown(listMatch[1])}</li>
+        </ul>
+      );
+    }
+    
+    const numberedMatch = line.match(/^\d+\.\s+(.*)/);
+    if (numberedMatch) {
+      return (
+        <ol key={idx} className="list-decimal list-inside ml-2 my-1 text-white/95">
+          <li className="leading-relaxed">{parseInlineMarkdown(numberedMatch[1])}</li>
+        </ol>
+      );
+    }
+    
+    // Paragraph
+    return (
+      <p key={idx} className="my-1 leading-relaxed break-words min-h-[0.5rem]">
+        {parseInlineMarkdown(line)}
+      </p>
+    );
+  });
+};
+
 export const FloatingChatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -193,8 +274,8 @@ export const FloatingChatbot = () => {
             <div className="relative flex items-center justify-between p-6 border-b border-white/10 bg-white/5">
               <div className="flex items-center gap-4">
                 <div className="relative">
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#00FF9C] to-[#4CC9F0] flex items-center justify-center rotate-3">
-                    <Bot className="w-7 h-7 text-black -rotate-3" />
+                  <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center p-1.5 rotate-3 overflow-hidden shadow-inner">
+                    <img src="/favicon.png" alt="SmartFitAI Logo" className="w-full h-full object-contain -rotate-3" />
                   </div>
                   <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-black animate-pulse" />
                 </div>
@@ -272,13 +353,14 @@ export const FloatingChatbot = () => {
                     {suggestedQuestions.map((question, i) => (
                       <motion.button
                         key={i}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: i * 0.1 }}
                         onClick={() => handleSuggestion(question)}
-                        className="text-xs text-left px-4 py-3 rounded-2xl bg-white/5 hover:bg-white/10 text-white/70 hover:text-white border border-white/5 hover:border-white/20 transition-all duration-300"
+                        className="text-xs text-left px-4 py-3 rounded-2xl bg-white/5 hover:bg-white/10 text-white/80 hover:text-white border border-white/5 hover:border-[#00FF9C]/30 hover:shadow-[0_0_15px_rgba(0,255,156,0.15)] transition-all duration-300 relative group overflow-hidden"
                       >
-                        {question}
+                        <span className="absolute left-0 top-0 h-full w-[3px] bg-[#00FF9C] scale-y-0 group-hover:scale-y-100 transition-transform origin-top duration-300" />
+                        <span className="pl-1.5">{question}</span>
                       </motion.button>
                     ))}
                   </div>
@@ -288,22 +370,44 @@ export const FloatingChatbot = () => {
                   {messages.map((msg, i) => (
                     <motion.div
                       key={i}
-                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      initial={{ opacity: 0, y: 12, scale: 0.96 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
+                      transition={{ duration: 0.3 }}
                       className={cn(
-                        "flex items-end gap-2",
+                        "flex items-start gap-3 my-2",
                         msg.role === "user" ? "flex-row-reverse" : "flex-row"
                       )}
                     >
+                      {/* Avatar */}
+                      <div className={cn(
+                        "w-8 h-8 rounded-xl flex items-center justify-center shrink-0 border shadow-md",
+                        msg.role === "user" 
+                          ? "bg-gradient-to-br from-[#4CC9F0] to-primary border-white/20 text-white font-black text-xs" 
+                          : "bg-white/5 border-white/15 p-1"
+                      )}>
+                        {msg.role === "user" ? (
+                          "ME"
+                        ) : (
+                          <img src="/favicon.png" alt="SmartFitAI Avatar" className="w-full h-full object-contain" />
+                        )}
+                      </div>
+                      
+                      {/* Message Bubble */}
                       <div
                         className={cn(
-                          "max-w-[85%] px-5 py-3.5 rounded-[1.5rem] text-[15px] leading-relaxed shadow-lg",
+                          "max-w-[78%] px-5 py-3.5 rounded-2xl text-[14px] leading-relaxed shadow-lg",
                           msg.role === "user"
-                            ? "bg-gradient-to-br from-[#4CC9F0] to-[#7B2CBF] text-white rounded-br-none"
-                            : "bg-white/10 text-white/90 border border-white/10 backdrop-blur-md rounded-bl-none"
+                            ? "bg-gradient-to-br from-[#4CC9F0] via-primary to-[#7B2CBF] text-white rounded-tr-none"
+                            : "bg-white/5 text-white/90 border border-white/10 backdrop-blur-md rounded-tl-none"
                         )}
                       >
-                        {msg.content}
+                        {msg.role === "user" ? (
+                          <p className="whitespace-pre-wrap">{msg.content}</p>
+                        ) : (
+                          <div className="space-y-1">
+                            {formatMessageContent(msg.content)}
+                          </div>
+                        )}
                       </div>
                     </motion.div>
                   ))}
@@ -312,15 +416,19 @@ export const FloatingChatbot = () => {
 
               {isLoading && (
                 <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="flex justify-start items-center gap-3"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex justify-start items-center gap-3 my-2"
                 >
-                  <div className="bg-white/5 border border-white/10 px-4 py-4 rounded-3xl rounded-bl-none">
-                    <div className="flex gap-2">
-                      <div className="w-2 h-2 bg-[#00FF9C] rounded-full animate-bounce [animation-duration:0.8s]" />
-                      <div className="w-2 h-2 bg-[#4CC9F0] rounded-full animate-bounce [animation-delay:0.2s] [animation-duration:0.8s]" />
-                      <div className="w-2 h-2 bg-[#7B2CBF] rounded-full animate-bounce [animation-delay:0.4s] [animation-duration:0.8s]" />
+                  {/* Avatar placeholder */}
+                  <div className="w-8 h-8 rounded-xl bg-white/5 border border-white/15 flex items-center justify-center shrink-0 p-1 shadow-md animate-pulse">
+                    <img src="/favicon.png" alt="SmartFitAI" className="w-full h-full object-contain opacity-50" />
+                  </div>
+                  <div className="bg-white/5 border border-white/10 px-4 py-3 rounded-2xl rounded-tl-none backdrop-blur-md">
+                    <div className="flex gap-1.5 items-center py-1">
+                      <span className="w-1.5 h-1.5 bg-[#00FF9C] rounded-full animate-bounce [animation-duration:0.8s]" />
+                      <span className="w-1.5 h-1.5 bg-[#4CC9F0] rounded-full animate-bounce [animation-delay:0.15s] [animation-duration:0.8s]" />
+                      <span className="w-1.5 h-1.5 bg-[#7B2CBF] rounded-full animate-bounce [animation-delay:0.3s] [animation-duration:0.8s]" />
                     </div>
                   </div>
                 </motion.div>
