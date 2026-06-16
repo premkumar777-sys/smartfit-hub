@@ -93,7 +93,7 @@ export function WorkoutSummaryCard({
     <div
       id={id}
       className={cn(
-        "relative w-full max-w-md aspect-[4/5] rounded-[32px] overflow-hidden border border-white/10 shadow-2xl p-6 flex flex-col justify-between text-white font-sans select-none transition-all duration-300 hover:border-red-500/20",
+        "relative w-full max-w-md min-h-[480px] h-auto rounded-[32px] overflow-hidden border border-white/10 shadow-2xl p-6 flex flex-col justify-between text-white font-sans select-none transition-all duration-300 hover:border-red-500/20",
         className
       )}
     >
