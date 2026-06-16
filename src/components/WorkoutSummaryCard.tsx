@@ -87,24 +87,25 @@ export function WorkoutSummaryCard({
     }
   }, [userName, userAvatarInitials, userSubtitle]);
 
-  // Default dark gym image if none provided
-  const backgroundStyle = {
-    backgroundImage: `linear-gradient(to bottom, rgba(10, 10, 10, 0.2) 0%, rgba(10, 10, 10, 0.5) 30%, rgba(10, 10, 10, 0.95) 80%), url(${
-      data.photoUrl || "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=600&auto=format&fit=crop"
-    })`,
-    backgroundSize: "cover",
-    backgroundPosition: "center",
-  };
+  const imageUrl = data.photoUrl || "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=600&auto=format&fit=crop";
 
   return (
     <div
       id={id}
-      style={backgroundStyle}
       className={cn(
         "relative w-full max-w-md aspect-[4/5] rounded-[32px] overflow-hidden border border-white/10 shadow-2xl p-6 flex flex-col justify-between text-white font-sans select-none transition-all duration-300 hover:border-red-500/20",
         className
       )}
     >
+      {/* Background Image and Gradient Overlay */}
+      <img
+        src={imageUrl}
+        alt="Workout Background"
+        crossOrigin="anonymous"
+        className="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none"
+      />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/50 to-[#0a0a0a]/95 z-0 pointer-events-none" />
+
       {/* Decorative ambient lighting overlays */}
       <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/10 rounded-full blur-3xl pointer-events-none"></div>
       <div className="absolute bottom-12 left-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
