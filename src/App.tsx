@@ -13,6 +13,8 @@ import { ScrollToTop } from "@/components/ScrollToTop";
 import { Loader2 } from "lucide-react";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import CookieConsent from "@/components/CookieConsent";
+import { MotionConfig } from "framer-motion";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
 
 // Lazy load pages
 const Home = lazy(() => import("./pages/Home"));
@@ -56,13 +58,16 @@ import { BottomNavigation } from "@/components/BottomNavigation";
 const queryClient = new QueryClient();
 
 const App = () => {
+  const prefersReducedMotion = useReducedMotion();
+
   return (
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <InstallPrompt />
+          <MotionConfig reducedMotion={prefersReducedMotion ? "always" : "user"}>
+            <Toaster />
+            <Sonner />
+            <InstallPrompt />
           <BrowserRouter>
             <ScrollToTop />
             <CookieConsent />
@@ -115,6 +120,7 @@ const App = () => {
               <Footer />
             </ErrorBoundary>
           </BrowserRouter>
+          </MotionConfig>
         </TooltipProvider>
       </QueryClientProvider>
     </ThemeProvider>
