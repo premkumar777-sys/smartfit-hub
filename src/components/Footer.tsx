@@ -53,7 +53,7 @@ export function Footer() {
                                     <MessageCircle className="w-4 h-4" />
                                 </a>
                                 <a
-                                    href="https://www.youtube.com/@smartfitai"
+                                    href="https://www.youtube.com/@Smartfitaii-p2m"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="p-2 rounded-lg bg-muted/50 hover:bg-primary/20 text-muted-foreground hover:text-primary transition-colors"
