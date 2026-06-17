@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Container } from "@/components/Container";
-import { Mail, Phone, Instagram, Linkedin, MessageCircle } from "lucide-react";
+import { Mail, Phone, Instagram, Linkedin, MessageCircle, Youtube } from "lucide-react";
 
 export function Footer() {
     const currentYear = new Date().getFullYear();
@@ -51,6 +51,15 @@ export function Footer() {
                                     aria-label="WhatsApp Group"
                                 >
                                     <MessageCircle className="w-4 h-4" />
+                                </a>
+                                <a
+                                    href="https://www.youtube.com/@smartfitai"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="p-2 rounded-lg bg-muted/50 hover:bg-primary/20 text-muted-foreground hover:text-primary transition-colors"
+                                    aria-label="YouTube"
+                                >
+                                    <Youtube className="w-4 h-4" />
                                 </a>
                             </div>
                         </div>
