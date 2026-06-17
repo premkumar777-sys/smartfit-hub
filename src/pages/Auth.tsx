@@ -268,7 +268,7 @@ export default function Auth() {
               {activeTab === "login" ? "Get Started" : "Create Account"}
             </h1>
             <p className="text-sm text-gray-400">
-              {activeTab === "login" ? "Welcome to SmartFitAI — Let's get started" : "Create an account to join SmartFitAI"}
+              {activeTab === "login" ? "Welcome to SmartFitAI" : "Create an account to join SmartFitAI"}
             </p>
           </div>
 
