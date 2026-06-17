@@ -262,6 +262,13 @@ export default function Auth() {
       <div className="flex-1 flex flex-col justify-center items-center p-6 md:p-12 lg:p-16">
         <div className="w-full max-w-md space-y-8">
           
+          {/* Back to Home Link */}
+          <div>
+            <Link to="/" className="text-xs text-gray-500 hover:text-white font-bold transition-colors inline-flex items-center gap-1.5">
+              ← Back to Home
+            </Link>
+          </div>
+
           {/* Form Header */}
           <div className="space-y-2">
             <h1 className="text-3xl font-black tracking-tight">
@@ -451,12 +458,9 @@ export default function Auth() {
           </div>
 
           {/* Footer Actions */}
-          <div className="flex justify-between items-center text-xs text-gray-500 font-bold pt-4 border-t border-white/5">
+          <div className="flex justify-center items-center text-xs text-gray-500 font-bold pt-4 border-t border-white/5">
             <Link to="/auth" onClick={() => toast({ title: "Reset Password", description: "Password reset link sent to your registered email address." })} className="hover:text-white transition-colors">
               Forgot password?
-            </Link>
-            <Link to="/" className="hover:text-white transition-colors flex items-center gap-1.5">
-              ← Back to Home
             </Link>
           </div>
 
