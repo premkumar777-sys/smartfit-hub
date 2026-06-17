@@ -272,9 +272,9 @@ export const FloatingChatbot = () => {
         </div>
 
         {/* Online Status Dot */}
-        <span className="absolute -top-1 -right-1 flex h-4.5 w-4.5 z-20">
+        <span className="absolute -top-1 -right-1 flex h-4 w-4 z-20">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-          <span className="relative inline-flex rounded-full h-4.5 w-4.5 bg-green-500 border-2 border-[#0a0a0a]" />
+          <span className="relative inline-flex rounded-full h-4 w-4 bg-green-500 border-2 border-[#0a0a0a]" />
         </span>
       </motion.button>
 
