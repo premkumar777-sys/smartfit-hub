@@ -246,11 +246,8 @@ export default function Auth() {
         {/* Dark radial and gradient overlays */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/70" />
         
-        {/* Top Branding Logo */}
-        <div className="relative z-10 flex items-center gap-2.5">
-          <img src="/favicon.png" alt="SmartFitAI Logo" className="w-8 h-8 object-contain" />
-          <span className="text-xl font-black uppercase tracking-wider text-white">SmartFitAI</span>
-        </div>
+        {/* Top Spacer */}
+        <div className="relative z-10" />
 
         {/* Bottom Tagline */}
         <div className="relative z-10 space-y-4 max-w-sm">
@@ -267,32 +264,12 @@ export default function Auth() {
           
           {/* Form Header */}
           <div className="space-y-2">
-            <h1 className="text-3xl font-black tracking-tight">Get Started</h1>
+            <h1 className="text-3xl font-black tracking-tight">
+              {activeTab === "login" ? "Get Started" : "Create Account"}
+            </h1>
             <p className="text-sm text-gray-400">
               {activeTab === "login" ? "Welcome to SmartFitAI — Let's get started" : "Create an account to join SmartFitAI"}
             </p>
-          </div>
-
-          {/* Form Tabs Trigger */}
-          <div className="flex bg-white/5 p-1 rounded-xl border border-white/5">
-            <button
-              type="button"
-              onClick={() => setActiveTab("login")}
-              className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${
-                activeTab === "login" ? "bg-white/10 text-white shadow-sm" : "text-gray-400 hover:text-white"
-              }`}
-            >
-              Login
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("signup")}
-              className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${
-                activeTab === "signup" ? "bg-white/10 text-white shadow-sm" : "text-gray-400 hover:text-white"
-              }`}
-            >
-              Sign Up
-            </button>
           </div>
 
           {/* Form Inputs Container */}
@@ -444,6 +421,33 @@ export default function Auth() {
               )}
               <span>Login with Google</span>
             </Button>
+          </div>
+
+          {/* Toggle Tab link for Single Page Layout */}
+          <div className="text-center text-xs text-gray-400 mt-2">
+            {activeTab === "login" ? (
+              <span>
+                Don't have an account?{" "}
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("signup")}
+                  className="text-[#00ff9c] hover:underline font-bold transition-all ml-1"
+                >
+                  Sign Up
+                </button>
+              </span>
+            ) : (
+              <span>
+                Already have an account?{" "}
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("login")}
+                  className="text-[#00ff9c] hover:underline font-bold transition-all ml-1"
+                >
+                  Login
+                </button>
+              </span>
+            )}
           </div>
 
           {/* Footer Actions */}
