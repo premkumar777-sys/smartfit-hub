@@ -237,11 +237,10 @@ export const FloatingChatbot = () => {
 
   return (
     <>
-      {/* Floating Button */}
       <motion.button
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "fixed bottom-24 right-4 lg:bottom-6 lg:right-6 z-[60] w-16 h-16 rounded-2xl flex items-center justify-center",
+          "fixed bottom-24 right-4 lg:bottom-6 lg:right-6 z-[60] w-12 h-12 lg:w-16 lg:h-16 rounded-xl lg:rounded-2xl flex items-center justify-center",
           "bg-[#0a0a0a]/90 border border-white/10 backdrop-blur-md shadow-2xl",
           isOpen && "scale-0 opacity-0 rotate-180"
         )}
@@ -256,13 +255,13 @@ export const FloatingChatbot = () => {
         aria-label="Open chat"
       >
         {/* Animated breathing glow rings */}
-        <div className="absolute -inset-[3px] rounded-2xl bg-gradient-to-tr from-[#00FF9C] via-[#4CC9F0] to-[#7B2CBF] opacity-70 blur-[3px] animate-pulse" />
+        <div className="absolute -inset-[3px] rounded-xl lg:rounded-2xl bg-gradient-to-tr from-[#00FF9C] via-[#4CC9F0] to-[#7B2CBF] opacity-70 blur-[3px] animate-pulse" />
         
         {/* Inner containment card */}
-        <div className="absolute inset-[1px] rounded-[13px] bg-[#0a0a0a] z-0" />
+        <div className="absolute inset-[1px] rounded-[11px] lg:rounded-[13px] bg-[#0a0a0a] z-0" />
         
         {/* Logo containing orb */}
-        <div className="relative z-10 w-11 h-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center p-1.5 overflow-hidden shadow-inner group">
+        <div className="relative z-10 w-8 h-8 lg:w-11 lg:h-11 rounded-lg lg:rounded-xl bg-white/5 border border-white/10 flex items-center justify-center p-1 lg:p-1.5 overflow-hidden shadow-inner group">
           <img 
             src="/favicon.png" 
             alt="SmartFitAI Chatbot Launcher" 
@@ -273,9 +272,9 @@ export const FloatingChatbot = () => {
         </div>
 
         {/* Online Status Dot */}
-        <span className="absolute -top-1 -right-1 flex h-4 w-4 z-20">
+        <span className="absolute -top-1 -right-1 flex h-4.5 w-4.5 z-20">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-          <span className="relative inline-flex rounded-full h-4 w-4 bg-green-500 border-2 border-[#0a0a0a]" />
+          <span className="relative inline-flex rounded-full h-4.5 w-4.5 bg-green-500 border-2 border-[#0a0a0a]" />
         </span>
       </motion.button>
 

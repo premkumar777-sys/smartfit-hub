@@ -8,7 +8,7 @@ export function Footer() {
     return (
         <footer className="bg-card/30 border-t border-border mt-auto">
             <Container>
-                <div className="py-12">
+                <div className="pt-12 pb-28 lg:pb-12">
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                         {/* Brand Column */}
                         <div className="md:col-span-1">
@@ -74,6 +74,7 @@ export function Footer() {
                                 <li><Link to="/3d-trainer" className="text-muted-foreground hover:text-foreground transition-colors">3D Trainer Mode</Link></li>
                                 <li><Link to="/progress" className="text-muted-foreground hover:text-foreground transition-colors">Progress Tracking</Link></li>
                                 <li><Link to="/pricing" className="text-muted-foreground hover:text-foreground transition-colors">Pricing & Plans</Link></li>
+                                <li><Link to="/become-a-coach" className="text-[#00FF9C] hover:text-[#00FF9C]/80 font-bold transition-colors">Join as Trainer / Coach 🤝</Link></li>
                             </ul>
                         </div>
 

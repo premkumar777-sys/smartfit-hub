@@ -36,6 +36,7 @@ const Pricing = lazy(() => import("./pages/Pricing"));
 const GymAnalytics = lazy(() => import("./pages/GymAnalytics"));
 const TrainerTools = lazy(() => import("./pages/TrainerTools"));
 const OnlineCoaching = lazy(() => import("./pages/OnlineCoaching"));
+const BecomeCoach = lazy(() => import("./pages/BecomeCoach"));
 const GymFinder = lazy(() => import("./pages/GymFinder"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
@@ -101,6 +102,7 @@ const AppContent = () => {
             <Route path="/gym-analytics/ai" element={<GymAnalytics />} />
             <Route path="/trainer-tools" element={<TrainerTools />} />
             <Route path="/online-coaching" element={<OnlineCoaching />} />
+            <Route path="/become-a-coach" element={<BecomeCoach />} />
             <Route path="/gyms/*" element={<GymFinder />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsOfService />} />

@@ -683,7 +683,7 @@ export default function Profile() {
     };
 
     return (
-        <div className="min-h-screen pt-24 pb-12 overflow-x-hidden">
+        <div className="min-h-screen pt-24 pb-28 lg:pb-12 overflow-x-hidden">
             <Container>
                 <motion.div
                     initial="hidden"
