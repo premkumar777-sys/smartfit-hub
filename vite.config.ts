@@ -40,8 +40,8 @@ export default defineConfig(({ mode }) => {
         ]
       },
       workbox: {
-        maximumFileSizeToCacheInBytes: 50000000,
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,mp4}'],
+        maximumFileSizeToCacheInBytes: 3000000, // Limit to 3MB per file
+        globPatterns: ['**/*.{js,css,html,ico,png,svg}'], // Exclude MP4 files from startup pre-cache
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/images\.unsplash\.com\/.*/i,
@@ -60,8 +60,7 @@ export default defineConfig(({ mode }) => {
         ]
       },
       devOptions: {
-        enabled: true,
-        type: 'module'
+        enabled: false // Disable service worker in dev mode to speed up local loads/reloads
       }
     })
   ];
