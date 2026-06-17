@@ -66,6 +66,34 @@ const AppContent = () => {
   const isWorkoutSessionPage = location.pathname === "/workout-session";
   const hideLayout = isAuthPage || isWorkoutSessionPage;
 
+  const isConfigMissing = !import.meta.env.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL === 'https://placeholder.supabase.co';
+
+  if (isConfigMissing) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center p-6 text-white text-center">
+        <div className="max-w-md w-full bg-[#111111]/85 backdrop-blur-md p-8 rounded-3xl border border-red-500/20 space-y-6 shadow-2xl">
+          <div className="w-16 h-16 bg-red-500/10 border border-red-500/30 rounded-2xl flex items-center justify-center mx-auto text-red-500 animate-pulse">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-bold">Supabase Configuration Required</h2>
+          <p className="text-gray-400 text-sm leading-relaxed">
+            The application is missing database credentials. Please configure the environment variables on your hosting platform (Vercel, Netlify, etc.):
+          </p>
+          <div className="bg-black/50 p-4 rounded-xl font-mono text-xs text-left space-y-2 border border-white/5">
+            <div className="text-gray-500"># Add these to environment settings:</div>
+            <div><span className="text-[#00FF9C]">VITE_SUPABASE_URL</span>=your_supabase_url</div>
+            <div><span className="text-[#00FF9C]">VITE_SUPABASE_ANON_KEY</span>=your_supabase_anon_key</div>
+          </div>
+          <p className="text-xs text-zinc-500 leading-normal">
+            Note: After adding them to your deployment dashboard, you must trigger a new deploy/build for the bundler to embed them.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <MotionConfig reducedMotion={prefersReducedMotion ? "always" : "user"}>
       <Toaster />
