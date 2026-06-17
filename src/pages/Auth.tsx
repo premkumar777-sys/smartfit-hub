@@ -259,8 +259,8 @@ export default function Auth() {
       </div>
 
       {/* Right-side Form panel */}
-      <div className="flex-1 flex flex-col justify-center items-center p-6 md:p-12 lg:p-16">
-        <div className="w-full max-w-md space-y-8">
+      <div className="flex-1 flex flex-col justify-center items-center py-6 px-4 md:py-10 md:px-12 min-h-screen">
+        <div className="w-full max-w-md space-y-5">
           
           {/* Back to Home Link */}
           <div>
@@ -281,8 +281,8 @@ export default function Auth() {
 
           {/* Form Inputs Container */}
           {activeTab === "login" ? (
-            <form onSubmit={handleLogin} className="space-y-5">
-              <div className="space-y-2">
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div className="space-y-1.5">
                 <Label htmlFor="login-email" className="text-[10px] font-black uppercase tracking-wider text-gray-400">Email Address</Label>
                 <div className="relative">
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
@@ -291,14 +291,14 @@ export default function Auth() {
                     name="email"
                     type="email"
                     placeholder="name@smartfitai.in"
-                    className="pl-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-[#00ff9c] focus:ring-[#00ff9c] text-white rounded-xl h-12 transition-all"
+                    className="pl-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-[#00ff9c] focus:ring-[#00ff9c] text-white rounded-xl h-11 transition-all"
                     required
                     maxLength={255}
                   />
                 </div>
               </div>
               
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label htmlFor="login-password" className="text-[10px] font-black uppercase tracking-wider text-gray-400">Password</Label>
                 <div className="relative">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
@@ -307,7 +307,7 @@ export default function Auth() {
                     name="password"
                     type="password"
                     placeholder="••••••••"
-                    className="pl-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-[#00ff9c] focus:ring-[#00ff9c] text-white rounded-xl h-12 transition-all"
+                    className="pl-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-[#00ff9c] focus:ring-[#00ff9c] text-white rounded-xl h-11 transition-all"
                     required
                     minLength={8}
                     maxLength={100}
@@ -317,7 +317,7 @@ export default function Auth() {
 
               <Button 
                 type="submit" 
-                className="w-full bg-[#00ff9c] hover:bg-[#00e08b] text-black font-black h-12 rounded-xl transition-all uppercase text-xs tracking-wider"
+                className="w-full bg-[#00ff9c] hover:bg-[#00e08b] text-black font-black h-11 rounded-xl transition-all uppercase text-xs tracking-wider"
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -331,8 +331,8 @@ export default function Auth() {
               </Button>
             </form>
           ) : (
-            <form onSubmit={handleSignup} className="space-y-5">
-              <div className="space-y-2">
+            <form onSubmit={handleSignup} className="space-y-4">
+              <div className="space-y-1.5">
                 <Label htmlFor="signup-username" className="text-[10px] font-black uppercase tracking-wider text-gray-400">Username</Label>
                 <div className="relative">
                   <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
@@ -341,7 +341,7 @@ export default function Auth() {
                     name="username"
                     type="text"
                     placeholder="Your username"
-                    className="pl-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-[#00ff9c] focus:ring-[#00ff9c] text-white rounded-xl h-12 transition-all"
+                    className="pl-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-[#00ff9c] focus:ring-[#00ff9c] text-white rounded-xl h-11 transition-all"
                     required
                     minLength={2}
                     maxLength={50}
@@ -349,7 +349,7 @@ export default function Auth() {
                 </div>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label htmlFor="signup-email" className="text-[10px] font-black uppercase tracking-wider text-gray-400">Email Address</Label>
                 <div className="relative">
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
@@ -358,14 +358,14 @@ export default function Auth() {
                     name="email"
                     type="email"
                     placeholder="name@smartfitai.in"
-                    className="pl-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-[#00ff9c] focus:ring-[#00ff9c] text-white rounded-xl h-12 transition-all"
+                    className="pl-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-[#00ff9c] focus:ring-[#00ff9c] text-white rounded-xl h-11 transition-all"
                     required
                     maxLength={255}
                   />
                 </div>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label htmlFor="signup-password" className="text-[10px] font-black uppercase tracking-wider text-gray-400">Password</Label>
                 <div className="relative">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
@@ -374,7 +374,7 @@ export default function Auth() {
                     name="password"
                     type="password"
                     placeholder="••••••••"
-                    className="pl-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-[#00ff9c] focus:ring-[#00ff9c] text-white rounded-xl h-12 transition-all"
+                    className="pl-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-[#00ff9c] focus:ring-[#00ff9c] text-white rounded-xl h-11 transition-all"
                     required
                     minLength={8}
                     maxLength={100}
@@ -387,7 +387,7 @@ export default function Auth() {
 
               <Button 
                 type="submit" 
-                className="w-full bg-[#00ff9c] hover:bg-[#00e08b] text-black font-black h-12 rounded-xl transition-all uppercase text-xs tracking-wider"
+                className="w-full bg-[#00ff9c] hover:bg-[#00e08b] text-black font-black h-11 rounded-xl transition-all uppercase text-xs tracking-wider"
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -417,7 +417,7 @@ export default function Auth() {
             <Button
               type="button"
               variant="outline"
-              className="w-full flex items-center justify-center gap-2.5 h-12 bg-transparent border-white/10 hover:bg-white/5 hover:text-white rounded-xl text-white font-bold transition-all text-xs"
+              className="w-full flex items-center justify-center gap-2.5 h-11 bg-transparent border-white/10 hover:bg-white/5 hover:text-white rounded-xl text-white font-bold transition-all text-xs"
               onClick={handleGoogleLogin}
               disabled={isGoogleLoading}
             >
