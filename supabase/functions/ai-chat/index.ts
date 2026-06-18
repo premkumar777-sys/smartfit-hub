@@ -59,12 +59,27 @@ serve(async (req) => {
 
 
     const { message, conversationHistory } = await req.json();
-    const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
+    let GROQ_API_KEY = Deno.env.get("GROQ_API_KEY") || "";
+
+    if (!GROQ_API_KEY) {
+      console.log("GROQ_API_KEY environment variable not found, trying user profile fallback...");
+      const { data: profile } = await supabaseClient
+        .from("profiles")
+        .select("preferences")
+        .eq("id", user.id)
+        .single();
+      
+      GROQ_API_KEY = (profile?.preferences as any)?.groq_api_key || "";
+    }
+
+    if (GROQ_API_KEY) {
+      GROQ_API_KEY = GROQ_API_KEY.replace(/^["']|["']$/g, '').trim();
+    }
 
     if (!GROQ_API_KEY) {
       console.error("GROQ_API_KEY is not configured");
       return new Response(
-        JSON.stringify({ error: "AI service not configured. Please add GROQ_API_KEY to secrets." }),
+        JSON.stringify({ error: "AI service not configured. Please add your Groq API key in Settings or .env" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }

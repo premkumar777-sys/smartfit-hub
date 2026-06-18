@@ -55,6 +55,7 @@ interface UserPreferences {
     defaultDuration: number;
     defaultDifficulty: string;
     showOnLeaderboard: boolean;
+    groq_api_key?: string;
 }
 
 const DEFAULT_PREFERENCES: UserPreferences = {
@@ -71,6 +72,7 @@ const DEFAULT_PREFERENCES: UserPreferences = {
     defaultDuration: 30,
     defaultDifficulty: "intermediate",
     showOnLeaderboard: true,
+    groq_api_key: "",
 };
 
 const ACCENT_COLORS = [
@@ -94,6 +96,7 @@ export default function Settings() {
     const [user, setUser] = useState<any>(null);
     const [preferences, setPreferences] = useState<UserPreferences>(DEFAULT_PREFERENCES);
     const [hasChanges, setHasChanges] = useState(false);
+    const [showGroqKey, setShowGroqKey] = useState(false);
 
     // Change password state
     const [showPasswordForm, setShowPasswordForm] = useState(false);
@@ -409,6 +412,35 @@ export default function Settings() {
                                             <SelectItem value="advanced">🔴 Advanced</SelectItem>
                                         </SelectContent>
                                     </Select>
+                                </div>
+
+                                {/* Groq API Key */}
+                                <div className="pt-4 border-t border-white/5 space-y-3">
+                                    <div className="space-y-0.5">
+                                        <Label className="text-base font-semibold flex items-center gap-2">
+                                            <Key className="w-4 h-4 text-primary" />
+                                            Groq API Key
+                                        </Label>
+                                        <p className="text-sm text-muted-foreground">
+                                            Configure your Groq API key to power AI food scanning and meal planner.
+                                        </p>
+                                    </div>
+                                    <div className="relative flex items-center">
+                                        <Input
+                                            type={showGroqKey ? "text" : "password"}
+                                            placeholder="Enter your Groq API key (gsk_...)"
+                                            value={preferences.groq_api_key || ""}
+                                            onChange={(e) => handlePref(p => ({ ...p, groq_api_key: e.target.value }))}
+                                            className="pr-10 bg-white/5 border-white/10 text-white font-mono placeholder:text-white/20 focus-visible:ring-primary/50"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowGroqKey(!showGroqKey)}
+                                            className="absolute right-3 text-white/50 hover:text-white transition-colors"
+                                        >
+                                            {showGroqKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                        </button>
+                                    </div>
                                 </div>
                             </CardContent>
                         </Card>
