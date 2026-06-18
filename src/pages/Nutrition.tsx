@@ -224,65 +224,26 @@ export default function Nutrition() {
     setIsGeneratingPlan(true);
 
     try {
-      let groqKey = import.meta.env.VITE_GROQ_API_KEY || "";
-      if (!groqKey) {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("preferences")
-            .eq("id", user.id)
-            .single();
-          groqKey = (profile?.preferences as any)?.groq_api_key || "";
+      const { data, error } = await supabase.functions.invoke('nutrition-ai', {
+        body: {
+          type: 'meal-plan',
+          calories: result.calories,
+          protein: result.protein,
+          carbs: result.carbs,
+          fats: result.fats,
+          dietaryPreference
         }
-      }
-
-      groqKey = groqKey.replace(/^["']|["']$/g, '').trim();
-
-      if (!groqKey) {
-        toast.error("AI Assistant Unavailable", { description: "Please add your Groq API key in Settings or .env" });
-        setIsGeneratingPlan(false);
-        return;
-      }
-
-      const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${groqKey}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          model: "llama-3.1-8b-instant",
-          messages: [
-            {
-              role: "system",
-              content: `You are a high-performance Nutrition AI. Create a detailed 1-day meal plan for a user with the following targets:
-              Calories: ${result.calories} kcal
-              Protein: ${result.protein}g
-              Carbs: ${result.carbs}g
-              Fats: ${result.fats}g
-              Dietary Preference: ${dietaryPreference.toUpperCase()}
-              
-              FORMAT:
-              - Breakfast (Time, Name, Macros, Ingredients)
-              - Lunch (Time, Name, Macros, Ingredients)
-              - Snack (Time, Name, Macros, Ingredients)
-              - Dinner (Time, Name, Macros, Ingredients)
-              
-              Keep it highly professional, science-based, and appetizing.`
-            },
-            {
-              role: "user",
-              content: `Generate a ${dietaryPreference} meal plan for today.`
-            }
-          ]
-        })
       });
 
-      if (!response.ok) throw new Error(`Groq API Error: ${response.status}`);
+      if (error) {
+        if (error.message?.includes("API key") || error.message?.includes("not configured")) {
+          toast.error("AI Assistant Unavailable", { description: "Please add your Groq API key in Settings" });
+          return;
+        }
+        throw error;
+      }
 
-      const data = await response.json();
-      setMealPlan(data.choices[0].message.content);
+      setMealPlan(data.mealPlan);
       toast.success("Precision Meal Plan generated!");
     } catch (error: any) {
       console.error("Meal Plan Error:", error);
