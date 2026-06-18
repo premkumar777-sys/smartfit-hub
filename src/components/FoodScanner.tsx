@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, X, Info, Sparkles, TrendingUp, Send, CheckCircle2, Zap } from "lucide-react";
+import { Loader2, X, Info, Sparkles, TrendingUp, Send, CheckCircle2, Zap, Key, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
@@ -16,6 +16,11 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
     const [result, setResult] = useState<{ name: string; calories: number; protein: number; carbs: number; fats: number } | null>(null);
     const [quotaExceeded, setQuotaExceeded] = useState(false);
     const [isLogging, setIsLogging] = useState(false);
+    const [hasKey, setHasKey] = useState<boolean | null>(null);
+    const [inputKey, setInputKey] = useState("");
+    const [showKeyInput, setShowKeyInput] = useState(false);
+    const [savingKey, setSavingKey] = useState(false);
+    const [showEditKey, setShowEditKey] = useState(false);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
     // Auto-resize textarea
@@ -25,6 +30,27 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
             textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 120) + "px";
         }
     }, [searchQuery]);
+
+    // Check for key on mount
+    useEffect(() => {
+        const checkKey = async () => {
+            let key = import.meta.env.VITE_GROQ_API_KEY || "";
+            if (!key) {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user) {
+                    const { data: profile } = await supabase
+                        .from("profiles")
+                        .select("preferences")
+                        .eq("id", user.id)
+                        .single();
+                    key = (profile?.preferences as any)?.groq_api_key || "";
+                }
+            }
+            key = key.replace(/^["']|["']$/g, '').trim();
+            setHasKey(!!key);
+        };
+        checkKey();
+    }, []);
 
     const handleLogMeal = async () => {
         if (!result) return;
@@ -68,6 +94,54 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
         }
     };
 
+    const handleSaveKey = async () => {
+        if (!inputKey.trim()) {
+            toast.error("Please enter a valid Groq API key");
+            return;
+        }
+        setSavingKey(true);
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                toast.error("Please login to save settings");
+                setSavingKey(false);
+                return;
+            }
+
+            const { data: profile } = await supabase
+                .from("profiles")
+                .select("preferences")
+                .eq("id", user.id)
+                .single();
+
+            const currentPrefs = profile?.preferences ? (profile.preferences as any) : {};
+            const updatedPrefs = {
+                ...currentPrefs,
+                groq_api_key: inputKey.trim()
+            };
+
+            const { error } = await supabase
+                .from("profiles")
+                .update({
+                    preferences: updatedPrefs,
+                    updated_at: new Date().toISOString()
+                })
+                .eq("id", user.id);
+
+            if (error) throw error;
+
+            toast.success("Groq API key saved and activated! 🔑");
+            setHasKey(true);
+            setShowEditKey(false);
+            setInputKey("");
+        } catch (err: any) {
+            console.error("Error saving Groq key:", err);
+            toast.error("Failed to save API key", { description: err.message });
+        } finally {
+            setSavingKey(false);
+        }
+    };
+
     const analyzeText = async (query: string) => {
         if (!query.trim()) return;
         setLoading(true);
@@ -95,6 +169,7 @@ export function FoodScanner({ onScanComplete }: FoodScannerProps) {
 
             if (!groqKey) {
                 toast.error("AI Assistant Unavailable", { description: "Please add your Groq API key in Settings or .env" });
+                setHasKey(false);
                 setLoading(false);
                 return;
             }
@@ -181,30 +256,119 @@ RULES:
             <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-50 pointer-events-none" />
             
             <CardHeader className="pb-4 relative z-10">
-                <div className="flex items-center gap-3 mb-1">
-                    <motion.div 
-                        initial={{ rotate: -10 }}
-                        animate={{ rotate: 10 }}
-                        transition={{ repeat: Infinity, duration: 2, repeatType: "reverse", ease: "easeInOut" }}
-                        className="p-2.5 rounded-xl bg-primary/10 border border-primary/30 shadow-[0_0_15px_rgba(var(--primary),0.2)]"
-                    >
-                        <Sparkles className="w-5 h-5 text-primary" />
-                    </motion.div>
-                    <div>
-                        <CardTitle className="text-xl font-black tracking-tight text-white flex items-center gap-2">
-                            Food Scanner
-                            <span className="px-2 py-0.5 rounded-full bg-primary/20 text-primary text-[9px] uppercase tracking-[0.2em] font-black border border-primary/30">AI Lens</span>
-                        </CardTitle>
-                        <CardDescription className="text-white/50 text-xs">
-                            Type what you ate and let AI decode the nutrients instantly.
-                        </CardDescription>
+                <div className="flex items-center justify-between gap-3 mb-1 w-full">
+                    <div className="flex items-center gap-3">
+                        <motion.div 
+                            initial={{ rotate: -10 }}
+                            animate={{ rotate: 10 }}
+                            transition={{ repeat: Infinity, duration: 2, repeatType: "reverse", ease: "easeInOut" }}
+                            className="p-2.5 rounded-xl bg-primary/10 border border-primary/30 shadow-[0_0_15px_rgba(var(--primary),0.2)]"
+                        >
+                            <Sparkles className="w-5 h-5 text-primary" />
+                        </motion.div>
+                        <div>
+                            <CardTitle className="text-xl font-black tracking-tight text-white flex items-center gap-2">
+                                Food Scanner
+                                <span className="px-2 py-0.5 rounded-full bg-primary/20 text-primary text-[9px] uppercase tracking-[0.2em] font-black border border-primary/30">AI Lens</span>
+                            </CardTitle>
+                            <CardDescription className="text-white/50 text-xs">
+                                Type what you ate and let AI decode the nutrients instantly.
+                            </CardDescription>
+                        </div>
                     </div>
+                    {hasKey && (
+                        <button
+                            onClick={() => {
+                                setShowEditKey(!showEditKey);
+                                setInputKey("");
+                            }}
+                            title="Configure Groq API Key"
+                            className="p-2 rounded-lg bg-white/5 border border-white/10 text-white/60 hover:text-white hover:bg-white/10 transition-all ml-auto relative z-20"
+                        >
+                            <Key className="w-4 h-4" />
+                        </button>
+                    )}
                 </div>
             </CardHeader>
             
             <CardContent className="space-y-4 relative z-10">
                 <AnimatePresence mode="wait">
-                    {!result ? (
+                    {hasKey === null ? (
+                        <div className="flex items-center justify-center py-8">
+                            <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                        </div>
+                    ) : (!hasKey || showEditKey) ? (
+                        <motion.div
+                            key="key-config"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            transition={{ duration: 0.3 }}
+                            className="space-y-4"
+                        >
+                            <div className="p-4 rounded-2xl bg-primary/5 border border-primary/10 space-y-3">
+                                <div className="flex items-start gap-3">
+                                    <div className="p-2 rounded-xl bg-primary/10 border border-primary/20 text-primary mt-0.5">
+                                        <Key className="w-4 h-4" />
+                                    </div>
+                                    <div className="space-y-1 flex-1">
+                                        <h4 className="text-sm font-bold text-white">Configure Groq API Key</h4>
+                                        <p className="text-xs text-white/50 leading-relaxed">
+                                            A Groq API key is required to power the food scanner and meal planner. Get a free key from the{" "}
+                                            <a
+                                                href="https://console.groq.com/keys"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-primary hover:underline font-semibold"
+                                            >
+                                                Groq Console
+                                            </a>.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2 pt-2">
+                                    <div className="relative flex items-center">
+                                        <input
+                                            type={showKeyInput ? "text" : "password"}
+                                            placeholder="gsk_..."
+                                            value={inputKey}
+                                            onChange={(e) => setInputKey(e.target.value)}
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl p-3 pr-10 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 text-white font-mono placeholder:text-white/20"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowKeyInput(!showKeyInput)}
+                                            className="absolute right-3 text-white/50 hover:text-white transition-colors"
+                                        >
+                                            {showKeyInput ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                        </button>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <Button
+                                            onClick={handleSaveKey}
+                                            disabled={savingKey || !inputKey.trim()}
+                                            className="flex-1 bg-primary hover:bg-primary/90 text-black font-bold h-10 rounded-xl transition-all"
+                                        >
+                                            {savingKey ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save & Activate"}
+                                        </Button>
+                                        {hasKey && (
+                                            <Button
+                                                onClick={() => {
+                                                    setShowEditKey(false);
+                                                    setInputKey("");
+                                                }}
+                                                variant="outline"
+                                                className="h-10 bg-white/5 border-white/10 hover:bg-white/10 hover:text-white transition-all rounded-xl"
+                                            >
+                                                Cancel
+                                            </Button>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </motion.div>
+                    ) : !result ? (
                         <motion.div 
                             key="input"
                             initial={{ opacity: 0, y: 10 }}
