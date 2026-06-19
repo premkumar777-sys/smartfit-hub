@@ -8,7 +8,6 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, TrendingUp, Info, Scale, Ruler, User, Target, Zap, Waves, Sparkles, Activity as ActivityIcon, TrendingDown, History, Utensils, Calendar } from "lucide-react";
-import { FoodScanner } from "@/components/FoodScanner";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { motion } from "framer-motion";
 
@@ -294,18 +293,9 @@ export default function Nutrition() {
 
         <div className="grid lg:grid-cols-12 gap-8">
           
-          {/* Top Row: FoodScanner & Daily Target */}
-          <div className="lg:col-span-12 grid lg:grid-cols-12 gap-8">
-            
-            {/* Macro AI - Left Side */}
-            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }} className="lg:col-span-5 flex flex-col h-full">
-               <FoodScanner onScanComplete={() => { 
-                   // Refresh local history logic could go here, or we wait for state sync
-               }} />
-            </motion.div>
-
-            {/* Daily Target Dashboard - Right Side */}
-            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 }} className="lg:col-span-7">
+          {/* Top Row: Daily Target */}
+          <div className="lg:col-span-12">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="w-full">
               <Card className="h-full bg-white/5 border-white/10 backdrop-blur-2xl rounded-3xl overflow-hidden shadow-2xl flex flex-col">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-[80px] pointer-events-none" />
                 <CardHeader className="border-b border-white/5 pb-4 relative z-10">
