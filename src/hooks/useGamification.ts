@@ -103,11 +103,24 @@ export function useGamification() {
                 // Fetch from Supabase
                 const { data: profile, error } = await supabase
                     .from("profiles")
-                    .select("xp, level, streak, avatar_emoji, total_workouts, chat_sessions, progress_logs")
+                    .select("xp, level, streak, avatar_emoji, total_workouts, chat_sessions, progress_logs, updated_at")
                     .eq("id", session.user.id)
                     .single();
 
                 if (!error && profile) {
+                    const dbLastActivityDate = profile.updated_at ? new Date(profile.updated_at).toDateString() : null;
+                    let resolvedLastActivityDate = dbLastActivityDate;
+                    const localDateStr = initialData.lastActivityDate;
+                    if (localDateStr && dbLastActivityDate) {
+                        const localTime = new Date(localDateStr).getTime();
+                        const dbTime = new Date(dbLastActivityDate).getTime();
+                        if (localTime > dbTime) {
+                            resolvedLastActivityDate = localDateStr;
+                        }
+                    } else if (localDateStr) {
+                        resolvedLastActivityDate = localDateStr;
+                    }
+
                     initialData = {
                         ...initialData,
                         xp: profile.xp || initialData.xp,
@@ -115,6 +128,7 @@ export function useGamification() {
                         totalWorkouts: profile.total_workouts || initialData.totalWorkouts,
                         chatSessions: profile.chat_sessions || initialData.chatSessions,
                         progressLogs: profile.progress_logs || initialData.progressLogs,
+                        lastActivityDate: resolvedLastActivityDate,
                     };
                 }
             }
@@ -147,7 +161,8 @@ export function useGamification() {
                         streak: data.currentStreak,
                         total_workouts: data.totalWorkouts,
                         chat_sessions: data.chatSessions,
-                        progress_logs: data.progressLogs
+                        progress_logs: data.progressLogs,
+                        updated_at: new Date().toISOString()
                     })
                     .eq("id", session.user.id);
             }
@@ -333,6 +348,7 @@ export function useGamification() {
 
         const today = new Date().toDateString();
         const yesterday = new Date(Date.now() - 86400000).toDateString();
+        const xpToAdd = data.lastProgressLogDate === today ? 0 : XP_REWARDS.PROGRESS_LOG;
 
         setData(prev => {
             let streakData = {};
@@ -353,14 +369,14 @@ export function useGamification() {
             const isAlreadyLoggedToday = prev.lastProgressLogDate === today;
             const newLogs = prev.progressLogs + 1;
 
-            // Only award XP if not already logged today
-            const xpToAdd = isAlreadyLoggedToday ? 0 : XP_REWARDS.PROGRESS_LOG;
+            // Only award XP if not already logged today (using prev to be absolutely safe for state)
+            const safeXpToAdd = isAlreadyLoggedToday ? 0 : XP_REWARDS.PROGRESS_LOG;
 
             const updatedData = {
                 ...prev,
                 ...streakData,
                 progressLogs: newLogs,
-                xp: prev.xp + xpToAdd,
+                xp: prev.xp + safeXpToAdd,
                 lastProgressLogDate: today,
             };
 
@@ -376,16 +392,16 @@ export function useGamification() {
                 updatedData.unlockedAchievements = [...prev.unlockedAchievements, ...newAchievements];
             }
 
-            if (xpToAdd > 0) {
-                console.log(`[Gamification] Progress log recorded. XP awarded: ${xpToAdd}. Total XP: ${updatedData.xp}`);
+            if (safeXpToAdd > 0) {
+                console.log(`[Gamification] Progress log recorded. XP awarded: ${safeXpToAdd}. Total XP: ${updatedData.xp}`);
             } else {
                 console.log(`[Gamification] Progress log recorded. Daily XP limit reached.`);
             }
             return updatedData;
         });
 
-        return XP_REWARDS.PROGRESS_LOG;
-    }, [checkAchievements, logActivity]);
+        return xpToAdd;
+    }, [checkAchievements, logActivity, data.lastProgressLogDate]);
 
     // Record daily login
     const recordDailyLogin = useCallback(() => {
@@ -393,13 +409,18 @@ export function useGamification() {
         const yesterday = new Date(Date.now() - 86400000).toDateString();
 
         setData(prev => {
-            if (prev.lastActivityDate === today) return prev;
+            if (prev.lastActivityDate === today && prev.currentStreak > 0) return prev;
 
             let newStreak = prev.currentStreak;
 
             if (prev.lastActivityDate === yesterday) {
                 // Consecutive day - increase streak
                 newStreak = prev.currentStreak + 1;
+            } else if (!prev.lastActivityDate) {
+                // If lastActivityDate is null (new device or cleared localStorage),
+                // but there's an existing streak from Supabase, preserve it.
+                // Otherwise start a new streak at 1.
+                newStreak = prev.currentStreak > 0 ? prev.currentStreak : 1;
             } else {
                 // Streak broken - reset to 1
                 newStreak = 1;

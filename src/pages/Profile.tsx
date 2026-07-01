@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Container } from "@/components/Container";
@@ -24,6 +24,7 @@ import {
     Crown,
     Loader2,
     CheckCircle,
+    Check,
     Camera,
     MapPin,
     BookOpen,
@@ -33,11 +34,17 @@ import {
     ChevronRight,
     Share2,
     Settings,
-    MoreVertical
+    MoreVertical,
+    Trash2,
+    Sparkles,
+    Download,
+    Plus
 } from "lucide-react";
 import { toast } from "sonner";
 import { useSubscription } from "@/hooks/useSubscription";
 import { Tables } from "@/integrations/supabase/types";
+import { useAuth } from "@/hooks/use-auth";
+import { useGamification } from "@/hooks/useGamification";
 import {
     Sheet,
     SheetContent,
@@ -49,6 +56,12 @@ import {
 } from "@/components/ui/sheet";
 import { Progress } from "@/components/ui/progress";
 import { motion, AnimatePresence } from "framer-motion";
+import { AreaChart, Area, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts";
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { WorkoutSummaryCard, WorkoutSummaryData } from "@/components/WorkoutSummaryCard";
+import { WorkoutSummaryLogModal } from "@/components/WorkoutSummaryLogModal";
+import { toPng } from "html-to-image";
 
 const containerVariants = {
     hidden: { opacity: 0 },
@@ -73,6 +86,12 @@ const itemVariants = {
     }
 };
 
+const tabContentVariants = {
+    initial: { opacity: 0, y: 15 },
+    animate: { opacity: 1, y: 0, transition: { duration: 0.2 } },
+    exit: { opacity: 0, y: -15, transition: { duration: 0.2 } }
+};
+
 type ProfileBase = Tables<"profiles">;
 type Profile = ProfileBase & {
     full_name?: string;
@@ -87,14 +106,7 @@ type Profile = ProfileBase & {
 };
 type Workout = Tables<"workouts">;
 
-interface StreakData {
-    currentStreak: number;
-    bestStreak: number;
-    lastActiveDate: string;
-    totalActiveDays: number;
-}
-
-const STREAK_STORAGE_KEY = "smartfit-streak-data";
+// StreakData and STREAK_STORAGE_KEY removed in favor of useGamification
 
 const getStreakBadge = (streak: number) => {
     if (streak >= 100) return { label: "Fitness Legend", icon: "🏆", color: "bg-yellow-500" };
@@ -116,13 +128,45 @@ const FITNESS_GOALS = [
 export default function Profile() {
     const navigate = useNavigate();
     const { hasPremiumAccess } = useSubscription();
+    const gamification = useGamification();
+    const { user: authUser, isLoading: authLoading } = useAuth();
 
     const [user, setUser] = useState<any>(null);
     const [profile, setProfile] = useState<Profile | null>(null);
     const [workouts, setWorkouts] = useState<Workout[]>([]);
+    const [allWorkouts, setAllWorkouts] = useState<Workout[]>([]);
+    const [completedWorkouts, setCompletedWorkouts] = useState<WorkoutSummaryData[]>([]);
+    const [selectedWorkoutForCard, setSelectedWorkoutForCard] = useState<WorkoutSummaryData | null>(null);
+    const [selectedWorkoutForView, setSelectedWorkoutForView] = useState<Workout | null>(null);
+    const [isLogModalOpen, setIsLogModalOpen] = useState(false);
+    const [progressLogs, setProgressLogs] = useState<any[]>([]);
+    const [activeTab, setActiveTab] = useState<string>("summary");
     const [loading, setLoading] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
     const [saving, setSaving] = useState(false);
+
+    const heatmapScrollRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (activeTab === "summary" && !loading) {
+            const timer = setTimeout(() => {
+                if (heatmapScrollRef.current) {
+                    const container = heatmapScrollRef.current;
+                    const currentMonth = new Date().getMonth(); // 0 to 11
+                    const maxScroll = container.scrollWidth - container.clientWidth;
+                    if (maxScroll > 0) {
+                        const targetX = (container.scrollWidth * (currentMonth / 12));
+                        const centeredX = targetX - (container.clientWidth / 2) + 20;
+                        container.scrollTo({
+                            left: Math.max(0, Math.min(maxScroll, centeredX)),
+                            behavior: "smooth"
+                        });
+                    }
+                }
+            }, 300);
+            return () => clearTimeout(timer);
+        }
+    }, [activeTab, loading, allWorkouts]);
 
     // Edit form state
     const [editUsername, setEditUsername] = useState("");
@@ -132,119 +176,22 @@ export default function Profile() {
     const [editGoal, setEditGoal] = useState("");
     const [uploading, setUploading] = useState(false);
 
-    // Streak state
-    const [streak, setStreak] = useState<StreakData>({
-        currentStreak: 0,
-        bestStreak: 0,
-        lastActiveDate: "",
-        totalActiveDays: 0
-    });
-
-    // Load and update streak
-    useEffect(() => {
-        const loadStreak = async () => {
-            const { data: { user: authUser } } = await supabase.auth.getUser();
-            const stored = localStorage.getItem(STREAK_STORAGE_KEY);
-            const today = new Date().toISOString().split('T')[0];
-
-            let currentStreakData: StreakData | null = null;
-
-            // Priority 1: Load from Supabase (Source of Truth)
-            if (authUser) {
-                const { data: profileData } = await supabase
-                    .from('profiles')
-                    .select('streak, updated_at')
-                    .eq('id', authUser.id)
-                    .single();
-
-                if (profileData) {
-                    currentStreakData = {
-                        currentStreak: profileData.streak || 0,
-                        bestStreak: profileData.streak || 0, // Fallback to current if best not in schema yet
-                        lastActiveDate: profileData.updated_at?.split('T')[0] || "",
-                        totalActiveDays: profileData.streak || 0
-                    };
-                }
-            }
-
-            // Priority 2: Fallback to LocalStorage if not logged in or profile missing
-            if (!currentStreakData && stored) {
-                currentStreakData = JSON.parse(stored);
-            }
-
-            if (!currentStreakData) {
-                // Initialize new user if no data found
-                currentStreakData = {
-                    currentStreak: 0,
-                    bestStreak: 0,
-                    lastActiveDate: "",
-                    totalActiveDays: 0
-                };
-            }
-
-            const lastDate = currentStreakData.lastActiveDate;
-            let newStreak: StreakData;
-
-            if (lastDate === today) {
-                // Already logged in today
-                setStreak(currentStreakData);
-                return;
-            } else {
-                const yesterday = new Date();
-                yesterday.setDate(yesterday.getDate() - 1);
-                const yesterdayStr = yesterday.toISOString().split('T')[0];
-
-                if (lastDate === yesterdayStr) {
-                    // Consecutive day - increment streak
-                    newStreak = {
-                        currentStreak: currentStreakData.currentStreak + 1,
-                        bestStreak: Math.max(currentStreakData.bestStreak, currentStreakData.currentStreak + 1),
-                        lastActiveDate: today,
-                        totalActiveDays: currentStreakData.totalActiveDays + 1
-                    };
-                } else {
-                    // Missed days - reset streak
-                    newStreak = {
-                        currentStreak: 1,
-                        bestStreak: currentStreakData.bestStreak,
-                        lastActiveDate: today,
-                        totalActiveDays: currentStreakData.totalActiveDays + 1
-                    };
-                }
-            }
-
-            localStorage.setItem(STREAK_STORAGE_KEY, JSON.stringify(newStreak));
-            setStreak(newStreak);
-
-            // Sync to Supabase if logged in
-            if (authUser) {
-                await supabase
-                    .from('profiles')
-                    .upsert({ id: authUser.id, streak: newStreak.currentStreak }, { onConflict: 'id' });
-            }
-        };
-
-        loadStreak();
-    }, []);
+    // Map streak from central gamification hook
+    const streak = {
+        currentStreak: gamification.currentStreak,
+        bestStreak: gamification.longestStreak,
+        totalActiveDays: gamification.totalWorkouts || gamification.currentStreak
+    };
 
     // Load user data
     useEffect(() => {
-        const loadUserData = async () => {
+        const loadUserData = async (userId: string) => {
             try {
-                const { data: { user: authUser } } = await supabase.auth.getUser();
-
-                if (!authUser) {
-                    navigate("/auth");
-                    return;
-                }
-
-                setUser(authUser);
-
                 // Load profile
                 const { data: profileData } = await supabase
                     .from('profiles')
                     .select('*')
-                    .eq('id', authUser.id)
+                    .eq('id', userId)
                     .single();
 
                 if (profileData) {
@@ -260,13 +207,77 @@ export default function Profile() {
                 const { data: workoutsData } = await supabase
                     .from('workouts')
                     .select('*')
-                    .eq('user_id', authUser.id)
-                    .order('created_at', { ascending: false })
-                    .limit(5);
+                    .eq('user_id', userId)
+                    .order('created_at', { ascending: false });
 
                 if (workoutsData) {
-                    setWorkouts(workoutsData);
+                    setAllWorkouts(workoutsData);
+                    setWorkouts(workoutsData.slice(0, 5));
                 }
+
+                // Load completed workouts from localStorage
+                const savedWorkouts = localStorage.getItem("smartfit_completed_workouts_v1");
+                if (savedWorkouts) {
+                    try {
+                        setCompletedWorkouts(JSON.parse(savedWorkouts));
+                    } catch (e) {
+                        console.error(e);
+                    }
+                }
+
+                try {
+                    const { data: completedWorkoutsData, error: completedError } = await supabase
+                        .from('completed_workouts')
+                        .select('*')
+                        .eq('user_id', userId)
+                        .order('date', { ascending: false });
+
+                    if (!completedError && completedWorkoutsData) {
+                        const mapped: WorkoutSummaryData[] = completedWorkoutsData.map((row: any) => ({
+                            id: row.id,
+                            routineName: row.routine_name,
+                            date: row.date,
+                            duration: row.duration,
+                            sets: row.sets,
+                            volume: row.volume,
+                            kcal: row.kcal,
+                            muscleGroups: row.muscle_groups || [],
+                            exercises: row.exercises || [],
+                            personalRecordsCount: row.personal_records_count || 0,
+                            photoUrl: row.photo_url
+                        }));
+                        setCompletedWorkouts(mapped);
+                        localStorage.setItem("smartfit_completed_workouts_v1", JSON.stringify(mapped));
+                    }
+                } catch (err) {
+                    console.error("Failed to load completed workouts from Supabase:", err);
+                }
+
+                // Load progress logs for weight chart
+                let loadedLogs: any[] = [];
+                const { data: logsData, error: logsError } = await supabase
+                    .from('progress_logs')
+                    .select('*')
+                    .eq('user_id', userId)
+                    .order('date', { ascending: true })
+                    .limit(15);
+
+                if (!logsError && logsData) {
+                    loadedLogs = logsData;
+                } else {
+                    const saved = localStorage.getItem("smartfit_progress_v1");
+                    if (saved) {
+                        try {
+                            const parsed = JSON.parse(saved);
+                            loadedLogs = parsed
+                                .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime())
+                                .slice(-15);
+                        } catch (e) {
+                            console.error("Error parsing progress logs from localStorage:", e);
+                        }
+                    }
+                }
+                setProgressLogs(loadedLogs);
             } catch (error) {
                 console.error("Error loading user data:", error);
                 toast.error("Failed to load profile data");
@@ -275,8 +286,15 @@ export default function Profile() {
             }
         };
 
-        loadUserData();
-    }, [navigate]);
+        if (!authLoading) {
+            if (!authUser) {
+                navigate("/auth");
+            } else {
+                setUser(authUser);
+                loadUserData(authUser.id);
+            }
+        }
+    }, [authUser, authLoading, navigate]);
 
     const handleOpenEdit = () => {
         setEditUsername(profile?.username || "");
@@ -374,7 +392,149 @@ export default function Profile() {
         navigate("/");
     };
 
-    if (loading) {
+    const handleGymCheckIn = async () => {
+        if (!user) return;
+        
+        try {
+            const checkInWorkout = {
+                user_id: user.id,
+                title: "Gym Check-In",
+                content: `Checked in to gym session at ${new Date().toLocaleTimeString()}`,
+                goal: "Attendance",
+                created_at: new Date().toISOString()
+            };
+            
+            // Insert check-in workout
+            const { data, error } = await supabase
+                .from('workouts')
+                .insert([checkInWorkout])
+                .select()
+                .single();
+                
+            if (error) {
+                console.error("Error logging check-in:", error);
+                toast.error("Failed to check in: " + error.message);
+                return;
+            }
+            
+            // Award XP & Record Activity in gamification hook
+            gamification.recordWorkout(30); // 30 minutes check-in session
+            
+            // Update local state instantly so heatmap and check-in status update
+            setAllWorkouts(prev => [data, ...prev]);
+            setWorkouts(prev => [data, ...prev.slice(0, 4)]);
+            
+            toast.success("Checked in successfully! Streak updated! 💪");
+        } catch (err: any) {
+            console.error("Check-in error:", err);
+            toast.error("Failed to check in");
+        }
+    };
+
+    const deleteWorkout = async (id: string) => {
+        setCompletedWorkouts((prev) => {
+            const updated = prev.filter((w: any) => w.id !== id);
+            localStorage.setItem("smartfit_completed_workouts_v1", JSON.stringify(updated));
+            return updated;
+        });
+
+        toast.success("Workout log deleted");
+
+        if (user) {
+            try {
+                await supabase.from("completed_workouts").delete().eq("id", id);
+            } catch (err) {
+                console.error("Error deleting completed workout:", err);
+            }
+        }
+    };
+
+    const handleSaveWorkout = async (data: WorkoutSummaryData) => {
+        // Generate a new id for the local state if it doesn't exist
+        const workoutWithId = {
+            ...data,
+            id: (data as any).id || `local-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
+        };
+
+        // Add to local state
+        setCompletedWorkouts(prev => [workoutWithId, ...prev]);
+
+        // Sync to localStorage
+        const savedWorkouts = localStorage.getItem("smartfit_completed_workouts_v1");
+        let currentList: any[] = [];
+        if (savedWorkouts) {
+            try {
+                currentList = JSON.parse(savedWorkouts);
+            } catch (e) {
+                console.error(e);
+            }
+        }
+        localStorage.setItem("smartfit_completed_workouts_v1", JSON.stringify([workoutWithId, ...currentList]));
+
+        // Sync to Supabase completed_workouts table
+        if (user) {
+            try {
+                const dbRow = {
+                    user_id: user.id,
+                    routine_name: data.routineName,
+                    date: data.date,
+                    duration: data.duration,
+                    sets: data.sets,
+                    volume: data.volume,
+                    kcal: data.kcal,
+                    muscle_groups: data.muscleGroups,
+                    exercises: data.exercises,
+                    personal_records_count: data.personalRecordsCount,
+                    photo_url: data.photoUrl
+                };
+
+                const { data: insertedData, error } = await supabase
+                    .from('completed_workouts')
+                    .insert([dbRow])
+                    .select()
+                    .single();
+
+                if (error) {
+                    console.error("Error logging workout to supabase:", error);
+                    toast.error("Logged locally, but failed to sync to server.");
+                } else if (insertedData) {
+                    // Update local state with the actual database-generated id and fields
+                    const syncedWorkout: WorkoutSummaryData = {
+                        id: insertedData.id,
+                        routineName: insertedData.routine_name,
+                        date: insertedData.date,
+                        duration: insertedData.duration,
+                        sets: insertedData.sets,
+                        volume: insertedData.volume,
+                        kcal: insertedData.kcal,
+                        muscleGroups: insertedData.muscle_groups || [],
+                        exercises: insertedData.exercises || [],
+                        personalRecordsCount: insertedData.personal_records_count || 0,
+                        photoUrl: insertedData.photo_url
+                    };
+                    
+                    // Update localStorage list
+                    const updatedSaved = [syncedWorkout, ...currentList];
+                    localStorage.setItem("smartfit_completed_workouts_v1", JSON.stringify(updatedSaved));
+
+                    setCompletedWorkouts(prev => prev.map(w => w.id === workoutWithId.id ? syncedWorkout : w));
+                    toast.success("Workout logged and synced successfully! 🎉");
+                }
+            } catch (err) {
+                console.error("Error logging workout:", err);
+            }
+        } else {
+            toast.success("Workout logged successfully! 🎉");
+        }
+    };
+
+    const todayStr = new Date().toDateString();
+    const hasCheckedInToday = allWorkouts.some(
+        w => w.title === "Gym Check-In" && new Date(w.created_at).toDateString() === todayStr
+    );
+    const totalCheckIns = allWorkouts.filter(w => w.title === "Gym Check-In").length;
+
+    if (authLoading || loading || !gamification.isLoaded) {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -388,8 +548,142 @@ export default function Profile() {
 
     const streakBadge = getStreakBadge(streak.currentStreak);
 
+    const renderHeatmap = () => {
+        // Calculate activities per date string
+        const activitiesByDate: Record<string, Workout[]> = {};
+        allWorkouts.forEach(w => {
+            const dateStr = new Date(w.created_at).toDateString();
+            if (!activitiesByDate[dateStr]) {
+                activitiesByDate[dateStr] = [];
+            }
+            activitiesByDate[dateStr].push(w);
+        });
+
+        const currentYear = new Date().getFullYear();
+        const startDate = new Date(currentYear, 0, 1);
+        const endDate = new Date(currentYear, 11, 31);
+        
+        const days: { date: Date | null; workouts: Workout[] }[] = [];
+        
+        // Pad the beginning of the year so that the grid starts on Sunday
+        const startDayOfWeek = startDate.getDay();
+        for (let i = 0; i < startDayOfWeek; i++) {
+            days.push({ date: null, workouts: [] });
+        }
+        
+        let current = new Date(startDate);
+        while (current <= endDate) {
+            const dateStr = current.toDateString();
+            const dayWorkouts = activitiesByDate[dateStr] || [];
+            days.push({ date: new Date(current), workouts: dayWorkouts });
+            current.setDate(current.getDate() + 1);
+        }
+
+        // Empty = dark cell, Active = transparent (logo only)
+        const getIntensityClass = (count: number) => {
+            if (count === 0) return "bg-[#18181b] border-white/[0.03]";
+            return "bg-transparent border-transparent";
+        };
+
+        // Render SmartFit logo filling the full cell for active days
+        const renderCellLogo = (workouts: Workout[]) => {
+            if (workouts.length === 0) return null;
+            return (
+                <img
+                    src="/favicon.png"
+                    alt="SmartFit"
+                    className="w-full h-full object-contain select-none pointer-events-none"
+                />
+            );
+        };
+
+        const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+        const totalActiveDays = Object.keys(activitiesByDate).length;
+
+        return (
+            <Card className="glass border-white/10 rounded-2xl p-5 overflow-hidden">
+                <CardHeader className="p-0 pb-4 border-b border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                        <CardTitle className="text-sm font-bold tracking-tight text-white flex items-center gap-2">
+                            <Calendar className="w-4 h-4 text-emerald-500" />
+                            {allWorkouts.length} activities in {currentYear}
+                        </CardTitle>
+                        <p className="text-[10px] text-muted-foreground mt-0.5">
+                            Active days: {totalActiveDays} days | Max streak: {streak.longestStreak || 0} days
+                        </p>
+                    </div>
+                    {/* Streaks and Info */}
+                    <div className="flex items-center gap-4 text-xs">
+                        <div className="flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-3 py-1 rounded-full font-black text-[10px] tracking-wider uppercase animate-pulse">
+                            <Flame className="w-3.5 h-3.5" />
+                            Streak: {streak.currentStreak} Days
+                        </div>
+                    </div>
+                </CardHeader>
+                <CardContent ref={heatmapScrollRef} className="p-0 pt-5 overflow-x-auto custom-scrollbar">
+                    <TooltipProvider>
+                        <div className="min-w-[700px] flex flex-col gap-4">
+                            <div className="flex gap-2">
+                                {/* Day labels column */}
+                                <div className="grid grid-rows-7 gap-[5px] text-[8px] font-medium text-muted-foreground/60 pr-1 select-none pt-4">
+                                    {weekDays.map((day, idx) => (
+                                        <div key={idx} className="h-[20px] flex items-center justify-end leading-none">
+                                            {idx % 2 === 1 ? day : ""}
+                                        </div>
+                                    ))}
+                                </div>
+                                {/* Grid of days */}
+                                <div className="flex-1 space-y-1">
+                                    {/* Months label bar */}
+                                    <div className="flex text-[8px] font-bold text-muted-foreground/60 select-none pb-1 h-3 relative">
+                                        {months.map((month, idx) => {
+                                            const leftPct = (idx / 12) * 100;
+                                            return (
+                                                <div key={idx} className="absolute text-[8px]" style={{ left: `${leftPct}%` }}>
+                                                    {month}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                    <div className="grid grid-flow-col grid-rows-7 gap-[5px]">
+                                        {days.map((d, idx) => {
+                                            if (!d.date) {
+                                                return <div key={`pad-${idx}`} className="w-[20px] h-[20px] bg-transparent" />;
+                                            }
+                                            const count = d.workouts.length;
+                                            const dateLabel = d.date.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+                                            const statusLabel = count > 0 ? `${count} activities` : "No activity";
+                                            return (
+                                                <Tooltip key={idx}>
+                                                    <TooltipTrigger asChild>
+                                                        <div 
+                                                            className={`w-[20px] h-[20px] rounded-[4px] border transition-all flex items-center justify-center cursor-pointer ${getIntensityClass(count)}`} 
+                                                        >
+                                                            {renderCellLogo(d.workouts)}
+                                                        </div>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent className="bg-[#0a0a0a] text-[10px] px-2 py-1 border border-white/10 rounded-md text-white z-50">
+                                                        <span className="font-bold">{dateLabel}</span>: {statusLabel}
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            </div>
+                            
+
+                        </div>
+                    </TooltipProvider>
+                </CardContent>
+            </Card>
+        );
+    };
+
     return (
-        <div className="min-h-screen pt-24 pb-12 overflow-x-hidden">
+        <div className="min-h-screen pt-24 pb-28 lg:pb-12 overflow-x-hidden">
             <Container>
                 <motion.div
                     initial="hidden"
@@ -428,32 +722,32 @@ export default function Profile() {
                         </div>
                     </motion.div>
 
-                    {/* MAIN BENTO GRID */}
-                    <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-12 gap-4 auto-rows-min">
+                    {/* REDESIGNED PROFILE HERO CARD */}
+                    <motion.div variants={itemVariants}>
+                        <Card className="glass border-white/5 overflow-hidden relative rounded-3xl shadow-2xl">
+                            {/* Premium Banner with gym-themed image */}
+                            <div className="h-48 bg-cover bg-center relative" style={{ backgroundImage: "url('/workout-bg.jpg')" }}>
+                                <div className="absolute inset-0 bg-gradient-to-t from-[#0d0d0d] via-black/45 to-transparent" />
 
-                        {/* 1. HERO CARD (User Identity) */}
-                        <motion.div
-                            variants={itemVariants}
-                            className="col-span-1 md:col-span-4 lg:col-span-8 row-span-2 relative group"
-                        >
-                            <Card className="glass h-full border-primary/20 overflow-hidden relative">
-                                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 blur-3xl group-hover:bg-primary/10 transition-colors" />
-                                <CardContent className="p-8 h-full flex flex-col md:flex-row gap-8 items-center md:items-start text-center md:text-left relative z-10">
-                                    {/* Avatar with Ring */}
+                            </div>
+
+                            <CardContent className="p-6 pt-0 relative">
+                                {/* Avatar & Details Section */}
+                                <div className="flex flex-col sm:flex-row items-center sm:items-end gap-5 -mt-16 mb-6 px-4">
                                     <div className="relative group/avatar">
-                                        <div className="absolute -inset-1 rounded-full bg-gradient-to-tr from-primary via-purple-500 to-orange-500 opacity-20 group-hover/avatar:opacity-40 blur transition-opacity" />
-                                        <Avatar className="w-32 h-32 border-4 border-background relative z-10 shadow-xl">
+                                        <div className="absolute -inset-1 rounded-2xl bg-gradient-to-tr from-red-600 via-purple-600 to-orange-500 opacity-40 group-hover/avatar:opacity-80 blur transition-opacity" />
+                                        <Avatar className="w-32 h-32 rounded-2xl border-4 border-[#0d0d0d] relative z-10 shadow-2xl">
                                             <AvatarImage src={profile?.avatar_url || undefined} className="object-cover" />
-                                            <AvatarFallback className="bg-primary/10 text-primary text-4xl font-black">
+                                            <AvatarFallback className="bg-primary/10 text-primary text-3xl font-black rounded-2xl">
                                                 {initials}
                                             </AvatarFallback>
                                         </Avatar>
 
-                                        <label className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 rounded-full cursor-pointer opacity-0 group-hover/avatar:opacity-100 transition-all duration-300 backdrop-blur-sm scale-95 group-hover/avatar:scale-100">
+                                        <label className="absolute inset-0 z-20 flex items-center justify-center bg-black/55 rounded-2xl cursor-pointer opacity-0 group-hover/avatar:opacity-100 transition-all duration-300 backdrop-blur-sm">
                                             {uploading ? (
-                                                <Loader2 className="w-8 h-8 animate-spin text-white" />
+                                                <Loader2 className="w-6 h-6 animate-spin text-white" />
                                             ) : (
-                                                <Camera className="w-8 h-8 text-white" />
+                                                <Camera className="w-6 h-6 text-white" />
                                             )}
                                             <input
                                                 type="file"
@@ -465,254 +759,485 @@ export default function Profile() {
                                         </label>
 
                                         {hasPremiumAccess && (
-                                            <div className="absolute -bottom-1 -right-1 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full p-2 z-30 shadow-lg border-2 border-background">
-                                                <Crown className="w-5 h-5 text-black" />
+                                            <div className="absolute -bottom-1 -right-1 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full p-1.5 z-30 shadow-lg border-2 border-background">
+                                                <Crown className="w-4 h-4 text-black" />
                                             </div>
                                         )}
                                     </div>
 
-                                    {/* User Details */}
-                                    <div className="flex-1 space-y-4">
-                                        <div>
-                                            <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mb-1">
-                                                <h1 className="text-3xl md:text-4xl font-black tracking-tight bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text">
-                                                    {profile?.full_name || profile?.username || "SFitNex Warrior"}
-                                                </h1>
-                                                {hasPremiumAccess && (
-                                                    <Badge className="bg-gradient-to-r from-amber-500 to-rose-500 text-white border-0 shadow-lg px-3 py-1 font-bold animate-pulse">
-                                                        PRO
-                                                    </Badge>
-                                                )}
-                                            </div>
-                                            <p className="text-primary font-medium flex items-center justify-center md:justify-start gap-2">
-                                                @{profile?.username || "warrior"}
-                                                <span className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_8px_hsl(var(--neon-green))]" />
-                                            </p>
+                                    {/* Name & Badges */}
+                                    <div className="text-center sm:text-left flex-1 space-y-1 md:pb-2">
+                                        <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5">
+                                            <h1 className="text-3xl font-black tracking-tight text-white uppercase italic">
+                                                {profile?.full_name || profile?.username || "SmartFit Warrior"}
+                                            </h1>
+
                                         </div>
 
-                                        {profile?.bio && (
-                                            <p className="text-muted-foreground leading-relaxed max-w-xl line-clamp-2 md:line-clamp-none">
-                                                {profile.bio}
-                                            </p>
-                                        )}
-
-                                        <div className="flex flex-wrap justify-center md:justify-start gap-4 pt-2">
-                                            <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/30 px-3 py-1.5 rounded-full border border-border/50">
-                                                <MapPin className="w-3.5 h-3.5" />
-                                                {profile?.location || "Earth"}
-                                            </div>
-                                            <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/30 px-3 py-1.5 rounded-full border border-border/50">
-                                                <Calendar className="w-3.5 h-3.5" />
-                                                Joined {new Date(profile?.created_at || Date.now()).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
-                                            </div>
-                                        </div>
-
-                                        <div className="pt-4 flex flex-wrap gap-3 justify-center md:justify-start">
-                                            <Button onClick={handleOpenEdit} className="rounded-full px-6 shadow-glow transition-transform hover:scale-105 active:scale-95">
-                                                <Edit2 className="w-4 h-4 mr-2" />
-                                                Edit Profile
-                                            </Button>
-                                            <Button variant="outline" className="rounded-full px-6 hover:bg-primary/5 transition-all" onClick={() => navigate('/settings')}>
-                                                <Settings className="w-4 h-4 mr-2 text-muted-foreground" />
-                                                Settings
-                                            </Button>
-                                        </div>
                                     </div>
-                                </CardContent>
-                            </Card>
-                        </motion.div>
 
-                        {/* 2. STREAK CARD (Mini Bento) */}
-                        <motion.div
-                            variants={itemVariants}
-                            className="col-span-1 md:col-span-2 lg:col-span-4 row-span-2"
-                        >
-                            <Card className="glass h-full border-orange-500/20 overflow-hidden relative group">
-                                <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                                <CardContent className="p-8 h-full flex flex-col items-center justify-center text-center relative z-10">
-                                    <div className="relative mb-4">
-                                        <div className="absolute inset-0 bg-orange-500/20 blur-2xl rounded-full" />
-                                        <Flame className="w-16 h-16 text-orange-500 relative z-10 drop-shadow-[0_0_15px_rgba(249,115,22,0.5)]" />
-                                    </div>
-                                    <h3 className="text-4xl md:text-5xl font-black mb-1">
-                                        {streak.currentStreak}
-                                    </h3>
-                                    <p className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-6">
-                                        Daily Streak
-                                    </p>
-
-                                    <div className="w-full space-y-4">
-                                        <div className="flex justify-between items-end">
-                                            <div className="text-left">
-                                                <p className="text-xs text-muted-foreground font-semibold">BEST STREAK</p>
-                                                <p className="text-xl font-bold">{streak.bestStreak} Days</p>
-                                            </div>
-                                            <div className="text-right">
-                                                <p className="text-xs text-muted-foreground font-semibold">TOTAL ACTIVE</p>
-                                                <p className="text-xl font-bold">{streak.totalActiveDays} Days</p>
-                                            </div>
-                                        </div>
-
-                                        {streakBadge && (
-                                            <div className={`${streakBadge.color} rounded-xl p-3 flex items-center justify-center gap-2 shadow-lg`}>
-                                                <span className="text-xl">{streakBadge.icon}</span>
-                                                <span className="font-bold text-white text-sm">{streakBadge.label}</span>
-                                            </div>
-                                        )}
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        </motion.div>
-
-                        {/* 3. EXPERIENCE CARD (Real stats from profiles table) */}
-                        <motion.div
-                            variants={itemVariants}
-                            className="col-span-1 md:col-span-2 lg:col-span-4"
-                        >
-                            <Card className="glass border-primary/20 p-6 h-full flex flex-col justify-between">
-                                <div className="flex justify-between items-start mb-4">
-                                    <div className="p-2 bg-primary/10 rounded-xl">
-                                        <Zap className="w-5 h-5 text-primary" />
-                                    </div>
-                                    <div className="text-right">
-                                        <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Level</p>
-                                        <p className="text-2xl font-black text-primary">{(profile as any)?.level || 1}</p>
-                                    </div>
-                                </div>
-                                <div className="space-y-2">
-                                    <div className="flex justify-between text-xs font-bold">
-                                        <span className="text-muted-foreground uppercase">Experience</span>
-                                        <span>{(profile as any)?.xp || 0} XP</span>
-                                    </div>
-                                    <Progress value={((profile as any)?.xp || 0) % 100} className="h-2 bg-primary/10" />
-                                </div>
-                            </Card>
-                        </motion.div>
-
-                        {/* 4. BIO-STATS BENTO GRID (4 small cards) */}
-                        {[
-                            { label: "Age", value: profile?.age || "--", suffix: " yrs", icon: Calendar, color: "text-blue-500", bg: "bg-blue-500/10" },
-                            { label: "Weight", value: profile?.weight || "--", suffix: " kg", icon: Activity, color: "text-green-500", bg: "bg-green-500/10" },
-                            { label: "Height", value: profile?.height || "--", suffix: " cm", icon: TrendingUp, color: "text-purple-500", bg: "bg-purple-500/10" },
-                            { label: "Goal", value: (profile?.fitness_goal || "Not set").split(' ')[0], suffix: "", icon: Target, color: "text-orange-500", bg: "bg-orange-500/10" }
-                        ].map((stat, i) => (
-                            <motion.div
-                                key={stat.label}
-                                variants={itemVariants}
-                                className="col-span-1 md:col-span-1 lg:col-span-2"
-                            >
-                                <Card className="glass border-primary/10 p-5 h-full hover:border-primary/30 transition-colors">
-                                    <div className={`${stat.bg} ${stat.color} w-8 h-8 rounded-lg flex items-center justify-center mb-3`}>
-                                        <stat.icon className="w-4 h-4" />
-                                    </div>
-                                    <p className="text-[10px] uppercase font-black tracking-widest text-muted-foreground mb-1">
-                                        {stat.label}
-                                    </p>
-                                    <p className="text-xl font-black truncate">
-                                        {stat.value}<span className="text-sm font-normal text-muted-foreground ml-0.5">{stat.suffix}</span>
-                                    </p>
-                                </Card>
-                            </motion.div>
-                        ))}
-
-                        {/* 5. RECENT WORKOUTS (List Card) */}
-                        <motion.div
-                            variants={itemVariants}
-                            className="col-span-1 md:col-span-4 lg:col-span-8 overflow-hidden"
-                        >
-                            <Card className="glass border-primary/20 h-full">
-                                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                                    <CardTitle className="text-lg font-bold flex items-center gap-2">
-                                        <Dumbbell className="w-5 h-5 text-primary" />
-                                        Activity Forge
-                                    </CardTitle>
-                                    <Link to="/ai-workout">
-                                        <Button variant="ghost" size="sm" className="h-8 text-xs font-bold rounded-full border border-border/50">
-                                            CREATE NEW
+                                    {/* Actions */}
+                                    <div className="flex gap-2.5 sm:-mt-12">
+                                        <Button onClick={handleOpenEdit} size="sm" className="rounded-full px-5 bg-red-600 hover:bg-red-700 text-white transition-transform hover:scale-105 active:scale-95 text-xs font-bold animate-shimmer">
+                                            <Edit2 className="w-3.5 h-3.5 mr-1.5" />
+                                            Edit Profile
                                         </Button>
-                                    </Link>
-                                </CardHeader>
-                                <CardContent>
-                                    {workouts.length === 0 ? (
-                                        <div className="py-12 text-center space-y-4">
-                                            <div className="w-16 h-16 bg-muted/30 rounded-full flex items-center justify-center mx-auto">
-                                                <BookOpen className="w-8 h-8 text-muted-foreground" />
-                                            </div>
-                                            <div className="space-y-1">
-                                                <p className="text-sm font-bold text-muted-foreground uppercase tracking-wider">No Forge Records Found</p>
-                                                <p className="text-xs text-muted-foreground/60">Generate an AI workout to start your legacy.</p>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                            {workouts.map((workout) => (
-                                                <div
-                                                    key={workout.id}
-                                                    className="flex items-center justify-between p-4 bg-muted/20 hover:bg-muted/40 rounded-2xl border border-border/50 group/workout transition-all cursor-pointer"
-                                                >
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="w-10 h-10 rounded-xl bg-background flex items-center justify-center border border-border/50 group-hover/workout:scale-110 transition-transform">
-                                                            <Dumbbell className="w-5 h-5 text-primary" />
+                                        <Button variant="outline" size="sm" className="rounded-full px-5 hover:bg-white/5 transition-all text-xs font-bold border-white/10 text-white" onClick={() => navigate('/settings')}>
+                                            <Settings className="w-3.5 h-3.5 mr-1.5 text-muted-foreground" />
+                                            Settings
+                                        </Button>
+                                    </div>
+                                </div>
+
+                                {/* Custom Scrollable Tab Navigation */}
+                                <div className="border-t border-white/10 -mx-6 mt-6 flex overflow-x-auto no-scrollbar scroll-smooth">
+                                    {[
+                                        { id: "summary", label: "Summary" },
+                                        { id: "biometrics", label: "Biometrics" },
+                                        { id: "workouts", label: "Workouts" },
+                                        { id: "progress", label: "Progress" },
+                                        { id: "activity", label: "Activity" }
+                                    ].map((tab) => {
+                                        const isActive = activeTab === tab.id;
+                                        return (
+                                            <button
+                                                key={tab.id}
+                                                onClick={() => setActiveTab(tab.id)}
+                                                className={`px-6 py-4 text-[10px] font-black uppercase tracking-widest border-b-2 transition-all duration-300 relative whitespace-nowrap ${
+                                                    isActive
+                                                        ? "border-red-600 text-white bg-white/5"
+                                                        : "border-transparent text-muted-foreground hover:text-white hover:bg-white/2"
+                                                }`}
+                                            >
+                                                {tab.label}
+                                                {isActive && (
+                                                    <motion.div
+                                                        layoutId="activeTabUnderline"
+                                                        className="absolute bottom-0 left-0 right-0 h-[2px] bg-red-600 shadow-[0_0_10px_#ef4444]"
+                                                    />
+                                                )}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </motion.div>
+
+                    {/* DYNAMIC TAB SECTIONS */}
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            key={activeTab}
+                            variants={tabContentVariants}
+                            initial="initial"
+                            animate="animate"
+                            exit="exit"
+                            className="space-y-6"
+                        >
+                            {/* SUMMARY TAB */}
+                            {activeTab === "summary" && (
+                                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                                    {/* Left summary cards (Goal & Bio) */}
+                                    <div className="col-span-1 lg:col-span-4 space-y-6">
+                                        {/* Fitness Vision Card */}
+                                        <Card className="glass border-white/10 rounded-2xl p-5">
+                                            <CardHeader className="p-0 pb-3 border-b border-white/5">
+                                                <CardTitle className="text-xs font-bold tracking-wider uppercase text-muted-foreground flex items-center gap-2">
+                                                    <Target className="w-4 h-4 text-red-500" />
+                                                    Fitness Protocol & Vision
+                                                </CardTitle>
+                                            </CardHeader>
+                                            <CardContent className="p-0 pt-4 space-y-3">
+                                                <div>
+                                                    <span className="text-[9px] uppercase font-black tracking-widest text-muted-foreground block">Active Goal</span>
+                                                    <span className="text-lg font-black text-red-500 uppercase tracking-tight">
+                                                        {profile?.fitness_goal || "Not Set"}
+                                                    </span>
+                                                </div>
+                                                {profile?.bio && (
+                                                    <div>
+                                                        <span className="text-[9px] uppercase font-black tracking-widest text-muted-foreground block">Identity status</span>
+                                                        <p className="text-xs text-gray-300 leading-relaxed mt-1 italic">
+                                                            "{profile.bio}"
+                                                        </p>
+                                                    </div>
+                                                )}
+                                            </CardContent>
+                                        </Card>
+                                    </div>
+
+                                    {/* Heatmap Card */}
+                                    <div className="col-span-1 lg:col-span-8">
+                                        {renderHeatmap()}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* BIOMETRICS TAB */}
+                            {activeTab === "biometrics" && (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <motion.div variants={itemVariants}>
+                                        <Card className="glass border-white/10 rounded-3xl overflow-hidden h-full flex flex-col justify-between">
+                                            <CardHeader className="pb-3 border-b border-white/5">
+                                                <CardTitle className="text-sm font-bold tracking-wider uppercase text-muted-foreground flex items-center gap-2">
+                                                    <User className="w-4 h-4 text-red-500" />
+                                                    Biometric Parameters
+                                                </CardTitle>
+                                            </CardHeader>
+                                            <CardContent className="p-0 flex-1 flex flex-col justify-center">
+                                                <div className="grid grid-cols-2 divide-x divide-y divide-white/5 text-center">
+                                                    {[
+                                                        { label: "Age", value: profile?.age || "--", suffix: " Yrs", color: "text-blue-400" },
+                                                        { label: "Weight", value: profile?.weight || "--", suffix: " Kg", color: "text-green-400" },
+                                                        { label: "Height", value: profile?.height || "--", suffix: " Cm", color: "text-purple-400" },
+                                                        { label: "Fitness Goal", value: (profile?.fitness_goal || "Not Set").split(' ')[0], suffix: "", color: "text-orange-400" }
+                                                    ].map((stat, idx) => (
+                                                        <div key={idx} className="p-6 flex flex-col justify-center items-center">
+                                                            <span className="text-[9px] uppercase font-black tracking-widest text-muted-foreground mb-1.5">{stat.label}</span>
+                                                            <span className={`text-2xl font-black ${stat.color}`}>
+                                                                {stat.value}
+                                                                <span className="text-xs font-normal text-muted-foreground ml-0.5">{stat.suffix}</span>
+                                                            </span>
                                                         </div>
-                                                        <div className="min-w-0">
-                                                            <h4 className="font-bold text-sm truncate uppercase tracking-tight">{workout.title}</h4>
-                                                            <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground">
-                                                                <Calendar className="w-3 h-3" />
-                                                                {new Date(workout.created_at).toLocaleDateString()}
-                                                            </div>
+                                                    ))}
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    </motion.div>
+
+                                    <motion.div variants={itemVariants}>
+                                        <Card className="glass border-white/10 rounded-3xl overflow-hidden h-full flex flex-col justify-between animate-fade-in">
+                                            <CardHeader className="pb-3 border-b border-white/5">
+                                                <CardTitle className="text-sm font-bold tracking-wider uppercase text-muted-foreground flex items-center gap-2">
+                                                    <CheckCircle className="w-4 h-4 text-red-500" />
+                                                    Gym Attendance
+                                                </CardTitle>
+                                            </CardHeader>
+                                            <CardContent className="p-6 flex-1 flex flex-col justify-between space-y-6">
+                                                <div className="grid grid-cols-2 gap-4 text-center">
+                                                    <div className="bg-white/5 rounded-2xl p-4 border border-white/5 flex flex-col justify-center items-center">
+                                                        <span className="text-[9px] uppercase font-black tracking-widest text-muted-foreground block mb-1">Total Visits</span>
+                                                        <span className="text-2xl font-black text-red-500">{totalCheckIns}</span>
+                                                    </div>
+                                                    <div className="bg-white/5 rounded-2xl p-4 border border-white/5 flex flex-col justify-center items-center">
+                                                        <span className="text-[9px] uppercase font-black tracking-widest text-muted-foreground block mb-1">Active Streak</span>
+                                                        <span className="text-2xl font-black text-orange-500 flex items-center justify-center gap-1">
+                                                            <Flame className="w-5 h-5 text-orange-500 animate-pulse" />
+                                                            {streak.currentStreak}
+                                                        </span>
+                                                    </div>
+                                                </div>
+
+                                                <div className="space-y-3 pt-2">
+                                                    {hasCheckedInToday ? (
+                                                        <Button 
+                                                            disabled 
+                                                            className="w-full py-6 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold text-sm cursor-not-allowed flex items-center justify-center gap-2"
+                                                        >
+                                                            <CheckCircle className="w-4 h-4 text-emerald-400" />
+                                                            Checked In Today 🎉
+                                                        </Button>
+                                                    ) : (
+                                                        <Button 
+                                                            onClick={handleGymCheckIn}
+                                                            className="w-full py-6 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-bold text-sm transition-transform hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(239,68,68,0.4)] animate-shimmer"
+                                                        >
+                                                            <Zap className="w-4 h-4 text-white animate-bounce" />
+                                                            Check In Today
+                                                        </Button>
+                                                    )}
+                                                    <p className="text-[10px] text-center text-muted-foreground/60">
+                                                        {hasCheckedInToday 
+                                                            ? "Awesome job! Come back tomorrow to keep your streak alive." 
+                                                            : "Tap check-in to register today's session and update your consistency heatmap."
+                                                        }
+                                                    </p>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    </motion.div>
+                                </div>
+                            )}
+
+                            {/* WORKOUTS TAB */}
+                            {activeTab === "workouts" && (
+                                <div className="grid grid-cols-1 gap-8 animate-fade-in">
+                                    {/* Completed Workout Sessions Grid */}
+                                    <motion.div variants={itemVariants}>
+                                        <Card className="glass border-white/10 rounded-3xl overflow-hidden flex flex-col">
+                                            <CardHeader className="flex flex-row items-center justify-between pb-3 border-b border-white/5">
+                                                <CardTitle className="text-sm font-bold tracking-wider uppercase text-muted-foreground flex items-center gap-2">
+                                                    <Trophy className="w-4 h-4 text-red-500" />
+                                                    Completed Workout Sessions
+                                                </CardTitle>
+                                                <Button
+                                                    onClick={() => setIsLogModalOpen(true)}
+                                                    size="sm"
+                                                    className="font-bold text-xs bg-red-600 hover:bg-red-700 text-white rounded-full flex items-center gap-1.5 shadow-[0_0_15px_rgba(239,68,68,0.3)] transition-all hover:scale-[1.03]"
+                                                >
+                                                    <Plus className="w-3.5 h-3.5" />
+                                                    Log Completed Workout
+                                                </Button>
+                                            </CardHeader>
+                                            <CardContent className="p-6">
+                                                {completedWorkouts.length === 0 ? (
+                                                    <div className="py-12 text-center space-y-3">
+                                                        <Flame className="w-10 h-10 text-muted-foreground/45 mx-auto animate-pulse" />
+                                                        <div>
+                                                            <p className="text-sm font-bold text-muted-foreground uppercase tracking-wider">No completed workouts yet</p>
+                                                            <p className="text-xs text-muted-foreground/60 mt-1">Start pose-detection training or log a manual session in the Progress page!</p>
                                                         </div>
                                                     </div>
-                                                    <ChevronRight className="w-4 h-4 text-muted-foreground group-hover/workout:translate-x-1 transition-transform" />
+                                                ) : (
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                                                        {completedWorkouts.map((workout: any) => (
+                                                            <Card
+                                                                key={workout.id}
+                                                                className="bg-black/40 border-white/5 hover:border-red-500/30 transition-all flex flex-col justify-between rounded-2xl overflow-hidden"
+                                                            >
+                                                                <CardHeader className="pb-3 p-4">
+                                                                    <div className="flex justify-between items-start">
+                                                                        <div className="min-w-0 flex-1">
+                                                                            <span className="text-[9px] text-red-500 uppercase font-black tracking-widest block">
+                                                                                {workout.date}
+                                                                            </span>
+                                                                            <CardTitle className="text-base font-black uppercase tracking-tight mt-1 truncate text-white">
+                                                                                {workout.routineName}
+                                                                            </CardTitle>
+                                                                        </div>
+                                                                        <Button
+                                                                            variant="ghost"
+                                                                            size="icon"
+                                                                            onClick={() => deleteWorkout(workout.id)}
+                                                                            className="text-red-400 hover:text-red-300 hover:bg-red-500/10 shrink-0 h-8 w-8 rounded-full"
+                                                                        >
+                                                                            <Trash2 className="w-4 h-4" />
+                                                                        </Button>
+                                                                    </div>
+                                                                </CardHeader>
+                                                                <CardContent className="space-y-4 p-4 pt-0">
+                                                                    {/* Quick Stats Grid */}
+                                                                    <div className="grid grid-cols-2 gap-2 bg-white/5 border border-white/5 rounded-xl p-3 text-center">
+                                                                        <div>
+                                                                            <p className="text-[8px] text-muted-foreground uppercase tracking-widest font-bold">Time</p>
+                                                                            <p className="text-xs font-black text-gray-200 mt-0.5">{workout.duration}</p>
+                                                                        </div>
+                                                                        <div>
+                                                                            <p className="text-[8px] text-muted-foreground uppercase tracking-widest font-bold">Sets</p>
+                                                                            <p className="text-xs font-black text-gray-200 mt-0.5">{workout.sets}</p>
+                                                                        </div>
+                                                                        <div>
+                                                                            <p className="text-[8px] text-muted-foreground uppercase tracking-widest font-bold">Volume</p>
+                                                                            <p className="text-xs font-black text-gray-200 mt-0.5">{workout.volume}</p>
+                                                                        </div>
+                                                                        <div>
+                                                                            <p className="text-[8px] text-muted-foreground uppercase tracking-widest font-bold">Calories</p>
+                                                                            <p className="text-xs font-black text-gray-200 mt-0.5">~{workout.kcal} kcal</p>
+                                                                        </div>
+                                                                    </div>
+
+                                                                    {/* Action Button */}
+                                                                    <Button
+                                                                        onClick={() => setSelectedWorkoutForCard(workout)}
+                                                                        className="w-full font-bold flex items-center justify-center gap-1.5 border-white/10 hover:bg-white/5 text-[10px] h-8 rounded-lg text-white"
+                                                                        variant="outline"
+                                                                    >
+                                                                        <Sparkles className="w-3.5 h-3.5 text-red-500" />
+                                                                        View Share Card
+                                                                    </Button>
+                                                                </CardContent>
+                                                            </Card>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </CardContent>
+                                        </Card>
+                                    </motion.div>
+
+                                    {/* Gym Check-Ins & Activity Log */}
+                                    <motion.div variants={itemVariants}>
+                                        <Card className="glass border-white/10 rounded-3xl overflow-hidden flex flex-col">
+                                            <CardHeader className="flex flex-row items-center justify-between pb-3 border-b border-white/5">
+                                                <CardTitle className="text-sm font-bold tracking-wider uppercase text-muted-foreground flex items-center gap-2">
+                                                    <Dumbbell className="w-4 h-4 text-red-500" />
+                                                    Activity Log & History
+                                                </CardTitle>
+                                            </CardHeader>
+                                            <CardContent className="p-6">
+                                                {allWorkouts.length === 0 ? (
+                                                    <div className="py-12 text-center space-y-3">
+                                                        <BookOpen className="w-10 h-10 text-muted-foreground/45 mx-auto" />
+                                                        <div>
+                                                            <p className="text-sm font-bold text-muted-foreground uppercase tracking-wider">No Records</p>
+                                                            <p className="text-xs text-muted-foreground/60 mt-1">Generate a workout or check in to begin tracking your activity history.</p>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                        {allWorkouts.map((workout) => (
+                                                            <div
+                                                                key={workout.id}
+                                                                onClick={() => setSelectedWorkoutForView(workout)}
+                                                                className="flex items-center justify-between p-4 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/5 group/workout transition-all cursor-pointer"
+                                                            >
+                                                                <div className="flex items-center gap-3">
+                                                                    <div className="w-10 h-10 rounded-xl bg-background flex items-center justify-center border border-white/5 group-hover/workout:scale-105 transition-transform">
+                                                                        {workout.title === "Gym Check-In" ? (
+                                                                            <CheckCircle className="w-5 h-5 text-emerald-400" />
+                                                                        ) : (
+                                                                            <Dumbbell className="w-5 h-5 text-red-500" />
+                                                                        )}
+                                                                    </div>
+                                                                    <div className="min-w-0">
+                                                                        <h4 className="font-bold text-sm truncate uppercase tracking-tight text-gray-200">{workout.title}</h4>
+                                                                        <span className="text-[10px] font-bold text-muted-foreground block mt-0.5">
+                                                                            {new Date(workout.created_at).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                                <ChevronRight className="w-4 h-4 text-muted-foreground group-hover/workout:translate-x-0.5 transition-transform" />
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </CardContent>
+                                        </Card>
+                                    </motion.div>
+                                </div>
+                            )}
+
+                            {/* PROGRESS TAB */}
+                            {activeTab === "progress" && (
+                                <div className="grid grid-cols-1 gap-6">
+                                    <motion.div variants={itemVariants}>
+                                        <Card className="glass border-white/10 rounded-3xl overflow-hidden">
+                                            <CardHeader className="pb-3 border-b border-white/5 flex flex-row items-center justify-between">
+                                                <CardTitle className="text-sm font-bold tracking-wider uppercase text-muted-foreground flex items-center gap-2">
+                                                    <TrendingUp className="w-4 h-4 text-red-500" />
+                                                    Neural Progress Track (Weight Trend)
+                                                </CardTitle>
+                                                <Link to="/progress">
+                                                    <Button variant="ghost" size="xs" className="text-[10px] font-bold rounded-full border border-white/10 px-2.5 h-6">
+                                                        VIEW DETAILED DASHBOARD
+                                                    </Button>
+                                                </Link>
+                                            </CardHeader>
+                                            <CardContent className="p-6">
+                                                {progressLogs.length === 0 ? (
+                                                    <div className="py-12 text-center space-y-3">
+                                                        <Activity className="w-10 h-10 text-muted-foreground/45 mx-auto" />
+                                                        <div>
+                                                            <p className="text-sm font-bold text-muted-foreground uppercase tracking-wider">No Sync Logs Found</p>
+                                                            <p className="text-xs text-muted-foreground/60 mt-1">Log your weight in the dashboard to populate neural data.</p>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="space-y-4">
+                                                        <div className="h-64 w-full mt-2">
+                                                            <ResponsiveContainer width="100%" height="100%">
+                                                                <AreaChart data={progressLogs}>
+                                                                    <defs>
+                                                                        <linearGradient id="profileWeightGradient" x1="0" y1="0" x2="0" y2="1">
+                                                                            <stop offset="5%" stopColor="#ef4444" stopOpacity={0.25} />
+                                                                            <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                                                                        </linearGradient>
+                                                                    </defs>
+                                                                    <XAxis 
+                                                                        dataKey="date" 
+                                                                        stroke="#666" 
+                                                                        fontSize={10}
+                                                                        tickFormatter={(str) => {
+                                                                            try {
+                                                                                const date = new Date(str);
+                                                                                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                                                                            } catch {
+                                                                                return str;
+                                                                            }
+                                                                        }}
+                                                                    />
+                                                                    <YAxis 
+                                                                        stroke="#666" 
+                                                                        fontSize={10} 
+                                                                        domain={['auto', 'auto']}
+                                                                        tickFormatter={(v) => `${v}kg`}
+                                                                    />
+                                                                    <RechartsTooltip
+                                                                        contentStyle={{
+                                                                            backgroundColor: '#0a0a0a',
+                                                                            border: '1px solid rgba(255,255,255,0.1)',
+                                                                            borderRadius: '12px'
+                                                                        }}
+                                                                        labelStyle={{ color: '#888', fontSize: '10px', fontWeight: 'bold' }}
+                                                                        itemStyle={{ color: '#ef4444', fontSize: '11px', fontWeight: 'bold' }}
+                                                                    />
+                                                                    <Area
+                                                                        type="monotone"
+                                                                        dataKey="weight"
+                                                                        stroke="#ef4444"
+                                                                        strokeWidth={2}
+                                                                        fill="url(#profileWeightGradient)"
+                                                                    />
+                                                                </AreaChart>
+                                                            </ResponsiveContainer>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </CardContent>
+                                        </Card>
+                                    </motion.div>
+                                </div>
+                            )}
+
+                            {/* ACTIVITY TAB */}
+                            {activeTab === "activity" && (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                    {/* STREAK WIDGET */}
+                                    <motion.div variants={itemVariants}>
+                                        <Card className="glass border-orange-500/20 overflow-hidden relative group rounded-2xl h-full">
+                                            <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                            <CardContent className="p-6 flex items-center justify-between relative z-10">
+                                                <div className="space-y-1">
+                                                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Daily Streak</p>
+                                                    <h3 className="text-3xl font-black text-white">{streak.currentStreak} Days</h3>
+                                                    <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-semibold mt-1">
+                                                        <span>BEST: {streak.bestStreak}</span>
+                                                        <span>•</span>
+                                                        <span>TOTAL: {streak.totalActiveDays}</span>
+                                                    </div>
                                                 </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </CardContent>
-                            </Card>
-                        </motion.div>
+                                                <div className="relative">
+                                                    <div className="absolute inset-0 bg-orange-500/25 blur-xl rounded-full" />
+                                                    <Flame className="w-12 h-12 text-orange-500 relative z-10 animate-pulse" />
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    </motion.div>
 
-                        {/* 6. QUICK ACTIONS (Square cards) */}
-                        <motion.div
-                            variants={itemVariants}
-                            className="col-span-1 md:col-span-4 lg:col-span-4"
-                        >
-                            <div className="grid grid-cols-2 gap-4 h-full">
-                                <Card
-                                    className="glass border-primary/20 p-6 flex flex-col justify-center items-center text-center cursor-pointer hover:bg-primary/5 transition-colors group"
-                                    onClick={() => navigate("/ai-workout")}
-                                >
-                                    <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                                        <Zap className="w-6 h-6 text-primary" />
-                                    </div>
-                                    <p className="text-xs font-black uppercase tracking-widest">New</p>
-                                    <p className="text-xs font-black uppercase tracking-widest text-primary">Forge</p>
-                                </Card>
-                                {!hasPremiumAccess && (
-                                    <Card
-                                        className="bg-gradient-to-br from-amber-500 to-rose-600 border-0 p-6 flex flex-col justify-center items-center text-center cursor-pointer hover:opacity-90 transition-all shadow-xl group"
-                                        onClick={() => navigate("/upgrade")}
-                                    >
-                                        <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                                            <Crown className="w-6 h-6 text-white" />
-                                        </div>
-                                        <p className="text-xs font-black uppercase tracking-widest text-white">Go</p>
-                                        <p className="text-xs font-black uppercase tracking-widest text-white/80">PRO</p>
-                                    </Card>
-                                )}
-                                <Card
-                                    className="glass border-destructive/20 p-6 flex flex-col justify-center items-center text-center cursor-pointer hover:bg-destructive/5 transition-colors group lg:col-span-2"
-                                    onClick={handleLogout}
-                                >
-                                    <div className="w-12 h-12 rounded-2xl bg-destructive/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                                        <LogOut className="w-6 h-6 text-destructive" />
-                                    </div>
-                                    <p className="text-xs font-black uppercase tracking-widest text-destructive">Terminate</p>
-                                    <p className="text-xs font-black uppercase tracking-widest text-destructive/80">Session</p>
-                                </Card>
-                            </div>
+                                    {/* LEVEL & EXPERIENCE */}
+                                    <motion.div variants={itemVariants}>
+                                        <Card className="glass border-red-500/20 p-6 rounded-2xl flex flex-col justify-between h-full">
+                                            <div className="flex justify-between items-center mb-4">
+                                                <div>
+                                                    <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Neural Level</p>
+                                                    <p className="text-xl font-black text-red-500">Level {(profile as any)?.level || 1}</p>
+                                                </div>
+                                                <div className="p-2 bg-red-500/15 rounded-xl">
+                                                    <Zap className="w-5 h-5 text-red-500" />
+                                                </div>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <div className="flex justify-between text-[10px] font-bold">
+                                                    <span className="text-muted-foreground uppercase">Experience</span>
+                                                    <span className="text-white">{(profile as any)?.xp || 0} XP</span>
+                                                </div>
+                                                <Progress value={((profile as any)?.xp || 0) % 100} className="h-1.5 bg-red-500/10" />
+                                            </div>
+                                        </Card>
+                                    </motion.div>
+                                </div>
+                            )}
                         </motion.div>
-
-                    </div>
+                    </AnimatePresence>
                 </motion.div>
             </Container>
 
@@ -792,6 +1317,175 @@ export default function Profile() {
                     </div>
                 </SheetContent>
             </Sheet>
+            {/* Share Card Modal (View Only) */}
+            <Dialog
+                open={!!selectedWorkoutForCard}
+                onOpenChange={(open) => !open && setSelectedWorkoutForCard(null)}
+            >
+                <DialogContent className="bg-gray-950 border border-white/10 text-white rounded-3xl p-6 flex flex-col items-center justify-between max-w-sm">
+                    <DialogHeader className="w-full text-center">
+                        <DialogTitle className="text-xl font-black">Your Share Card</DialogTitle>
+                        <DialogDescription className="text-gray-400">
+                            Download or share this card to show off your progress.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    {selectedWorkoutForCard && (
+                        <div className="my-6">
+                            <div id="workout-summary-card-capture-view">
+                                <WorkoutSummaryCard 
+                                    data={selectedWorkoutForCard} 
+                                    className="w-[320px]" 
+                                    userName={profile?.full_name || profile?.username || "SmartFit Warrior"}
+                                    userAvatarInitials={initials}
+                                    userSubtitle={profile?.fitness_goal || "SmartFit Elite"}
+                                />
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="w-full grid grid-cols-2 gap-3">
+                        <Button
+                            onClick={async () => {
+                                const cardEl = document.getElementById("workout-summary-card-capture-view");
+                                if (!cardEl) return;
+                                try {
+                                    const dataUrl = await toPng(cardEl, {
+                                        useCORS: true,
+                                        quality: 1.0,
+                                        pixelRatio: 2
+                                    });
+                                    const link = document.createElement("a");
+                                    link.download = `smartfitai-workout-${Date.now()}.png`;
+                                    link.href = dataUrl;
+                                    link.click();
+                                    toast.success("Card downloaded!");
+                                } catch (e) {
+                                    toast.error("Failed to export image");
+                                }
+                            }}
+                            variant="outline"
+                            className="font-bold border-white/10 hover:bg-white/5"
+                        >
+                            <Download className="w-4 h-4 mr-2" />
+                            Download
+                        </Button>
+                        <Button
+                            onClick={async () => {
+                                const cardEl = document.getElementById("workout-summary-card-capture-view");
+                                if (!cardEl) return;
+                                try {
+                                    const dataUrl = await toPng(cardEl, {
+                                        useCORS: true,
+                                        quality: 0.95,
+                                        pixelRatio: 2
+                                    });
+                                    const res = await fetch(dataUrl);
+                                    const blob = await res.blob();
+                                    const file = new File([blob], `workout-summary.png`, { type: "image/png" });
+                                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                                        await navigator.share({
+                                            files: [file],
+                                            title: "My SmartFit Workout Card"
+                                        });
+                                    } else {
+                                        const link = document.createElement("a");
+                                        link.download = `smartfitai-workout-${Date.now()}.png`;
+                                        link.href = dataUrl;
+                                        link.click();
+                                    }
+                                } catch (e) {
+                                    toast.error("Failed to share");
+                                }
+                            }}
+                            variant="outline"
+                            className="font-bold border-white/10 hover:bg-white/5"
+                        >
+                            <Share2 className="w-4 h-4 mr-2" />
+                            Share
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* View Workout Plan Modal */}
+            <Dialog
+                open={!!selectedWorkoutForView}
+                onOpenChange={(open) => !open && setSelectedWorkoutForView(null)}
+            >
+                <DialogContent className="bg-gray-950 border border-white/10 text-white rounded-3xl p-6 sm:p-8 w-[calc(100vw-1.5rem)] sm:w-full max-w-2xl max-h-[85vh] overflow-y-auto">
+                    <DialogHeader className="w-full">
+                        <DialogTitle className="text-xl sm:text-2xl font-black flex items-center gap-2 flex-wrap leading-tight break-words">
+                            <Dumbbell className="w-5 h-5 sm:w-6 sm:h-6 text-red-500 shrink-0" />
+                            <span className="flex-1 min-w-0 break-words">{selectedWorkoutForView?.title || "Workout Plan Details"}</span>
+                        </DialogTitle>
+                        <DialogDescription className="text-gray-400">
+                            {selectedWorkoutForView?.created_at && (
+                                <>Generated on {new Date(selectedWorkoutForView.created_at).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</>
+                            )}
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    {selectedWorkoutForView && (
+                        <div className="my-4">
+                            {selectedWorkoutForView.title === "Gym Check-In" ? (
+                                <div className="text-center py-8 space-y-4">
+                                    <CheckCircle className="w-16 h-16 text-emerald-400 mx-auto" />
+                                    <p className="text-gray-200 text-lg font-bold">Gym Check-In Logged!</p>
+                                    <p className="text-muted-foreground text-sm max-w-md mx-auto">
+                                        You checked in to the gym on this day. Keep showing up and pushing your limits to maintain your streak!
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="prose prose-invert prose-red max-w-none w-full">
+                                    <div className="bg-white/5 rounded-xl p-4 sm:p-5 border border-white/5 shadow-inner leading-relaxed break-words overflow-x-auto w-full max-h-[50vh] overflow-y-auto">
+                                        {selectedWorkoutForView.content ? (
+                                            selectedWorkoutForView.content.split('\n').map((line, i) => {
+                                                if (/^[=\-_*\s]{3,}$/.test(line.trim())) {
+                                                    return <hr key={i} className="border-white/10 my-4" />;
+                                                }
+                                                if (line.startsWith('## ')) {
+                                                    return <h2 key={i} className="text-xl font-bold text-red-500 mt-6 mb-4">{line.replace('## ', '')}</h2>;
+                                                }
+                                                if (line.startsWith('### ')) {
+                                                    return <h3 key={i} className="text-lg font-semibold text-white mt-4 mb-2">{line.replace('### ', '')}</h3>;
+                                                }
+                                                if (line.startsWith('- ')) {
+                                                    return <li key={i} className="text-gray-300 ml-4 py-1 list-disc list-inside break-words">{line.replace('- ', '')}</li>;
+                                                }
+                                                if (line.startsWith('**') && line.endsWith('**')) {
+                                                    return <p key={i} className="font-bold text-white my-2 break-words">{line.replace(/\*\*/g, '')}</p>;
+                                                }
+                                                if (line.trim() === '') return <br key={i} />;
+                                                return <p key={i} className="text-gray-300 my-2 break-words">{line}</p>;
+                                            })
+                                        ) : (
+                                            <p className="text-muted-foreground italic">No workout content logged.</p>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    <div className="w-full flex justify-end">
+                        <Button
+                            onClick={() => setSelectedWorkoutForView(null)}
+                            variant="outline"
+                            className="font-bold border-white/10 hover:bg-white/5 rounded-xl px-6"
+                        >
+                            Close Intel
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* Log Completed Workout Summary Creator Modal */}
+            <WorkoutSummaryLogModal
+                isOpen={isLogModalOpen}
+                onClose={() => setIsLogModalOpen(false)}
+                onSave={handleSaveWorkout}
+            />
         </div>
     );
 }

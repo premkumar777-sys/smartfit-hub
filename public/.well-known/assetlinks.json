@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.smartfitai.app",
+      "sha256_cert_fingerprints": [
+        "73:3C:87:E7:CA:4F:B6:23:28:C6:B4:26:89:55:1B:F7:65:A3:D3:E3:82:08:C3:9B:51:46:0F:AD:02:99:4A:9F"
+      ]
+    }
+  }
+]

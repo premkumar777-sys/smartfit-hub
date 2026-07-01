@@ -129,8 +129,17 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
+  html, body {
+    touch-action: pan-x pan-y;
+  }
+
   body {
     @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  /* Prevent automatic mobile input zooming */
+  input, select, textarea {
+    font-size: 16px !important;
   }
 
   h1,
@@ -277,4 +286,38 @@ All colors MUST be HSL.
 .spark-card-wrapper,
 .spark-card-wrapper-gold {
   border-radius: 1.5rem;
+}
+
+/* Performance overrides for low-end devices */
+.low-end {
+  /* Disable expensive backdrop blurring effects */
+  --backdrop-blur: none;
+  
+  /* Disable intensive animated transitions where applicable */
+  --transition-smooth: none;
+}
+
+/* Force fallback styles under low-end conditions */
+.low-end .glass,
+.low-end .glass-strong {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background: hsl(var(--card) / 0.98) !important;
+  box-shadow: none !important;
+}
+
+/* Disable expensive outer glow and box-shadow styles */
+.low-end .glow,
+.low-end .shadow-glow {
+  box-shadow: none !important;
+}
+
+/* Hide ambient blur meshes, floating decorative glow objects, and gradient blur nodes */
+.low-end .blur-[80px],
+.low-end .blur-[120px],
+.low-end .blur-[150px],
+.low-end [class*="blur-"][class*="bg-"] {
+  display: none !important;
+  animation: none !important;
+  filter: none !important;
 }

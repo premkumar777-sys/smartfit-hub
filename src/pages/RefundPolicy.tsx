@@ -29,7 +29,7 @@ export default function RefundPolicy() {
                     <section>
                         <h2 className="text-xl font-semibold text-white mb-3">1. Overview</h2>
                         <p className="text-gray-300 leading-relaxed">
-                            SFitNex Hub offers digital subscription services. Due to the nature of digital products, our refund policy is designed to be fair while preventing abuse. Please read this policy carefully before making a purchase.
+                            SmartFit AI Hub offers digital subscription services. Due to the nature of digital products, our refund policy is designed to be fair while preventing abuse. Please read this policy carefully before making a purchase.
                         </p>
                     </section>
 
@@ -45,7 +45,7 @@ export default function RefundPolicy() {
                         </p>
                         <ul className="list-disc list-inside text-gray-300 space-y-2 mt-2">
                             <li>Your request must be within 7 days of the original purchase date.</li>
-                            <li>This is your first refund request for SFitNex Hub.</li>
+                            <li>This is your first refund request for SmartFit AI Hub.</li>
                             <li>You have not violated our Terms of Service.</li>
                         </ul>
                     </section>

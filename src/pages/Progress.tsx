@@ -11,10 +11,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   Loader2, Trash2, TrendingUp, TrendingDown, Target, Scale,
-  Ruler, Trophy, Flame, Calendar, ArrowLeft, Zap, ChevronRight, AlertTriangle, RefreshCcw
+  Ruler, Trophy, Flame, Calendar, ArrowLeft, Zap, ChevronRight, AlertTriangle, RefreshCcw,
+  Plus, Sparkles, Download, Share2
 } from "lucide-react";
 import { useGamification, XP_REWARDS } from "@/hooks/useGamification";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from "recharts";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { WorkoutSummaryCard, WorkoutSummaryData } from "@/components/WorkoutSummaryCard";
+import { WorkoutSummaryLogModal } from "@/components/WorkoutSummaryLogModal";
+import { toPng } from "html-to-image";
 
 // Types
 interface ProgressLog {
@@ -65,6 +70,10 @@ export default function Progress() {
   const [goal, setGoal] = useState<GoalData | null>(null);
   const [newGoal, setNewGoal] = useState({ targetWeight: "", targetDate: "" });
 
+  const [completedWorkouts, setCompletedWorkouts] = useState<WorkoutSummaryData[]>([]);
+  const [isLogModalOpen, setIsLogModalOpen] = useState(false);
+  const [selectedWorkoutForCard, setSelectedWorkoutForCard] = useState<WorkoutSummaryData | null>(null);
+
   const gamification = useGamification();
 
   // Load all data on mount
@@ -114,6 +123,44 @@ export default function Progress() {
         const savedGoals = localStorage.getItem(STORAGE_KEYS.GOALS);
         if (savedGoals) {
           setGoal(JSON.parse(savedGoals));
+        }
+
+        // Load completed workouts from localStorage
+        const savedWorkouts = localStorage.getItem("smartfit_completed_workouts_v1");
+        if (savedWorkouts) {
+          try {
+            setCompletedWorkouts(JSON.parse(savedWorkouts));
+          } catch (e) {
+            console.error(e);
+          }
+        }
+
+        if (user) {
+          try {
+            const { data, error } = await supabase
+              .from('completed_workouts')
+              .select('*')
+              .order('date', { ascending: false });
+            if (!error && data) {
+              const mapped: WorkoutSummaryData[] = data.map((row: any) => ({
+                id: row.id,
+                routineName: row.routine_name,
+                date: row.date,
+                duration: row.duration,
+                sets: row.sets,
+                volume: row.volume,
+                kcal: row.kcal,
+                muscleGroups: row.muscle_groups || [],
+                exercises: row.exercises || [],
+                personalRecordsCount: row.personal_records_count || 0,
+                photoUrl: row.photo_url
+              }));
+              setCompletedWorkouts(mapped);
+              localStorage.setItem("smartfit_completed_workouts_v1", JSON.stringify(mapped));
+            }
+          } catch (err) {
+            // ignore table doesn't exist error
+          }
         }
       } catch (err) {
         console.error("Error loading data:", err);
@@ -302,6 +349,58 @@ export default function Progress() {
     toast.success("Goal set!");
   };
 
+  const saveWorkout = async (workout: WorkoutSummaryData) => {
+    const id = (workout as any).id || (typeof crypto !== 'undefined' && typeof crypto.randomUUID === "function" ? crypto.randomUUID() : Math.random().toString(36).substring(2));
+    const newWorkout = { ...workout, id };
+
+    setCompletedWorkouts((prev) => {
+      const updated = [newWorkout, ...prev];
+      localStorage.setItem("smartfit_completed_workouts_v1", JSON.stringify(updated));
+      return updated;
+    });
+
+    toast.success("Workout logged successfully!");
+
+    if (userId) {
+      try {
+        await supabase.from("completed_workouts").insert({
+          id,
+          user_id: userId,
+          routine_name: workout.routineName,
+          date: workout.date,
+          duration: workout.duration,
+          sets: workout.sets,
+          volume: workout.volume,
+          kcal: workout.kcal,
+          muscle_groups: workout.muscleGroups,
+          exercises: workout.exercises,
+          personal_records_count: workout.personalRecordsCount,
+          photo_url: workout.photoUrl
+        });
+      } catch (err) {
+        // ignore if table doesn't exist
+      }
+    }
+  };
+
+  const deleteWorkout = async (id: string) => {
+    setCompletedWorkouts((prev) => {
+      const updated = prev.filter((w: any) => w.id !== id);
+      localStorage.setItem("smartfit_completed_workouts_v1", JSON.stringify(updated));
+      return updated;
+    });
+
+    toast.success("Workout log deleted");
+
+    if (userId) {
+      try {
+        await supabase.from("completed_workouts").delete().eq("id", id);
+      } catch (err) {
+        // ignore
+      }
+    }
+  };
+
   const resetAllData = async () => {
     if (!window.confirm("ARE YOU SURE? This will permanently delete all your weight logs, measurements, goals, XP, and streaks. This cannot be undone.")) {
       return;
@@ -347,7 +446,7 @@ export default function Progress() {
   }
 
   return (
-    <div className="min-h-screen py-16 relative overflow-hidden">
+    <div className="min-h-screen pt-4 pb-28 lg:py-16 relative overflow-hidden">
       <div className="absolute inset-0 gradient-hero opacity-15" />
       <Container className="relative z-10">
         <Button
@@ -387,10 +486,11 @@ export default function Progress() {
 
         {/* Main Tabs */}
         <Tabs defaultValue="weight" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-grid">
+          <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:inline-grid">
             <TabsTrigger value="weight">Weight</TabsTrigger>
             <TabsTrigger value="measurements">Measurements</TabsTrigger>
             <TabsTrigger value="goals">Goals</TabsTrigger>
+            <TabsTrigger value="workouts">Workouts</TabsTrigger>
             <TabsTrigger value="history">History</TabsTrigger>
           </TabsList>
 
@@ -730,8 +830,196 @@ export default function Progress() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* Workouts Tab */}
+          <TabsContent value="workouts" className="space-y-6">
+            <Card className="glass border-primary/20">
+              <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Trophy className="w-5 h-5 text-primary" />
+                    Completed Workouts
+                  </CardTitle>
+                  <CardDescription>
+                    Review your completed sessions, download cards, and track your achievements.
+                  </CardDescription>
+                </div>
+                <Button
+                  onClick={() => setIsLogModalOpen(true)}
+                  variant="hero"
+                  size="sm"
+                  className="font-bold flex items-center gap-1.5"
+                >
+                  <Plus className="w-4 h-4" />
+                  Log Completed Workout
+                </Button>
+              </CardHeader>
+              <CardContent>
+                {completedWorkouts.length === 0 ? (
+                  <div className="text-center py-12 border border-dashed border-gray-800 rounded-2xl bg-gray-900/25">
+                    <Flame className="w-12 h-12 text-gray-500 mx-auto mb-3 opacity-60 animate-pulse" />
+                    <p className="font-semibold text-gray-300">No completed workouts logged yet</p>
+                    <p className="text-sm text-gray-500 mt-1 font-medium">Start pose-detection training or log a manual session!</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {completedWorkouts.map((workout: any) => (
+                      <Card
+                        key={workout.id}
+                        className="bg-gray-950/80 border-gray-800 hover:border-primary/45 transition-all flex flex-col justify-between"
+                      >
+                        <CardHeader className="pb-3">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <span className="text-[10px] text-primary uppercase font-black tracking-widest">
+                                {workout.date}
+                              </span>
+                              <CardTitle className="text-xl font-black uppercase tracking-tight mt-1">
+                                {workout.routineName}
+                              </CardTitle>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => deleteWorkout(workout.id)}
+                              className="text-red-400 hover:text-red-300 hover:bg-red-500/10 shrink-0"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          {/* Quick Stats Grid */}
+                          <div className="grid grid-cols-2 gap-2 bg-white/5 border border-white/5 rounded-xl p-3 text-center">
+                            <div>
+                              <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold">Time</p>
+                              <p className="text-xs font-black text-gray-200 mt-0.5">{workout.duration}</p>
+                            </div>
+                            <div>
+                              <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold">Sets</p>
+                              <p className="text-xs font-black text-gray-200 mt-0.5">{workout.sets}</p>
+                            </div>
+                            <div>
+                              <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold">Volume</p>
+                              <p className="text-xs font-black text-gray-200 mt-0.5">{workout.volume}</p>
+                            </div>
+                            <div>
+                              <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold">Calories</p>
+                              <p className="text-xs font-black text-gray-200 mt-0.5">~{workout.kcal} kcal</p>
+                            </div>
+                          </div>
+
+                          {/* Action Button */}
+                          <Button
+                            onClick={() => setSelectedWorkoutForCard(workout)}
+                            className="w-full font-bold flex items-center justify-center gap-1.5 border-white/10 hover:bg-white/5 text-xs"
+                            variant="outline"
+                          >
+                            <Sparkles className="w-3.5 h-3.5 text-primary" />
+                            View Share Card
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
       </Container>
+
+      {/* Log Modal */}
+      <WorkoutSummaryLogModal
+        isOpen={isLogModalOpen}
+        onClose={() => setIsLogModalOpen(false)}
+        onSave={saveWorkout}
+      />
+
+      {/* Share Card Modal (View Only) */}
+      <Dialog
+        open={!!selectedWorkoutForCard}
+        onOpenChange={(open) => !open && setSelectedWorkoutForCard(null)}
+      >
+        <DialogContent className="bg-gray-950 border border-white/10 text-white rounded-3xl p-6 flex flex-col items-center justify-between max-w-sm">
+          <DialogHeader className="w-full text-center">
+            <DialogTitle className="text-xl font-black">Your Share Card</DialogTitle>
+            <DialogDescription className="text-gray-400">
+              Download or share this card to show off your progress.
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedWorkoutForCard && (
+            <div className="my-6">
+              <div id="workout-summary-card-capture-view">
+                <WorkoutSummaryCard data={selectedWorkoutForCard} className="w-[320px]" />
+              </div>
+            </div>
+          )}
+
+          <div className="w-full grid grid-cols-2 gap-3">
+            <Button
+              onClick={async () => {
+                const cardEl = document.getElementById("workout-summary-card-capture-view");
+                if (!cardEl) return;
+                try {
+                  const dataUrl = await toPng(cardEl, {
+                    useCORS: true,
+                    quality: 1.0,
+                    pixelRatio: 2
+                  });
+                  const link = document.createElement("a");
+                  link.download = `smartfitai-workout-${Date.now()}.png`;
+                  link.href = dataUrl;
+                  link.click();
+                  toast.success("Card downloaded!");
+                } catch (e) {
+                  toast.error("Failed to export image");
+                }
+              }}
+              variant="outline"
+              className="font-bold border-white/10 hover:bg-white/5"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Download
+            </Button>
+            <Button
+              onClick={async () => {
+                const cardEl = document.getElementById("workout-summary-card-capture-view");
+                if (!cardEl) return;
+                try {
+                  const dataUrl = await toPng(cardEl, {
+                    useCORS: true,
+                    quality: 0.95,
+                    pixelRatio: 2
+                  });
+                  const res = await fetch(dataUrl);
+                  const blob = await res.blob();
+                  const file = new File([blob], `workout-summary.png`, { type: "image/png" });
+                  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    await navigator.share({
+                      files: [file],
+                      title: "My SmartFit Workout Card"
+                    });
+                  } else {
+                    const link = document.createElement("a");
+                    link.download = `smartfitai-workout-${Date.now()}.png`;
+                    link.href = dataUrl;
+                    link.click();
+                  }
+                } catch (e) {
+                  toast.error("Failed to share");
+                }
+              }}
+              variant="outline"
+              className="font-bold border-white/10 hover:bg-white/5"
+            >
+              <Share2 className="w-4 h-4 mr-2" />
+              Share
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

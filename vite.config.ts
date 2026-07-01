@@ -14,8 +14,8 @@ export default defineConfig(({ mode }) => {
       registerType: 'autoUpdate',
       includeAssets: ['favicon.png', 'robots.txt', 'apple-touch-icon.png'],
       manifest: {
-        name: 'SFitNex - Training Hub',
-        short_name: 'SFitNex',
+        name: 'SmartFit AI - Training Hub',
+        short_name: 'SmartFit AI',
         description: 'AI-Powered Personal Training & Smart Fitness Hub',
         theme_color: '#0a0a0a',
         background_color: '#0a0a0a',
@@ -40,8 +40,8 @@ export default defineConfig(({ mode }) => {
         ]
       },
       workbox: {
-        maximumFileSizeToCacheInBytes: 50000000,
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,mp4}'],
+        maximumFileSizeToCacheInBytes: 3000000, // Limit to 3MB per file
+        globPatterns: ['**/*.{js,css,html,ico,png,svg}'], // Exclude MP4 files from startup pre-cache
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/images\.unsplash\.com\/.*/i,
@@ -60,8 +60,7 @@ export default defineConfig(({ mode }) => {
         ]
       },
       devOptions: {
-        enabled: true,
-        type: 'module'
+        enabled: false // Disable service worker in dev mode to speed up local loads/reloads
       }
     })
   ];

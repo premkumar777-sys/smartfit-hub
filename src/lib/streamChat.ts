@@ -1,3 +1,5 @@
+import { supabase } from "@/integrations/supabase/client";
+
 type StreamChatOptions = {
   functionName: string;
   message: string;
@@ -19,11 +21,14 @@ export async function streamChat({
   const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
   try {
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token || supabaseKey;
+
     const resp = await fetch(`${supabaseUrl}/functions/v1/${functionName}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${supabaseKey}`,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ message, conversationHistory }),
     });

@@ -6,14 +6,12 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const systemMessage = `You are SFitNex, a friendly and knowledgeable fitness coach. You're like a supportive gym buddy who happens to be an expert.
+const systemMessage = `You are SmartFit AI, a highly professional and structured fitness coach.
 
-Your personality:
-- Be warm, friendly, and encouraging
-- Respond to greetings naturally
-- Use casual, conversational language with occasional emojis 💪
-- Keep responses concise (2-3 short paragraphs max)
-- Be motivating and positive
+CRITICAL ROLE & STYLE RULES:
+1. STRICTLY NO EMOJIS: Do NOT output any emojis under any circumstances. Keep responses completely clean of all emojis.
+2. HIGHLY STRUCTURED: Always organize your advice using bold markdown headings (e.g. ## Heading, ### Subheading) and clean bulleted/numbered lists. Never write big blocks of dense text. Break details down step-by-step.
+3. CONCISE: Keep responses short, direct, and structured (2-3 short, clean sections max).
 
 Your expertise:
 - Workout techniques and exercises
@@ -22,11 +20,7 @@ Your expertise:
 - Recovery and rest
 - Form guidance
 
-IMPORTANT RULES:
-- When someone says "hi", "hello", "hey" etc - just greet them back warmly! Don't ask for profile data.
-- Only provide workout plans when specifically asked for one
-- Keep responses short and friendly for casual chat
-- You're a helpful fitness friend, NOT a form that needs to be filled out`;
+CRITICAL REMINDER: DO NOT USE EMOJIS. OUTPUT HIGHLY STRUCTURED MARKDOWN LISTS AND HEADINGS.`;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -45,13 +39,15 @@ serve(async (req) => {
     // Initialize Supabase Client
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-      { auth: { persistSession: false } }
+      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      { 
+        global: { headers: { Authorization: authHeader } },
+        auth: { persistSession: false } 
+      }
     );
 
     // Get user from token
-    const token = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
 
     if (userError || !user) {
       console.error("Auth error:", userError);
@@ -63,12 +59,27 @@ serve(async (req) => {
 
 
     const { message, conversationHistory } = await req.json();
-    const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
+    let GROQ_API_KEY = Deno.env.get("GROQ_API_KEY") || "";
+
+    if (!GROQ_API_KEY) {
+      console.log("GROQ_API_KEY environment variable not found, trying user profile fallback...");
+      const { data: profile } = await supabaseClient
+        .from("profiles")
+        .select("preferences")
+        .eq("id", user.id)
+        .single();
+      
+      GROQ_API_KEY = (profile?.preferences as any)?.groq_api_key || "";
+    }
+
+    if (GROQ_API_KEY) {
+      GROQ_API_KEY = GROQ_API_KEY.replace(/^["']|["']$/g, '').trim();
+    }
 
     if (!GROQ_API_KEY) {
       console.error("GROQ_API_KEY is not configured");
       return new Response(
-        JSON.stringify({ error: "AI service not configured. Please add GROQ_API_KEY to secrets." }),
+        JSON.stringify({ error: "AI service not configured. Please add your Groq API key in Settings or .env" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -93,7 +104,7 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
+        model: "llama-3.1-8b-instant",
         messages,
         stream: true,
       }),

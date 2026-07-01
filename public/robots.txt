@@ -13,4 +13,4 @@ Allow: /
 User-agent: *
 Allow: /
 
-Sitemap: https://sfitnex.com/sitemap.xml
+Sitemap: https://www.smartfitai.in/sitemap.xml

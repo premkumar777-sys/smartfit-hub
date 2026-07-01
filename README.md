@@ -1,9 +1,12 @@
-# 🏋️ SFitNex — Your Intelligent Fitness Companion
+# 🏋️ SmartFit AI — Your Intelligent Fitness Companion
 
 🌐 **Live Demo:**  
-https://sfitnex.com/
+www.smartfitai.in
 
-SFitNex is an AI-powered fitness assistant designed to help:
+📖 **Developer Hub:**  
+For a deep-dive into our startup vision, B2B/B2C feature catalogs, technical architecture, database schemas, and local environment setup, please refer to our [Startup & Developer Playbook (STARTUP.md)](./STARTUP.md).
+
+SmartFit AI is an AI-powered fitness assistant designed to help:
 - 💪 fitness enthusiasts
 - 🏃 beginners starting their workout journey
 - 🎯 users seeking personalized guidance

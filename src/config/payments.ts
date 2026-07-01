@@ -1,5 +1,5 @@
 /**
- * Payment Configuration for SFitNex Hub
+ * Payment Configuration for SmartFit AI Hub
  * 
  * Update the payment links here once you have your Razorpay links.
  * All components will automatically use these links.
@@ -75,7 +75,19 @@ export const COACHING_PLAN: PaymentPlan = {
     name: "Personal Coaching",
     price: "₹9",
     period: "per month",
-    link: "https://imjo.in/vJwgza"
+    link: "https://imjo.in/vJwgza" // ₹9/month coaching link
+};
+
+// ===========================================
+// BODY TRANSFORMATION PLAN
+// ===========================================
+export const BODY_TRANSFORMATION_PLAN: PaymentPlan = {
+    id: "body_transformation",
+    name: "Body Transformation",
+    price: "499",
+    period: "40 days",
+    link: "https://imjo.in/QPuCvc", // ₹499 / 40-day body transformation link
+    badge: "Most Popular"
 };
 
 // ===========================================

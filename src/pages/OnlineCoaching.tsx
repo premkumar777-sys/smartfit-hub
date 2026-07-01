@@ -162,7 +162,7 @@ export default function OnlineCoaching() {
     };
 
     return (
-        <div className="min-h-screen pt-20 pb-12 bg-background">
+        <div className="min-h-screen pt-20 pb-24 lg:pb-12 bg-background">
             <Container>
                 {/* Back Button */}
                 <Button

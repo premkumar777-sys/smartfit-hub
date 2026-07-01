@@ -14,3 +14,6 @@ verify_jwt = false
 
 [functions.smartfit-chatbot]
 verify_jwt = false
+
+[functions.nutrition-ai]
+verify_jwt = false

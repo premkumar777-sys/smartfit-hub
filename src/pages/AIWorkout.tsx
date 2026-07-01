@@ -39,6 +39,14 @@ const AIWorkout = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Check authentication first with getUser (server validated)
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast.error("Please sign in or create an account to generate a personalized workout plan.");
+      navigate("/auth", { state: { returnUrl: "/ai-workout" } });
+      return;
+    }
+
     // Explicit validation for goal and gender since they are custom Selects
     if (!formData.goal) {
       toast.error("Please select a fitness goal");
@@ -89,7 +97,15 @@ const AIWorkout = () => {
       }
     } catch (err) {
       console.error("Error generating workout:", err);
-      toast.error(err instanceof Error ? err.message : "Could not generate workout. Please try again.");
+      const errorMessage = err instanceof Error ? err.message : "";
+      
+      // If it is a 401 or Edge Function non-2xx error, it's likely auth-related
+      if (errorMessage.includes("non-2xx") || errorMessage.includes("401") || errorMessage.includes("status code 4")) {
+        toast.error("Please sign in or create an account to generate a personalized workout plan.");
+        navigate("/auth", { state: { returnUrl: "/ai-workout" } });
+      } else {
+        toast.error(errorMessage || "Could not generate workout. Please try again.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -115,6 +131,7 @@ const AIWorkout = () => {
         "strength": "Strength Focus",
         "flexibility": "Mobility & Flexibility",
         "general-fitness": "Balanced Fitness",
+        "body-recomposition": "Body Recomposition",
       }[formData.goal] || "Balanced Fitness";
 
       const { error } = await supabase.from('workouts').insert({
@@ -136,8 +153,17 @@ const AIWorkout = () => {
   };
 
   return (
-    <div className="min-h-screen py-10 relative overflow-hidden">
-      <div className="absolute inset-0 gradient-hero opacity-20"></div>
+    <div className="min-h-screen pt-6 pb-28 lg:py-10 relative overflow-hidden bg-black">
+      {/* Background Image Container */}
+      <div 
+        className="absolute inset-0 z-0 bg-cover bg-center bg-fixed bg-no-repeat transition-opacity duration-1000"
+        style={{ 
+          backgroundImage: `url('/workout-bg.jpg')`,
+        }}
+      />
+      {/* Dark Gradient Overlay to ensure text readability */}
+      <div className="absolute inset-0 z-0 bg-gradient-to-t from-black via-black/80 to-black/40" />
+      <div className="absolute inset-0 z-0 bg-[radial-gradient(circle_at_50%_0%,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent opacity-60" />
 
       <Container className="relative z-10">
         <div className="flex justify-between items-center mb-8">
@@ -161,7 +187,7 @@ const AIWorkout = () => {
         </div>
 
         <div className="grid md:grid-cols-2 gap-6 w-full">
-          <Card className="glass border-primary/20">
+          <Card className="glass border-primary/20 w-full min-w-0 overflow-hidden p-4 sm:p-6">
             <CardHeader>
               <CardTitle>Your Information</CardTitle>
               <CardDescription>
@@ -270,6 +296,7 @@ const AIWorkout = () => {
                       <SelectContent>
                         <SelectItem value="weight-loss">Weight Loss</SelectItem>
                         <SelectItem value="muscle-gain">Muscle Gain</SelectItem>
+                        <SelectItem value="body-recomposition">Body Recomposition</SelectItem>
                         <SelectItem value="endurance">Endurance</SelectItem>
                         <SelectItem value="strength">Strength</SelectItem>
                         <SelectItem value="flexibility">Flexibility</SelectItem>
@@ -301,7 +328,7 @@ const AIWorkout = () => {
             </CardContent>
           </Card>
 
-          <Card className="glass border-primary/20">
+          <Card className="glass border-primary/20 w-full min-w-0 overflow-hidden p-4 sm:p-6">
             <CardHeader>
               <CardTitle>Your Personalized Plan</CardTitle>
               <CardDescription>
@@ -311,8 +338,8 @@ const AIWorkout = () => {
             <CardContent className="pt-0">
               {workoutPlan ? (
                 <div className="space-y-6">
-                  <div className="prose prose-invert prose-green max-w-none">
-                    <div className="bg-black/20 rounded-xl p-5 border border-white/5 shadow-inner leading-relaxed">
+                  <div className="prose prose-invert prose-green max-w-none w-full">
+                    <div className="bg-black/20 rounded-xl p-4 sm:p-5 border border-white/5 shadow-inner leading-relaxed break-words overflow-x-auto w-full">
                       {workoutPlan.split('\n').map((line, i) => {
                         if (line.startsWith('## ')) {
                           return <h2 key={i} className="text-2xl font-bold text-primary mt-6 mb-4">{line.replace('## ', '')}</h2>;
@@ -321,7 +348,7 @@ const AIWorkout = () => {
                           return <h3 key={i} className="text-xl font-semibold text-white mt-4 mb-2">{line.replace('### ', '')}</h3>;
                         }
                         if (line.startsWith('- ')) {
-                          return <li key={i} className="text-gray-300 ml-4 py-1 list-disc">{line.replace('- ', '')}</li>;
+                          return <li key={i} className="text-gray-300 ml-4 py-1 list-disc list-inside">{line.replace('- ', '')}</li>;
                         }
                         if (line.startsWith('**') && line.endsWith('**')) {
                           return <p key={i} className="font-bold text-white my-2">{line.replace(/\*\*/g, '')}</p>;

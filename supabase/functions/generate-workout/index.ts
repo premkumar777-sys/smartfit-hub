@@ -1,4 +1,4 @@
-// SFitNex Hub - AI Workout Generator Edge Function
+// SmartFit AI Hub - AI Workout Generator Edge Function
 // Uses Lovable AI Gateway (auto-provisioned, no API key required)
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
@@ -27,13 +27,15 @@ serve(async (req) => {
         // Initialize Supabase Client
         const supabaseClient = createClient(
             Deno.env.get("SUPABASE_URL") ?? "",
-            Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-            { auth: { persistSession: false } }
+            Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+            { 
+                global: { headers: { Authorization: authHeader } },
+                auth: { persistSession: false } 
+            }
         );
 
         // Get user from token
-        const token = authHeader.replace("Bearer ", "");
-        const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
+        const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
 
         if (userError || !user) {
             console.error("Auth error:", userError);
@@ -47,12 +49,27 @@ serve(async (req) => {
         const { age, weight, height, bmi, goal, customPrompt } = await req.json();
 
         // Get Groq API key
-        const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
+        let GROQ_API_KEY = Deno.env.get("GROQ_API_KEY") || "";
+
+        if (!GROQ_API_KEY) {
+            console.log("GROQ_API_KEY environment variable not found, trying user profile fallback...");
+            const { data: profile } = await supabaseClient
+                .from("profiles")
+                .select("preferences")
+                .eq("id", user.id)
+                .single();
+            
+            GROQ_API_KEY = (profile?.preferences as any)?.groq_api_key || "";
+        }
+
+        if (GROQ_API_KEY) {
+            GROQ_API_KEY = GROQ_API_KEY.replace(/^["']|["']$/g, '').trim();
+        }
 
         if (!GROQ_API_KEY) {
             console.error("GROQ_API_KEY is not configured");
             return new Response(
-                JSON.stringify({ error: "AI service not configured. Please add GROQ_API_KEY to secrets." }),
+                JSON.stringify({ error: "AI service not configured. Please add your Groq API key in Settings or .env" }),
                 { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
             );
         }
@@ -67,7 +84,7 @@ serve(async (req) => {
         if (isChatMode) {
             // Chat mode - use custom prompt directly with conversational AI
             prompt = customPrompt;
-            systemMessage = `You are SFitNex, a friendly and knowledgeable fitness coach. You're like a supportive gym buddy who happens to be an expert.
+            systemMessage = `You are SmartFit AI, a friendly and knowledgeable fitness coach. You're like a supportive gym buddy who happens to be an expert.
 
 Your personality:
 - Be warm, friendly, and encouraging - respond to greetings naturally ("Hey! Great to hear from you!" etc.)
@@ -117,7 +134,7 @@ Keep it practical, achievable, and motivating.`;
                 "Content-Type": "application/json",
             },
             body: JSON.stringify({
-                model: "llama-3.3-70b-versatile",
+                model: "llama-3.1-8b-instant",
                 messages: [
                     { role: "system", content: systemMessage },
                     { role: "user", content: prompt }

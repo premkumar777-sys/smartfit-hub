@@ -39,6 +39,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useTheme } from "@/components/ThemeProvider";
+import { useAuth } from "@/hooks/use-auth";
 
 interface UserPreferences {
     notifications: { email: boolean; push: boolean; streakReminder: boolean };
@@ -54,6 +55,7 @@ interface UserPreferences {
     defaultDuration: number;
     defaultDifficulty: string;
     showOnLeaderboard: boolean;
+    groq_api_key?: string;
 }
 
 const DEFAULT_PREFERENCES: UserPreferences = {
@@ -70,6 +72,7 @@ const DEFAULT_PREFERENCES: UserPreferences = {
     defaultDuration: 30,
     defaultDifficulty: "intermediate",
     showOnLeaderboard: true,
+    groq_api_key: "",
 };
 
 const ACCENT_COLORS = [
@@ -87,11 +90,13 @@ const FITNESS_GOALS = [
 export default function Settings() {
     const navigate = useNavigate();
     const { theme: currentTheme, setTheme } = useTheme();
+    const { user: authUser, isLoading: authLoading } = useAuth();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [user, setUser] = useState<any>(null);
     const [preferences, setPreferences] = useState<UserPreferences>(DEFAULT_PREFERENCES);
     const [hasChanges, setHasChanges] = useState(false);
+    const [showGroqKey, setShowGroqKey] = useState(false);
 
     // Change password state
     const [showPasswordForm, setShowPasswordForm] = useState(false);
@@ -101,16 +106,12 @@ export default function Settings() {
     const [changingPw, setChangingPw] = useState(false);
 
     useEffect(() => {
-        const loadSettings = async () => {
+        const loadSettings = async (userId: string) => {
             try {
-                const { data: { user: authUser } } = await supabase.auth.getUser();
-                if (!authUser) { navigate("/auth"); return; }
-                setUser(authUser);
-
                 const { data: profile } = await supabase
                     .from("profiles")
                     .select("preferences")
-                    .eq("id", authUser.id)
+                    .eq("id", userId)
                     .single();
 
                 if (profile?.preferences) {
@@ -125,8 +126,16 @@ export default function Settings() {
                 setLoading(false);
             }
         };
-        loadSettings();
-    }, [navigate, setTheme]);
+
+        if (!authLoading) {
+            if (!authUser) {
+                navigate("/auth");
+            } else {
+                setUser(authUser);
+                loadSettings(authUser.id);
+            }
+        }
+    }, [authUser, authLoading, navigate, setTheme, currentTheme]);
 
     const handlePref = (updater: (prev: UserPreferences) => UserPreferences) => {
         setPreferences(prev => { const next = updater(prev); setHasChanges(true); return next; });
@@ -175,9 +184,9 @@ export default function Settings() {
     };
 
     const handleLogout = async () => { await supabase.auth.signOut(); navigate("/"); };
-    const handleDeleteAccount = () => toast.error("Contact support to delete your account.");
+    const handleDeleteAccount = () => navigate("/delete-account");
 
-    if (loading) {
+    if (authLoading || loading) {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -404,6 +413,35 @@ export default function Settings() {
                                         </SelectContent>
                                     </Select>
                                 </div>
+
+                                {/* Groq API Key */}
+                                <div className="pt-4 border-t border-white/5 space-y-3">
+                                    <div className="space-y-0.5">
+                                        <Label className="text-base font-semibold flex items-center gap-2">
+                                            <Key className="w-4 h-4 text-primary" />
+                                            Groq API Key
+                                        </Label>
+                                        <p className="text-sm text-muted-foreground">
+                                            Configure your Groq API key to power AI food scanning and meal planner.
+                                        </p>
+                                    </div>
+                                    <div className="relative flex items-center">
+                                        <Input
+                                            type={showGroqKey ? "text" : "password"}
+                                            placeholder="Enter your Groq API key (gsk_...)"
+                                            value={preferences.groq_api_key || ""}
+                                            onChange={(e) => handlePref(p => ({ ...p, groq_api_key: e.target.value }))}
+                                            className="pr-10 bg-white/5 border-white/10 text-white font-mono placeholder:text-white/20 focus-visible:ring-primary/50"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowGroqKey(!showGroqKey)}
+                                            className="absolute right-3 text-white/50 hover:text-white transition-colors"
+                                        >
+                                            {showGroqKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                        </button>
+                                    </div>
+                                </div>
                             </CardContent>
                         </Card>
 
@@ -599,7 +637,7 @@ export default function Settings() {
                             <CardContent className="space-y-2">
                                 <div className="flex justify-between text-sm">
                                     <span className="text-muted-foreground">Version</span>
-                                    <span className="font-medium">SFitNex 2.0</span>
+                                    <span className="font-medium">SmartFit AI 2.0</span>
                                 </div>
                                 <div className="flex justify-between text-sm">
                                     <span className="text-muted-foreground">Plan</span>

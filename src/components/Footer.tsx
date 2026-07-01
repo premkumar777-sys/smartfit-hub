@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Container } from "@/components/Container";
-import { Dumbbell, Mail, Phone, Instagram, Twitter, Youtube } from "lucide-react";
+import { Mail, Phone, Instagram, Linkedin, MessageCircle, Youtube } from "lucide-react";
 
 export function Footer() {
     const currentYear = new Date().getFullYear();
@@ -8,20 +8,25 @@ export function Footer() {
     return (
         <footer className="bg-card/30 border-t border-border mt-auto">
             <Container>
-                <div className="py-12">
+                <div className="pt-12 pb-28 lg:pb-12">
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                         {/* Brand Column */}
                         <div className="md:col-span-1">
                             <Link to="/" className="flex items-center gap-2 mb-4">
-                                <Dumbbell className="w-6 h-6 text-primary" />
-                                <span className="font-bold text-lg">SFitNex Hub</span>
+                                <img
+                                    src="/favicon.png"
+                                    alt="SmartFitAI"
+                                    className="w-8 h-8 object-contain"
+                                    style={{ filter: "drop-shadow(0 0 8px rgba(0, 255, 156, 0.4))" }}
+                                />
+                                <span className="font-bold text-lg text-white">SmartFitAI</span>
                             </Link>
                             <p className="text-sm text-muted-foreground mb-4">
                                 AI-powered fitness platform for personalized workouts, nutrition planning, and real-time coaching.
                             </p>
                             <div className="flex gap-3">
                                 <a
-                                    href="https://instagram.com/smartfithub"
+                                    href="https://www.instagram.com/smartfitaii/"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="p-2 rounded-lg bg-muted/50 hover:bg-primary/20 text-muted-foreground hover:text-primary transition-colors"
@@ -30,16 +35,25 @@ export function Footer() {
                                     <Instagram className="w-4 h-4" />
                                 </a>
                                 <a
-                                    href="https://twitter.com/smartfithub"
+                                    href="https://www.linkedin.com/company/112396192/"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="p-2 rounded-lg bg-muted/50 hover:bg-primary/20 text-muted-foreground hover:text-primary transition-colors"
-                                    aria-label="Twitter"
+                                    aria-label="LinkedIn"
                                 >
-                                    <Twitter className="w-4 h-4" />
+                                    <Linkedin className="w-4 h-4" />
                                 </a>
                                 <a
-                                    href="https://youtube.com/@smartfithub"
+                                    href="https://chat.whatsapp.com/EiRKjJBISlW2HmtYwpnbxh"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="p-2 rounded-lg bg-muted/50 hover:bg-primary/20 text-muted-foreground hover:text-primary transition-colors"
+                                    aria-label="WhatsApp Group"
+                                >
+                                    <MessageCircle className="w-4 h-4" />
+                                </a>
+                                <a
+                                    href="https://www.youtube.com/@Smartfitaii-p2m"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="p-2 rounded-lg bg-muted/50 hover:bg-primary/20 text-muted-foreground hover:text-primary transition-colors"
@@ -60,6 +74,7 @@ export function Footer() {
                                 <li><Link to="/3d-trainer" className="text-muted-foreground hover:text-foreground transition-colors">3D Trainer Mode</Link></li>
                                 <li><Link to="/progress" className="text-muted-foreground hover:text-foreground transition-colors">Progress Tracking</Link></li>
                                 <li><Link to="/pricing" className="text-muted-foreground hover:text-foreground transition-colors">Pricing & Plans</Link></li>
+                                <li><Link to="/become-a-coach" className="text-[#00FF9C] hover:text-[#00FF9C]/80 font-bold transition-colors">Join as Trainer / Coach 🤝</Link></li>
                             </ul>
                         </div>
 
@@ -71,6 +86,7 @@ export function Footer() {
                                 <li><Link to="/terms" className="text-muted-foreground hover:text-foreground transition-colors">Terms of Service</Link></li>
                                 <li><Link to="/shipping" className="text-muted-foreground hover:text-foreground transition-colors">Shipping Policy</Link></li>
                                 <li><Link to="/refund" className="text-muted-foreground hover:text-foreground transition-colors">Refund Policy</Link></li>
+                                <li><Link to="/delete-account" className="text-muted-foreground hover:text-foreground transition-colors">Delete Account</Link></li>
                                 <li><Link to="/contact" className="text-muted-foreground hover:text-foreground transition-colors">Contact Us</Link></li>
                             </ul>
                         </div>
@@ -98,7 +114,7 @@ export function Footer() {
                     {/* Bottom Bar */}
                     <div className="border-t border-border mt-8 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
                         <p className="text-sm text-muted-foreground">
-                            © {currentYear} SFitNex Hub. All rights reserved.
+                            © {currentYear} SmartFitAI. All rights reserved.
                         </p>
                         <p className="text-xs text-muted-foreground">
                             Made with 💚 for fitness enthusiasts

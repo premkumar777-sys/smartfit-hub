@@ -59,7 +59,7 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
       <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-md z-50">
         <div className="bg-gray-900/95 backdrop-blur-md border border-gray-800 rounded-2xl shadow-2xl p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-white">Search SFitNex</h2>
+            <h2 className="text-lg font-semibold text-white">Search SmartFit AI</h2>
             <button
               onClick={onClose}
               className="p-1 text-gray-400 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4CC9F0] rounded-lg"

@@ -29,7 +29,7 @@ export default function PrivacyPolicy() {
                     <section>
                         <h2 className="text-xl font-semibold text-white mb-3">1. Introduction</h2>
                         <p className="text-gray-300 leading-relaxed">
-                            Welcome to SFitNex Hub ("we," "our," or "us"). We are committed to protecting your personal information and your right to privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our website and services.
+                            Welcome to SmartFit AI Hub ("we," "our," or "us"). We are committed to protecting your personal information and your right to privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our website and services.
                         </p>
                     </section>
 
@@ -90,7 +90,7 @@ export default function PrivacyPolicy() {
                     <section>
                         <h2 className="text-xl font-semibold text-white mb-3">7. Health Disclaimer</h2>
                         <p className="text-gray-300 leading-relaxed">
-                            SFitNex Hub provides AI-generated workout and nutrition suggestions for informational purposes only. This is not medical advice. Always consult a qualified healthcare professional before starting any new fitness or diet program.
+                            SmartFit AI Hub provides AI-generated workout and nutrition suggestions for informational purposes only. This is not medical advice. Always consult a qualified healthcare professional before starting any new fitness or diet program.
                         </p>
                     </section>
 

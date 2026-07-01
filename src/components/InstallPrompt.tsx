@@ -67,12 +67,17 @@ export const InstallPrompt = () => {
                     <div className="absolute -inset-1 bg-gradient-to-r from-primary/10 to-purple-500/10 blur-xl opacity-50 group-hover:opacity-100 transition duration-1000"></div>
 
                     <div className="relative flex items-start gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center shrink-0">
-                            <Sparkles className="w-6 h-6 text-primary" />
+                        <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center shrink-0 p-1">
+                            <img 
+                                src="/favicon.png" 
+                                alt="SmartFit AI Logo" 
+                                className="w-9 h-9 object-contain"
+                                style={{ filter: 'drop-shadow(0 0 8px rgba(0, 255, 156, 0.4))' }}
+                            />
                         </div>
 
                         <div className="flex-1">
-                            <h3 className="text-white font-bold leading-tight">Install SFitNex</h3>
+                            <h3 className="text-white font-bold leading-tight">Install SmartFit AI</h3>
                             <p className="text-muted-foreground text-xs mt-1">
                                 Add to your home screen for a faster, app-like experience.
                             </p>
