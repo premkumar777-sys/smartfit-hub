@@ -1,7 +1,7 @@
 # 🏋️ SFitNex — Your Intelligent Fitness Companion
 
 🌐 **Live Demo:**  
-https://smart-fit-ai-kappa.vercel.app/
+https://sfitnex.com/
 
 SFitNex is an AI-powered fitness assistant designed to help:
 - 💪 fitness enthusiasts

@@ -13,4 +13,4 @@ Allow: /
 User-agent: *
 Allow: /
 
-Sitemap: https://smart-fit-ai-kappa.vercel.app/sitemap.xml
+Sitemap: https://sfitnex.com/sitemap.xml
