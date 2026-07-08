@@ -85,6 +85,7 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
+        "@mediapipe/pose": path.resolve(__dirname, "./src/lib/mediapipe-pose.ts"),
       },
     },
     optimizeDeps: {
