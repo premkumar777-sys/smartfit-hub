@@ -1,18 +1,25 @@
-# Dependencies
+# Dependencies (Recursive)
 node_modules/
-/dist
-/dist-ssr
-/dev-dist
-/coverage
+**/node_modules/
+
+# Frontend Build & Caches
+/frontend/dist/
+/frontend/dev-dist/
+/frontend/coverage/
+/frontend/.vercel/
 .vercel/
+
+# Backend Build & Caches
+/backend/.next/
+/backend/out/
 
 # Environment Secrets & Local Configurations
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
 .env.*
+/frontend/.env
+/frontend/.env.*
+/backend/.env.local
+/backend/.env.*.local
 *.local
 supabase/.temp/
 
