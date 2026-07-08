@@ -1,0 +1,9 @@
+# Global owners
+# These owners will be the default reviewers for everything in the repo.
+*       @premkumar777-sys
+
+# Component owners
+# Specific paths can be owned by specific teams/engineers.
+/backend/            @premkumar777-sys
+/supabase/           @premkumar777-sys
+/.github/workflows/  @premkumar777-sys

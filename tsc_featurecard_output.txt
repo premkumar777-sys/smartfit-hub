@@ -1,2 +1,0 @@
-﻿src/components/FeatureCard.tsx(4,20): error TS2307: Cannot find module '@/lib/utils' or its corresponding type declarations.
-src/components/FeatureCard.tsx(5,34): error TS2307: Cannot find module '@/hooks/useReducedMotion' or its corresponding type declarations.

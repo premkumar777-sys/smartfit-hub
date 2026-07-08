@@ -54,7 +54,7 @@ graph TD
   * Real-time pose analysis using MediaPipe for form tracking.
   * Gesture navigation for hands-free workout progression.
   * A 3D Trainer mode for workouts without active camera permissions.
-* **Gamification System (`/gamification`):** XP-based rewards, levels, workout streaks, and target badges to drive user engagement.
+* **Gamification System (`/gamification`):** XP-based rewards, levels, workout streaks, and target badges to drive user experience.
 * **Road to ICN (`/road-to-icn`):** A dedicated bodybuilding prep platform tailored to natural fitness competition prep.
 * **Giveaway Center (`/giveaway`):** Viral challenges (e.g., the 40-pushups challenge) with direct video uploads to Supabase storage.
 
@@ -107,7 +107,7 @@ erDiagram
    * *RLS Policy:* Anonymous users can insert (public submission), but only backend service roles can read entries.
 
 > [!NOTE]
-> DB schemas and tables can be initialized or updated using the scripts in [schema.sql](file:///c:/Users/pc/smartfit-new/supabase/schema.sql) and [giveaway_setup.sql](file:///c:/Users/pc/smartfit-new/supabase/giveaway_setup.sql).
+> DB schemas and tables can be initialized or updated using the scripts in `supabase/schema.sql` and `supabase/giveaway_setup.sql`.
 
 ---
 

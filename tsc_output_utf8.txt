@@ -1,7 +1,0 @@
-﻿src/pages/RoadToICN.tsx(15,24): error TS2307: Cannot find module '@/components/ui/button' or its corresponding type declarations.
-src/pages/RoadToICN.tsx(16,27): error TS2307: Cannot find module '@/components/Container' or its corresponding type declarations.
-src/pages/RoadToICN.tsx(17,32): error TS2307: Cannot find module '@/components/icn/ICN_RadarChart' or its corresponding type declarations.
-src/pages/RoadToICN.tsx(18,33): error TS2307: Cannot find module '@/components/icn/X_Frame_Overlay' or its corresponding type declarations.
-src/pages/RoadToICN.tsx(19,43): error TS2307: Cannot find module '@/components/icn/Phase_Navigator' or its corresponding type declarations.
-src/pages/RoadToICN.tsx(20,24): error TS2307: Cannot find module '@/components/ui/slider' or its corresponding type declarations.
-src/pages/RoadToICN.tsx(21,26): error TS2307: Cannot find module '@/components/ui/checkbox' or its corresponding type declarations.

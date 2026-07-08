@@ -87,6 +87,13 @@ export default defineConfig(({ mode }) => {
         "@": path.resolve(__dirname, "./src"),
       },
     },
+    optimizeDeps: {
+      exclude: [
+        "@mediapipe/pose",
+        "@tensorflow-models/pose-detection",
+        "@tensorflow/tfjs-backend-webgpu",
+      ],
+    },
     build: {
       // Increase chunk size warning limit
       chunkSizeWarningLimit: 1000,

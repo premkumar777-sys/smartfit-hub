@@ -313,9 +313,9 @@ All colors MUST be HSL.
 }
 
 /* Hide ambient blur meshes, floating decorative glow objects, and gradient blur nodes */
-.low-end .blur-[80px],
-.low-end .blur-[120px],
-.low-end .blur-[150px],
+.low-end .blur-\[80px\],
+.low-end .blur-\[120px\],
+.low-end .blur-\[150px\],
 .low-end [class*="blur-"][class*="bg-"] {
   display: none !important;
   animation: none !important;
