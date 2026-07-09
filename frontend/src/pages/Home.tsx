@@ -99,7 +99,7 @@ const Home = () => {
         {/* Background Image */}
         <div
           className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: `url('/hero-bg.png')` }}
+          style={{ backgroundImage: `url('/hero-bg-v2.png')` }}
         />
         {/* Layered dark overlays for text readability */}
         <div className="absolute inset-0 z-0 bg-gradient-to-b from-black/65 via-black/40 to-black/80" />
