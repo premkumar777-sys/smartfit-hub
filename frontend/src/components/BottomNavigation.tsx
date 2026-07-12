@@ -1,34 +1,34 @@
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Dumbbell, Apple, Bot, Trophy } from "lucide-react";
+import { LayoutDashboard, Compass, PlusCircle, LineChart, User } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 
 const navigationItems = [
   {
-    label: "Hub",
-    href: "/dashboard",
+    label: "Today",
+    href: "/app/today",
     icon: LayoutDashboard,
   },
   {
-    label: "Workout",
-    href: "/ai-workout",
-    icon: Dumbbell,
+    label: "Explore",
+    href: "/app/explore",
+    icon: Compass,
   },
   {
-    label: "Nutrition",
-    href: "/nutrition",
-    icon: Apple,
+    label: "Log",
+    href: "/app/workout/session",
+    icon: PlusCircle,
   },
   {
-    label: "AI Chat",
-    href: "/ai-trainer",
-    icon: Bot,
+    label: "Progress",
+    href: "/app/progress",
+    icon: LineChart,
   },
   {
-    label: "Rewards",
-    href: "/gamification",
-    icon: Trophy,
+    label: "Profile",
+    href: "/app/profile",
+    icon: User,
   },
 ];
 

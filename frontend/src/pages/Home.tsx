@@ -89,6 +89,7 @@ const GiveawayBanner = () => {
 
 const Home = () => {
   const { user, isAuthenticated } = useAuth();
+  const isNewUser = user?.created_at ? new Date().getTime() - new Date(user.created_at).getTime() < 24 * 60 * 60 * 1000 : false;
 
   return (
     <div className="min-h-screen">
@@ -119,7 +120,7 @@ const Home = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
               >
-                Welcome back, {user.username || user.email?.split('@')[0]}! 👋
+                {isNewUser ? 'Welcome' : 'Welcome back'}, {user.username || user.email?.split('@')[0]}! 👋
               </motion.p>
             )}
 
