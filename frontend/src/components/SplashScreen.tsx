@@ -5,10 +5,10 @@ export const SplashScreen = () => {
   const [show, setShow] = useState(true);
 
   useEffect(() => {
-    // Show splash screen for 7.5 seconds (7s video playback + 0.5s fade out)
+    // Show splash screen for 3 seconds (2.5s video playback + 0.5s fade out)
     const timer = setTimeout(() => {
       setShow(false);
-    }, 7500);
+    }, 3000);
 
     return () => clearTimeout(timer);
   }, []);
