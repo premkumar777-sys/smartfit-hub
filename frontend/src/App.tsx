@@ -124,9 +124,33 @@ const AppContent = () => {
           {!hideLayout && <Header />}
           <Suspense fallback={<SplashScreen />}>
             <Routes>
+              {/* Public & Marketing */}
               <Route path="/" element={<Home />} />
-              <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/pricing" element={<Pricing />} />
+              <Route path="/business" element={<BusinessLanding />} />
+              <Route path="/business/payments" element={<PaymentSolutions />} />
+              <Route path="/business/security" element={<SecurityAccess />} />
+              <Route path="/business/equipment" element={<EquipmentIntegration />} />
+
+              {/* Consumer Workspace */}
+              <Route path="/app/today" element={<Dashboard />} />
+              <Route path="/app/workout/session" element={<WorkoutSession />} />
+              <Route path="/app/workout/feedback" element={<AIWorkout />} />
+              <Route path="/app/progress" element={<Progress />} />
+              <Route path="/app/explore" element={<Guides />} />
+              <Route path="/app/profile" element={<Profile />} />
+              <Route path="/app/nutrition" element={<Nutrition />} />
+
+              {/* Trainer Workspace */}
+              <Route path="/trainer/triage" element={<TrainerTools />} />
+              <Route path="/trainer/clients" element={<OnlineCoaching />} />
+              
+              {/* Gym Owner Workspace */}
+              <Route path="/owner/overview" element={<GymAnalytics />} />
+
+              {/* Legacy / To-Be-Refactored Components (Kept to prevent breaking during modular migration) */}
+              <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/ai-workout" element={<AIWorkout />} />
               <Route path="/nutrition" element={<Nutrition />} />
               <Route path="/progress" element={<Progress />} />
@@ -137,19 +161,14 @@ const AppContent = () => {
               <Route path="/3d-trainer" element={<CameraOffWorkout />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/settings" element={<Settings />} />
-              <Route path="/pricing" element={<Pricing />} />
-
-              <Route path="/business" element={<BusinessLanding />} />
-              <Route path="/business/payments" element={<PaymentSolutions />} />
-              <Route path="/business/security" element={<SecurityAccess />} />
-              <Route path="/business/equipment" element={<EquipmentIntegration />} />
-
               <Route path="/gym-analytics" element={<GymAnalytics />} />
               <Route path="/gym-analytics/ai" element={<GymAnalytics />} />
               <Route path="/trainer-tools" element={<TrainerTools />} />
               <Route path="/online-coaching" element={<OnlineCoaching />} />
               <Route path="/become-a-coach" element={<BecomeCoach />} />
               <Route path="/gyms/*" element={<GymFinder />} />
+
+              {/* Legal & Misc Pages */}
               <Route path="/privacy" element={<PrivacyPolicy />} />
               <Route path="/terms" element={<TermsOfService />} />
               <Route path="/refund" element={<RefundPolicy />} />

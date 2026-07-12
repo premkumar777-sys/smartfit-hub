@@ -26,6 +26,7 @@ const menuStructure = [
     dropdown: "features",
     isMega: true
   },
+
   {
     label: "Find Gyms",
     hasDropdown: true,
@@ -45,6 +46,14 @@ const menuStructure = [
     label: "Contact Us",
     href: "/contact"
   }
+];
+
+const appMenuStructure = [
+  { label: "Today", href: "/app/today" },
+  { label: "Workouts", href: "/app/workout/session" },
+  { label: "Explore", href: "/app/explore" },
+  { label: "Progress", href: "/app/progress" },
+  { label: "Profile", href: "/app/profile" },
 ];
 
 export function Header() {
@@ -377,7 +386,7 @@ export function Header() {
                 className="flex items-center space-x-1 relative nav-container"
                 onMouseLeave={handleNavLeave}
               >
-                {menuStructure.map((item) => {
+                {(isAuthenticated && !isLoading ? appMenuStructure : menuStructure).map((item) => {
                   const navKey = item.label.toLowerCase().replace(/\s+/g, '-');
                   const isHovered = hoveredItem === navKey;
 
