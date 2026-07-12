@@ -1,3 +1,4 @@
+// SmartFit AI - Home Page
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Zap, Bot, Brain, Eye, BarChart3, Utensils, Calendar, QrCode, Trophy, Wrench, Sparkles, LineChart, Laptop, Calculator, Users, Clock, Shield, Star, Gift, X } from "lucide-react";
