@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
-import { Loader2, Mail, Lock, User } from "lucide-react";
+import { Loader2, Mail, Lock, User, Key, KeyRound, ShieldAlert } from "lucide-react";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 
 const authSchema = z.object({
   email: z.string().trim().email({ message: "Invalid email address" }).max(255),
@@ -37,6 +38,23 @@ export default function Auth() {
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<"login" | "signup">("login");
+  
+  // Custom Flow States
+  const [authMethod, setAuthMethod] = useState<"password" | "otp">("password");
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  
+  // Login OTP States
+  const [otpStep, setOtpStep] = useState<"request" | "verify">("request");
+  const [otpEmail, setOtpEmail] = useState("");
+  const [otpCode, setOtpCode] = useState("");
+  
+  // Signup OTP States
+  const [signupStep, setSignupStep] = useState<"form" | "verify-otp">("form");
+  const [pendingSignupData, setPendingSignupData] = useState<{
+    email: string;
+    username: string;
+    password: string;
+  } | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -57,6 +75,7 @@ export default function Auth() {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
+  // Standard Email/Password Login
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
@@ -106,7 +125,8 @@ export default function Auth() {
     }
   };
 
-  const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
+  // Custom Signup Trigger - OTP Verification Step 1
+  const handleSignupSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
 
@@ -117,33 +137,26 @@ export default function Auth() {
 
     try {
       const validated = authSchema.parse({ email, password, username });
-      const redirectUrl = `${window.location.origin}/dashboard`;
-
-      const { error } = await supabase.auth.signUp({
+      
+      setPendingSignupData({
         email: validated.email,
-        password: validated.password,
-        options: {
-          emailRedirectTo: redirectUrl,
-          data: {
-            username: validated.username,
-          },
-        },
+        username: validated.username || "",
+        password: validated.password
       });
 
-      if (error) {
-        toast({
-          title: "Signup failed",
-          description: error.message,
-          variant: "destructive",
-        });
-        return;
-      }
+      // Call signup-otp edge function
+      const { data, error } = await supabase.functions.invoke("send-email", {
+        body: { action: "signup-otp", email: validated.email }
+      });
+
+      if (error) throw error;
+      if (data.error) throw new Error(data.error);
 
       toast({
-        title: "Account created!",
-        description: "You've successfully signed up.",
+        title: "Verification code sent!",
+        description: "Please check your email for a 6-digit confirmation code.",
       });
-      navigate(returnUrl);
+      setSignupStep("verify-otp");
     } catch (error: any) {
       if (error instanceof z.ZodError) {
         toast({
@@ -154,10 +167,165 @@ export default function Auth() {
       } else {
         toast({
           title: "Signup failed",
-          description: error.message || "An unexpected error occurred",
+          description: error.message || "Unable to initiate registration. Please try again.",
           variant: "destructive",
         });
       }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Custom Signup verification - OTP Verification Step 2
+  const handleVerifySignupOtp = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!pendingSignupData) return;
+    setIsLoading(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke("send-email", {
+        body: {
+          action: "verify-signup-otp",
+          email: pendingSignupData.email,
+          data: {
+            otp: otpCode,
+            username: pendingSignupData.username,
+            password: pendingSignupData.password
+          }
+        }
+      });
+
+      if (error) throw error;
+      if (data.error) throw new Error(data.error);
+
+      toast({
+        title: "Account verified!",
+        description: "Completing sign in...",
+      });
+
+      // Auto login user with credentials
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: pendingSignupData.email,
+        password: pendingSignupData.password,
+      });
+
+      if (signInError) throw signInError;
+
+      toast({
+        title: "Welcome to SmartFit AI!",
+        description: "Your account is active.",
+      });
+      navigate(returnUrl, { replace: true });
+    } catch (error: any) {
+      toast({
+        title: "Verification failed",
+        description: error.message || "Invalid or expired verification code.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // OTP Login Trigger - Step 1: Send OTP
+  const handleSendLoginOtp = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get("email") as string;
+
+    try {
+      setOtpEmail(email.trim());
+      
+      const { data, error } = await supabase.functions.invoke("send-otp", {
+        body: { email: email.trim(), action: "send" }
+      });
+
+      if (error) throw error;
+      if (data.error) throw new Error(data.error);
+
+      toast({
+        title: "Code sent",
+        description: "Please check your inbox for a 6-digit login verification code.",
+      });
+      setOtpStep("verify");
+    } catch (error: any) {
+      toast({
+        title: "Send OTP failed",
+        description: error.message || "Unable to dispatch verification code.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // OTP Login Trigger - Step 2: Verify OTP
+  const handleVerifyLoginOtp = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke("send-otp", {
+        body: { email: otpEmail, action: "verify", otp: otpCode }
+      });
+
+      if (error) throw error;
+      if (data.error) throw new Error(data.error);
+
+      toast({
+        title: "Login successful",
+        description: "Redirecting you...",
+      });
+
+      if (data.actionLink) {
+        window.location.href = data.actionLink;
+      } else {
+        toast({
+          title: "Sign-in error",
+          description: "Missing magic link.",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Login verification failed",
+        description: error.message || "Invalid verification code.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Forgot Password Link Trigger
+  const handleForgotPasswordSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get("email") as string;
+
+    try {
+      const { data, error } = await supabase.functions.invoke("send-email", {
+        body: { action: "forgot-password", email: email.trim() }
+      });
+
+      if (error) throw error;
+      if (data.error) throw new Error(data.error);
+
+      toast({
+        title: "Reset link sent",
+        description: data.message || "A secure reset link has been dispatched to your email address.",
+      });
+      setShowForgotPassword(false);
+    } catch (error: any) {
+      toast({
+        title: "Request failed",
+        description: error.message || "Unable to send password reset request.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -185,9 +353,7 @@ export default function Auth() {
         let description = error.message;
 
         if (error.message.includes("provider") || error.message.includes("not enabled") || error.message.includes("disabled")) {
-          description = "Google sign-in is not yet enabled in your Supabase Dashboard. Please follow the implementation plan to enable it.";
-        } else if (error.message.includes("client_id") || error.message.includes("client_secret")) {
-          description = "Invalid Google Client ID or Secret in Supabase settings. Please check your Dashboard.";
+          description = "Google sign-in is not yet enabled in your Supabase Dashboard.";
         }
 
         toast({
@@ -229,27 +395,16 @@ export default function Auth() {
     </svg>
   );
 
-  const AppleIcon = () => (
-    <svg className="w-5 h-5 text-white shrink-0" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 4.17c.66-.81 1.11-1.93.99-3.06-1 .04-2.22.67-2.94 1.51-.64.73-1.2 1.87-1.05 2.98 1.11.09 2.27-.58 2.98-1.43z"/>
-    </svg>
-  );
-
   return (
     <div className="min-h-screen flex bg-black text-white">
-      {/* Left-side Image panel - matching target mock */}
+      {/* Left-side Image panel */}
       <div className="hidden md:flex md:w-[45%] lg:w-[40%] xl:w-[45%] relative flex-col justify-between p-12 overflow-hidden border-r border-white/5">
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{ backgroundImage: `url('/auth-hero.png')` }}
         />
-        {/* Dark radial and gradient overlays */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/70" />
-        
-        {/* Top Spacer */}
         <div className="relative z-10" />
-
-        {/* Bottom Tagline */}
         <div className="relative z-10 space-y-4 max-w-sm">
           <h2 className="text-2xl lg:text-3xl font-black leading-tight text-white">
             Empowering our <span className="text-[#00ff9c]">global community</span> to build their <span className="text-[#00ff9c]">ultimate physique</span>.
@@ -262,55 +417,53 @@ export default function Auth() {
       <div className="flex-1 flex flex-col justify-center items-center py-6 px-4 md:py-10 md:px-12 min-h-screen">
         <div className="w-full max-w-md space-y-5">
           
-          {/* Back to Home Link */}
           <div>
             <Link to="/" className="text-xs text-gray-500 hover:text-white font-bold transition-colors inline-flex items-center gap-1.5">
               ← Back to Home
             </Link>
           </div>
 
-          {/* Form Header */}
+          {/* Form Headers */}
           <div className="space-y-2">
             <h1 className="text-3xl font-black tracking-tight">
-              {activeTab === "login" ? "Get Started" : "Create Account"}
+              {showForgotPassword 
+                ? "Reset Password" 
+                : activeTab === "login" 
+                  ? "Get Started" 
+                  : signupStep === "verify-otp"
+                    ? "Verify Account"
+                    : "Create Account"
+              }
             </h1>
             <p className="text-sm text-gray-400">
-              {activeTab === "login" ? "Welcome to SmartFitAI" : "Create an account to join SmartFitAI"}
+              {showForgotPassword 
+                ? "Enter your email to receive a password reset link."
+                : activeTab === "login" 
+                  ? authMethod === "password"
+                    ? "Welcome to SmartFitAI" 
+                    : "Sign in with a one-time verification code."
+                  : signupStep === "verify-otp"
+                    ? `Enter the confirmation code sent to ${pendingSignupData?.email}`
+                    : "Create an account to join SmartFitAI"
+              }
             </p>
           </div>
 
-          {/* Form Inputs Container */}
-          {activeTab === "login" ? (
-            <form onSubmit={handleLogin} className="space-y-4">
+          {/* Form Switchers */}
+          {showForgotPassword ? (
+            // Forgot Password Screen
+            <form onSubmit={handleForgotPasswordSubmit} className="space-y-4">
               <div className="space-y-1.5">
-                <Label htmlFor="login-email" className="text-[10px] font-black uppercase tracking-wider text-gray-400">Email Address</Label>
+                <Label htmlFor="reset-email" className="text-[10px] font-black uppercase tracking-wider text-gray-400">Email Address</Label>
                 <div className="relative">
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                   <Input
-                    id="login-email"
+                    id="reset-email"
                     name="email"
                     type="email"
                     placeholder="name@smartfitai.in"
                     className="pl-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-[#00ff9c] focus:ring-[#00ff9c] text-white rounded-xl h-11 transition-all"
                     required
-                    maxLength={255}
-                  />
-                </div>
-              </div>
-              
-              <div className="space-y-1.5">
-                <Label htmlFor="login-password" className="text-[10px] font-black uppercase tracking-wider text-gray-400">Password</Label>
-                <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                  <Input
-                    id="login-password"
-                    name="password"
-                    type="password"
-                    placeholder="••••••••"
-                    className="pl-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-[#00ff9c] focus:ring-[#00ff9c] text-white rounded-xl h-11 transition-all"
-                    required
-                    minLength={8}
-                    maxLength={100}
                   />
                 </div>
               </div>
@@ -323,146 +476,411 @@ export default function Auth() {
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Logging in...
+                    Sending link...
                   </>
                 ) : (
-                  "Login"
+                  "Send Reset Link"
                 )}
               </Button>
+
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setShowForgotPassword(false)}
+                className="w-full text-xs text-gray-400 hover:text-white font-bold rounded-xl"
+              >
+                Back to Login
+              </Button>
             </form>
+          ) : activeTab === "login" ? (
+            // LOGIN FLOWS
+            authMethod === "password" ? (
+              // 1. Password Login Form
+              <form onSubmit={handleLogin} className="space-y-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="login-email" className="text-[10px] font-black uppercase tracking-wider text-gray-400">Email Address</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                    <Input
+                      id="login-email"
+                      name="email"
+                      type="email"
+                      placeholder="name@smartfitai.in"
+                      className="pl-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-[#00ff9c] focus:ring-[#00ff9c] text-white rounded-xl h-11 transition-all"
+                      required
+                      maxLength={255}
+                    />
+                  </div>
+                </div>
+                
+                <div className="space-y-1.5">
+                  <Label htmlFor="login-password" className="text-[10px] font-black uppercase tracking-wider text-gray-400">Password</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                    <Input
+                      id="login-password"
+                      name="password"
+                      type="password"
+                      placeholder="••••••••"
+                      className="pl-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-[#00ff9c] focus:ring-[#00ff9c] text-white rounded-xl h-11 transition-all"
+                      required
+                      minLength={8}
+                      maxLength={100}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  <Button 
+                    type="submit" 
+                    className="w-full bg-[#00ff9c] hover:bg-[#00e08b] text-black font-black h-11 rounded-xl transition-all uppercase text-xs tracking-wider"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Logging in...
+                      </>
+                    ) : (
+                      "Login"
+                    )}
+                  </Button>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setAuthMethod("otp");
+                      setOtpStep("request");
+                    }}
+                    className="w-full border-white/10 text-xs font-bold text-gray-400 hover:bg-white/5 hover:text-white rounded-xl h-11 transition-all uppercase tracking-wider flex items-center justify-center gap-2"
+                  >
+                    <KeyRound className="w-4 h-4" />
+                    Use OTP Login
+                  </Button>
+                </div>
+              </form>
+            ) : (
+              // 2. OTP Login Form
+              otpStep === "request" ? (
+                // 2a. Request OTP
+                <form onSubmit={handleSendLoginOtp} className="space-y-4">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="otp-email" className="text-[10px] font-black uppercase tracking-wider text-gray-400">Email Address</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                      <Input
+                        id="otp-email"
+                        name="email"
+                        type="email"
+                        placeholder="name@smartfitai.in"
+                        className="pl-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-[#00ff9c] focus:ring-[#00ff9c] text-white rounded-xl h-11 transition-all"
+                        required
+                        maxLength={255}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-3">
+                    <Button 
+                      type="submit" 
+                      className="w-full bg-[#00ff9c] hover:bg-[#00e08b] text-black font-black h-11 rounded-xl transition-all uppercase text-xs tracking-wider"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Sending code...
+                        </>
+                      ) : (
+                        "Send Verification Code"
+                      )}
+                    </Button>
+
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setAuthMethod("password")}
+                      className="w-full border-white/10 text-xs font-bold text-gray-400 hover:bg-white/5 hover:text-white rounded-xl h-11 transition-all uppercase tracking-wider flex items-center justify-center gap-2"
+                    >
+                      <Lock className="w-4 h-4" />
+                      Use Password Login
+                    </Button>
+                  </div>
+                </form>
+              ) : (
+                // 2b. Verify OTP Screen
+                <form onSubmit={handleVerifyLoginOtp} className="space-y-6">
+                  <div className="flex flex-col items-center justify-center space-y-3">
+                    <Label className="text-xs font-black uppercase text-gray-400">Enter 6-digit Login Code</Label>
+                    <InputOTP 
+                      maxLength={6}
+                      value={otpCode}
+                      onChange={(val) => setOtpCode(val)}
+                      disabled={isLoading}
+                    >
+                      <InputOTPGroup className="gap-2">
+                        <InputOTPSlot index={0} className="w-12 h-12 text-lg border-white/10 focus:border-primary" />
+                        <InputOTPSlot index={1} className="w-12 h-12 text-lg border-white/10 focus:border-primary" />
+                        <InputOTPSlot index={2} className="w-12 h-12 text-lg border-white/10 focus:border-primary" />
+                        <InputOTPSlot index={3} className="w-12 h-12 text-lg border-white/10 focus:border-primary" />
+                        <InputOTPSlot index={4} className="w-12 h-12 text-lg border-white/10 focus:border-primary" />
+                        <InputOTPSlot index={5} className="w-12 h-12 text-lg border-white/10 focus:border-primary" />
+                      </InputOTPGroup>
+                    </InputOTP>
+                  </div>
+
+                  <div className="flex flex-col gap-3">
+                    <Button 
+                      type="submit" 
+                      className="w-full bg-[#00ff9c] hover:bg-[#00e08b] text-black font-black h-11 rounded-xl transition-all uppercase text-xs tracking-wider"
+                      disabled={isLoading || otpCode.length < 6}
+                    >
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Verifying code...
+                        </>
+                      ) : (
+                        "Verify & Log In"
+                      )}
+                    </Button>
+
+                    <div className="flex justify-between items-center px-1">
+                      <button
+                        type="button"
+                        onClick={() => setOtpStep("request")}
+                        className="text-xs text-gray-500 hover:text-white transition-colors"
+                      >
+                        Change Email
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setOtpCode("");
+                          supabase.functions.invoke("send-otp", { body: { email: otpEmail, action: "send" } })
+                            .then(() => toast({ title: "Code Resent", description: "A fresh login OTP code has been dispatched." }));
+                        }}
+                        className="text-xs text-[#00ff9c] hover:underline transition-all"
+                      >
+                        Resend Code
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              )
+            )
           ) : (
-            <form onSubmit={handleSignup} className="space-y-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="signup-username" className="text-[10px] font-black uppercase tracking-wider text-gray-400">Username</Label>
-                <div className="relative">
-                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                  <Input
-                    id="signup-username"
-                    name="username"
-                    type="text"
-                    placeholder="Your username"
-                    className="pl-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-[#00ff9c] focus:ring-[#00ff9c] text-white rounded-xl h-11 transition-all"
-                    required
-                    minLength={2}
-                    maxLength={50}
-                  />
+            // SIGNUP FLOWS
+            signupStep === "form" ? (
+              // 1. Signup Form Details
+              <form onSubmit={handleSignupSubmit} className="space-y-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="signup-username" className="text-[10px] font-black uppercase tracking-wider text-gray-400">Username</Label>
+                  <div className="relative">
+                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                    <Input
+                      id="signup-username"
+                      name="username"
+                      type="text"
+                      placeholder="Your username"
+                      className="pl-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-[#00ff9c] focus:ring-[#00ff9c] text-white rounded-xl h-11 transition-all"
+                      required
+                      minLength={2}
+                      maxLength={50}
+                    />
+                  </div>
                 </div>
-              </div>
 
-              <div className="space-y-1.5">
-                <Label htmlFor="signup-email" className="text-[10px] font-black uppercase tracking-wider text-gray-400">Email Address</Label>
-                <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                  <Input
-                    id="signup-email"
-                    name="email"
-                    type="email"
-                    placeholder="name@smartfitai.in"
-                    className="pl-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-[#00ff9c] focus:ring-[#00ff9c] text-white rounded-xl h-11 transition-all"
-                    required
-                    maxLength={255}
-                  />
+                <div className="space-y-1.5">
+                  <Label htmlFor="signup-email" className="text-[10px] font-black uppercase tracking-wider text-gray-400">Email Address</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                    <Input
+                      id="signup-email"
+                      name="email"
+                      type="email"
+                      placeholder="name@smartfitai.in"
+                      className="pl-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-[#00ff9c] focus:ring-[#00ff9c] text-white rounded-xl h-11 transition-all"
+                      required
+                      maxLength={255}
+                    />
+                  </div>
                 </div>
-              </div>
 
-              <div className="space-y-1.5">
-                <Label htmlFor="signup-password" className="text-[10px] font-black uppercase tracking-wider text-gray-400">Password</Label>
-                <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                  <Input
-                    id="signup-password"
-                    name="password"
-                    type="password"
-                    placeholder="••••••••"
-                    className="pl-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-[#00ff9c] focus:ring-[#00ff9c] text-white rounded-xl h-11 transition-all"
-                    required
-                    minLength={8}
-                    maxLength={100}
-                  />
+                <div className="space-y-1.5">
+                  <Label htmlFor="signup-password" className="text-[10px] font-black uppercase tracking-wider text-gray-400">Password</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                    <Input
+                      id="signup-password"
+                      name="password"
+                      type="password"
+                      placeholder="••••••••"
+                      className="pl-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-[#00ff9c] focus:ring-[#00ff9c] text-white rounded-xl h-11 transition-all"
+                      required
+                      minLength={8}
+                      maxLength={100}
+                    />
+                  </div>
+                  <p className="text-[10px] text-gray-500 tracking-normal leading-normal">
+                    Must include uppercase, lowercase, number, and special character.
+                  </p>
                 </div>
-                <p className="text-[10px] text-gray-500 tracking-normal leading-normal">
-                  Must include uppercase, lowercase, number, and special character.
-                </p>
-              </div>
 
-              <Button 
-                type="submit" 
-                className="w-full bg-[#00ff9c] hover:bg-[#00e08b] text-black font-black h-11 rounded-xl transition-all uppercase text-xs tracking-wider"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Creating account...
-                  </>
-                ) : (
-                  "Sign Up"
-                )}
-              </Button>
-            </form>
+                <Button 
+                  type="submit" 
+                  className="w-full bg-[#00ff9c] hover:bg-[#00e08b] text-black font-black h-11 rounded-xl transition-all uppercase text-xs tracking-wider"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Creating account...
+                    </>
+                  ) : (
+                    "Sign Up"
+                  )}
+                </Button>
+              </form>
+            ) : (
+              // 2. Signup OTP Verification Screen
+              <form onSubmit={handleVerifySignupOtp} className="space-y-6">
+                <div className="flex flex-col items-center justify-center space-y-3">
+                  <Label className="text-xs font-black uppercase text-gray-400">Enter 6-digit Verification Code</Label>
+                  <InputOTP 
+                    maxLength={6}
+                    value={otpCode}
+                    onChange={(val) => setOtpCode(val)}
+                    disabled={isLoading}
+                  >
+                    <InputOTPGroup className="gap-2">
+                      <InputOTPSlot index={0} className="w-12 h-12 text-lg border-white/10 focus:border-primary" />
+                      <InputOTPSlot index={1} className="w-12 h-12 text-lg border-white/10 focus:border-primary" />
+                      <InputOTPSlot index={2} className="w-12 h-12 text-lg border-white/10 focus:border-primary" />
+                      <InputOTPSlot index={3} className="w-12 h-12 text-lg border-white/10 focus:border-primary" />
+                      <InputOTPSlot index={4} className="w-12 h-12 text-lg border-white/10 focus:border-primary" />
+                      <InputOTPSlot index={5} className="w-12 h-12 text-lg border-white/10 focus:border-primary" />
+                    </InputOTPGroup>
+                  </InputOTP>
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  <Button 
+                    type="submit" 
+                    className="w-full bg-[#00ff9c] hover:bg-[#00e08b] text-black font-black h-11 rounded-xl transition-all uppercase text-xs tracking-wider"
+                    disabled={isLoading || otpCode.length < 6}
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Confirming code...
+                      </>
+                    ) : (
+                      "Confirm & Create Account"
+                    )}
+                  </Button>
+
+                  <div className="flex justify-between items-center px-1">
+                    <button
+                      type="button"
+                      onClick={() => setSignupStep("form")}
+                      className="text-xs text-gray-500 hover:text-white transition-colors"
+                    >
+                      Change Details
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setOtpCode("");
+                        supabase.functions.invoke("send-email", { body: { action: "signup-otp", email: pendingSignupData?.email } })
+                          .then(() => toast({ title: "Code Resent", description: "Verification OTP code resent." }));
+                      }}
+                      className="text-xs text-[#00ff9c] hover:underline transition-all"
+                    >
+                      Resend Code
+                    </button>
+                  </div>
+                </div>
+              </form>
+            )
           )}
 
-          {/* Divider */}
-          <div className="relative py-2">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-white/10" />
-            </div>
-            <div className="relative flex justify-center text-[10px] uppercase font-bold tracking-widest text-gray-500">
-              <span className="bg-black px-3">Or continue with</span>
-            </div>
-          </div>
+          {/* Divider & OAuth Social Login (Disabled for password reset or OTP verification) */}
+          {!showForgotPassword && signupStep === "form" && otpStep === "request" && (
+            <>
+              <div className="relative py-2">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-white/10" />
+                </div>
+                <div className="relative flex justify-center text-[10px] uppercase font-bold tracking-widest text-gray-500">
+                  <span className="bg-black px-3">Or continue with</span>
+                </div>
+              </div>
 
-          {/* OAuth Buttons */}
-          <div className="w-full">
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full flex items-center justify-center gap-2.5 h-11 bg-transparent border-white/10 hover:bg-white/5 hover:text-white rounded-xl text-white font-bold transition-all text-xs"
-              onClick={handleGoogleLogin}
-              disabled={isGoogleLoading}
-            >
-              {isGoogleLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+              <div className="w-full">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full flex items-center justify-center gap-2.5 h-11 bg-transparent border-white/10 hover:bg-white/5 hover:text-white rounded-xl text-white font-bold transition-all text-xs"
+                  onClick={handleGoogleLogin}
+                  disabled={isGoogleLoading}
+                >
+                  {isGoogleLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <GoogleIcon />
+                  )}
+                  <span>Login with Google</span>
+                </Button>
+              </div>
+            </>
+          )}
+
+          {/* Tab switcher link */}
+          {!showForgotPassword && signupStep === "form" && otpStep === "request" && (
+            <div className="text-center text-xs text-gray-400 mt-2">
+              {activeTab === "login" ? (
+                <span>
+                  Don't have an account?{" "}
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("signup")}
+                    className="text-[#00ff9c] hover:underline font-bold transition-all ml-1"
+                  >
+                    Sign Up
+                  </button>
+                </span>
               ) : (
-                <GoogleIcon />
+                <span>
+                  Already have an account?{" "}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveTab("login");
+                      setAuthMethod("password");
+                    }}
+                    className="text-[#00ff9c] hover:underline font-bold transition-all ml-1"
+                  >
+                    Login
+                  </button>
+                </span>
               )}
-              <span>Login with Google</span>
-            </Button>
-          </div>
+            </div>
+          )}
 
-          {/* Toggle Tab link for Single Page Layout */}
-          <div className="text-center text-xs text-gray-400 mt-2">
-            {activeTab === "login" ? (
-              <span>
-                Don't have an account?{" "}
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("signup")}
-                  className="text-[#00ff9c] hover:underline font-bold transition-all ml-1"
-                >
-                  Sign Up
-                </button>
-              </span>
-            ) : (
-              <span>
-                Already have an account?{" "}
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("login")}
-                  className="text-[#00ff9c] hover:underline font-bold transition-all ml-1"
-                >
-                  Login
-                </button>
-              </span>
-            )}
-          </div>
-
-          {/* Footer Actions */}
-          <div className="flex justify-center items-center text-xs text-gray-500 font-bold pt-4 border-t border-white/5">
-            <Link to="/auth" onClick={() => toast({ title: "Reset Password", description: "Password reset link sent to your registered email address." })} className="hover:text-white transition-colors">
-              Forgot password?
-            </Link>
-          </div>
+          {/* Forgot Password Link Footer */}
+          {!showForgotPassword && activeTab === "login" && otpStep === "request" && (
+            <div className="flex justify-center items-center text-xs text-gray-500 font-bold pt-4 border-t border-white/5">
+              <button 
+                type="button"
+                onClick={() => setShowForgotPassword(true)} 
+                className="hover:text-white transition-colors"
+              >
+                Forgot password?
+              </button>
+            </div>
+          )}
 
         </div>
       </div>

@@ -1,20 +1,26 @@
 // Instamojo Webhook Handler
-// This function receives payment notifications from Instamojo
-// and automatically adds subscriptions to the database
+// This function receives payment notifications from Instamojo,
+// records payments/subscriptions, and dispatches Brevo notifications.
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { 
+  sendEmail, 
+  subscriptionConfirmationTemplate, 
+  paymentSuccessTemplate, 
+  paymentFailedTemplate 
+} from '../_shared/email.ts';
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+};
 
 // Duration mapping for plans
 const PLAN_DURATIONS: Record<string, number> = {
     '99': 30,    // 1 month
     '399': 180,  // 6 months
     '699': 365,  // 1 year
-}
+};
 
 Deno.serve(async (req) => {
     // Handle CORS preflight
@@ -40,11 +46,33 @@ Deno.serve(async (req) => {
             buyerEmail,
             amount,
             purpose
-        })
+        });
+
+        // Initialize Supabase admin client
+        const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+        const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+        const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
         // Only process successful payments
         if (status !== 'Credit') {
-            console.log('Payment not credited, status:', status)
+            console.log('Payment not credited, status:', status);
+            
+            // Trigger payment failure email if email is present
+            if (buyerEmail) {
+                try {
+                    const retryLink = `${Deno.env.get('NEXT_PUBLIC_SITE_URL') || 'https://smartfitai.in'}/pricing`;
+                    const failHtml = paymentFailedTemplate(`Instamojo payment status: ${status}`, retryLink);
+                    await sendEmail({
+                        to: buyerEmail,
+                        subject: '⚠️ Payment Transaction Failed - SmartFit AI',
+                        html: failHtml,
+                        type: 'payment_failed'
+                    });
+                } catch (emailErr) {
+                    console.error('Failed to send payment failure email:', emailErr);
+                }
+            }
+
             return new Response(
                 JSON.stringify({ success: false, message: 'Payment not credited' }),
                 { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -60,11 +88,6 @@ Deno.serve(async (req) => {
             )
         }
 
-        // Initialize Supabase admin client
-        const supabaseUrl = Deno.env.get('SUPABASE_URL')!
-        const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-        const supabase = createClient(supabaseUrl, supabaseServiceKey)
-
         // Find user by email
         const { data: users, error: userError } = await supabase
             .from('profiles')
@@ -78,7 +101,7 @@ Deno.serve(async (req) => {
             userId = users[0].user_id
         } else {
             // Try to find in auth.users
-            const { data: authUser, error: authError } = await supabase.auth.admin.listUsers()
+            const { data: authUser } = await supabase.auth.admin.listUsers()
 
             if (authUser?.users) {
                 const matchedUser = authUser.users.find(u =>
@@ -123,12 +146,13 @@ Deno.serve(async (req) => {
         // Get the premium plan ID
         const { data: plan } = await supabase
             .from('plans')
-            .select('id')
+            .select('id, name')
             .ilike('name', '%prem%')
             .limit(1)
             .single()
 
         const planId = plan?.id || 'premium'
+        const planName = plan?.name || 'Premium'
 
         // Check if user already has a subscription
         const { data: existingSub } = await supabase
@@ -141,6 +165,7 @@ Deno.serve(async (req) => {
 
         const now = new Date()
         let newEndDate: Date
+        let activeSubId: string
 
         if (existingSub && existingSub.current_period_end) {
             // Extend existing subscription
@@ -148,6 +173,8 @@ Deno.serve(async (req) => {
             const startDate = currentEnd > now ? currentEnd : now
             newEndDate = new Date(startDate)
             newEndDate.setDate(newEndDate.getDate() + durationDays)
+
+            activeSubId = existingSub.id
 
             // Update existing subscription
             const { error: updateError } = await supabase
@@ -169,7 +196,7 @@ Deno.serve(async (req) => {
             newEndDate = new Date(now)
             newEndDate.setDate(newEndDate.getDate() + durationDays)
 
-            const { error: insertError } = await supabase
+            const { data: insertedSub, error: insertError } = await supabase
                 .from('subscriptions')
                 .insert({
                     user_id: userId,
@@ -182,23 +209,63 @@ Deno.serve(async (req) => {
                     created_at: now.toISOString(),
                     updated_at: now.toISOString()
                 })
+                .select('id')
+                .single()
 
-            if (insertError) {
+            if (insertError || !insertedSub) {
                 console.error('Error inserting subscription:', insertError)
-                throw insertError
+                throw insertError || new Error("Failed to insert subscription record")
             }
 
+            activeSubId = insertedSub.id
             console.log('New subscription created for user:', userId, 'until:', newEndDate)
         }
 
-        // Log the successful payment
-        console.log('Payment processed successfully:', {
-            userId,
-            paymentId,
-            amount,
-            durationDays,
-            expiresAt: newEndDate
-        })
+        // Insert payment history log
+        const { error: paymentError } = await supabase
+            .from('payments')
+            .insert({
+                user_id: userId,
+                subscription_id: activeSubId,
+                stripe_payment_intent_id: paymentId,
+                amount: Math.round(parseFloat(amount) * 100), // in cents
+                currency: 'inr',
+                status: 'succeeded',
+                description: purpose || 'Instamojo Plan Subscription Payment'
+            });
+
+        if (paymentError) {
+            console.error('Error inserting payment log:', paymentError)
+        }
+
+        // Dispatch transactional emails via Brevo
+        try {
+            const formattedAmount = `₹${parseFloat(amount).toFixed(2)}`;
+            const renewalDateStr = newEndDate.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' }) + " IST";
+            const invoiceUrl = `${Deno.env.get('NEXT_PUBLIC_SITE_URL') || 'https://smartfitai.in'}/app/profile`;
+
+            // 1. Send subscription confirmation
+            const subHtml = subscriptionConfirmationTemplate(planName, formattedAmount, paymentId, renewalDateStr, invoiceUrl);
+            await sendEmail({
+                to: buyerEmail,
+                subject: '🎉 Subscription Confirmed! Welcome to SmartFit AI Premium',
+                html: subHtml,
+                type: 'subscription_confirmation'
+            });
+
+            // 2. Send payment success receipt
+            const payHtml = paymentSuccessTemplate(formattedAmount, planName, paymentId, invoiceUrl);
+            await sendEmail({
+                to: buyerEmail,
+                subject: '✔️ Payment Successful Receipt - SmartFit AI',
+                html: payHtml,
+                type: 'payment_success'
+            });
+            
+            console.log('Brevo billing emails sent successfully to:', buyerEmail);
+        } catch (emailErr) {
+            console.error('Failed to trigger Brevo notification emails:', emailErr);
+        }
 
         return new Response(
             JSON.stringify({

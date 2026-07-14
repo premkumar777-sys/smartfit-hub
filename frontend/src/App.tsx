@@ -44,6 +44,7 @@ const RefundPolicy = lazy(() => import("./pages/RefundPolicy"));
 const ShippingPolicy = lazy(() => import("./pages/ShippingPolicy"));
 const ContactUs = lazy(() => import("./pages/ContactUs"));
 const DeleteAccount = lazy(() => import("./pages/DeleteAccount"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const BusinessLanding = lazy(() => import("./pages/business/BusinessLanding"));
 const PaymentSolutions = lazy(() => import("./pages/business/PaymentSolutions"));
 const SecurityAccess = lazy(() => import("./pages/business/SecurityAccess"));
@@ -176,6 +177,7 @@ const AppContent = () => {
               <Route path="/contact" element={<ContactUs />} />
               <Route path="/delete-account" element={<DeleteAccount />} />
               <Route path="/payment-success" element={<PaymentSuccess />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/upgrade" element={<VerifyPayment />} />
               <Route path="/road-to-icn" element={<RoadToICN />} />
               <Route path="/workout-session" element={<WorkoutSession />} />

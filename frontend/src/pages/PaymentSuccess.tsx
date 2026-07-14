@@ -7,172 +7,135 @@ import { Button } from "@/components/ui/button";
 import { Loader2, CheckCircle, XCircle, Crown } from "lucide-react";
 import { toast } from "sonner";
 
-// Duration mapping for plans based on amount
-const PLAN_DURATIONS: Record<string, number> = {
-    "79": 30,    // 1 month
-    "399": 180,  // 6 months  
-    "699": 365,  // 1 year
-};
-
 export default function PaymentSuccess() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
-    const [message, setMessage] = useState("");
+    const [message, setMessage] = useState("We are verifying your transaction...");
+    const [expiryDate, setExpiryDate] = useState<string | null>(null);
 
     useEffect(() => {
-        const processPayment = async () => {
+        const processPaymentVerification = async () => {
             try {
-                // Get payment info from URL params (Instamojo sends these)
                 const paymentId = searchParams.get("payment_id");
                 const paymentStatus = searchParams.get("payment_status");
                 const paymentRequestId = searchParams.get("payment_request_id");
 
-                console.log("Payment params:", { paymentId, paymentStatus, paymentRequestId });
+                console.log("Payment redirect params:", { paymentId, paymentStatus, paymentRequestId });
 
-                // Check if payment was successful
-                if (paymentStatus !== "Credit") {
+                // Check basic Instamojo redirection parameters
+                if (paymentStatus && paymentStatus !== "Credit") {
                     setStatus("error");
-                    setMessage("Payment was not successful. Please try again.");
+                    setMessage("Payment was not successful. Please try checking your banking details or contact support.");
                     return;
                 }
 
                 if (!paymentId) {
                     setStatus("error");
-                    setMessage("No payment information found.");
+                    setMessage("No transaction information found. If you believe this is an error, please verify your bank records.");
                     return;
                 }
 
-                // Get current user
-                const { data: { user } } = await supabase.auth.getUser();
+                // Retrieve authenticated user
+                const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-                if (!user) {
+                if (userError || !user) {
                     setStatus("error");
-                    setMessage("Please log in to activate your subscription.");
+                    setMessage("Unable to locate user credentials. Please sign in to access your dashboard.");
                     return;
                 }
 
-                // Get premium plan ID
-                const { data: plan } = await supabase
-                    .from("plans")
-                    .select("id")
-                    .ilike("name", "%prem%")
-                    .limit(1)
-                    .single();
+                // Poll database for subscription activation status (driven by backend webhook)
+                let attempts = 0;
+                const maxAttempts = 12; // 18 seconds total
+                const delayMs = 1500;
+                let activeSubscription = null;
 
-                const planId = plan?.id || "premium";
-
-                // Determine subscription duration (default 30 days for ₹79)
-                // In production, you'd verify the amount from Instamojo API
-                const durationDays = 30; // Default to 1 month
-
-                const now = new Date();
-
-                // Check if user already has a subscription
-                const { data: existingSub } = await supabase
-                    .from("subscriptions")
-                    .select("*")
-                    .eq("user_id", user.id)
-                    .eq("status", "active")
-                    .limit(1)
-                    .single();
-
-                let endDate: Date;
-
-                if (existingSub && existingSub.current_period_end) {
-                    // Extend existing subscription
-                    const currentEnd = new Date(existingSub.current_period_end);
-                    const startDate = currentEnd > now ? currentEnd : now;
-                    endDate = new Date(startDate);
-                    endDate.setDate(endDate.getDate() + durationDays);
-
-                    const { error } = await supabase
+                while (attempts < maxAttempts) {
+                    attempts++;
+                    console.log(`[PaymentSuccess] Checking database for subscription (Attempt ${attempts}/${maxAttempts})...`);
+                    
+                    const { data: sub, error: subError } = await supabase
                         .from("subscriptions")
-                        .update({
-                            current_period_end: endDate.toISOString(),
-                            updated_at: now.toISOString(),
-                        })
-                        .eq("id", existingSub.id);
+                        .select("id, status, current_period_end")
+                        .eq("user_id", user.id)
+                        .eq("status", "active")
+                        .order("current_period_end", { ascending: false })
+                        .limit(1)
+                        .maybeSingle();
 
-                    if (error) throw error;
-                } else {
-                    // Create new subscription
-                    endDate = new Date(now);
-                    endDate.setDate(endDate.getDate() + durationDays);
+                    if (sub && new Date(sub.current_period_end) > new Date()) {
+                        activeSubscription = sub;
+                        break;
+                    }
 
-                    const { error } = await supabase
-                        .from("subscriptions")
-                        .insert({
-                            user_id: user.id,
-                            plan_id: planId,
-                            status: "active",
-                            billing_cycle: "monthly",
-                            current_period_start: now.toISOString(),
-                            current_period_end: endDate.toISOString(),
-                            cancel_at_period_end: false,
-                            created_at: now.toISOString(),
-                            updated_at: now.toISOString(),
-                        });
-
-                    if (error) throw error;
+                    // Wait for webhook execution
+                    await new Promise((resolve) => setTimeout(resolve, delayMs));
                 }
 
-                setStatus("success");
-                setMessage(`Your Pro subscription is now active until ${endDate.toLocaleDateString()}!`);
-                toast.success("🎉 Pro subscription activated!");
+                if (activeSubscription) {
+                    const formattedDate = new Date(activeSubscription.current_period_end).toLocaleDateString();
+                    setExpiryDate(formattedDate);
+                    setStatus("success");
+                    setMessage(`Your Pro subscription has been verified and is active until ${formattedDate}!`);
+                    toast.success("🎉 Pro subscription activated successfully!");
+                } else {
+                    setStatus("error");
+                    setMessage("Your payment is being processed. It may take a moment to update your profile. Please refresh this page in a minute or contact support.");
+                }
 
             } catch (error: any) {
-                console.error("Payment processing error:", error);
+                console.error("PaymentSuccess verification error:", error);
                 setStatus("error");
-                setMessage(error.message || "Something went wrong. Please contact support.");
+                setMessage(error.message || "An unexpected error occurred during receipt verification.");
             }
         };
 
-        processPayment();
+        processPaymentVerification();
     }, [searchParams]);
 
     return (
-        <div className="min-h-screen py-20 gradient-bg">
+        <div className="min-h-screen py-20 gradient-bg flex items-center justify-center text-white">
             <Container className="max-w-md">
-                <Card className="glass border-primary/20">
+                <Card className="glass border-primary/20 bg-zinc-950/80 backdrop-blur-md rounded-3xl p-6 shadow-2xl">
                     <CardHeader className="text-center">
                         {status === "loading" && (
                             <>
                                 <Loader2 className="w-16 h-16 mx-auto mb-4 text-primary animate-spin" />
-                                <CardTitle>Processing Payment...</CardTitle>
+                                <CardTitle className="text-xl font-bold tracking-tight">Verifying Payment...</CardTitle>
                             </>
                         )}
                         {status === "success" && (
                             <>
-                                <div className="w-20 h-20 mx-auto mb-4 bg-green-500/20 rounded-full flex items-center justify-center">
-                                    <CheckCircle className="w-12 h-12 text-green-500" />
+                                <div className="w-20 h-20 mx-auto mb-4 bg-green-500/10 border border-green-500/25 rounded-full flex items-center justify-center text-green-500">
+                                    <CheckCircle className="w-12 h-12" />
                                 </div>
-                                <CardTitle className="text-green-500 flex items-center justify-center gap-2">
-                                    <Crown className="w-6 h-6 text-yellow-500" />
-                                    Payment Successful!
+                                <CardTitle className="text-green-500 flex items-center justify-center gap-2 text-2xl font-black">
+                                    <Crown className="w-6 h-6 text-yellow-500 animate-bounce" />
+                                    Payment Verified!
                                 </CardTitle>
                             </>
                         )}
                         {status === "error" && (
                             <>
-                                <div className="w-20 h-20 mx-auto mb-4 bg-red-500/20 rounded-full flex items-center justify-center">
-                                    <XCircle className="w-12 h-12 text-red-500" />
+                                <div className="w-20 h-20 mx-auto mb-4 bg-red-500/10 border border-red-500/25 rounded-full flex items-center justify-center text-red-500">
+                                    <XCircle className="w-12 h-12" />
                                 </div>
-                                <CardTitle className="text-red-500">Payment Failed</CardTitle>
+                                <CardTitle className="text-red-500 text-2xl font-black">Payment Pending / Failed</CardTitle>
                             </>
                         )}
                     </CardHeader>
-                    <CardContent className="text-center space-y-4">
-                        <p className="text-muted-foreground">{message}</p>
+                    <CardContent className="text-center space-y-6">
+                        <p className="text-sm text-gray-400 leading-relaxed">{message}</p>
 
                         {status === "success" && (
                             <div className="space-y-3">
-                                <p className="text-sm text-primary">
-                                    You now have access to all Pro features!
+                                <p className="text-xs text-primary font-bold uppercase tracking-wider">
+                                    Full Pro features unlocked
                                 </p>
                                 <Button
                                     onClick={() => navigate("/dashboard")}
-                                    className="w-full bg-primary"
+                                    className="w-full bg-[#00ff9c] hover:bg-[#00e08b] text-black font-black h-11 rounded-xl uppercase text-xs tracking-wider transition-all"
                                 >
                                     Go to Dashboard
                                 </Button>
@@ -182,14 +145,20 @@ export default function PaymentSuccess() {
                         {status === "error" && (
                             <div className="space-y-3">
                                 <Button
+                                    onClick={() => navigate("/pricing")}
+                                    className="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-bold h-11 rounded-xl text-xs uppercase tracking-wider transition-all"
+                                >
+                                    Retry Subscription
+                                </Button>
+                                <Button
                                     onClick={() => navigate("/dashboard")}
-                                    variant="outline"
-                                    className="w-full"
+                                    variant="ghost"
+                                    className="w-full text-xs text-gray-500 hover:text-white"
                                 >
                                     Go to Dashboard
                                 </Button>
-                                <p className="text-xs text-muted-foreground">
-                                    Need help? Contact us at smartfitai77@gmail.com
+                                <p className="text-xs text-zinc-600">
+                                    Questions? Contact support at founder@smartfitai.in
                                 </p>
                             </div>
                         )}

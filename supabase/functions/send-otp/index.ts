@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { Resend } from "https://esm.sh/resend@2.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { sendEmail, otpTemplate } from "../_shared/email.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -22,7 +22,7 @@ serve(async (req: Request): Promise<Response> => {
     const body = await req.json();
     const { email, action, otp } = body;
 
-    console.log(`Received request: action=${action}, email=${email}`);
+    console.log(`Received request in send-otp action=${action}, email=${email}`);
 
     if (!email) {
       return new Response(
@@ -47,7 +47,7 @@ serve(async (req: Request): Promise<Response> => {
     if (action === "send") {
       // Generate OTP
       const generatedOtp = generateOTP();
-      const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+      const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes for Auth OTP
 
       // Store OTP in database
       const { error: upsertError } = await supabase
@@ -69,115 +69,20 @@ serve(async (req: Request): Promise<Response> => {
         );
       }
 
-      // Send email using Resend
-      const resendApiKey = Deno.env.get("RESEND_API_KEY");
-      if (!resendApiKey) {
-        console.error("RESEND_API_KEY not configured");
+      // Generate the beautiful HTML using our shared template
+      const htmlContent = otpTemplate(generatedOtp);
+
+      // Send email using our shared Brevo service
+      const sendResult = await sendEmail({
+        to: email,
+        subject: "🔐 Your SmartFit AI Verification Code",
+        html: htmlContent,
+        type: "auth_otp"
+      });
+
+      if (!sendResult.success) {
         return new Response(
-          JSON.stringify({ error: "Email service not configured" }),
-          { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
-        );
-      }
-
-      const resend = new Resend(resendApiKey);
-
-      const htmlContent = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FitZone Verification Code</title>
-</head>
-<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif; margin: 0; padding: 0; background-color: #0a0a0f;">
-  <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
-    <!-- Header with Logo -->
-    <div style="text-align: center; margin-bottom: 32px;">
-      <div style="display: inline-block; background: linear-gradient(135deg, #00ff9c 0%, #4CC9F0 100%); -webkit-background-clip: text; background-clip: text;">
-        <h1 style="font-size: 42px; font-weight: 800; margin: 0; color: #00ff9c; letter-spacing: -1px;">
-          ⚡ FITZONE
-        </h1>
-      </div>
-      <p style="color: #4CC9F0; font-size: 14px; margin: 8px 0 0; letter-spacing: 3px; text-transform: uppercase;">
-        Your Fitness Journey
-      </p>
-    </div>
-    
-    <!-- Main Card -->
-    <div style="background: linear-gradient(145deg, #1a1a2e 0%, #0f0f1a 100%); border-radius: 20px; padding: 48px 40px; border: 1px solid rgba(0, 255, 156, 0.2); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(0, 255, 156, 0.1);">
-      
-      <!-- Icon -->
-      <div style="text-align: center; margin-bottom: 24px;">
-        <span style="font-size: 48px;">🔐</span>
-      </div>
-      
-      <h2 style="color: #ffffff; margin: 0 0 16px; font-size: 24px; text-align: center; font-weight: 600;">
-        Verification Code
-      </h2>
-      
-      <p style="color: #a0a0b0; font-size: 16px; line-height: 1.6; margin-bottom: 32px; text-align: center;">
-        Enter this code to securely access your FitZone account:
-      </p>
-      
-      <!-- OTP Code Box -->
-      <div style="background: linear-gradient(135deg, #0a0a0f 0%, #12121a 100%); border-radius: 16px; padding: 28px; text-align: center; border: 2px solid #00ff9c; box-shadow: 0 0 30px rgba(0, 255, 156, 0.2), inset 0 0 20px rgba(0, 255, 156, 0.05);">
-        <span style="font-size: 40px; font-weight: 700; color: #00ff9c; letter-spacing: 12px; font-family: 'SF Mono', 'Fira Code', monospace; text-shadow: 0 0 20px rgba(0, 255, 156, 0.5);">
-          ${generatedOtp}
-        </span>
-      </div>
-      
-      <!-- Timer Notice -->
-      <div style="text-align: center; margin-top: 28px; padding: 16px; background: rgba(76, 201, 240, 0.1); border-radius: 12px; border: 1px solid rgba(76, 201, 240, 0.2);">
-        <p style="color: #4CC9F0; font-size: 14px; margin: 0;">
-          ⏱️ This code expires in <strong>10 minutes</strong>
-        </p>
-      </div>
-      
-      <!-- Security Notice -->
-      <p style="color: #666; font-size: 13px; line-height: 1.6; margin-top: 28px; text-align: center;">
-        🛡️ If you didn't request this code, you can safely ignore this email.
-        <br>Never share this code with anyone.
-      </p>
-    </div>
-    
-    <!-- Footer -->
-    <div style="text-align: center; margin-top: 32px; padding-top: 24px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
-      <p style="color: #00ff9c; font-size: 13px; margin: 0 0 8px; font-weight: 600;">
-        💪 Stay Strong. Train Smart.
-      </p>
-      <p style="color: #555; font-size: 12px; margin: 0;">
-        © 2025 FitZone. All rights reserved.
-      </p>
-      <p style="color: #444; font-size: 11px; margin: 12px 0 0;">
-        Questions? Contact us at support@fitzone.com
-      </p>
-    </div>
-  </div>
-</body>
-</html>
-      `.trim();
-
-      try {
-        const { error: emailError } = await resend.emails.send({
-          from: "FitZone <onboarding@resend.dev>",
-          to: [email],
-          subject: "🔐 Your FitZone Verification Code",
-          html: htmlContent,
-        });
-
-        if (emailError) {
-          console.error("Resend error:", emailError);
-          return new Response(
-            JSON.stringify({ error: `Failed to send email: ${emailError.message}` }),
-            { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
-          );
-        }
-
-        console.log(`OTP email sent successfully to ${email}`);
-      } catch (emailError: any) {
-        console.error("Email send error:", emailError);
-        return new Response(
-          JSON.stringify({ error: `Failed to send email: ${emailError.message}` }),
+          JSON.stringify({ error: sendResult.message }),
           { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
         );
       }
@@ -186,6 +91,7 @@ serve(async (req: Request): Promise<Response> => {
         JSON.stringify({ success: true, message: "OTP sent successfully" }),
         { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
+      
     } else if (action === "verify") {
       if (!otp) {
         return new Response(
@@ -196,10 +102,10 @@ serve(async (req: Request): Promise<Response> => {
 
       // Get stored OTP
       const { data: otpData, error: fetchError } = await supabase
-        .from("email_otps")
-        .select("*")
-        .eq("email", email.toLowerCase())
-        .single();
+          .from("email_otps")
+          .select("*")
+          .eq("email", email.toLowerCase())
+          .single();
 
       if (fetchError || !otpData) {
         return new Response(
@@ -266,12 +172,13 @@ serve(async (req: Request): Promise<Response> => {
             success: true, 
             verified: true,
             token: data.properties?.hashed_token,
+            actionLink: data.properties?.action_link,
             type: "magiclink"
           }),
           { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
         );
       } else {
-        // Create new user
+        // Create new user (automatically sets confirmed since they verified the email OTP!)
         const tempPassword = crypto.randomUUID();
         const { error: createError } = await supabase.auth.admin.createUser({
           email: email.toLowerCase(),
@@ -306,6 +213,7 @@ serve(async (req: Request): Promise<Response> => {
             success: true, 
             verified: true,
             token: data.properties?.hashed_token,
+            actionLink: data.properties?.action_link,
             type: "magiclink",
             isNewUser: true
           }),
