@@ -148,78 +148,60 @@ serve(async (req: Request): Promise<Response> => {
       // OTP is valid - delete it
       await supabase.from("email_otps").delete().eq("email", email.toLowerCase());
 
-      // Sign in or create user using Supabase Admin
-      const { data: userData } = await supabase.auth.admin.listUsers();
-      const existingUser = userData?.users?.find(u => u.email?.toLowerCase() === email.toLowerCase());
+      // Create user if they don't exist, otherwise generate magic link for the existing user
+      let isNewUser = false;
+      const tempPassword = crypto.randomUUID();
+      
+      const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
+        email: email.toLowerCase(),
+        password: tempPassword,
+        email_confirm: true,
+      });
 
-      if (existingUser) {
-        // Generate magic link for existing user
-        const { data, error } = await supabase.auth.admin.generateLink({
-          type: "magiclink",
-          email: email.toLowerCase(),
-        });
-        
-        if (error) {
-          console.error("Error generating link:", error);
-          return new Response(
-            JSON.stringify({ error: "Failed to authenticate" }),
-            { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
-          );
-        }
-
-        return new Response(
-          JSON.stringify({ 
-            success: true, 
-            verified: true,
-            token: data.properties?.hashed_token,
-            actionLink: data.properties?.action_link,
-            type: "magiclink"
-          }),
-          { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
-        );
-      } else {
-        // Create new user (automatically sets confirmed since they verified the email OTP!)
-        const tempPassword = crypto.randomUUID();
-        const { error: createError } = await supabase.auth.admin.createUser({
-          email: email.toLowerCase(),
-          password: tempPassword,
-          email_confirm: true,
-        });
-
-        if (createError) {
-          console.error("Error creating user:", createError);
+      if (createError) {
+        // If user already exists, we proceed with generateLink. Otherwise fail.
+        const isEmailExists = createError.status === 422 || 
+                             createError.code === "email_exists" || 
+                             createError.message?.includes("email") || 
+                             createError.message?.includes("registered") || 
+                             createError.message?.includes("exists");
+                             
+        if (!isEmailExists) {
+          console.error("Error creating user during OTP verification:", createError);
           return new Response(
             JSON.stringify({ error: "Failed to create account" }),
             { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
           );
         }
+      } else {
+        isNewUser = true;
+      }
 
-        // Generate magic link for new user
-        const { data, error } = await supabase.auth.admin.generateLink({
-          type: "magiclink",
-          email: email.toLowerCase(),
-        });
+      // Generate magic link (works for both new and existing users)
+      const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
+        type: "magiclink",
+        email: email.toLowerCase(),
+      });
 
-        if (error) {
-          console.error("Error generating link:", error);
-          return new Response(
-            JSON.stringify({ error: "Failed to authenticate" }),
-            { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
-          );
-        }
-
+      if (linkError || !linkData) {
+        console.error("Error generating auth link during OTP verification:", linkError);
         return new Response(
-          JSON.stringify({ 
-            success: true, 
-            verified: true,
-            token: data.properties?.hashed_token,
-            actionLink: data.properties?.action_link,
-            type: "magiclink",
-            isNewUser: true
-          }),
-          { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+          JSON.stringify({ error: "Failed to authenticate" }),
+          { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
         );
       }
+
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          verified: true,
+          token: linkData.properties?.hashed_token,
+          actionLink: linkData.properties?.action_link,
+          type: "magiclink",
+          isNewUser
+        }),
+        { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
     }
 
     return new Response(

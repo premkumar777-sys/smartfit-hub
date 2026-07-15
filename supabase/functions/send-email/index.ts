@@ -188,15 +188,19 @@ serve(async (req: Request): Promise<Response> => {
       case "forgot-password": {
         if (!email) return new Response(JSON.stringify({ error: "Email is required" }), { status: 400, headers: corsHeaders });
 
-        // Verify user exists in auth
-        const { data: userData, error: userError } = await supabase.auth.admin.listUsers();
-        if (userError) {
-          console.error("[forgot-password] Auth listing error:", userError);
-          return new Response(JSON.stringify({ error: "Internal Auth lookup failure" }), { status: 500, headers: corsHeaders });
+        // Verify user exists in database profiles
+        const { data: profile, error: dbError } = await supabase
+          .from("profiles")
+          .select("id")
+          .eq("email", email.toLowerCase())
+          .maybeSingle();
+
+        if (dbError) {
+          console.error("[forgot-password] DB lookup error:", dbError);
+          return new Response(JSON.stringify({ error: "Internal database lookup failure" }), { status: 500, headers: corsHeaders });
         }
 
-        const targetUser = userData.users?.find(u => u.email?.toLowerCase() === email.toLowerCase());
-        if (!targetUser) {
+        if (!profile) {
           // Security best practice: return success even if email not found to avoid user enumeration
           return new Response(JSON.stringify({ success: true, message: "If the email exists, a password reset link has been dispatched" }), { status: 200, headers: corsHeaders });
         }
@@ -257,19 +261,22 @@ serve(async (req: Request): Promise<Response> => {
           return new Response(JSON.stringify({ error: "This password reset link has expired" }), { status: 400, headers: corsHeaders });
         }
 
-        // Fetch auth user ID
-        const { data: usersList, error: listError } = await supabase.auth.admin.listUsers();
-        if (listError) {
-          return new Response(JSON.stringify({ error: "User lookup failure" }), { status: 500, headers: corsHeaders });
-        }
+        // Fetch auth user ID from profiles table
+        const { data: profile, error: profileError } = await supabase
+          .from("profiles")
+          .select("id")
+          .eq("email", email.toLowerCase())
+          .maybeSingle();
 
-        const targetUser = usersList.users?.find(u => u.email?.toLowerCase() === email.toLowerCase());
-        if (!targetUser) {
+        if (profileError || !profile) {
+          console.error("[reset-password] Profile lookup failed:", profileError);
           return new Response(JSON.stringify({ error: "User profile no longer exists" }), { status: 404, headers: corsHeaders });
         }
 
+        const userId = profile.id;
+
         // Update password using Admin Auth Client
-        const { error: updateError } = await supabase.auth.admin.updateUserById(targetUser.id, {
+        const { error: updateError } = await supabase.auth.admin.updateUserById(userId, {
           password: password
         });
 
