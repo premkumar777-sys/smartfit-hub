@@ -377,55 +377,84 @@ export default function Auth() {
   const GoogleIcon = () => (
     <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
       <path
-        fill="#ffffff"
+        fill="#4285F4"
         d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
       />
       <path
-        fill="#ffffff"
+        fill="#34A853"
         d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
       />
       <path
-        fill="#ffffff"
+        fill="#FBBC05"
         d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
       />
       <path
-        fill="#ffffff"
+        fill="#EA4335"
         d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
       />
     </svg>
   );
 
   return (
-    <div className="min-h-screen flex bg-black text-white">
+    <div className="min-h-screen flex bg-black text-white relative overflow-hidden select-none">
       {/* Left-side Image panel */}
-      <div className="hidden md:flex md:w-[45%] lg:w-[40%] xl:w-[45%] relative flex-col justify-between p-12 overflow-hidden border-r border-white/5">
+      <div className="hidden md:flex md:w-[45%] lg:w-[40%] xl:w-[45%] relative flex-col justify-between p-16 overflow-hidden border-r border-white/10">
         <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat scale-105 hover:scale-100 transition-transform duration-[10000ms] ease-out"
           style={{ backgroundImage: `url('/auth-hero.png')` }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/70" />
-        <div className="relative z-10" />
-        <div className="relative z-10 space-y-4 max-w-sm">
-          <h2 className="text-2xl lg:text-3xl font-black leading-tight text-white">
-            Empowering our <span className="text-[#00ff9c]">global community</span> to build their <span className="text-[#00ff9c]">ultimate physique</span>.
+        {/* Sophisticated gradient overlays */}
+        <div className="absolute inset-0 bg-gradient-to-tr from-black via-black/55 to-emerald-950/30 opacity-95" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/30" />
+        <div className="absolute top-1/2 left-1/3 -translate-y-1/2 w-96 h-96 bg-[#00ff9c]/5 rounded-full blur-[100px] pointer-events-none" />
+        
+        {/* Top Branding Logo */}
+        <div className="relative z-10 flex items-center gap-3">
+          <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-[#00ff9c] to-[#00b8ff] p-[1.5px] shadow-[0_0_20px_rgba(0,255,156,0.25)]">
+            <div className="flex h-full w-full items-center justify-center rounded-[10px] bg-zinc-950">
+              <span className="text-sm font-black text-[#00ff9c]">S</span>
+            </div>
+          </div>
+          <span className="font-extrabold text-lg tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-white to-zinc-400">
+            SMARTFIT <span className="text-[#00ff9c]">AI</span>
+          </span>
+        </div>
+
+        {/* Bottom Tagline text with clean enterprise layout */}
+        <div className="relative z-10 space-y-6 max-w-md">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-white/10 bg-white/5 backdrop-blur-md">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#00ff9c] animate-pulse" />
+            <span className="text-[10px] text-gray-300 font-bold uppercase tracking-widest">Enterprise Platform</span>
+          </div>
+          <h2 className="text-3xl lg:text-4xl font-extrabold leading-tight text-white tracking-tight">
+            Empowering our <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#00ff9c] to-[#00b8ff]">global community</span> to build their ultimate physique.
           </h2>
-          <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">SmartFitAI Platform</p>
+          <p className="text-xs text-gray-400 font-medium leading-relaxed">
+            Unlock elite coaching models, smart biometric analysis, and custom-tailored conditioning programs.
+          </p>
         </div>
       </div>
 
       {/* Right-side Form panel */}
-      <div className="flex-1 flex flex-col justify-center items-center py-6 px-4 md:py-10 md:px-12 min-h-screen">
-        <div className="w-full max-w-md space-y-5">
+      <div className="flex-1 flex flex-col justify-center items-center py-8 px-4 md:py-12 md:px-16 min-h-screen relative overflow-hidden bg-gradient-to-br from-zinc-950 via-black to-zinc-950">
+        {/* Ambient background glows */}
+        <div className="absolute top-1/4 -right-48 w-[500px] h-[500px] bg-[#00ff9c]/5 rounded-full blur-[140px] pointer-events-none" />
+        <div className="absolute bottom-1/4 -left-48 w-[500px] h-[500px] bg-[#00b8ff]/5 rounded-full blur-[140px] pointer-events-none" />
+        
+        {/* Subtle grid pattern overlay */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808005_1px,transparent_1px),linear-gradient(to_bottom,#80808005_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none" />
+
+        <div className="w-full max-w-md space-y-6 relative z-10 bg-zinc-900/40 border border-white/[0.06] backdrop-blur-2xl p-8 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.6)]">
           
           <div>
-            <Link to="/" className="text-xs text-gray-500 hover:text-white font-bold transition-colors inline-flex items-center gap-1.5">
+            <Link to="/" className="text-xs text-gray-400 hover:text-[#00ff9c] font-bold transition-all inline-flex items-center gap-1.5 hover:-translate-x-0.5 duration-200">
               ← Back to Home
             </Link>
           </div>
 
           {/* Form Headers */}
           <div className="space-y-2">
-            <h1 className="text-3xl font-black tracking-tight">
+            <h1 className="text-3xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-zinc-300">
               {showForgotPassword 
                 ? "Reset Password" 
                 : activeTab === "login" 
@@ -435,7 +464,7 @@ export default function Auth() {
                     : "Create Account"
               }
             </h1>
-            <p className="text-sm text-gray-400">
+            <p className="text-xs text-gray-400 font-medium">
               {showForgotPassword 
                 ? "Enter your email to receive a password reset link."
                 : activeTab === "login" 
@@ -462,7 +491,7 @@ export default function Auth() {
                     name="email"
                     type="email"
                     placeholder="name@smartfitai.in"
-                    className="pl-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-[#00ff9c] focus:ring-[#00ff9c] text-white rounded-xl h-11 transition-all"
+                    className="pl-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-[#00ff9c] focus:ring-1 focus:ring-[#00ff9c] focus:shadow-[0_0_15px_rgba(0,255,156,0.1)] text-white rounded-xl h-11 transition-all duration-300"
                     required
                   />
                 </div>
@@ -470,7 +499,7 @@ export default function Auth() {
 
               <Button 
                 type="submit" 
-                className="w-full bg-[#00ff9c] hover:bg-[#00e08b] text-black font-black h-11 rounded-xl transition-all uppercase text-xs tracking-wider"
+                className="w-full bg-gradient-to-r from-[#00ff9c] to-[#00b8ff] hover:from-[#00e08b] hover:to-[#00a3e0] text-black font-extrabold h-11 rounded-xl transition-all duration-300 uppercase text-xs tracking-wider shadow-[0_0_15px_rgba(0,255,156,0.15)] hover:shadow-[0_0_20px_rgba(0,255,156,0.3)] hover:-translate-y-[1px]"
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -506,7 +535,7 @@ export default function Auth() {
                       name="email"
                       type="email"
                       placeholder="name@smartfitai.in"
-                      className="pl-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-[#00ff9c] focus:ring-[#00ff9c] text-white rounded-xl h-11 transition-all"
+                      className="pl-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-[#00ff9c] focus:ring-1 focus:ring-[#00ff9c] focus:shadow-[0_0_15px_rgba(0,255,156,0.1)] text-white rounded-xl h-11 transition-all duration-300"
                       required
                       maxLength={255}
                     />
@@ -522,7 +551,7 @@ export default function Auth() {
                       name="password"
                       type="password"
                       placeholder="••••••••"
-                      className="pl-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-[#00ff9c] focus:ring-[#00ff9c] text-white rounded-xl h-11 transition-all"
+                      className="pl-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-[#00ff9c] focus:ring-1 focus:ring-[#00ff9c] focus:shadow-[0_0_15px_rgba(0,255,156,0.1)] text-white rounded-xl h-11 transition-all duration-300"
                       required
                       minLength={8}
                       maxLength={100}
@@ -533,7 +562,7 @@ export default function Auth() {
                 <div className="flex flex-col gap-3">
                   <Button 
                     type="submit" 
-                    className="w-full bg-[#00ff9c] hover:bg-[#00e08b] text-black font-black h-11 rounded-xl transition-all uppercase text-xs tracking-wider"
+                    className="w-full bg-gradient-to-r from-[#00ff9c] to-[#00b8ff] hover:from-[#00e08b] hover:to-[#00a3e0] text-black font-extrabold h-11 rounded-xl transition-all duration-300 uppercase text-xs tracking-wider shadow-[0_0_15px_rgba(0,255,156,0.15)] hover:shadow-[0_0_20px_rgba(0,255,156,0.3)] hover:-translate-y-[1px]"
                     disabled={isLoading}
                   >
                     {isLoading ? (
@@ -553,9 +582,9 @@ export default function Auth() {
                       setAuthMethod("otp");
                       setOtpStep("request");
                     }}
-                    className="w-full border-white/10 text-xs font-bold text-gray-400 hover:bg-white/5 hover:text-white rounded-xl h-11 transition-all uppercase tracking-wider flex items-center justify-center gap-2"
+                    className="w-full border-white/10 text-xs font-bold text-gray-400 hover:bg-white/5 hover:text-white rounded-xl h-11 transition-all duration-300 uppercase tracking-wider flex items-center justify-center gap-2"
                   >
-                    <KeyRound className="w-4 h-4" />
+                    <KeyRound className="w-4 h-4 text-[#00ff9c]" />
                     Use OTP Login
                   </Button>
                 </div>
@@ -574,7 +603,7 @@ export default function Auth() {
                         name="email"
                         type="email"
                         placeholder="name@smartfitai.in"
-                        className="pl-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-[#00ff9c] focus:ring-[#00ff9c] text-white rounded-xl h-11 transition-all"
+                        className="pl-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-[#00ff9c] focus:ring-1 focus:ring-[#00ff9c] focus:shadow-[0_0_15px_rgba(0,255,156,0.1)] text-white rounded-xl h-11 transition-all duration-300"
                         required
                         maxLength={255}
                       />
@@ -584,7 +613,7 @@ export default function Auth() {
                   <div className="flex flex-col gap-3">
                     <Button 
                       type="submit" 
-                      className="w-full bg-[#00ff9c] hover:bg-[#00e08b] text-black font-black h-11 rounded-xl transition-all uppercase text-xs tracking-wider"
+                      className="w-full bg-gradient-to-r from-[#00ff9c] to-[#00b8ff] hover:from-[#00e08b] hover:to-[#00a3e0] text-black font-extrabold h-11 rounded-xl transition-all duration-300 uppercase text-xs tracking-wider shadow-[0_0_15px_rgba(0,255,156,0.15)] hover:shadow-[0_0_20px_rgba(0,255,156,0.3)] hover:-translate-y-[1px]"
                       disabled={isLoading}
                     >
                       {isLoading ? (
@@ -601,9 +630,9 @@ export default function Auth() {
                       type="button"
                       variant="outline"
                       onClick={() => setAuthMethod("password")}
-                      className="w-full border-white/10 text-xs font-bold text-gray-400 hover:bg-white/5 hover:text-white rounded-xl h-11 transition-all uppercase tracking-wider flex items-center justify-center gap-2"
+                      className="w-full border-white/10 text-xs font-bold text-gray-400 hover:bg-white/5 hover:text-white rounded-xl h-11 transition-all duration-300 uppercase tracking-wider flex items-center justify-center gap-2"
                     >
-                      <Lock className="w-4 h-4" />
+                      <Lock className="w-4 h-4 text-[#00ff9c]" />
                       Use Password Login
                     </Button>
                   </div>
@@ -620,12 +649,12 @@ export default function Auth() {
                       disabled={isLoading}
                     >
                       <InputOTPGroup className="gap-2">
-                        <InputOTPSlot index={0} className="w-12 h-12 text-lg border-white/10 focus:border-primary" />
-                        <InputOTPSlot index={1} className="w-12 h-12 text-lg border-white/10 focus:border-primary" />
-                        <InputOTPSlot index={2} className="w-12 h-12 text-lg border-white/10 focus:border-primary" />
-                        <InputOTPSlot index={3} className="w-12 h-12 text-lg border-white/10 focus:border-primary" />
-                        <InputOTPSlot index={4} className="w-12 h-12 text-lg border-white/10 focus:border-primary" />
-                        <InputOTPSlot index={5} className="w-12 h-12 text-lg border-white/10 focus:border-primary" />
+                        <InputOTPSlot index={0} className="w-12 h-12 text-lg border-white/10 focus:border-[#00ff9c]" />
+                        <InputOTPSlot index={1} className="w-12 h-12 text-lg border-white/10 focus:border-[#00ff9c]" />
+                        <InputOTPSlot index={2} className="w-12 h-12 text-lg border-white/10 focus:border-[#00ff9c]" />
+                        <InputOTPSlot index={3} className="w-12 h-12 text-lg border-white/10 focus:border-[#00ff9c]" />
+                        <InputOTPSlot index={4} className="w-12 h-12 text-lg border-white/10 focus:border-[#00ff9c]" />
+                        <InputOTPSlot index={5} className="w-12 h-12 text-lg border-white/10 focus:border-[#00ff9c]" />
                       </InputOTPGroup>
                     </InputOTP>
                   </div>
@@ -633,7 +662,7 @@ export default function Auth() {
                   <div className="flex flex-col gap-3">
                     <Button 
                       type="submit" 
-                      className="w-full bg-[#00ff9c] hover:bg-[#00e08b] text-black font-black h-11 rounded-xl transition-all uppercase text-xs tracking-wider"
+                      className="w-full bg-gradient-to-r from-[#00ff9c] to-[#00b8ff] hover:from-[#00e08b] hover:to-[#00a3e0] text-black font-extrabold h-11 rounded-xl transition-all duration-300 uppercase text-xs tracking-wider shadow-[0_0_15px_rgba(0,255,156,0.15)] hover:shadow-[0_0_20px_rgba(0,255,156,0.3)] hover:-translate-y-[1px]"
                       disabled={isLoading || otpCode.length < 6}
                     >
                       {isLoading ? (
@@ -684,7 +713,7 @@ export default function Auth() {
                       name="username"
                       type="text"
                       placeholder="Your username"
-                      className="pl-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-[#00ff9c] focus:ring-[#00ff9c] text-white rounded-xl h-11 transition-all"
+                      className="pl-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-[#00ff9c] focus:ring-1 focus:ring-[#00ff9c] focus:shadow-[0_0_15px_rgba(0,255,156,0.1)] text-white rounded-xl h-11 transition-all duration-300"
                       required
                       minLength={2}
                       maxLength={50}
@@ -701,7 +730,7 @@ export default function Auth() {
                       name="email"
                       type="email"
                       placeholder="name@smartfitai.in"
-                      className="pl-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-[#00ff9c] focus:ring-[#00ff9c] text-white rounded-xl h-11 transition-all"
+                      className="pl-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-[#00ff9c] focus:ring-1 focus:ring-[#00ff9c] focus:shadow-[0_0_15px_rgba(0,255,156,0.1)] text-white rounded-xl h-11 transition-all duration-300"
                       required
                       maxLength={255}
                     />
@@ -717,7 +746,7 @@ export default function Auth() {
                       name="password"
                       type="password"
                       placeholder="••••••••"
-                      className="pl-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-[#00ff9c] focus:ring-[#00ff9c] text-white rounded-xl h-11 transition-all"
+                      className="pl-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-[#00ff9c] focus:ring-1 focus:ring-[#00ff9c] focus:shadow-[0_0_15px_rgba(0,255,156,0.1)] text-white rounded-xl h-11 transition-all duration-300"
                       required
                       minLength={8}
                       maxLength={100}
@@ -730,7 +759,7 @@ export default function Auth() {
 
                 <Button 
                   type="submit" 
-                  className="w-full bg-[#00ff9c] hover:bg-[#00e08b] text-black font-black h-11 rounded-xl transition-all uppercase text-xs tracking-wider"
+                  className="w-full bg-gradient-to-r from-[#00ff9c] to-[#00b8ff] hover:from-[#00e08b] hover:to-[#00a3e0] text-black font-extrabold h-11 rounded-xl transition-all duration-300 uppercase text-xs tracking-wider shadow-[0_0_15px_rgba(0,255,156,0.15)] hover:shadow-[0_0_20px_rgba(0,255,156,0.3)] hover:-translate-y-[1px]"
                   disabled={isLoading}
                 >
                   {isLoading ? (
@@ -755,12 +784,12 @@ export default function Auth() {
                     disabled={isLoading}
                   >
                     <InputOTPGroup className="gap-2">
-                      <InputOTPSlot index={0} className="w-12 h-12 text-lg border-white/10 focus:border-primary" />
-                      <InputOTPSlot index={1} className="w-12 h-12 text-lg border-white/10 focus:border-primary" />
-                      <InputOTPSlot index={2} className="w-12 h-12 text-lg border-white/10 focus:border-primary" />
-                      <InputOTPSlot index={3} className="w-12 h-12 text-lg border-white/10 focus:border-primary" />
-                      <InputOTPSlot index={4} className="w-12 h-12 text-lg border-white/10 focus:border-primary" />
-                      <InputOTPSlot index={5} className="w-12 h-12 text-lg border-white/10 focus:border-primary" />
+                      <InputOTPSlot index={0} className="w-12 h-12 text-lg border-white/10 focus:border-[#00ff9c]" />
+                      <InputOTPSlot index={1} className="w-12 h-12 text-lg border-white/10 focus:border-[#00ff9c]" />
+                      <InputOTPSlot index={2} className="w-12 h-12 text-lg border-white/10 focus:border-[#00ff9c]" />
+                      <InputOTPSlot index={3} className="w-12 h-12 text-lg border-white/10 focus:border-[#00ff9c]" />
+                      <InputOTPSlot index={4} className="w-12 h-12 text-lg border-white/10 focus:border-[#00ff9c]" />
+                      <InputOTPSlot index={5} className="w-12 h-12 text-lg border-white/10 focus:border-[#00ff9c]" />
                     </InputOTPGroup>
                   </InputOTP>
                 </div>
@@ -768,7 +797,7 @@ export default function Auth() {
                 <div className="flex flex-col gap-3">
                   <Button 
                     type="submit" 
-                    className="w-full bg-[#00ff9c] hover:bg-[#00e08b] text-black font-black h-11 rounded-xl transition-all uppercase text-xs tracking-wider"
+                    className="w-full bg-gradient-to-r from-[#00ff9c] to-[#00b8ff] hover:from-[#00e08b] hover:to-[#00a3e0] text-black font-extrabold h-11 rounded-xl transition-all duration-300 uppercase text-xs tracking-wider shadow-[0_0_15px_rgba(0,255,156,0.15)] hover:shadow-[0_0_20px_rgba(0,255,156,0.3)] hover:-translate-y-[1px]"
                     disabled={isLoading || otpCode.length < 6}
                   >
                     {isLoading ? (
@@ -814,7 +843,7 @@ export default function Auth() {
                   <div className="w-full border-t border-white/10" />
                 </div>
                 <div className="relative flex justify-center text-[10px] uppercase font-bold tracking-widest text-gray-500">
-                  <span className="bg-black px-3">Or continue with</span>
+                  <span className="bg-zinc-950/90 px-3 backdrop-blur-md rounded-md border border-white/5">Or continue with</span>
                 </div>
               </div>
 
@@ -822,7 +851,7 @@ export default function Auth() {
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-full flex items-center justify-center gap-2.5 h-11 bg-transparent border-white/10 hover:bg-white/5 hover:text-white rounded-xl text-white font-bold transition-all text-xs"
+                  className="w-full flex items-center justify-center gap-2.5 h-11 bg-transparent border-white/10 hover:bg-white/5 hover:text-white hover:border-[#00ff9c]/30 rounded-xl text-white font-bold transition-all duration-300 text-xs shadow-sm hover:shadow-[0_0_15px_rgba(0,255,156,0.05)]"
                   onClick={handleGoogleLogin}
                   disabled={isGoogleLoading}
                 >
@@ -875,7 +904,7 @@ export default function Auth() {
               <button 
                 type="button"
                 onClick={() => setShowForgotPassword(true)} 
-                className="hover:text-white transition-colors"
+                className="hover:text-white transition-colors duration-200"
               >
                 Forgot password?
               </button>
