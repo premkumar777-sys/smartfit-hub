@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
-import { Loader2, Mail, Lock, User, Key, KeyRound, ShieldAlert } from "lucide-react";
+import { Loader2, Mail, Lock, User, Key, KeyRound, ShieldAlert, Eye, EyeOff } from "lucide-react";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 
 const authSchema = z.object({
@@ -39,6 +39,7 @@ export default function Auth() {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [isLinkedInLoading, setIsLinkedInLoading] = useState(false);
   const [isFacebookLoading, setIsFacebookLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [activeTab, setActiveTab] = useState<"login" | "signup">("login");
   
   // Custom Flow States
@@ -494,7 +495,7 @@ export default function Auth() {
   );
 
   return (
-    <div className="min-h-screen flex bg-black text-white">
+    <div className="h-screen flex bg-black text-white overflow-hidden select-none">
       {/* Left-side Image panel */}
       <div className="hidden md:flex md:w-[45%] lg:w-[40%] xl:w-[45%] relative flex-col justify-between p-12 overflow-hidden border-r border-white/5">
         <div 
@@ -512,8 +513,8 @@ export default function Auth() {
       </div>
 
       {/* Right-side Form panel */}
-      <div className="flex-1 flex flex-col justify-center items-center py-6 px-4 md:py-10 md:px-12 min-h-screen">
-        <div className="w-full max-w-md space-y-5">
+      <div className="flex-1 flex flex-col justify-center items-center py-6 px-4 md:py-8 md:px-12 h-screen overflow-y-auto">
+        <div className="w-full max-w-md space-y-4">
           
           <div>
             <Link to="/" className="text-xs text-gray-500 hover:text-white font-bold transition-colors inline-flex items-center gap-1.5">
@@ -612,19 +613,35 @@ export default function Auth() {
                 </div>
                 
                 <div className="space-y-1.5">
-                  <Label htmlFor="login-password" className="text-[10px] font-black uppercase tracking-wider text-gray-400">Password</Label>
+                  <div className="flex justify-between items-center">
+                    <Label htmlFor="login-password" className="text-[10px] font-black uppercase tracking-wider text-gray-400">Password</Label>
+                    <button 
+                      type="button"
+                      onClick={() => setShowForgotPassword(true)}
+                      className="text-[10px] font-black uppercase tracking-wider text-[#00ff9c] hover:underline"
+                    >
+                      Forgot Password?
+                    </button>
+                  </div>
                   <div className="relative">
                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                     <Input
                       id="login-password"
                       name="password"
-                      type="password"
+                      type={showPassword ? "text" : "password"}
                       placeholder="••••••••"
-                      className="pl-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-[#00ff9c] focus:ring-[#00ff9c] text-white rounded-xl h-11 transition-all"
+                      className="pl-12 pr-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-[#00ff9c] focus:ring-[#00ff9c] text-white rounded-xl h-11 transition-all"
                       required
                       minLength={8}
                       maxLength={100}
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
                   </div>
                 </div>
 
@@ -783,20 +800,27 @@ export default function Auth() {
                   </div>
                 </div>
 
-                <div className="space-y-1.5">
+                 <div className="space-y-1.5">
                   <Label htmlFor="signup-password" className="text-[10px] font-black uppercase tracking-wider text-gray-400">Password</Label>
                   <div className="relative">
                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                     <Input
                       id="signup-password"
                       name="password"
-                      type="password"
+                      type={showPassword ? "text" : "password"}
                       placeholder="••••••••"
-                      className="pl-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-[#00ff9c] focus:ring-[#00ff9c] text-white rounded-xl h-11 transition-all"
+                      className="pl-12 pr-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-[#00ff9c] focus:ring-[#00ff9c] text-white rounded-xl h-11 transition-all"
                       required
                       minLength={8}
                       maxLength={100}
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
                   </div>
                   <p className="text-[10px] text-gray-500 tracking-normal leading-normal">
                     Must include uppercase, lowercase, number, and special character.
