@@ -120,23 +120,16 @@ export default function ResetPassword() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6 text-white relative overflow-hidden bg-gradient-to-br from-zinc-950 via-black to-zinc-950">
-      {/* Ambient background glows */}
-      <div className="absolute top-1/4 -right-48 w-[500px] h-[500px] bg-[#00ff9c]/5 rounded-full blur-[140px] pointer-events-none" />
-      <div className="absolute bottom-1/4 -left-48 w-[500px] h-[500px] bg-[#00b8ff]/5 rounded-full blur-[140px] pointer-events-none" />
-      
-      {/* Subtle grid pattern overlay */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808005_1px,transparent_1px),linear-gradient(to_bottom,#80808005_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none" />
-
-      <Container className="max-w-md relative z-10">
-        <Card className="bg-zinc-900/40 border border-white/[0.06] backdrop-blur-2xl p-6 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.6)]">
+    <div className="min-h-screen py-20 bg-black flex flex-col items-center justify-center p-6 text-white">
+      <Container className="max-w-md">
+        <Card className="glass border-primary/20 backdrop-blur-md bg-zinc-950/80 rounded-3xl p-6 shadow-2xl">
           <CardHeader className="text-center pb-4">
-            <CardTitle className="text-2xl font-black tracking-tight text-white flex items-center justify-center gap-2 bg-clip-text text-transparent bg-gradient-to-r from-white to-zinc-300">
-              <ShieldCheck className="w-6 h-6 text-[#00ff9c] drop-shadow-[0_0_10px_rgba(0,255,156,0.3)]" />
+            <CardTitle className="text-2xl font-black tracking-tight text-white flex items-center justify-center gap-2">
+              <ShieldCheck className="w-6 h-6 text-[#00ff9c]" />
               Reset Password
             </CardTitle>
             <CardDescription className="text-gray-400 text-xs mt-1">
-              Enter your new secure password for <span className="text-[#00ff9c]">{email}</span>.
+              Enter your new secure password for <span className="text-primary">{email}</span>.
             </CardDescription>
           </CardHeader>
 
@@ -152,7 +145,7 @@ export default function ResetPassword() {
                 </p>
                 <Button 
                   onClick={() => navigate("/auth")}
-                  className="w-full bg-gradient-to-r from-[#00ff9c] to-[#00b8ff] hover:from-[#00e08b] hover:to-[#00a3e0] text-black font-extrabold h-11 rounded-xl transition-all duration-300 uppercase text-xs tracking-wider shadow-[0_0_15px_rgba(0,255,156,0.15)] hover:shadow-[0_0_20px_rgba(0,255,156,0.3)] hover:-translate-y-[1px]"
+                  className="w-full bg-[#00ff9c] hover:bg-[#00e08b] text-black font-black h-11 rounded-xl uppercase text-xs tracking-wider"
                 >
                   Back to Login
                 </Button>
@@ -169,7 +162,7 @@ export default function ResetPassword() {
                       placeholder="••••••••"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="pl-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-[#00ff9c] focus:ring-1 focus:ring-[#00ff9c] focus:shadow-[0_0_15px_rgba(0,255,156,0.1)] text-white rounded-xl h-11 transition-all duration-300"
+                      className="pl-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-[#00ff9c] focus:ring-[#00ff9c] text-white rounded-xl h-11 transition-all"
                       required
                       minLength={8}
                     />
@@ -186,7 +179,7 @@ export default function ResetPassword() {
                       placeholder="••••••••"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="pl-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-[#00ff9c] focus:ring-1 focus:ring-[#00ff9c] focus:shadow-[0_0_15px_rgba(0,255,156,0.1)] text-white rounded-xl h-11 transition-all duration-300"
+                      className="pl-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-[#00ff9c] focus:ring-[#00ff9c] text-white rounded-xl h-11 transition-all"
                       required
                       minLength={8}
                     />
@@ -200,7 +193,7 @@ export default function ResetPassword() {
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full bg-gradient-to-r from-[#00ff9c] to-[#00b8ff] hover:from-[#00e08b] hover:to-[#00a3e0] text-black font-extrabold h-11 rounded-xl transition-all duration-300 uppercase text-xs tracking-wider shadow-[0_0_15px_rgba(0,255,156,0.15)] hover:shadow-[0_0_20px_rgba(0,255,156,0.3)] hover:-translate-y-[1px]"
+                  className="w-full bg-[#00ff9c] hover:bg-[#00e08b] text-black font-black h-11 rounded-xl transition-all uppercase text-xs tracking-wider"
                 >
                   {isLoading ? (
                     <>
