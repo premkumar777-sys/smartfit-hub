@@ -618,7 +618,7 @@ export default function Auth() {
                     <button 
                       type="button"
                       onClick={() => setShowForgotPassword(true)}
-                      className="text-[10px] font-black uppercase tracking-wider text-[#00ff9c] hover:underline"
+                      className="text-[10px] font-black uppercase tracking-wider text-white hover:underline"
                     >
                       Forgot Password?
                     </button>
@@ -1024,18 +1024,7 @@ export default function Auth() {
             </div>
           )}
 
-          {/* Forgot Password Link Footer */}
-          {!showForgotPassword && activeTab === "login" && otpStep === "request" && (
-            <div className="flex justify-center items-center text-xs text-gray-500 font-bold pt-4 border-t border-white/5">
-              <button 
-                type="button"
-                onClick={() => setShowForgotPassword(true)} 
-                className="hover:text-white transition-colors"
-              >
-                Forgot password?
-              </button>
-            </div>
-          )}
+
 
         </div>
       </div>
