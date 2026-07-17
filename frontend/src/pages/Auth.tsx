@@ -518,7 +518,7 @@ export default function Auth() {
         style={{ backgroundImage: `url('/auth-hero.png')` }}
       />
       {/* Cinematic Horizontal Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#050505]/40 to-[#050505] lg:via-[#050505]/65 lg:to-[#050505]" />
+      <div className="absolute inset-0 bg-gradient-to-r from-black/10 via-black/45 to-black/75" />
 
       {/* Content Grid */}
       <div className="relative z-10 h-full w-full flex flex-col md:flex-row">
