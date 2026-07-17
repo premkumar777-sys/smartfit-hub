@@ -548,22 +548,19 @@ export default function Auth() {
           animation: buttonShimmer 1.4s infinite linear;
         }
       `}} />
-
-      {/* Seamless Full-Screen Background Image with Ken Burns Effect */}
-      <div 
-        className="absolute inset-0 bg-cover bg-left bg-no-repeat animate-ken-burns"
-        style={{ backgroundImage: `url('/auth-hero.png')` }}
-      />
-      {/* Cinematic Horizontal Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-black/35 to-black/85" />
-
       {/* Content Grid */}
-      <div className="relative z-10 h-full w-full flex flex-col md:flex-row">
+      <div className="relative z-10 h-full w-full flex flex-row bg-[#050505]">
         {/* Left Branding/Hero Text (Visible on md and up) */}
-        <div className="hidden md:flex md:w-[45%] lg:w-[40%] xl:w-[45%] flex-col justify-end p-12 h-full" />
+        <div className="hidden md:block md:w-[45%] lg:w-[50%] xl:w-[55%] h-full relative overflow-hidden">
+          {/* Seamless Background Image with Ken Burns Effect */}
+          <div 
+            className="absolute inset-0 bg-cover bg-left bg-no-repeat animate-ken-burns"
+            style={{ backgroundImage: `url('/auth-hero.png')` }}
+          />
+        </div>
 
         {/* Right Authentication Panel */}
-        <div className="flex-1 flex flex-col justify-center items-center py-4 px-4 md:py-6 md:px-12 h-full overflow-hidden z-20">
+        <div className="flex-1 flex flex-col justify-center items-center py-4 px-4 md:py-6 md:px-12 h-full overflow-y-auto bg-[#050505] z-20">
           {/* Mobile-only logo */}
           <div className="md:hidden flex items-center gap-2 mb-4 self-start">
             <img
