@@ -559,7 +559,7 @@ export default function Auth() {
 
             {/* Form Headers */}
             <div className="space-y-1">
-              <h1 className="text-3xl md:text-[34px] lg:text-[36px] font-bold text-white tracking-tight leading-none">
+              <h1 className="text-3xl md:text-[34px] lg:text-[36px] font-semibold text-white tracking-tight leading-none">
                 {showForgotPassword 
                   ? "Reset Password" 
                   : activeTab === "login" 
