@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Container } from "@/components/Container";
-import { Mail, Phone, Instagram, Linkedin, MessageCircle, Youtube } from "lucide-react";
+import { Mail, Phone, Instagram, Linkedin, MessageCircle, Youtube, Facebook } from "lucide-react";
 
 export function Footer() {
     const currentYear = new Date().getFullYear();
@@ -33,6 +33,15 @@ export function Footer() {
                                     aria-label="Instagram"
                                 >
                                     <Instagram className="w-4 h-4" />
+                                </a>
+                                <a
+                                    href="https://www.facebook.com/SmartFitAI"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="p-2 rounded-lg bg-muted/50 hover:bg-primary/20 text-muted-foreground hover:text-primary transition-colors"
+                                    aria-label="Facebook"
+                                >
+                                    <Facebook className="w-4 h-4" />
                                 </a>
                                 <a
                                     href="https://www.linkedin.com/company/112396192/"
