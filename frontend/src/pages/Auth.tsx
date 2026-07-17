@@ -533,9 +533,9 @@ export default function Auth() {
         </div>
 
         {/* Right Authentication Panel */}
-        <div className="flex-1 flex flex-col justify-center items-center py-6 px-4 md:py-8 md:px-12 h-full overflow-y-auto z-20">
+        <div className="flex-1 flex flex-col justify-center items-center py-4 px-4 md:py-6 md:px-12 h-full overflow-hidden z-20">
           {/* Mobile-only logo */}
-          <div className="md:hidden flex items-center gap-2 mb-6 self-start">
+          <div className="md:hidden flex items-center gap-2 mb-4 self-start">
             <img
               src="/favicon.png"
               alt="SmartFit AI"
@@ -548,7 +548,7 @@ export default function Auth() {
             initial={{ x: 60, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ delay: 0.2, duration: 0.7, ease: "easeOut" }}
-            className="w-full max-w-[480px] bg-[#141414]/45 backdrop-blur-[20px] border border-white/[0.08] rounded-[28px] p-6 md:p-8 shadow-2xl relative space-y-4"
+            className="w-full max-w-[480px] bg-[#141414]/45 backdrop-blur-[20px] border border-white/[0.08] rounded-[28px] p-5 md:p-6 shadow-2xl relative space-y-3.5"
           >
             
             <div>
@@ -558,8 +558,8 @@ export default function Auth() {
             </div>
 
             {/* Form Headers */}
-            <div className="space-y-2">
-              <h1 className="text-3xl md:text-[38px] lg:text-[42px] font-bold text-white tracking-tight leading-none">
+            <div className="space-y-1">
+              <h1 className="text-3xl md:text-[34px] lg:text-[36px] font-bold text-white tracking-tight leading-none">
                 {showForgotPassword 
                   ? "Reset Password" 
                   : activeTab === "login" 
@@ -946,7 +946,7 @@ export default function Auth() {
           {/* Divider & OAuth Social Login (Disabled for password reset or OTP verification) */}
           {!showForgotPassword && signupStep === "form" && otpStep === "request" && (
             <>
-              <div className="relative py-2">
+              <div className="relative py-1">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-white/10" />
                 </div>
@@ -955,11 +955,11 @@ export default function Auth() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 w-full">
+              <div className="grid grid-cols-2 gap-2 w-full">
                 <Button
                   type="button"
                   variant="outline"
-                  className="flex items-center justify-center gap-2.5 h-11 bg-transparent border-white/10 hover:bg-white/5 hover:text-white rounded-xl text-white font-bold transition-all text-xs"
+                  className="flex items-center justify-center gap-2 h-10 bg-transparent border-white/10 hover:bg-white/5 hover:text-white rounded-xl text-white font-bold transition-all text-xs"
                   onClick={handleGoogleLogin}
                   disabled={isGoogleLoading}
                 >
@@ -974,7 +974,7 @@ export default function Auth() {
                 <Button
                   type="button"
                   variant="outline"
-                  className="flex items-center justify-center gap-2.5 h-11 bg-transparent border-white/10 hover:bg-white/5 hover:text-white rounded-xl text-white font-bold transition-all text-xs"
+                  className="flex items-center justify-center gap-2 h-10 bg-transparent border-white/10 hover:bg-white/5 hover:text-white rounded-xl text-white font-bold transition-all text-xs"
                   onClick={handleLinkedInLogin}
                   disabled={isLinkedInLoading}
                 >
@@ -989,7 +989,7 @@ export default function Auth() {
                 <Button
                   type="button"
                   variant="outline"
-                  className="flex items-center justify-center gap-2.5 h-11 bg-transparent border-white/10 hover:bg-white/5 hover:text-white rounded-xl text-white font-bold transition-all text-xs"
+                  className="flex items-center justify-center gap-2 h-10 bg-transparent border-white/10 hover:bg-white/5 hover:text-white rounded-xl text-white font-bold transition-all text-xs"
                   onClick={handleFacebookLogin}
                   disabled={isFacebookLoading}
                 >
@@ -1004,7 +1004,7 @@ export default function Auth() {
                 <Button
                   type="button"
                   variant="outline"
-                  className="flex items-center justify-center gap-2.5 h-11 bg-transparent border-white/10 hover:bg-white/5 hover:text-white rounded-xl text-white font-bold transition-all text-xs"
+                  className="flex items-center justify-center gap-2 h-10 bg-transparent border-white/10 hover:bg-white/5 hover:text-white rounded-xl text-white font-bold transition-all text-xs"
                   onClick={() => {
                     if (authMethod === "password") {
                       setAuthMethod("otp");
@@ -1016,12 +1016,12 @@ export default function Auth() {
                 >
                   {authMethod === "password" ? (
                     <>
-                      <Mail className="w-5 h-5 shrink-0 text-gray-400" />
+                      <Mail className="w-4 h-4 shrink-0 text-gray-400" />
                       <span>Email</span>
                     </>
                   ) : (
                     <>
-                      <Lock className="w-5 h-5 shrink-0 text-gray-400" />
+                      <Lock className="w-4 h-4 shrink-0 text-gray-400" />
                       <span>Password</span>
                     </>
                   )}
