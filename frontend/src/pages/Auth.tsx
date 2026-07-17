@@ -523,17 +523,7 @@ export default function Auth() {
       {/* Content Grid */}
       <div className="relative z-10 h-full w-full flex flex-col md:flex-row">
         {/* Left Branding/Hero Text (Visible on md and up) */}
-        <div className="hidden md:flex md:w-[45%] lg:w-[40%] xl:w-[45%] flex-col justify-between p-12 h-full">
-          {/* Logo Branding */}
-          <div className="flex items-center gap-2">
-            <img
-              src="/favicon.png"
-              alt="SmartFit AI"
-              className="w-7 h-7 object-contain"
-              style={{ filter: "drop-shadow(0 0 8px rgba(34, 255, 102, 0.4))" }}
-            />
-            <span className="font-extrabold text-base tracking-wider text-white">SmartFit <span className="text-[#22FF66]">AI</span></span>
-          </div>
+        <div className="hidden md:flex md:w-[45%] lg:w-[40%] xl:w-[45%] flex-col justify-end p-12 h-full">
           {/* Tagline */}
           <div className="space-y-3 max-w-md">
             <h2 className="text-3xl lg:text-4xl font-extrabold leading-tight text-white tracking-tight">
