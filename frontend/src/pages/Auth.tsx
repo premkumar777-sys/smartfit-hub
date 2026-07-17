@@ -495,36 +495,53 @@ export default function Auth() {
   );
 
   return (
-    <div className="h-screen flex bg-black text-white overflow-hidden select-none">
-      {/* Left-side Image panel */}
-      <div className="hidden md:flex md:w-[45%] lg:w-[40%] xl:w-[45%] relative flex-col justify-between p-12 overflow-hidden border-r border-white/5">
-        <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: `url('/auth-hero.png')` }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/70" />
-        <div className="relative z-10 flex items-center gap-2">
-          <img
-            src="/favicon.png"
-            alt="SmartFit AI"
-            className="w-7 h-7 object-contain"
-            style={{ filter: "drop-shadow(0 0 8px rgba(0, 255, 156, 0.4))" }}
-          />
-          <span className="font-extrabold text-base tracking-wider text-white">SmartFit <span className="text-[#00ff9c]">AI</span></span>
-        </div>
-        <div className="relative z-10 space-y-3 max-w-sm">
-          <h2 className="text-2xl lg:text-3xl font-black leading-tight text-white">
-            Empowering our <span className="text-[#00ff9c]">global community</span> to build their <span className="text-[#00ff9c]">ultimate physique</span>.
-          </h2>
-          <p className="text-xs text-gray-400 font-medium leading-relaxed">
-            AI-powered workouts, smart tracking, expert guidance and a community that motivates you every step of the way.
-          </p>
-        </div>
-      </div>
+    <div className="h-screen w-screen relative bg-black text-white overflow-hidden select-none">
+      {/* Seamless Full-Screen Background Image */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: `url('/auth-hero.png')` }}
+      />
+      {/* Cinematic Horizontal Gradient Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#050505]/50 to-[#050505] lg:via-[#050505]/65 lg:to-[#050505]" />
 
-      {/* Right-side Form panel */}
-      <div className="flex-1 flex flex-col justify-center items-center py-6 px-4 md:py-8 md:px-12 h-screen overflow-y-auto">
-        <div className="w-full max-w-md space-y-4">
+      {/* Content Grid */}
+      <div className="relative z-10 h-full w-full flex flex-col md:flex-row">
+        {/* Left Branding/Hero Text (Visible on md and up) */}
+        <div className="hidden md:flex md:w-[45%] lg:w-[40%] xl:w-[45%] flex-col justify-between p-12 h-full">
+          {/* Logo Branding */}
+          <div className="flex items-center gap-2">
+            <img
+              src="/favicon.png"
+              alt="SmartFit AI"
+              className="w-7 h-7 object-contain"
+              style={{ filter: "drop-shadow(0 0 8px rgba(0, 255, 156, 0.4))" }}
+            />
+            <span className="font-extrabold text-base tracking-wider text-white">SmartFit <span className="text-[#00ff9c]">AI</span></span>
+          </div>
+          {/* Tagline */}
+          <div className="space-y-3 max-w-sm">
+            <h2 className="text-2xl lg:text-3xl font-black leading-tight text-white">
+              Empowering our <span className="text-[#00ff9c]">global community</span> to build their <span className="text-[#00ff9c]">ultimate physique</span>.
+            </h2>
+            <p className="text-xs text-gray-400 font-medium leading-relaxed">
+              AI-powered workouts, smart tracking, expert guidance and a community that motivates you every step of the way.
+            </p>
+          </div>
+        </div>
+
+        {/* Right Authentication Panel */}
+        <div className="flex-1 flex flex-col justify-center items-center py-6 px-4 md:py-8 md:px-12 h-full overflow-y-auto">
+          {/* Mobile-only logo */}
+          <div className="md:hidden flex items-center gap-2 mb-6 self-start">
+            <img
+              src="/favicon.png"
+              alt="SmartFit AI"
+              className="w-7 h-7 object-contain"
+            />
+            <span className="font-extrabold text-base tracking-wider text-white">SmartFit <span className="text-[#00ff9c]">AI</span></span>
+          </div>
+
+          <div className="w-full max-w-md space-y-4">
           
           <div>
             <Link to="/" className="text-xs text-gray-500 hover:text-white font-bold transition-colors inline-flex items-center gap-1.5">
@@ -1055,5 +1072,6 @@ export default function Auth() {
         </div>
       </div>
     </div>
+  </div>
   );
 }

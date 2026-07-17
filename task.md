@@ -1,9 +1,7 @@
-# Mockup Styling Checklist
+# SaaS Layout Realignment Checklist
 
-- `[ ]` Add `ArrowRight` to the `lucide-react` import list in Auth.tsx
-- `[ ]` Add the branding logo & text header to the left-side hero panel in Auth.tsx
-- `[ ]` Add the mockup description text below the main heading in the left-side hero panel in Auth.tsx
-- `[ ]` Color the "SmartFitAI" green in the welcome header of Auth.tsx
-- `[ ]` Update the inline "Forgot Password?" color to green and text to "Forgot password?" in Auth.tsx
-- `[ ]` Add the right arrow icon inside the login button in Auth.tsx
+- `[ ]` Restructure the main return layout in Auth.tsx to use a single full-screen absolute background and horizontal gradient overlay
+- `[ ]` Clean up split panels and remove hard vertical lines in Auth.tsx
+- `[ ]` Add a responsive mobile branding header inside the form panel of Auth.tsx
+- `[ ]` Add the corresponding closing `</div>` tags at the bottom of Auth.tsx
 - `[ ]` Verify changes locally and run compilation check
