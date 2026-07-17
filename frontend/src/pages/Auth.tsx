@@ -548,7 +548,7 @@ export default function Auth() {
             initial={{ x: 60, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ delay: 0.2, duration: 0.7, ease: "easeOut" }}
-            className="w-full max-w-[480px] bg-[#141414]/45 backdrop-blur-[20px] border border-white/[0.08] rounded-[28px] p-5 md:p-6 shadow-2xl relative space-y-3.5"
+            className="w-full max-w-[480px] relative space-y-3.5"
           >
             
             <div>
