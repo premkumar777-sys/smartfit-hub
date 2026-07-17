@@ -1024,7 +1024,20 @@ export default function Auth() {
             </div>
           )}
 
-
+          {/* Terms & Privacy disclaimer */}
+          {!showForgotPassword && signupStep === "form" && otpStep === "request" && (
+            <div className="text-[10px] text-center text-gray-500 mt-4 leading-relaxed max-w-sm mx-auto">
+              * By continuing, you agree to the{" "}
+              <Link to="/terms" className="text-[#00ff9c] hover:underline font-semibold transition-all">
+                Terms of Service
+              </Link>{" "}
+              and{" "}
+              <Link to="/privacy" className="text-[#00ff9c] hover:underline font-semibold transition-all">
+                Privacy Policy
+              </Link>
+              .
+            </div>
+          )}
 
         </div>
       </div>
