@@ -34,7 +34,7 @@ const testimonials = [
   {
     quote: "SmartFit AI completely changed my approach to fitness. The AI workouts adapt to my fatigue level in real-time. I've gained 5kg of muscle in 12 weeks!",
     author: "FitSanjay",
-    role: "Competitive Bodybuilder",
+    role: "Competitive Bodybuilder & Gold Medalist, Mr. Tamil Nadu",
     rating: 5
   },
   {
