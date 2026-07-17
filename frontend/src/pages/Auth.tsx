@@ -32,7 +32,7 @@ const authSchema = z.object({
 
 const testimonials = [
   {
-    quote: "SmartFit AI completely changed my approach to fitness. The AI workouts adapt to my fatigue level in real-time. I've gained 5kg of muscle in 12 weeks!",
+    quote: "SmartFit AI combines technology and fitness in the right way. Its personalized training and progress tracking can help anyone, from beginners to athletes, reach their fitness goals more efficiently.",
     author: "FitSanjay",
     role: "Competitive Bodybuilder & Gold Medalist, Mr. Tamil Nadu",
     rating: 5
