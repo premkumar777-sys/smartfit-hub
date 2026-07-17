@@ -566,20 +566,18 @@ export default function Auth() {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
-            className="max-w-2xl w-full relative"
+            className="max-w-md space-y-3 relative flex flex-col"
           >
-            <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
-              <p className="text-white text-base font-medium italic leading-relaxed flex-1">
-                "{testimonials[currentTestimonial].quote}"
+            <p className="text-white text-base font-medium italic leading-relaxed">
+              "{testimonials[currentTestimonial].quote}"
+            </p>
+            <div className="text-right">
+              <p className="text-white font-bold text-sm">
+                — {testimonials[currentTestimonial].author}
               </p>
-              <div className="text-right shrink-0 pt-1">
-                <p className="text-white font-bold text-sm">
-                  — {testimonials[currentTestimonial].author}
-                </p>
-                <p className="text-[#22FF66] text-[10px] font-bold uppercase tracking-wider mt-0.5">
-                  {testimonials[currentTestimonial].role}
-                </p>
-              </div>
+              <p className="text-[#22FF66] text-[10px] font-bold uppercase tracking-wider mt-0.5">
+                {testimonials[currentTestimonial].role}
+              </p>
             </div>
           </motion.div>
         </div>
