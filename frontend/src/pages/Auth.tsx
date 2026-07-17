@@ -1055,7 +1055,7 @@ export default function Auth() {
                   <button
                     type="button"
                     onClick={() => setActiveTab("signup")}
-                    className="text-[#00ff9c] hover:underline font-bold transition-all ml-1"
+                    className="text-white hover:text-white/80 hover:underline font-bold transition-all ml-1"
                   >
                     Sign Up
                   </button>
@@ -1069,7 +1069,7 @@ export default function Auth() {
                       setActiveTab("login");
                       setAuthMethod("password");
                     }}
-                    className="text-[#00ff9c] hover:underline font-bold transition-all ml-1"
+                    className="text-white hover:text-white/80 hover:underline font-bold transition-all ml-1"
                   >
                     Login
                   </button>
@@ -1082,11 +1082,11 @@ export default function Auth() {
           {!showForgotPassword && signupStep === "form" && otpStep === "request" && (
             <div className="text-[10px] text-center text-gray-500 mt-4 leading-relaxed max-w-sm mx-auto">
               * By continuing, you agree to the{" "}
-              <Link to="/terms" className="text-[#00ff9c] hover:underline font-semibold transition-all">
+              <Link to="/terms" className="text-white hover:text-white/80 hover:underline font-semibold transition-all">
                 Terms of Service
               </Link>{" "}
               and{" "}
-              <Link to="/privacy" className="text-[#00ff9c] hover:underline font-semibold transition-all">
+              <Link to="/privacy" className="text-white hover:text-white/80 hover:underline font-semibold transition-all">
                 Privacy Policy
               </Link>
               .
