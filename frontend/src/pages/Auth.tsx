@@ -551,36 +551,16 @@ export default function Auth() {
 
       {/* Seamless Full-Screen Background Image with Ken Burns Effect */}
       <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat animate-ken-burns"
+        className="absolute inset-0 bg-cover bg-left bg-no-repeat animate-ken-burns"
         style={{ backgroundImage: `url('/auth-hero.png')` }}
       />
       {/* Cinematic Horizontal Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-r from-black/10 via-black/45 to-black/75" />
+      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-black/35 to-black/85" />
 
       {/* Content Grid */}
       <div className="relative z-10 h-full w-full flex flex-col md:flex-row">
         {/* Left Branding/Hero Text (Visible on md and up) */}
-        <div className="hidden md:flex md:w-[45%] lg:w-[40%] xl:w-[45%] flex-col justify-end p-12 h-full">
-          <motion.div 
-            key={currentTestimonial}
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
-            className="max-w-md space-y-3 relative flex flex-col"
-          >
-            <p className="text-white text-base font-medium italic leading-relaxed">
-              "{testimonials[currentTestimonial].quote}"
-            </p>
-            <div className="text-right">
-              <p className="text-white font-bold text-sm">
-                — {testimonials[currentTestimonial].author}
-              </p>
-              <p className="text-[#22FF66] text-[10px] font-bold uppercase tracking-wider mt-0.5">
-                {testimonials[currentTestimonial].role}
-              </p>
-            </div>
-          </motion.div>
-        </div>
+        <div className="hidden md:flex md:w-[45%] lg:w-[40%] xl:w-[45%] flex-col justify-end p-12 h-full" />
 
         {/* Right Authentication Panel */}
         <div className="flex-1 flex flex-col justify-center items-center py-4 px-4 md:py-6 md:px-12 h-full overflow-hidden z-20">
