@@ -604,7 +604,7 @@ export default function Auth() {
 
               <Button 
                 type="submit" 
-                className="w-full bg-gradient-to-r from-[#22FF66] to-[#00FF88] hover:from-[#22FF66] hover:to-[#00FF88]/90 text-black font-extrabold h-[52px] rounded-[14px] transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_20px_rgba(34,255,102,0.25)] hover:shadow-[0_0_30px_rgba(34,255,102,0.4)] flex items-center justify-center relative uppercase text-xs tracking-wider"
+                className="w-full bg-black hover:bg-white/5 border border-white/15 text-white font-bold h-[52px] rounded-[14px] transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg flex items-center justify-center relative uppercase text-xs tracking-wider"
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -653,7 +653,7 @@ export default function Auth() {
                     <button 
                       type="button"
                       onClick={() => setShowForgotPassword(true)}
-                      className="text-[10px] font-black uppercase tracking-wider text-[#00ff9c] hover:underline"
+                      className="text-[10px] font-medium uppercase tracking-wider text-[#22FF66] hover:underline"
                     >
                       Forgot password?
                     </button>
@@ -683,7 +683,7 @@ export default function Auth() {
                 <div className="flex flex-col gap-3">
                   <Button 
                     type="submit" 
-                    className="w-full bg-gradient-to-r from-[#22FF66] to-[#00FF88] hover:from-[#22FF66] hover:to-[#00FF88]/90 text-black font-extrabold h-[52px] rounded-[14px] transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_20px_rgba(34,255,102,0.25)] hover:shadow-[0_0_30px_rgba(34,255,102,0.4)] flex items-center justify-center relative uppercase text-xs tracking-wider"
+                    className="w-full bg-black hover:bg-white/5 border border-white/15 text-white font-bold h-[52px] rounded-[14px] transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg flex items-center justify-center relative uppercase text-xs tracking-wider"
                     disabled={isLoading}
                   >
                     {isLoading ? (
@@ -724,7 +724,7 @@ export default function Auth() {
                   <div className="flex flex-col gap-3">
                     <Button 
                       type="submit" 
-                      className="w-full bg-gradient-to-r from-[#22FF66] to-[#00FF88] hover:from-[#22FF66] hover:to-[#00FF88]/90 text-black font-extrabold h-[52px] rounded-[14px] transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_20px_rgba(34,255,102,0.25)] hover:shadow-[0_0_30px_rgba(34,255,102,0.4)] flex items-center justify-center relative uppercase text-xs tracking-wider"
+                      className="w-full bg-black hover:bg-white/5 border border-white/15 text-white font-bold h-[52px] rounded-[14px] transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg flex items-center justify-center relative uppercase text-xs tracking-wider"
                       disabled={isLoading}
                     >
                       {isLoading ? (
@@ -763,7 +763,7 @@ export default function Auth() {
                   <div className="flex flex-col gap-3">
                     <Button 
                       type="submit" 
-                      className="w-full bg-gradient-to-r from-[#22FF66] to-[#00FF88] hover:from-[#22FF66] hover:to-[#00FF88]/90 text-black font-extrabold h-[52px] rounded-[14px] transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_20px_rgba(34,255,102,0.25)] hover:shadow-[0_0_30px_rgba(34,255,102,0.4)] flex items-center justify-center relative uppercase text-xs tracking-wider"
+                      className="w-full bg-black hover:bg-white/5 border border-white/15 text-white font-bold h-[52px] rounded-[14px] transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg flex items-center justify-center relative uppercase text-xs tracking-wider"
                       disabled={isLoading || otpCode.length < 6}
                     >
                       {isLoading ? (
@@ -867,7 +867,7 @@ export default function Auth() {
 
                 <Button 
                   type="submit" 
-                  className="w-full bg-gradient-to-r from-[#22FF66] to-[#00FF88] hover:from-[#22FF66] hover:to-[#00FF88]/90 text-black font-extrabold h-[52px] rounded-[14px] transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_20px_rgba(34,255,102,0.25)] hover:shadow-[0_0_30px_rgba(34,255,102,0.4)] flex items-center justify-center relative uppercase text-xs tracking-wider"
+                  className="w-full bg-black hover:bg-white/5 border border-white/15 text-white font-bold h-[52px] rounded-[14px] transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg flex items-center justify-center relative uppercase text-xs tracking-wider"
                   disabled={isLoading}
                 >
                   {isLoading ? (
@@ -905,7 +905,7 @@ export default function Auth() {
                 <div className="flex flex-col gap-3">
                   <Button 
                     type="submit" 
-                    className="w-full bg-gradient-to-r from-[#22FF66] to-[#00FF88] hover:from-[#22FF66] hover:to-[#00FF88]/90 text-black font-extrabold h-[52px] rounded-[14px] transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_20px_rgba(34,255,102,0.25)] hover:shadow-[0_0_30px_rgba(34,255,102,0.4)] flex items-center justify-center relative uppercase text-xs tracking-wider"
+                    className="w-full bg-black hover:bg-white/5 border border-white/15 text-white font-bold h-[52px] rounded-[14px] transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg flex items-center justify-center relative uppercase text-xs tracking-wider"
                     disabled={isLoading || otpCode.length < 6}
                   >
                     {isLoading ? (
