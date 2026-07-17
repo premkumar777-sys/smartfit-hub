@@ -534,49 +534,11 @@ export default function Auth() {
             />
             <span className="font-extrabold text-base tracking-wider text-white">SmartFit <span className="text-[#22FF66]">AI</span></span>
           </div>
-          {/* Tagline & Features */}
-          <div className="space-y-6 max-w-md">
-            <div className="space-y-3">
-              <h2 className="text-3xl lg:text-4xl font-extrabold leading-tight text-white tracking-tight">
-                Empowering our <span className="text-[#22FF66]">global community</span> to build their <span className="text-[#22FF66]">ultimate physique</span>.
-              </h2>
-              <p className="text-sm text-gray-400 font-medium leading-relaxed">
-                AI-powered workouts, smart tracking, expert guidance and a community that motivates you every step of the way.
-              </p>
-            </div>
-
-            {/* Feature list */}
-            <div className="space-y-4 pt-4 border-t border-white/5">
-              <div className="flex items-start gap-3">
-                <div className="p-2 rounded-lg bg-white/5 border border-white/10 text-[#22FF66]">
-                  <Flame className="w-4 h-4" />
-                </div>
-                <div>
-                  <h4 className="text-xs font-bold text-white uppercase tracking-wider">AI Trainer Companion</h4>
-                  <p className="text-[11px] text-gray-400">Real-time coaching with personalized form and execution feedback.</p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3">
-                <div className="p-2 rounded-lg bg-white/5 border border-white/10 text-[#22FF66]">
-                  <TrendingUp className="w-4 h-4" />
-                </div>
-                <div>
-                  <h4 className="text-xs font-bold text-white uppercase tracking-wider">Smart Workout Tracking</h4>
-                  <p className="text-[11px] text-gray-400">Log routines, volume, sets, and automatically record new personal PRs.</p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3">
-                <div className="p-2 rounded-lg bg-white/5 border border-white/10 text-[#22FF66]">
-                  <Utensils className="w-4 h-4" />
-                </div>
-                <div>
-                  <h4 className="text-xs font-bold text-white uppercase tracking-wider">Smart Nutrition Planning</h4>
-                  <p className="text-[11px] text-gray-400">Auto-generated meal schedules tailored to your body weight goals.</p>
-                </div>
-              </div>
-            </div>
+          {/* Tagline */}
+          <div className="space-y-3 max-w-md">
+            <h2 className="text-3xl lg:text-4xl font-extrabold leading-tight text-white tracking-tight">
+              Empowering our <span className="text-[#22FF66]">global community</span> to build their <span className="text-[#22FF66]">ultimate physique</span>.
+            </h2>
           </div>
         </div>
 
@@ -596,7 +558,7 @@ export default function Auth() {
             initial={{ x: 60, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ delay: 0.2, duration: 0.7, ease: "easeOut" }}
-            className="w-full max-w-[480px] bg-[#141414]/45 backdrop-blur-[20px] border border-white/[0.08] rounded-[28px] p-8 md:p-10 shadow-2xl relative space-y-5"
+            className="w-full max-w-[480px] bg-[#141414]/45 backdrop-blur-[20px] border border-white/[0.08] rounded-[28px] p-6 md:p-8 shadow-2xl relative space-y-4"
           >
             
             <div>
@@ -607,7 +569,7 @@ export default function Auth() {
 
             {/* Form Headers */}
             <div className="space-y-2">
-              <h1 className="text-[44px] md:text-[52px] lg:text-[56px] font-bold text-white tracking-tight leading-none">
+              <h1 className="text-3xl md:text-[38px] lg:text-[42px] font-bold text-white tracking-tight leading-none">
                 {showForgotPassword 
                   ? "Reset Password" 
                   : activeTab === "login" 
