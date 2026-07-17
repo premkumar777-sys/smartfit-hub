@@ -551,12 +551,35 @@ export default function Auth() {
       {/* Content Grid */}
       <div className="relative z-10 h-full w-full flex flex-row bg-[#050505]">
         {/* Left Branding/Hero Text (Visible on md and up) */}
-        <div className="hidden md:block md:w-[45%] lg:w-[50%] xl:w-[55%] h-full relative overflow-hidden">
+        <div className="hidden md:flex md:w-[45%] lg:w-[50%] xl:w-[55%] flex-col justify-end p-12 h-full relative overflow-hidden">
           {/* Seamless Background Image with Ken Burns Effect */}
           <div 
             className="absolute inset-0 bg-cover bg-left bg-no-repeat animate-ken-burns"
             style={{ backgroundImage: `url('/auth-hero.png')` }}
           />
+          {/* Subtle bottom gradient to make overlay text extremely readable */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10" />
+
+          {/* Testimonial container */}
+          <motion.div 
+            key={currentTestimonial}
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="max-w-md space-y-3 relative z-20 flex flex-col mt-auto"
+          >
+            <p className="text-white text-base font-medium italic leading-relaxed">
+              "{testimonials[currentTestimonial].quote}"
+            </p>
+            <div className="text-right">
+              <p className="text-white font-bold text-sm">
+                — {testimonials[currentTestimonial].author}
+              </p>
+              <p className="text-[#22FF66] text-[10px] font-bold uppercase tracking-wider mt-0.5">
+                {testimonials[currentTestimonial].role}
+              </p>
+            </div>
+          </motion.div>
         </div>
 
         {/* Right Authentication Panel */}
