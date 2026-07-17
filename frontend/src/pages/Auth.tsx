@@ -526,7 +526,7 @@ export default function Auth() {
         <div className="hidden md:flex md:w-[45%] lg:w-[40%] xl:w-[45%] flex-col justify-end p-12 h-full">
           {/* Tagline */}
           <div className="space-y-3 max-w-md">
-            <h2 className="text-3xl lg:text-4xl font-extrabold leading-tight text-white tracking-tight">
+            <h2 className="text-2xl lg:text-3xl font-bold leading-tight text-white tracking-tight">
               Empowering our <span className="text-[#22FF66]">global community</span> to build their <span className="text-[#22FF66]">ultimate physique</span>.
             </h2>
           </div>
