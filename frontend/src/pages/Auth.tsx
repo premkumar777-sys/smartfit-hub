@@ -530,14 +530,7 @@ export default function Auth() {
       {/* Content Grid */}
       <div className="relative z-10 h-full w-full flex flex-col md:flex-row">
         {/* Left Branding/Hero Text (Visible on md and up) */}
-        <div className="hidden md:flex md:w-[45%] lg:w-[40%] xl:w-[45%] flex-col justify-end p-12 h-full">
-          {/* Tagline */}
-          <div className="space-y-3 max-w-md">
-            <h2 className="text-2xl lg:text-3xl font-bold leading-tight text-white tracking-tight">
-              Empowering our <span className="text-[#22FF66]">global community</span> to build their <span className="text-[#22FF66]">ultimate physique</span>.
-            </h2>
-          </div>
-        </div>
+        <div className="hidden md:flex md:w-[45%] lg:w-[40%] xl:w-[45%] flex-col justify-end p-12 h-full" />
 
         {/* Right Authentication Panel */}
         <div className="flex-1 flex flex-col justify-center items-center py-4 px-4 md:py-6 md:px-12 h-full overflow-hidden z-20">
