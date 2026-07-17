@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
-import { Loader2, Mail, Lock, User, Key, KeyRound, ShieldAlert, Eye, EyeOff } from "lucide-react";
+import { Loader2, Mail, Lock, User, Key, KeyRound, ShieldAlert, Eye, EyeOff, ArrowRight } from "lucide-react";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 
 const authSchema = z.object({
@@ -503,12 +503,22 @@ export default function Auth() {
           style={{ backgroundImage: `url('/auth-hero.png')` }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/70" />
-        <div className="relative z-10" />
-        <div className="relative z-10 space-y-4 max-w-sm">
+        <div className="relative z-10 flex items-center gap-2">
+          <img
+            src="/favicon.png"
+            alt="SmartFit AI"
+            className="w-7 h-7 object-contain"
+            style={{ filter: "drop-shadow(0 0 8px rgba(0, 255, 156, 0.4))" }}
+          />
+          <span className="font-extrabold text-base tracking-wider text-white">SmartFit <span className="text-[#00ff9c]">AI</span></span>
+        </div>
+        <div className="relative z-10 space-y-3 max-w-sm">
           <h2 className="text-2xl lg:text-3xl font-black leading-tight text-white">
             Empowering our <span className="text-[#00ff9c]">global community</span> to build their <span className="text-[#00ff9c]">ultimate physique</span>.
           </h2>
-          <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">SmartFitAI Platform</p>
+          <p className="text-xs text-gray-400 font-medium leading-relaxed">
+            AI-powered workouts, smart tracking, expert guidance and a community that motivates you every step of the way.
+          </p>
         </div>
       </div>
 
@@ -539,7 +549,7 @@ export default function Auth() {
                 ? "Enter your email to receive a password reset link."
                 : activeTab === "login" 
                   ? authMethod === "password"
-                    ? "Welcome to SmartFitAI" 
+                    ? <>Welcome to <span className="text-[#00ff9c]">SmartFitAI</span></> 
                     : "Sign in with a one-time verification code."
                   : signupStep === "verify-otp"
                     ? `Enter the confirmation code sent to ${pendingSignupData?.email}`
@@ -618,9 +628,9 @@ export default function Auth() {
                     <button 
                       type="button"
                       onClick={() => setShowForgotPassword(true)}
-                      className="text-[10px] font-black uppercase tracking-wider text-white hover:underline"
+                      className="text-[10px] font-black uppercase tracking-wider text-[#00ff9c] hover:underline"
                     >
-                      Forgot Password?
+                      Forgot password?
                     </button>
                   </div>
                   <div className="relative">
@@ -657,7 +667,10 @@ export default function Auth() {
                         Logging in...
                       </>
                     ) : (
-                      "Login"
+                      <div className="relative w-full flex items-center justify-center">
+                        <span>LOGIN</span>
+                        <ArrowRight className="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-4" />
+                      </div>
                     )}
                   </Button>
                 </div>
