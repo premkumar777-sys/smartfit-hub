@@ -508,7 +508,7 @@ export default function Auth() {
           100% { transform: scale(1.08); }
         }
         .animate-ken-burns {
-          animation: kenburns 35s ease-out infinite alternate;
+          animation: kenburns 20s ease-out infinite alternate;
         }
       `}} />
 
