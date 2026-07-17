@@ -703,10 +703,7 @@ export default function Auth() {
                     {isLoading ? (
                       <span className="text-[#22FF66] font-bold">Logging in...</span>
                     ) : (
-                      <div className="relative w-full flex items-center justify-center">
-                        <span>LOGIN</span>
-                        <ArrowRight className="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-4" />
-                      </div>
+                      <span>LOGIN</span>
                     )}
                   </Button>
                 </div>
