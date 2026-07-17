@@ -30,6 +30,27 @@ const authSchema = z.object({
   username: z.string().trim().min(2, { message: "Username must be at least 2 characters" }).max(50).optional(),
 });
 
+const testimonials = [
+  {
+    quote: "SmartFit AI completely changed my approach to fitness. The AI workouts adapt to my fatigue level in real-time. I've gained 5kg of muscle in 12 weeks!",
+    author: "Marcus Vance",
+    role: "Competitive Bodybuilder",
+    rating: 5
+  },
+  {
+    quote: "As a busy entrepreneur, I don't have time to plan workouts. SmartFit generates optimized routines that I can do anywhere. Absolutely seamless.",
+    author: "Elena Rostova",
+    role: "CEO & Founder",
+    rating: 5
+  },
+  {
+    quote: "The nutrition plan matched with real-time biometric feedback has helped me drop 8% body fat while increasing my strength. Best fitness app on the market.",
+    author: "Sarah Jenkins",
+    role: "Athletic Trainer",
+    rating: 5
+  }
+];
+
 export default function Auth() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -59,6 +80,15 @@ export default function Auth() {
     username: string;
     password: string;
   } | null>(null);
+
+  const [currentTestimonial, setCurrentTestimonial] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
+    }, 6000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -530,7 +560,37 @@ export default function Auth() {
       {/* Content Grid */}
       <div className="relative z-10 h-full w-full flex flex-col md:flex-row">
         {/* Left Branding/Hero Text (Visible on md and up) */}
-        <div className="hidden md:flex md:w-[45%] lg:w-[40%] xl:w-[45%] flex-col justify-end p-12 h-full" />
+        <div className="hidden md:flex md:w-[45%] lg:w-[40%] xl:w-[45%] flex-col justify-end p-12 h-full">
+          <motion.div 
+            key={currentTestimonial}
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="max-w-md bg-black/40 backdrop-blur-[10px] border border-white/[0.08] p-6 rounded-2xl space-y-4 shadow-2xl"
+          >
+            {/* Stars */}
+            <div className="flex gap-1 text-[#22FF66]">
+              {[...Array(testimonials[currentTestimonial].rating)].map((_, i) => (
+                <svg key={i} className="w-4 h-4 fill-current" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+              ))}
+            </div>
+            
+            <p className="text-white text-base font-medium italic leading-relaxed">
+              "{testimonials[currentTestimonial].quote}"
+            </p>
+
+            <div className="pt-2 border-t border-white/5">
+              <p className="text-white font-bold text-sm">
+                {testimonials[currentTestimonial].author}
+              </p>
+              <p className="text-[#22FF66] text-xs font-semibold uppercase tracking-wider">
+                {testimonials[currentTestimonial].role}
+              </p>
+            </div>
+          </motion.div>
+        </div>
 
         {/* Right Authentication Panel */}
         <div className="flex-1 flex flex-col justify-center items-center py-4 px-4 md:py-6 md:px-12 h-full overflow-hidden z-20">
