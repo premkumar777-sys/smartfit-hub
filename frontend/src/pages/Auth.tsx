@@ -566,7 +566,7 @@ export default function Auth() {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
-            className="max-w-md bg-black/40 backdrop-blur-[10px] border border-white/[0.08] p-6 rounded-2xl space-y-4 shadow-2xl"
+            className="max-w-md space-y-4 relative"
           >
             {/* Stars */}
             <div className="flex gap-1 text-[#22FF66]">
