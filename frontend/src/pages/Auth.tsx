@@ -602,7 +602,7 @@ export default function Auth() {
                     id="reset-email"
                     name="email"
                     type="email"
-                    placeholder="name@smartfitai.in"
+                    placeholder="youname@gmail.com"
                     className="pl-12 bg-[#050505] border-white/10 hover:border-white/20 focus-visible:ring-1 focus-visible:ring-[#22FF66]/30 focus-visible:border-[#22FF66]/50 focus-visible:shadow-[0_0_20px_rgba(34,255,102,0.12)] text-white rounded-[14px] h-[56px] transition-all duration-300"
                     required
                   />
@@ -648,7 +648,7 @@ export default function Auth() {
                       id="login-email"
                       name="email"
                       type="email"
-                      placeholder="name@smartfitai.in"
+                      placeholder="youname@gmail.com"
                       className="pl-12 bg-[#050505] border-white/10 hover:border-white/20 focus-visible:ring-1 focus-visible:ring-[#22FF66]/30 focus-visible:border-[#22FF66]/50 focus-visible:shadow-[0_0_20px_rgba(34,255,102,0.12)] text-white rounded-[14px] h-[56px] transition-all duration-300"
                       required
                       maxLength={255}
@@ -724,7 +724,7 @@ export default function Auth() {
                         id="otp-email"
                         name="email"
                         type="email"
-                        placeholder="name@smartfitai.in"
+                        placeholder="youname@gmail.com"
                         className="pl-12 bg-[#050505] border-white/10 hover:border-white/20 focus-visible:ring-1 focus-visible:ring-[#22FF66]/30 focus-visible:border-[#22FF66]/50 focus-visible:shadow-[0_0_20px_rgba(34,255,102,0.12)] text-white rounded-[14px] h-[56px] transition-all duration-300"
                         required
                         maxLength={255}
@@ -845,7 +845,7 @@ export default function Auth() {
                       id="signup-email"
                       name="email"
                       type="email"
-                      placeholder="name@smartfitai.in"
+                      placeholder="youname@gmail.com"
                       className="pl-12 bg-[#050505] border-white/10 hover:border-white/20 focus-visible:ring-1 focus-visible:ring-[#22FF66]/30 focus-visible:border-[#22FF66]/50 focus-visible:shadow-[0_0_20px_rgba(34,255,102,0.12)] text-white rounded-[14px] h-[56px] transition-all duration-300"
                       required
                       maxLength={255}
