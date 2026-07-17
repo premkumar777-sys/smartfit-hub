@@ -510,6 +510,13 @@ export default function Auth() {
         .animate-ken-burns {
           animation: kenburns 20s ease-out infinite alternate;
         }
+        @keyframes buttonShimmer {
+          0% { transform: translateX(-150%); }
+          100% { transform: translateX(250%); }
+        }
+        .animate-button-shimmer {
+          animation: buttonShimmer 1.4s infinite linear;
+        }
       `}} />
 
       {/* Seamless Full-Screen Background Image with Ken Burns Effect */}
@@ -604,14 +611,16 @@ export default function Auth() {
 
               <Button 
                 type="submit" 
-                className="w-full bg-black hover:bg-white/5 border border-white/15 text-white font-bold h-[52px] rounded-[14px] transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg flex items-center justify-center relative uppercase text-xs tracking-wider"
+                className="w-full bg-black hover:bg-white/5 border border-white/15 text-white font-bold h-[52px] rounded-[14px] transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg flex items-center justify-center relative uppercase text-xs tracking-wider overflow-hidden"
                 disabled={isLoading}
               >
+                {isLoading && (
+                  <div className="absolute inset-0 overflow-hidden rounded-[14px]">
+                    <div className="absolute inset-y-0 h-full w-[40%] bg-gradient-to-r from-transparent via-[#22FF66]/40 to-transparent animate-button-shimmer" />
+                  </div>
+                )}
                 {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Sending link...
-                  </>
+                  <span className="text-[#22FF66] font-bold">Sending link...</span>
                 ) : (
                   "Send Reset Link"
                 )}
@@ -683,14 +692,16 @@ export default function Auth() {
                 <div className="flex flex-col gap-3">
                   <Button 
                     type="submit" 
-                    className="w-full bg-black hover:bg-white/5 border border-white/15 text-white font-bold h-[52px] rounded-[14px] transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg flex items-center justify-center relative uppercase text-xs tracking-wider"
+                    className="w-full bg-black hover:bg-white/5 border border-white/15 text-white font-bold h-[52px] rounded-[14px] transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg flex items-center justify-center relative uppercase text-xs tracking-wider overflow-hidden"
                     disabled={isLoading}
                   >
+                    {isLoading && (
+                      <div className="absolute inset-0 overflow-hidden rounded-[14px]">
+                        <div className="absolute inset-y-0 h-full w-[40%] bg-gradient-to-r from-transparent via-[#22FF66]/40 to-transparent animate-button-shimmer" />
+                      </div>
+                    )}
                     {isLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Logging in...
-                      </>
+                      <span className="text-[#22FF66] font-bold">Logging in...</span>
                     ) : (
                       <div className="relative w-full flex items-center justify-center">
                         <span>LOGIN</span>
@@ -724,14 +735,16 @@ export default function Auth() {
                   <div className="flex flex-col gap-3">
                     <Button 
                       type="submit" 
-                      className="w-full bg-black hover:bg-white/5 border border-white/15 text-white font-bold h-[52px] rounded-[14px] transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg flex items-center justify-center relative uppercase text-xs tracking-wider"
+                      className="w-full bg-black hover:bg-white/5 border border-white/15 text-white font-bold h-[52px] rounded-[14px] transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg flex items-center justify-center relative uppercase text-xs tracking-wider overflow-hidden"
                       disabled={isLoading}
                     >
+                      {isLoading && (
+                        <div className="absolute inset-0 overflow-hidden rounded-[14px]">
+                          <div className="absolute inset-y-0 h-full w-[40%] bg-gradient-to-r from-transparent via-[#22FF66]/40 to-transparent animate-button-shimmer" />
+                        </div>
+                      )}
                       {isLoading ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Sending code...
-                        </>
+                        <span className="text-[#22FF66] font-bold">Sending code...</span>
                       ) : (
                         "Send Verification Code"
                       )}
@@ -763,14 +776,16 @@ export default function Auth() {
                   <div className="flex flex-col gap-3">
                     <Button 
                       type="submit" 
-                      className="w-full bg-black hover:bg-white/5 border border-white/15 text-white font-bold h-[52px] rounded-[14px] transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg flex items-center justify-center relative uppercase text-xs tracking-wider"
+                      className="w-full bg-black hover:bg-white/5 border border-white/15 text-white font-bold h-[52px] rounded-[14px] transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg flex items-center justify-center relative uppercase text-xs tracking-wider overflow-hidden"
                       disabled={isLoading || otpCode.length < 6}
                     >
+                      {isLoading && (
+                        <div className="absolute inset-0 overflow-hidden rounded-[14px]">
+                          <div className="absolute inset-y-0 h-full w-[40%] bg-gradient-to-r from-transparent via-[#22FF66]/40 to-transparent animate-button-shimmer" />
+                        </div>
+                      )}
                       {isLoading ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Verifying code...
-                        </>
+                        <span className="text-[#22FF66] font-bold">Verifying code...</span>
                       ) : (
                         "Verify & Log In"
                       )}
@@ -867,14 +882,16 @@ export default function Auth() {
 
                 <Button 
                   type="submit" 
-                  className="w-full bg-black hover:bg-white/5 border border-white/15 text-white font-bold h-[52px] rounded-[14px] transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg flex items-center justify-center relative uppercase text-xs tracking-wider"
+                  className="w-full bg-black hover:bg-white/5 border border-white/15 text-white font-bold h-[52px] rounded-[14px] transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg flex items-center justify-center relative uppercase text-xs tracking-wider overflow-hidden"
                   disabled={isLoading}
                 >
+                  {isLoading && (
+                    <div className="absolute inset-0 overflow-hidden rounded-[14px]">
+                      <div className="absolute inset-y-0 h-full w-[40%] bg-gradient-to-r from-transparent via-[#22FF66]/40 to-transparent animate-button-shimmer" />
+                    </div>
+                  )}
                   {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Creating account...
-                    </>
+                    <span className="text-[#22FF66] font-bold">Creating account...</span>
                   ) : (
                     "Sign Up"
                   )}
@@ -905,14 +922,16 @@ export default function Auth() {
                 <div className="flex flex-col gap-3">
                   <Button 
                     type="submit" 
-                    className="w-full bg-black hover:bg-white/5 border border-white/15 text-white font-bold h-[52px] rounded-[14px] transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg flex items-center justify-center relative uppercase text-xs tracking-wider"
+                    className="w-full bg-black hover:bg-white/5 border border-white/15 text-white font-bold h-[52px] rounded-[14px] transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg flex items-center justify-center relative uppercase text-xs tracking-wider overflow-hidden"
                     disabled={isLoading || otpCode.length < 6}
                   >
+                    {isLoading && (
+                      <div className="absolute inset-0 overflow-hidden rounded-[14px]">
+                        <div className="absolute inset-y-0 h-full w-[40%] bg-gradient-to-r from-transparent via-[#22FF66]/40 to-transparent animate-button-shimmer" />
+                      </div>
+                    )}
                     {isLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Confirming code...
-                      </>
+                      <span className="text-[#22FF66] font-bold">Confirming code...</span>
                     ) : (
                       "Confirm & Create Account"
                     )}
