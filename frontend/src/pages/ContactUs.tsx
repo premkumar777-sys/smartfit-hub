@@ -92,10 +92,10 @@ export default function ContactUs() {
                                             For technical issues or pricing.
                                         </p>
                                         <a
-                                            href="mailto:smartfitai77@gmail.com"
+                                            href="mailto:contact@smartfitai.in"
                                             className="text-primary font-bold hover:underline text-sm transition-all"
                                         >
-                                            smartfitai77@gmail.com
+                                            contact@smartfitai.in
                                         </a>
                                     </div>
                                 </div>

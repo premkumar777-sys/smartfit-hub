@@ -100,7 +100,7 @@ export default function PrivacyPolicy() {
                             If you have any questions about this Privacy Policy, please contact us:
                         </p>
                         <ul className="list-none text-gray-300 space-y-1 mt-2">
-                            <li><strong>Email:</strong> smartfitai77@gmail.com</li>
+                            <li><strong>Email:</strong> contact@smartfitai.in</li>
                             <li><strong>Phone:</strong> +91 7671862872</li>
                         </ul>
                     </section>

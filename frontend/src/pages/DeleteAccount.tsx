@@ -47,10 +47,10 @@ export default function DeleteAccount() {
                             <Mail className="w-8 h-8 text-destructive mb-3" />
                             <h3 className="font-semibold mb-1">Email Request</h3>
                             <a 
-                                href="mailto:smartfitai77@gmail.com" 
+                                href="mailto:contact@smartfitai.in" 
                                 className="text-xs text-primary hover:underline font-medium break-all"
                             >
-                                smartfitai77@gmail.com
+                                contact@smartfitai.in
                             </a>
                         </CardContent>
                     </Card>
@@ -77,7 +77,7 @@ export default function DeleteAccount() {
                             <span className="text-destructive">1.</span> Information Required
                         </h2>
                         <p className="text-gray-300 leading-relaxed mb-4">
-                            To process your deletion request efficiently, please include the following details in your email to <a href="mailto:smartfitai77@gmail.com" className="text-primary hover:underline">smartfitai77@gmail.com</a>:
+                            To process your deletion request efficiently, please include the following details in your email to <a href="mailto:contact@smartfitai.in" className="text-primary hover:underline">contact@smartfitai.in</a>:
                         </p>
                         <ul className="list-disc list-inside text-gray-300 space-y-2 mt-2 ml-2">
                             <li>Your registered email address</li>
@@ -128,7 +128,7 @@ export default function DeleteAccount() {
                             <span className="text-destructive">5.</span> Questions & Support
                         </h2>
                         <p className="text-gray-300 leading-relaxed">
-                            If you have questions regarding our data retention practices or need assistance with the account deletion process, please do not hesitate to contact us at <a href="mailto:smartfitai77@gmail.com" className="text-primary hover:underline">smartfitai77@gmail.com</a>.
+                            If you have questions regarding our data retention practices or need assistance with the account deletion process, please do not hesitate to contact us at <a href="mailto:contact@smartfitai.in" className="text-primary hover:underline">contact@smartfitai.in</a>.
                         </p>
                     </section>
                 </div>

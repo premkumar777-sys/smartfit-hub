@@ -66,7 +66,7 @@ export default function RefundPolicy() {
                     <section>
                         <h2 className="text-xl font-semibold text-white mb-3">4. How to Request a Refund</h2>
                         <p className="text-gray-300 leading-relaxed">
-                            To request a refund, please email us at <strong>smartfitai77@gmail.com</strong> with:
+                            To request a refund, please email us at <strong>contact@smartfitai.in</strong> with:
                         </p>
                         <ul className="list-disc list-inside text-gray-300 space-y-2 mt-2">
                             <li>Your registered email address.</li>
@@ -97,7 +97,7 @@ export default function RefundPolicy() {
                             To cancel your subscription:
                         </p>
                         <ol className="list-decimal list-inside text-gray-300 space-y-2 mt-2">
-                            <li>Email us at <strong>smartfitai77@gmail.com</strong> with your account email.</li>
+                            <li>Email us at <strong>contact@smartfitai.in</strong> with your account email.</li>
                             <li>We will confirm cancellation within 24-48 hours.</li>
                         </ol>
                     </section>
@@ -108,7 +108,7 @@ export default function RefundPolicy() {
                             For questions about refunds or cancellations, contact us:
                         </p>
                         <ul className="list-none text-gray-300 space-y-1 mt-2">
-                            <li><strong>Email:</strong> smartfitai77@gmail.com</li>
+                            <li><strong>Email:</strong> contact@smartfitai.in</li>
                             <li><strong>Phone:</strong> +91 7671862872</li>
                         </ul>
                     </section>
