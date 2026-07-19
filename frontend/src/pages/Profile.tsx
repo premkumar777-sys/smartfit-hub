@@ -459,23 +459,6 @@ export default function Profile() {
         // Add to local state
         setCompletedWorkouts(prev => [workoutWithId, ...prev]);
 
-        // Record workout completion in gamification
-        let durationMinutes = 45;
-        if (data.duration) {
-            const cleanDur = data.duration.toLowerCase();
-            const match = cleanDur.match(/(\d+)\s*(min|m)/);
-            if (match) {
-                durationMinutes = parseInt(match[1]);
-            } else {
-                const parts = cleanDur.split(":");
-                if (parts.length >= 2) {
-                    const hrs = parseInt(parts[0]) || 0;
-                    const mins = parseInt(parts[1]) || 0;
-                    durationMinutes = hrs * 60 + mins;
-                }
-            }
-        }
-        gamification.recordWorkout(durationMinutes);
 
         // Sync to localStorage
         const savedWorkouts = localStorage.getItem("smartfit_completed_workouts_v1");
@@ -581,21 +564,6 @@ export default function Profile() {
             }
         });
 
-        // Add completed workouts
-        completedWorkouts.forEach(w => {
-            let dateStr = "";
-            try {
-                dateStr = new Date(w.date).toDateString();
-            } catch (e) {
-                console.error("Error parsing completed workout date:", e);
-            }
-            if (dateStr && dateStr !== "Invalid Date") {
-                if (!activitiesByDate[dateStr]) {
-                    activitiesByDate[dateStr] = [];
-                }
-                activitiesByDate[dateStr].push(w);
-            }
-        });
 
         const currentYear = new Date().getFullYear();
         const startDate = new Date(currentYear, 0, 1);
