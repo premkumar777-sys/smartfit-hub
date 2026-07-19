@@ -49,7 +49,7 @@ const getEncouragingMessage = (status: string, bmi: number, gender: "male" | "fe
                 icon: Trophy,
                 gradient: "from-emerald-500 to-teal-500",
             };
-        case "low":
+        case "low": {
             const toGainMin = (healthyRange.min - bmi).toFixed(1);
             return {
                 title: "💪 You're On Your Way!",
@@ -57,7 +57,8 @@ const getEncouragingMessage = (status: string, bmi: number, gender: "male" | "fe
                 icon: Target,
                 gradient: "from-blue-500 to-cyan-500",
             };
-        case "high":
+        }
+        case "high": {
             const toLoseMax = (bmi - healthyRange.max).toFixed(1);
             return {
                 title: "🏃 Keep Going! You've Got This!",
@@ -65,6 +66,7 @@ const getEncouragingMessage = (status: string, bmi: number, gender: "male" | "fe
                 icon: TrendingUp,
                 gradient: "from-amber-500 to-orange-500",
             };
+        }
         case "very-high":
             return {
                 title: "🌟 Every Step Counts!",

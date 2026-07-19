@@ -1,4 +1,4 @@
-// @ts-ignore
+// @ts-expect-error: Mediapipe library poses file does not expose strict types
 import '../../node_modules/@mediapipe/pose/pose.js';
 
 const g = typeof window !== 'undefined' ? window : globalThis;
