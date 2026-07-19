@@ -1,9 +1,11 @@
-# Mockup Styling Checklist
+# SaaS Overhaul Checklist
 
-- `[ ]` Add `ArrowRight` to the `lucide-react` import list in Auth.tsx
-- `[ ]` Add the branding logo & text header to the left-side hero panel in Auth.tsx
-- `[ ]` Add the mockup description text below the main heading in the left-side hero panel in Auth.tsx
-- `[ ]` Color the "SmartFitAI" green in the welcome header of Auth.tsx
-- `[ ]` Update the inline "Forgot Password?" color to green and text to "Forgot password?" in Auth.tsx
-- `[ ]` Add the right arrow icon inside the login button in Auth.tsx
-- `[ ]` Verify changes locally and run compilation check
+- `[x]` Import `motion` from `framer-motion` and add new icons (`Flame`, `TrendingUp`, `Utensils`) to imports in Auth.tsx
+- `[x]` Inject the Ken Burns zoom CSS styling inside Auth.tsx
+- `[x]` Update the root wrapper of Auth.tsx to be an animated page fade-in
+- `[x]` Restructure the left-side hero text to float on the background and display the feature items with their icons
+- `[x]` Add the floating glassmorphism card wrapper around the right-side form container in Auth.tsx
+- `[x]` Re-style input fields to `h-[56px]`, background `#050505`, rounded-xl, and glowing green focus border
+- `[x]` Re-style submit buttons to neon green gradient with hover scale animation and shadow glow
+- `[x]` Update the title typography to 56px bold white text
+- `[x]` Verify changes locally and run compilation check

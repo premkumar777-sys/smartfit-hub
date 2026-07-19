@@ -6,8 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
-import { Loader2, Mail, Lock, User, Key, KeyRound, ShieldAlert, Eye, EyeOff, ArrowRight } from "lucide-react";
+import { Loader2, Mail, Lock, User, Key, KeyRound, ShieldAlert, Eye, EyeOff, ArrowRight, Flame, TrendingUp, Utensils } from "lucide-react";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { motion } from "framer-motion";
 
 const authSchema = z.object({
   email: z.string().trim().email({ message: "Invalid email address" }).max(255),
@@ -28,6 +29,27 @@ const authSchema = z.object({
     }),
   username: z.string().trim().min(2, { message: "Username must be at least 2 characters" }).max(50).optional(),
 });
+
+const testimonials = [
+  {
+    quote: "SmartFit AI combines technology and fitness in the right way. Its personalized training and progress tracking can help anyone, from beginners to athletes, reach their fitness goals more efficiently.",
+    author: "FitSanjay",
+    role: "Competitive Bodybuilder & Gold Medalist, Mr. Tamil Nadu",
+    rating: 5
+  },
+  {
+    quote: "As a busy entrepreneur, I don't have time to plan workouts. SmartFit generates optimized routines that I can do anywhere. Absolutely seamless.",
+    author: "Elena Rostova",
+    role: "CEO & Founder",
+    rating: 5
+  },
+  {
+    quote: "The nutrition plan matched with real-time biometric feedback has helped me drop 8% body fat while increasing my strength. Best fitness app on the market.",
+    author: "Sarah Jenkins",
+    role: "Athletic Trainer",
+    rating: 5
+  }
+];
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -58,6 +80,15 @@ export default function Auth() {
     username: string;
     password: string;
   } | null>(null);
+
+  const [currentTestimonial, setCurrentTestimonial] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
+    }, 6000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -495,68 +526,114 @@ export default function Auth() {
   );
 
   return (
-    <div className="h-screen flex bg-black text-white overflow-hidden select-none">
-      {/* Left-side Image panel */}
-      <div className="hidden md:flex md:w-[45%] lg:w-[40%] xl:w-[45%] relative flex-col justify-between p-12 overflow-hidden border-r border-white/5">
-        <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: `url('/auth-hero.png')` }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/70" />
-        <div className="relative z-10 flex items-center gap-2">
-          <img
-            src="/favicon.png"
-            alt="SmartFit AI"
-            className="w-7 h-7 object-contain"
-            style={{ filter: "drop-shadow(0 0 8px rgba(0, 255, 156, 0.4))" }}
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.8 }}
+      className="h-screen w-screen relative bg-[#050505] text-white overflow-hidden select-none"
+    >
+      <style dangerouslySetInnerHTML={{__html: `
+        @keyframes kenburns {
+          0% { transform: scale(1.0); }
+          100% { transform: scale(1.08); }
+        }
+        .animate-ken-burns {
+          animation: kenburns 20s ease-out infinite alternate;
+        }
+        @keyframes buttonShimmer {
+          0% { transform: translateX(-150%); }
+          100% { transform: translateX(250%); }
+        }
+        .animate-button-shimmer {
+          animation: buttonShimmer 1.4s infinite linear;
+        }
+      `}} />
+      {/* Content Grid */}
+      <div className="relative z-10 h-full w-full flex flex-row bg-[#050505]">
+        {/* Left Branding/Hero Text (Visible on md and up) */}
+        <div className="hidden md:flex md:w-[45%] lg:w-[50%] xl:w-[55%] flex-col justify-end p-12 h-full relative overflow-hidden">
+          {/* Seamless Background Image with Ken Burns Effect */}
+          <div 
+            className="absolute inset-0 bg-cover bg-left bg-no-repeat animate-ken-burns"
+            style={{ backgroundImage: `url('/auth-hero.png')` }}
           />
-          <span className="font-extrabold text-base tracking-wider text-white">SmartFit <span className="text-[#00ff9c]">AI</span></span>
-        </div>
-        <div className="relative z-10 space-y-3 max-w-sm">
-          <h2 className="text-2xl lg:text-3xl font-black leading-tight text-white">
-            Empowering our <span className="text-[#00ff9c]">global community</span> to build their <span className="text-[#00ff9c]">ultimate physique</span>.
-          </h2>
-          <p className="text-xs text-gray-400 font-medium leading-relaxed">
-            AI-powered workouts, smart tracking, expert guidance and a community that motivates you every step of the way.
-          </p>
-        </div>
-      </div>
+          {/* Subtle bottom gradient to make overlay text extremely readable */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10" />
+          {/* Horizontal gradient to fade the right edge of the image into the black background */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-[#050505] z-10" />
 
-      {/* Right-side Form panel */}
-      <div className="flex-1 flex flex-col justify-center items-center py-6 px-4 md:py-8 md:px-12 h-screen overflow-y-auto">
-        <div className="w-full max-w-md space-y-4">
-          
-          <div>
-            <Link to="/" className="text-xs text-gray-500 hover:text-white font-bold transition-colors inline-flex items-center gap-1.5">
-              ← Back to Home
-            </Link>
-          </div>
-
-          {/* Form Headers */}
-          <div className="space-y-2">
-            <h1 className="text-3xl font-black tracking-tight">
-              {showForgotPassword 
-                ? "Reset Password" 
-                : activeTab === "login" 
-                  ? "Get Started" 
-                  : signupStep === "verify-otp"
-                    ? "Verify Account"
-                    : "Create Account"
-              }
-            </h1>
-            <p className="text-sm text-gray-400">
-              {showForgotPassword 
-                ? "Enter your email to receive a password reset link."
-                : activeTab === "login" 
-                  ? authMethod === "password"
-                    ? <>Welcome to <span className="text-[#00ff9c]">SmartFitAI</span></> 
-                    : "Sign in with a one-time verification code."
-                  : signupStep === "verify-otp"
-                    ? `Enter the confirmation code sent to ${pendingSignupData?.email}`
-                    : "Create an account to join SmartFitAI"
-              }
+          {/* Testimonial container */}
+          <motion.div 
+            key={currentTestimonial}
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="max-w-md space-y-3 relative z-20 flex flex-col mt-auto"
+          >
+            <p className="text-white text-base font-medium italic leading-relaxed">
+              "{testimonials[currentTestimonial].quote}"
             </p>
+            <div className="text-right">
+              <p className="text-white font-bold text-sm">
+                — {testimonials[currentTestimonial].author}
+              </p>
+              <p className="text-[#22FF66] text-[10px] font-bold uppercase tracking-wider mt-0.5">
+                {testimonials[currentTestimonial].role}
+              </p>
+            </div>
+          </motion.div>
+        </div>
+
+        {/* Right Authentication Panel */}
+        <div className="flex-1 flex flex-col justify-center items-center py-4 px-4 md:py-6 md:px-12 h-full overflow-y-auto bg-[#050505] z-20">
+          {/* Mobile-only logo */}
+          <div className="md:hidden flex items-center gap-2 mb-4 self-start">
+            <img
+              src="/favicon.png"
+              alt="SmartFit AI"
+              className="w-7 h-7 object-contain"
+            />
+            <span className="font-extrabold text-base tracking-wider text-white">SmartFit <span className="text-[#22FF66]">AI</span></span>
           </div>
+
+          <motion.div 
+            initial={{ x: 60, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ delay: 0.2, duration: 0.7, ease: "easeOut" }}
+            className="w-full max-w-[480px] relative space-y-3.5"
+          >
+            
+            <div>
+              <Link to="/" className="text-xs text-gray-500 hover:text-white font-bold transition-colors inline-flex items-center gap-1.5">
+                ← Back to Home
+              </Link>
+            </div>
+
+            {/* Form Headers */}
+            <div className="space-y-1">
+              <h1 className="text-3xl md:text-[34px] lg:text-[36px] font-semibold text-white tracking-tight leading-none">
+                {showForgotPassword 
+                  ? "Reset Password" 
+                  : activeTab === "login" 
+                    ? "Get Started" 
+                    : signupStep === "verify-otp"
+                      ? "Verify"
+                      : "Register"
+                }
+              </h1>
+              <p className="text-sm text-[#A0A0A0] font-medium leading-relaxed">
+                {showForgotPassword 
+                  ? "Enter your email to receive a password reset link."
+                  : activeTab === "login" 
+                    ? authMethod === "password"
+                      ? <>Welcome to <span className="text-[#22FF66]">SmartFitAI</span></> 
+                      : "Sign in with a one-time verification code."
+                    : signupStep === "verify-otp"
+                      ? `Enter the confirmation code sent to ${pendingSignupData?.email}`
+                      : "Create an account to join SmartFitAI"
+                }
+              </p>
+            </div>
 
           {/* Form Switchers */}
           {showForgotPassword ? (
@@ -570,8 +647,8 @@ export default function Auth() {
                     id="reset-email"
                     name="email"
                     type="email"
-                    placeholder="name@smartfitai.in"
-                    className="pl-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-[#00ff9c] focus:ring-[#00ff9c] text-white rounded-xl h-11 transition-all"
+                    placeholder="youname@gmail.com"
+                    className="pl-12 bg-[#050505] border-white/10 hover:border-white/20 focus-visible:ring-1 focus-visible:ring-[#22FF66]/30 focus-visible:border-[#22FF66]/50 focus-visible:shadow-[0_0_20px_rgba(34,255,102,0.12)] text-white rounded-[14px] h-[56px] transition-all duration-300"
                     required
                   />
                 </div>
@@ -579,14 +656,16 @@ export default function Auth() {
 
               <Button 
                 type="submit" 
-                className="w-full bg-[#00ff9c] hover:bg-[#00e08b] text-black font-black h-11 rounded-xl transition-all uppercase text-xs tracking-wider"
+                className="w-full bg-black hover:bg-white/5 border border-white/15 text-white font-bold h-[52px] rounded-[14px] transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg flex items-center justify-center relative uppercase text-xs tracking-wider overflow-hidden"
                 disabled={isLoading}
               >
+                {isLoading && (
+                  <div className="absolute inset-0 overflow-hidden rounded-[14px]">
+                    <div className="absolute inset-y-0 h-full w-[40%] bg-gradient-to-r from-transparent via-[#22FF66]/40 to-transparent animate-button-shimmer" />
+                  </div>
+                )}
                 {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Sending link...
-                  </>
+                  <span className="text-[#22FF66] font-bold">Sending link...</span>
                 ) : (
                   "Send Reset Link"
                 )}
@@ -614,8 +693,8 @@ export default function Auth() {
                       id="login-email"
                       name="email"
                       type="email"
-                      placeholder="name@smartfitai.in"
-                      className="pl-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-[#00ff9c] focus:ring-[#00ff9c] text-white rounded-xl h-11 transition-all"
+                      placeholder="youname@gmail.com"
+                      className="pl-12 bg-[#050505] border-white/10 hover:border-white/20 focus-visible:ring-1 focus-visible:ring-[#22FF66]/30 focus-visible:border-[#22FF66]/50 focus-visible:shadow-[0_0_20px_rgba(34,255,102,0.12)] text-white rounded-[14px] h-[56px] transition-all duration-300"
                       required
                       maxLength={255}
                     />
@@ -628,7 +707,7 @@ export default function Auth() {
                     <button 
                       type="button"
                       onClick={() => setShowForgotPassword(true)}
-                      className="text-[10px] font-black uppercase tracking-wider text-[#00ff9c] hover:underline"
+                      className="text-[10px] font-medium uppercase tracking-wider text-white hover:text-white/80 hover:underline"
                     >
                       Forgot password?
                     </button>
@@ -640,7 +719,7 @@ export default function Auth() {
                       name="password"
                       type={showPassword ? "text" : "password"}
                       placeholder="••••••••"
-                      className="pl-12 pr-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-[#00ff9c] focus:ring-[#00ff9c] text-white rounded-xl h-11 transition-all"
+                      className="pl-12 pr-12 bg-[#050505] border-white/10 hover:border-white/20 focus-visible:ring-1 focus-visible:ring-[#22FF66]/30 focus-visible:border-[#22FF66]/50 focus-visible:shadow-[0_0_20px_rgba(34,255,102,0.12)] text-white rounded-[14px] h-[56px] transition-all duration-300"
                       required
                       minLength={8}
                       maxLength={100}
@@ -658,19 +737,18 @@ export default function Auth() {
                 <div className="flex flex-col gap-3">
                   <Button 
                     type="submit" 
-                    className="w-full bg-[#00ff9c] hover:bg-[#00e08b] text-black font-black h-11 rounded-xl transition-all uppercase text-xs tracking-wider"
+                    className="w-full bg-black hover:bg-white/5 border border-white/15 text-white font-bold h-[52px] rounded-[14px] transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg flex items-center justify-center relative uppercase text-xs tracking-wider overflow-hidden"
                     disabled={isLoading}
                   >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Logging in...
-                      </>
-                    ) : (
-                      <div className="relative w-full flex items-center justify-center">
-                        <span>LOGIN</span>
-                        <ArrowRight className="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-4" />
+                    {isLoading && (
+                      <div className="absolute inset-0 overflow-hidden rounded-[14px]">
+                        <div className="absolute inset-y-0 h-full w-[40%] bg-gradient-to-r from-transparent via-[#22FF66]/40 to-transparent animate-button-shimmer" />
                       </div>
+                    )}
+                    {isLoading ? (
+                      <span className="text-[#22FF66] font-bold">Logging in...</span>
+                    ) : (
+                      <span>LOGIN</span>
                     )}
                   </Button>
                 </div>
@@ -688,8 +766,8 @@ export default function Auth() {
                         id="otp-email"
                         name="email"
                         type="email"
-                        placeholder="name@smartfitai.in"
-                        className="pl-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-[#00ff9c] focus:ring-[#00ff9c] text-white rounded-xl h-11 transition-all"
+                        placeholder="youname@gmail.com"
+                        className="pl-12 bg-[#050505] border-white/10 hover:border-white/20 focus-visible:ring-1 focus-visible:ring-[#22FF66]/30 focus-visible:border-[#22FF66]/50 focus-visible:shadow-[0_0_20px_rgba(34,255,102,0.12)] text-white rounded-[14px] h-[56px] transition-all duration-300"
                         required
                         maxLength={255}
                       />
@@ -699,14 +777,16 @@ export default function Auth() {
                   <div className="flex flex-col gap-3">
                     <Button 
                       type="submit" 
-                      className="w-full bg-[#00ff9c] hover:bg-[#00e08b] text-black font-black h-11 rounded-xl transition-all uppercase text-xs tracking-wider"
+                      className="w-full bg-black hover:bg-white/5 border border-white/15 text-white font-bold h-[52px] rounded-[14px] transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg flex items-center justify-center relative uppercase text-xs tracking-wider overflow-hidden"
                       disabled={isLoading}
                     >
+                      {isLoading && (
+                        <div className="absolute inset-0 overflow-hidden rounded-[14px]">
+                          <div className="absolute inset-y-0 h-full w-[40%] bg-gradient-to-r from-transparent via-[#22FF66]/40 to-transparent animate-button-shimmer" />
+                        </div>
+                      )}
                       {isLoading ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Sending code...
-                        </>
+                        <span className="text-[#22FF66] font-bold">Sending code...</span>
                       ) : (
                         "Send Verification Code"
                       )}
@@ -738,14 +818,16 @@ export default function Auth() {
                   <div className="flex flex-col gap-3">
                     <Button 
                       type="submit" 
-                      className="w-full bg-[#00ff9c] hover:bg-[#00e08b] text-black font-black h-11 rounded-xl transition-all uppercase text-xs tracking-wider"
+                      className="w-full bg-black hover:bg-white/5 border border-white/15 text-white font-bold h-[52px] rounded-[14px] transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg flex items-center justify-center relative uppercase text-xs tracking-wider overflow-hidden"
                       disabled={isLoading || otpCode.length < 6}
                     >
+                      {isLoading && (
+                        <div className="absolute inset-0 overflow-hidden rounded-[14px]">
+                          <div className="absolute inset-y-0 h-full w-[40%] bg-gradient-to-r from-transparent via-[#22FF66]/40 to-transparent animate-button-shimmer" />
+                        </div>
+                      )}
                       {isLoading ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Verifying code...
-                        </>
+                        <span className="text-[#22FF66] font-bold">Verifying code...</span>
                       ) : (
                         "Verify & Log In"
                       )}
@@ -789,7 +871,7 @@ export default function Auth() {
                       name="username"
                       type="text"
                       placeholder="Your username"
-                      className="pl-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-[#00ff9c] focus:ring-[#00ff9c] text-white rounded-xl h-11 transition-all"
+                      className="pl-12 bg-[#050505] border-white/10 hover:border-white/20 focus-visible:ring-1 focus-visible:ring-[#22FF66]/30 focus-visible:border-[#22FF66]/50 focus-visible:shadow-[0_0_20px_rgba(34,255,102,0.12)] text-white rounded-[14px] h-[56px] transition-all duration-300"
                       required
                       minLength={2}
                       maxLength={50}
@@ -805,8 +887,8 @@ export default function Auth() {
                       id="signup-email"
                       name="email"
                       type="email"
-                      placeholder="name@smartfitai.in"
-                      className="pl-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-[#00ff9c] focus:ring-[#00ff9c] text-white rounded-xl h-11 transition-all"
+                      placeholder="youname@gmail.com"
+                      className="pl-12 bg-[#050505] border-white/10 hover:border-white/20 focus-visible:ring-1 focus-visible:ring-[#22FF66]/30 focus-visible:border-[#22FF66]/50 focus-visible:shadow-[0_0_20px_rgba(34,255,102,0.12)] text-white rounded-[14px] h-[56px] transition-all duration-300"
                       required
                       maxLength={255}
                     />
@@ -822,7 +904,7 @@ export default function Auth() {
                       name="password"
                       type={showPassword ? "text" : "password"}
                       placeholder="••••••••"
-                      className="pl-12 pr-12 bg-white/5 border-white/10 hover:border-white/20 focus:border-[#00ff9c] focus:ring-[#00ff9c] text-white rounded-xl h-11 transition-all"
+                      className="pl-12 pr-12 bg-[#050505] border-white/10 hover:border-white/20 focus-visible:ring-1 focus-visible:ring-[#22FF66]/30 focus-visible:border-[#22FF66]/50 focus-visible:shadow-[0_0_20px_rgba(34,255,102,0.12)] text-white rounded-[14px] h-[56px] transition-all duration-300"
                       required
                       minLength={8}
                       maxLength={100}
@@ -842,14 +924,16 @@ export default function Auth() {
 
                 <Button 
                   type="submit" 
-                  className="w-full bg-[#00ff9c] hover:bg-[#00e08b] text-black font-black h-11 rounded-xl transition-all uppercase text-xs tracking-wider"
+                  className="w-full bg-black hover:bg-white/5 border border-white/15 text-white font-bold h-[52px] rounded-[14px] transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg flex items-center justify-center relative uppercase text-xs tracking-wider overflow-hidden"
                   disabled={isLoading}
                 >
+                  {isLoading && (
+                    <div className="absolute inset-0 overflow-hidden rounded-[14px]">
+                      <div className="absolute inset-y-0 h-full w-[40%] bg-gradient-to-r from-transparent via-[#22FF66]/40 to-transparent animate-button-shimmer" />
+                    </div>
+                  )}
                   {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Creating account...
-                    </>
+                    <span className="text-[#22FF66] font-bold">Creating account...</span>
                   ) : (
                     "Sign Up"
                   )}
@@ -880,14 +964,16 @@ export default function Auth() {
                 <div className="flex flex-col gap-3">
                   <Button 
                     type="submit" 
-                    className="w-full bg-[#00ff9c] hover:bg-[#00e08b] text-black font-black h-11 rounded-xl transition-all uppercase text-xs tracking-wider"
+                    className="w-full bg-black hover:bg-white/5 border border-white/15 text-white font-bold h-[52px] rounded-[14px] transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg flex items-center justify-center relative uppercase text-xs tracking-wider overflow-hidden"
                     disabled={isLoading || otpCode.length < 6}
                   >
+                    {isLoading && (
+                      <div className="absolute inset-0 overflow-hidden rounded-[14px]">
+                        <div className="absolute inset-y-0 h-full w-[40%] bg-gradient-to-r from-transparent via-[#22FF66]/40 to-transparent animate-button-shimmer" />
+                      </div>
+                    )}
                     {isLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Confirming code...
-                      </>
+                      <span className="text-[#22FF66] font-bold">Confirming code...</span>
                     ) : (
                       "Confirm & Create Account"
                     )}
@@ -921,7 +1007,7 @@ export default function Auth() {
           {/* Divider & OAuth Social Login (Disabled for password reset or OTP verification) */}
           {!showForgotPassword && signupStep === "form" && otpStep === "request" && (
             <>
-              <div className="relative py-2">
+              <div className="relative py-1">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-white/10" />
                 </div>
@@ -930,11 +1016,11 @@ export default function Auth() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 w-full">
+              <div className="grid grid-cols-2 gap-2 w-full">
                 <Button
                   type="button"
                   variant="outline"
-                  className="flex items-center justify-center gap-2.5 h-11 bg-transparent border-white/10 hover:bg-white/5 hover:text-white rounded-xl text-white font-bold transition-all text-xs"
+                  className="flex items-center justify-center gap-2 h-10 bg-transparent border-white/10 hover:bg-white/5 hover:text-white rounded-xl text-white font-bold transition-all text-xs"
                   onClick={handleGoogleLogin}
                   disabled={isGoogleLoading}
                 >
@@ -949,7 +1035,7 @@ export default function Auth() {
                 <Button
                   type="button"
                   variant="outline"
-                  className="flex items-center justify-center gap-2.5 h-11 bg-transparent border-white/10 hover:bg-white/5 hover:text-white rounded-xl text-white font-bold transition-all text-xs"
+                  className="flex items-center justify-center gap-2 h-10 bg-transparent border-white/10 hover:bg-white/5 hover:text-white rounded-xl text-white font-bold transition-all text-xs"
                   onClick={handleLinkedInLogin}
                   disabled={isLinkedInLoading}
                 >
@@ -964,7 +1050,7 @@ export default function Auth() {
                 <Button
                   type="button"
                   variant="outline"
-                  className="flex items-center justify-center gap-2.5 h-11 bg-transparent border-white/10 hover:bg-white/5 hover:text-white rounded-xl text-white font-bold transition-all text-xs"
+                  className="flex items-center justify-center gap-2 h-10 bg-transparent border-white/10 hover:bg-white/5 hover:text-white rounded-xl text-white font-bold transition-all text-xs"
                   onClick={handleFacebookLogin}
                   disabled={isFacebookLoading}
                 >
@@ -979,7 +1065,7 @@ export default function Auth() {
                 <Button
                   type="button"
                   variant="outline"
-                  className="flex items-center justify-center gap-2.5 h-11 bg-transparent border-white/10 hover:bg-white/5 hover:text-white rounded-xl text-white font-bold transition-all text-xs"
+                  className="flex items-center justify-center gap-2 h-10 bg-transparent border-white/10 hover:bg-white/5 hover:text-white rounded-xl text-white font-bold transition-all text-xs"
                   onClick={() => {
                     if (authMethod === "password") {
                       setAuthMethod("otp");
@@ -991,12 +1077,12 @@ export default function Auth() {
                 >
                   {authMethod === "password" ? (
                     <>
-                      <Mail className="w-5 h-5 shrink-0 text-gray-400" />
+                      <Mail className="w-4 h-4 shrink-0 text-gray-400" />
                       <span>Email</span>
                     </>
                   ) : (
                     <>
-                      <Lock className="w-5 h-5 shrink-0 text-gray-400" />
+                      <Lock className="w-4 h-4 shrink-0 text-gray-400" />
                       <span>Password</span>
                     </>
                   )}
@@ -1014,7 +1100,7 @@ export default function Auth() {
                   <button
                     type="button"
                     onClick={() => setActiveTab("signup")}
-                    className="text-[#00ff9c] hover:underline font-bold transition-all ml-1"
+                    className="text-white hover:text-white/80 hover:underline font-bold transition-all ml-1"
                   >
                     Sign Up
                   </button>
@@ -1028,7 +1114,7 @@ export default function Auth() {
                       setActiveTab("login");
                       setAuthMethod("password");
                     }}
-                    className="text-[#00ff9c] hover:underline font-bold transition-all ml-1"
+                    className="text-white hover:text-white/80 hover:underline font-bold transition-all ml-1"
                   >
                     Login
                   </button>
@@ -1041,19 +1127,20 @@ export default function Auth() {
           {!showForgotPassword && signupStep === "form" && otpStep === "request" && (
             <div className="text-[10px] text-center text-gray-500 mt-4 leading-relaxed max-w-sm mx-auto">
               * By continuing, you agree to the{" "}
-              <Link to="/terms" className="text-[#00ff9c] hover:underline font-semibold transition-all">
+              <Link to="/terms" className="text-white hover:text-white/80 hover:underline font-semibold transition-all">
                 Terms of Service
               </Link>{" "}
               and{" "}
-              <Link to="/privacy" className="text-[#00ff9c] hover:underline font-semibold transition-all">
+              <Link to="/privacy" className="text-white hover:text-white/80 hover:underline font-semibold transition-all">
                 Privacy Policy
               </Link>
               .
             </div>
           )}
 
-        </div>
+        </motion.div>
       </div>
     </div>
+  </motion.div>
   );
 }
