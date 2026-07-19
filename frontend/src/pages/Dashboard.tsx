@@ -124,7 +124,7 @@ const Dashboard = () => {
         feedRes
       ] = await Promise.all([
         supabase.from('profiles').select('*').eq('id', userId).single(),
-        supabase.from('workouts').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(5),
+        supabase.from('workouts').select('*').eq('user_id', userId).neq('title', 'Gym Check-In').order('created_at', { ascending: false }).limit(5),
         supabase.from('activity_logs').select('*').eq('user_id', userId).gte('created_at', sevenDaysAgo.toISOString()).order('created_at', { ascending: true }),
         supabase.from('nutrition_logs').select('*').eq('user_id', userId).gte('logged_at', todayStart.toISOString()),
         supabase.from('activity_logs').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(10)
