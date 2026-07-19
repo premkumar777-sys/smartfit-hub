@@ -654,48 +654,7 @@ const Dashboard = () => {
           </Card>
         </div>
 
-        {/* Saved Workouts history */}
-        <Card>
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold flex items-center gap-2 leading-relaxed text-gray-300">
-              <FileText className="text-primary h-6 w-6" />
-              Saved Workout History
-            </h2>
-            <Button asChild variant="ghost" size="sm">
-              <Link to="/ai-workout">Generate More</Link>
-            </Button>
-          </div>
 
-          {savedWorkouts.length > 0 ? (
-            <div className="grid md:grid-cols-2 gap-4">
-              {savedWorkouts.slice(1).map((workout) => (
-                <div
-                  key={workout.id}
-                  className="p-4 rounded-lg border border-border bg-card/50 hover:bg-card/80 transition-all flex justify-between items-start"
-                >
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-foreground">{workout.title}</h3>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {new Date(workout.created_at).toLocaleDateString()} • {workout.goal?.replace('-', ' ')}
-                    </p>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDeleteWorkout(workout.id)}
-                    className="text-destructive hover:bg-destructive/10"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground italic">No workout history yet</p>
-            </div>
-          )}
-        </Card>
 
         {/* Weekly Progress Chart */}
         <div className="grid lg:grid-cols-3 gap-8">
