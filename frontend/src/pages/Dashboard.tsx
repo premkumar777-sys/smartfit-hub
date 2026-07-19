@@ -272,7 +272,7 @@ const Dashboard = () => {
       gamification.recordWorkout(30); // 30 minutes check-in session
       
       toast({
-        title: "Checked In! 💪",
+        title: "Checked In!",
         description: "Gym check-in logged! Streak updated & 30 XP awarded.",
       });
       setShowCheckInReminder(false);
@@ -441,10 +441,10 @@ const Dashboard = () => {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-2">
-              {isNewUser ? 'Welcome' : 'Welcome Back'}{profile?.username ? `, ${profile.username}` : ''}! 💪
+              {isNewUser ? 'Welcome' : 'Welcome Back'}{profile?.username ? `, ${profile.username}` : ''}!
             </h1>
             <p className="text-lg md:text-xl leading-relaxed text-gray-300">
-              {profile ? `Level ${gamification.level} ${gamification.currentStreak > 0 ? `• ${gamification.currentStreak} Day Streak 🔥` : "• Let's crush your goals!"}` : 'Loading...'}
+              {profile ? `Level ${gamification.level} ${gamification.currentStreak > 0 ? `• ${gamification.currentStreak} Day Streak` : "• Let's crush your goals!"}` : 'Loading...'}
             </p>
             {profile && (
               <p className="text-sm text-muted-foreground mt-2">
@@ -792,7 +792,7 @@ const Dashboard = () => {
                   Checking In...
                 </>
               ) : (
-                "Check-In Now 💪"
+                "Check-In Now"
               )}
             </Button>
             <Button

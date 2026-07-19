@@ -90,7 +90,7 @@ const AIWorkout = () => {
       if (data?.workoutPlan) {
         setWorkoutPlan(data.workoutPlan);
         // Award XP for generating workout
-        gamification.recordWorkout();
+        gamification.awardXP(XP_REWARDS.WORKOUT_GENERATED, "Generated workout plan");
         toast.success(`Workout plan generated! +${XP_REWARDS.WORKOUT_GENERATED} XP 🎉`);
       } else {
         throw new Error("No workout plan received");
