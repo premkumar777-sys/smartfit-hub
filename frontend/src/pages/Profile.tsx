@@ -459,6 +459,24 @@ export default function Profile() {
         // Add to local state
         setCompletedWorkouts(prev => [workoutWithId, ...prev]);
 
+        // Record workout completion in gamification
+        let durationMinutes = 45;
+        if (data.duration) {
+            const cleanDur = data.duration.toLowerCase();
+            const match = cleanDur.match(/(\d+)\s*(min|m)/);
+            if (match) {
+                durationMinutes = parseInt(match[1]);
+            } else {
+                const parts = cleanDur.split(":");
+                if (parts.length >= 2) {
+                    const hrs = parseInt(parts[0]) || 0;
+                    const mins = parseInt(parts[1]) || 0;
+                    durationMinutes = hrs * 60 + mins;
+                }
+            }
+        }
+        gamification.recordWorkout(durationMinutes);
+
         // Sync to localStorage
         const savedWorkouts = localStorage.getItem("smartfit_completed_workouts_v1");
         let currentList: any[] = [];
@@ -550,20 +568,40 @@ export default function Profile() {
 
     const renderHeatmap = () => {
         // Calculate activities per date string
-        const activitiesByDate: Record<string, Workout[]> = {};
+        const activitiesByDate: Record<string, any[]> = {};
+        
+        // Add gym check-ins
         allWorkouts.forEach(w => {
-            const dateStr = new Date(w.created_at).toDateString();
-            if (!activitiesByDate[dateStr]) {
-                activitiesByDate[dateStr] = [];
+            if (w.title === "Gym Check-In") {
+                const dateStr = new Date(w.created_at).toDateString();
+                if (!activitiesByDate[dateStr]) {
+                    activitiesByDate[dateStr] = [];
+                }
+                activitiesByDate[dateStr].push(w);
             }
-            activitiesByDate[dateStr].push(w);
+        });
+
+        // Add completed workouts
+        completedWorkouts.forEach(w => {
+            let dateStr = "";
+            try {
+                dateStr = new Date(w.date).toDateString();
+            } catch (e) {
+                console.error("Error parsing completed workout date:", e);
+            }
+            if (dateStr && dateStr !== "Invalid Date") {
+                if (!activitiesByDate[dateStr]) {
+                    activitiesByDate[dateStr] = [];
+                }
+                activitiesByDate[dateStr].push(w);
+            }
         });
 
         const currentYear = new Date().getFullYear();
         const startDate = new Date(currentYear, 0, 1);
         const endDate = new Date(currentYear, 11, 31);
         
-        const days: { date: Date | null; workouts: Workout[] }[] = [];
+        const days: { date: Date | null; workouts: any[] }[] = [];
         
         // Pad the beginning of the year so that the grid starts on Sunday
         const startDayOfWeek = startDate.getDay();
@@ -586,7 +624,7 @@ export default function Profile() {
         };
 
         // Render SmartFit logo filling the full cell for active days
-        const renderCellLogo = (workouts: Workout[]) => {
+        const renderCellLogo = (workouts: any[]) => {
             if (workouts.length === 0) return null;
             return (
                 <img

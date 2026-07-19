@@ -361,6 +361,24 @@ export default function Progress() {
 
     toast.success("Workout logged successfully!");
 
+    // Record workout completion in gamification
+    let durationMinutes = 45;
+    if (workout.duration) {
+      const cleanDur = workout.duration.toLowerCase();
+      const match = cleanDur.match(/(\d+)\s*(min|m)/);
+      if (match) {
+        durationMinutes = parseInt(match[1]);
+      } else {
+        const parts = cleanDur.split(":");
+        if (parts.length >= 2) {
+          const hrs = parseInt(parts[0]) || 0;
+          const mins = parseInt(parts[1]) || 0;
+          durationMinutes = hrs * 60 + mins;
+        }
+      }
+    }
+    gamification.recordWorkout(durationMinutes);
+
     if (userId) {
       try {
         await supabase.from("completed_workouts").insert({

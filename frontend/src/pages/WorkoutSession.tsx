@@ -30,6 +30,7 @@ import { Container } from "@/components/Container";
 import { toast } from "sonner";
 import * as poseDetection from "@tensorflow-models/pose-detection";
 import * as tf from "@tensorflow/tfjs";
+import { useGamification } from "@/hooks/useGamification";
 
 // ─── Types ─────────────────────────────────────────────
 type Exercise = "squat" | "pushup" | "bicepCurl" | "lunge" | "shoulderPress" | "tricepExtension" | "lateralRaise" | "romanianDeadlift" | "jumpingJack";
@@ -198,6 +199,7 @@ function calculateAngle(
 // ─── Component ─────────────────────────────────────────
 const WorkoutSession = () => {
     const navigate = useNavigate();
+    const gamification = useGamification();
 
     // State
     const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
@@ -635,6 +637,24 @@ const WorkoutSession = () => {
         localStorage.setItem("smartfit_completed_workouts_v1", JSON.stringify(workoutsList));
 
         toast.success("Workout logged! View it in the Progress page.");
+
+        // Record workout completion in gamification
+        let durationMinutes = 45;
+        if (workout.duration) {
+            const cleanDur = workout.duration.toLowerCase();
+            const match = cleanDur.match(/(\d+)\s*(min|m)/);
+            if (match) {
+                durationMinutes = parseInt(match[1]);
+            } else {
+                const parts = cleanDur.split(":");
+                if (parts.length >= 2) {
+                    const hrs = parseInt(parts[0]) || 0;
+                    const mins = parseInt(parts[1]) || 0;
+                    durationMinutes = hrs * 60 + mins;
+                }
+            }
+        }
+        gamification.recordWorkout(durationMinutes);
 
         try {
             const { data: { user } } = await supabase.auth.getUser();
