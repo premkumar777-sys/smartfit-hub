@@ -559,6 +559,8 @@ export default function Auth() {
           />
           {/* Subtle bottom gradient to make overlay text extremely readable */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10" />
+          {/* Horizontal gradient to fade the right edge of the image into the black background */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-[#050505] z-10" />
 
           {/* Testimonial container */}
           <motion.div 
