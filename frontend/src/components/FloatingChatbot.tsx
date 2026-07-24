@@ -31,7 +31,9 @@ const suggestedQuestions = [
 // Create notification sound using Web Audio API
 const playNotificationSound = () => {
   try {
-    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioContextClass) return;
+    const audioContext = new AudioContextClass();
     const oscillator = audioContext.createOscillator();
     const gainNode = audioContext.createGain();
 
@@ -46,6 +48,10 @@ const playNotificationSound = () => {
 
     oscillator.start(audioContext.currentTime);
     oscillator.stop(audioContext.currentTime + 0.3);
+
+    setTimeout(() => {
+      audioContext.close().catch(() => {});
+    }, 400);
   } catch (error) {
     console.log("Audio notification not supported");
   }
@@ -142,16 +148,18 @@ export const FloatingChatbot = () => {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const scrollToBottom = (behavior: ScrollBehavior = "smooth", force = false) => {
-    if (chatContainerRef.current) {
-      const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
-      const isCloseToBottom = scrollHeight - scrollTop - clientHeight < 15;
-      if (force || isCloseToBottom) {
-        chatContainerRef.current.scrollTo({
-          top: scrollHeight,
-          behavior
-        });
+    requestAnimationFrame(() => {
+      if (chatContainerRef.current) {
+        const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
+        const isCloseToBottom = scrollHeight - scrollTop - clientHeight < 30;
+        if (force || isCloseToBottom) {
+          chatContainerRef.current.scrollTo({
+            top: scrollHeight,
+            behavior
+          });
+        }
       }
-    }
+    });
   };
 
   useEffect(() => {
@@ -165,7 +173,9 @@ export const FloatingChatbot = () => {
   }, [messages]);
 
   useEffect(() => {
-    if (isOpen && inputRef.current) {
+    // Only auto-focus on desktop devices to avoid triggering virtual keyboard & screen shifts during mobile open animation
+    const isTouchOrMobile = window.innerWidth < 640 || ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+    if (isOpen && inputRef.current && !isTouchOrMobile) {
       inputRef.current.focus();
     }
   }, [isOpen]);
@@ -282,16 +292,16 @@ export const FloatingChatbot = () => {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 100, scale: 0.8, filter: "blur(10px)" }}
-            animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
-            exit={{ opacity: 0, y: 100, scale: 0.8, filter: "blur(10px)" }}
-            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            initial={{ opacity: 0, y: 30, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 30, scale: 0.95 }}
+            transition={{ type: "spring", damping: 25, stiffness: 280 }}
             className={cn(
               "fixed bottom-0 right-0 left-0 sm:bottom-6 sm:right-6 sm:left-auto z-[60]",
               "w-full sm:w-[400px] sm:max-w-[calc(100vw-2rem)]",
-              "h-[88dvh] sm:h-[550px] sm:max-h-[calc(100vh-10rem)]",
-              "bg-black/95 backdrop-blur-2xl border-t border-x border-white/10 sm:border rounded-t-[2rem] sm:rounded-[2rem] shadow-[0_0_50px_rgba(0,0,0,0.5)]",
-              "flex flex-col overflow-hidden ring-0 sm:ring-1 ring-white/20"
+              "h-[85dvh] sm:h-[550px] sm:max-h-[calc(100vh-10rem)]",
+              "bg-[#0a0a0a]/95 backdrop-blur-xl sm:backdrop-blur-2xl border-t border-x border-white/10 sm:border rounded-t-[2rem] sm:rounded-[2rem] shadow-[0_0_50px_rgba(0,0,0,0.5)]",
+              "flex flex-col overflow-hidden ring-0 sm:ring-1 ring-white/20 transform-gpu"
             )}
           >
             {/* Dynamic Neon Border Glow */}

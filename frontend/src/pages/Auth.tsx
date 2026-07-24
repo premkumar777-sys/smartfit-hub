@@ -6,9 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
-import { Loader2, Mail, Lock, User, Key, KeyRound, ShieldAlert, Eye, EyeOff, ArrowRight, Flame, TrendingUp, Utensils } from "lucide-react";
+import { Loader2, Mail, Lock, User, Key, KeyRound, ShieldAlert, Eye, EyeOff, ArrowRight, Flame, TrendingUp, Utensils, Fingerprint } from "lucide-react";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { motion } from "framer-motion";
+import { isBiometricsAvailable, isBiometricRegistered, registerBiometric, authenticateBiometric } from "@/lib/biometrics";
 
 const authSchema = z.object({
   email: z.string().trim().email({ message: "Invalid email address" }).max(255),
@@ -83,6 +84,16 @@ export default function Auth() {
 
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
 
+  // Biometrics States
+  const [isBiometricSupported, setIsBiometricSupported] = useState(false);
+  const [isBiometricLoading, setIsBiometricLoading] = useState(false);
+
+  useEffect(() => {
+    isBiometricsAvailable().then((supported) => {
+      setIsBiometricSupported(supported);
+    });
+  }, []);
+
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
@@ -109,6 +120,37 @@ export default function Auth() {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
+  // Fingerprint / Face ID Authentication Handler
+  const handleBiometricLogin = async () => {
+    setIsBiometricLoading(true);
+    try {
+      const verified = await authenticateBiometric();
+      if (verified) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          toast({
+            title: "Fingerprint Verified! ⚡",
+            description: "Instant biometric authentication successful.",
+          });
+          navigate(returnUrl, { replace: true });
+        } else {
+          toast({
+            title: "Biometric Verified!",
+            description: "Please enter your password once to connect your session.",
+          });
+        }
+      }
+    } catch (error: any) {
+      toast({
+        title: "Biometric Sign-In",
+        description: error.message || "Fingerprint verification failed.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsBiometricLoading(false);
+    }
+  };
+
   // Standard Email/Password Login
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -133,6 +175,21 @@ export default function Auth() {
           variant: "destructive",
         });
         return;
+      }
+
+      // Prompt to register fingerprint for future one-tap logins if supported & not registered
+      if (isBiometricSupported && !isBiometricRegistered(validated.email)) {
+        setTimeout(async () => {
+          try {
+            await registerBiometric(validated.email);
+            toast({
+              title: "Fingerprint Registered! 🔑",
+              description: "You can now use your thumb scanner to log in instantly next time.",
+            });
+          } catch (err: any) {
+            console.log("Biometric registration skipped:", err.message);
+          }
+        }, 1000);
       }
 
       toast({
@@ -586,16 +643,6 @@ export default function Auth() {
 
         {/* Right Authentication Panel */}
         <div className="flex-1 flex flex-col justify-center items-center py-4 px-4 md:py-6 md:px-12 h-full overflow-y-auto bg-[#050505] z-20">
-          {/* Mobile-only logo */}
-          <div className="md:hidden flex items-center gap-2 mb-4 self-start">
-            <img
-              src="/favicon.png"
-              alt="SmartFit AI"
-              className="w-7 h-7 object-contain"
-            />
-            <span className="font-extrabold text-base tracking-wider text-white">SmartFit <span className="text-[#22FF66]">AI</span></span>
-          </div>
-
           <motion.div 
             initial={{ x: 60, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
@@ -626,11 +673,11 @@ export default function Auth() {
                   ? "Enter your email to receive a password reset link."
                   : activeTab === "login" 
                     ? authMethod === "password"
-                      ? <>Welcome to <span className="text-[#22FF66]">SmartFitAI</span></> 
+                      ? "Welcome back! Please enter your details." 
                       : "Sign in with a one-time verification code."
                     : signupStep === "verify-otp"
                       ? `Enter the confirmation code sent to ${pendingSignupData?.email}`
-                      : "Create an account to join SmartFitAI"
+                      : "Create an account to get started"
                 }
               </p>
             </div>
@@ -684,7 +731,28 @@ export default function Auth() {
             // LOGIN FLOWS
             authMethod === "password" ? (
               // 1. Password Login Form
-              <form onSubmit={handleLogin} className="space-y-4">
+              <div className="space-y-4">
+                {/* Fingerprint / Face ID Quick Login Button */}
+                {isBiometricSupported && (
+                  <Button
+                    type="button"
+                    onClick={handleBiometricLogin}
+                    disabled={isBiometricLoading}
+                    className="w-full bg-gradient-to-r from-[#22FF66]/15 via-cyan-500/10 to-purple-500/15 border border-[#22FF66]/40 hover:border-[#22FF66] text-white font-bold h-[54px] rounded-[14px] transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_25px_rgba(34,255,102,0.15)] flex items-center justify-center gap-3 relative overflow-hidden group"
+                  >
+                    {isBiometricLoading ? (
+                      <Loader2 className="w-5 h-5 text-[#22FF66] animate-spin" />
+                    ) : (
+                      <Fingerprint className="w-6 h-6 text-[#22FF66] animate-pulse group-hover:scale-110 transition-transform" />
+                    )}
+                    <div className="flex flex-col text-left">
+                      <span className="text-xs font-bold text-white tracking-wide">Login with Fingerprint / Face ID</span>
+                      <span className="text-[9px] text-[#22FF66] font-semibold">One-Tap Touch Sign-In</span>
+                    </div>
+                  </Button>
+                )}
+
+                <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-1.5">
                   <Label htmlFor="login-email" className="text-[10px] font-black uppercase tracking-wider text-gray-400">Email Address</Label>
                   <div className="relative">
@@ -753,6 +821,7 @@ export default function Auth() {
                   </Button>
                 </div>
               </form>
+              </div>
             ) : (
               // 2. OTP Login Form
               otpStep === "request" ? (
