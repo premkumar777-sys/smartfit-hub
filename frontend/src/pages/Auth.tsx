@@ -240,8 +240,17 @@ export default function Auth() {
         body: { action: "signup-otp", email: validated.email }
       });
 
-      if (error) throw error;
-      if (data.error) throw new Error(data.error);
+      if (error) {
+        let errMsg = error.message;
+        try {
+          if (error.context && typeof error.context.json === "function") {
+            const body = await error.context.json();
+            if (body?.error) errMsg = body.error;
+          }
+        } catch (_) {}
+        throw new Error(errMsg);
+      }
+      if (data?.error) throw new Error(data.error);
 
       toast({
         title: "Verification code sent!",
@@ -286,8 +295,17 @@ export default function Auth() {
         }
       });
 
-      if (error) throw error;
-      if (data.error) throw new Error(data.error);
+      if (error) {
+        let errMsg = "Invalid or expired verification code.";
+        try {
+          if (error.context && typeof error.context.json === "function") {
+            const body = await error.context.json();
+            if (body?.error) errMsg = body.error;
+          }
+        } catch (_) {}
+        throw new Error(errMsg);
+      }
+      if (data?.error) throw new Error(data.error);
 
       toast({
         title: "Account verified!",

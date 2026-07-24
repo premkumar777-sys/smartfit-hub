@@ -165,7 +165,7 @@ serve(async (req: Request): Promise<Response> => {
 
         if (signupError) {
           console.error("[verify-signup-otp] Create User Error:", signupError);
-          return new Response(JSON.stringify({ error: signupError.message }), { status: 500, headers: corsHeaders });
+          return new Response(JSON.stringify({ error: signupError.message }), { status: 400, headers: corsHeaders });
         }
 
         // Immediately send welcome email
