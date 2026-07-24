@@ -104,5 +104,8 @@
     "rimraf": "^5.0.0",
     "glob": "^10.4.5",
     "three-mesh-bvh": "^0.8.0"
+  },
+  "optionalDependencies": {
+    "@rolldown/binding-linux-x64-gnu": "^1.2.0"
   }
 }
