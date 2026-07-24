@@ -82,16 +82,11 @@ export function MobileMenu({ children, className, onMenuToggle }: MobileMenuProp
             )}
           >
             {/* Top Bar inside Drawer */}
-            <div className="flex items-center justify-between p-5 border-b border-white/10 bg-white/[0.02]">
-              <div className="flex items-center gap-2">
-                <Logo />
-                <span className="px-2 py-0.5 text-[9px] font-black tracking-widest uppercase bg-[#22FF66]/10 text-[#22FF66] border border-[#22FF66]/30 rounded-full">
-                  PRO
-                </span>
-              </div>
+            <div className="flex items-center justify-between p-4 border-b border-gray-800 bg-gray-950">
+              <Logo />
               <button
                 onClick={() => setIsOpen(false)}
-                className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-white transition-colors hover:bg-white/10 rounded-xl border border-white/5 active:scale-95"
+                className="w-9 h-9 flex items-center justify-center text-gray-400 hover:text-white transition-colors hover:bg-gray-800 rounded-lg active:scale-95"
                 aria-label="Close menu"
               >
                 <X className="w-5 h-5" />
