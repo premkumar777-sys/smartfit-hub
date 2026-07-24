@@ -218,162 +218,8 @@ export function Header() {
           aria-label="Main Navigation"
         >
           <div className="flex items-center justify-between">
-            {/* Left Side: Mobile Hamburger Menu & Logo */}
+            {/* Left Side: Logo */}
             <div className="flex items-center space-x-2">
-              <div className="flex lg:hidden">
-                <MobileMenu>
-                  <div className="flex flex-col space-y-6 pt-4 text-left">
-                    {/* Features Collapsible */}
-                    <div className="space-y-2">
-                      <button
-                        onClick={() => setActiveMobileDropdown(prev => prev === "features" ? null : "features")}
-                        className="w-full flex items-center justify-between text-2xl font-bold py-2 px-2 rounded-xl hover:bg-white/5 transition-all text-left"
-                      >
-                        <span>Features</span>
-                        <ChevronDown
-                          className={cn(
-                            "w-5 h-5 text-gray-400 transition-transform duration-200",
-                            activeMobileDropdown === "features" && "transform rotate-180"
-                          )}
-                        />
-                      </button>
-                      <AnimatePresence initial={false}>
-                        {activeMobileDropdown === "features" && (
-                          <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: "auto", opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.2 }}
-                            className="overflow-hidden pl-3 pr-1 space-y-2 mt-1"
-                          >
-                            {[
-                              { title: "AI Personal Trainer", href: "/ai-trainer", icon: Bot, desc: "24/7 AI Chat expert", badge: "Hot" },
-                              { title: "AI Workout Generator", href: "/ai-workout", icon: Dumbbell, desc: "Customized workouts", badge: "Popular" },
-                              { title: "3D Trainer Mode", href: "/3d-trainer", icon: Video, desc: "3D demonstrations" },
-                              { title: "Nutrition & Macro AI", href: "/nutrition", icon: Apple, desc: "AI meal planning" },
-                              { title: "Online Coaching", href: "/online-coaching", icon: Laptop, desc: "1-on-1 expert coaching", badge: "New" },
-                              { title: "Real-time Form AI", href: "/workout-session", icon: Zap, desc: "Form feedback via camera" },
-                            ].map((subItem) => (
-                              <Link
-                                key={subItem.title}
-                                to={subItem.href}
-                                className="flex items-center gap-3 p-2.5 rounded-xl bg-white/5 border border-white/5 hover:border-primary/30 hover:bg-white/8 transition-all duration-200 group"
-                              >
-                                <div className="p-2 rounded-lg bg-white/5 text-primary group-hover:scale-110 transition-transform">
-                                  <subItem.icon className="w-4 h-4" />
-                                </div>
-                                <div className="flex flex-col min-w-0">
-                                  <span className="text-sm font-semibold text-white group-hover:text-primary transition-colors flex items-center gap-1.5">
-                                    {subItem.title}
-                                    {subItem.badge && (
-                                      <span className="px-1.5 py-0.5 text-[8px] bg-primary/20 text-primary border border-primary/30 rounded-md font-bold uppercase">
-                                        {subItem.badge}
-                                      </span>
-                                    )}
-                                  </span>
-                                  <span className="text-xs text-gray-400 truncate">{subItem.desc}</span>
-                                </div>
-                              </Link>
-                            ))}
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-
-                    {/* Find Gyms Collapsible */}
-                    <div className="space-y-2">
-                      <button
-                        onClick={() => setActiveMobileDropdown(prev => prev === "gyms" ? null : "gyms")}
-                        className="w-full flex items-center justify-between text-2xl font-bold py-2 px-2 rounded-xl hover:bg-white/5 transition-all text-left"
-                      >
-                        <span>Find Gyms</span>
-                        <ChevronDown
-                          className={cn(
-                            "w-5 h-5 text-gray-400 transition-transform duration-200",
-                            activeMobileDropdown === "gyms" && "transform rotate-180"
-                          )}
-                        />
-                      </button>
-                      <AnimatePresence initial={false}>
-                        {activeMobileDropdown === "gyms" && (
-                          <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: "auto", opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.2 }}
-                            className="overflow-hidden pl-3 pr-1 space-y-2 mt-1"
-                          >
-                            {[
-                              { title: "Find Nearby Gyms", href: "/gyms", icon: MapPin, desc: "Locate fitness centers" },
-                              { title: "View Map", href: "/gyms/map", icon: Map, desc: "Interactive gym finder" },
-                              { title: "Browse All Gyms", href: "/gyms/list", icon: List, desc: "Compare membership plans" },
-                            ].map((subItem) => (
-                              <Link
-                                key={subItem.title}
-                                to={subItem.href}
-                                className="flex items-center gap-3 p-2.5 rounded-xl bg-white/5 border border-white/5 hover:border-primary/30 hover:bg-white/8 transition-all duration-200 group"
-                              >
-                                <div className="p-2 rounded-lg bg-white/5 text-blue-400 group-hover:scale-110 transition-transform">
-                                  <subItem.icon className="w-4 h-4" />
-                                </div>
-                                <div className="flex flex-col min-w-0">
-                                  <span className="text-sm font-semibold text-white group-hover:text-primary transition-colors">
-                                    {subItem.title}
-                                  </span>
-                                  <span className="text-xs text-gray-400 truncate">{subItem.desc}</span>
-                                </div>
-                              </Link>
-                            ))}
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-
-                    {/* Static Links */}
-                    {[
-                      { label: "AI Workout", href: "/ai-workout" },
-                      { label: "Pricing", href: "/pricing" },
-                      { label: "Contact Us", href: "/contact" },
-                    ].map((item) => (
-                      <Link
-                        key={item.label}
-                        to={item.href}
-                        className={cn(
-                          "text-2xl font-bold transition-all hover:text-primary px-2 py-1 block",
-                          isActive(item.href) ? "text-primary border-l-2 border-primary pl-4" : "text-gray-100"
-                        )}
-                      >
-                        {item.label}
-                      </Link>
-                    ))}
-
-                    {/* Account Action */}
-                    <div className="pt-6 border-t border-gray-800/80 space-y-4">
-                      {isAuthenticated && !isLoading ? (
-                        <Button
-                          variant="hero"
-                          onClick={() => navigate("/dashboard")}
-                          className="w-full flex items-center justify-center gap-2 py-5 rounded-xl hover:scale-[1.02] transition-transform font-bold"
-                        >
-                          <LayoutDashboard className="w-5 h-5" />
-                          My Dashboard
-                        </Button>
-                      ) : (
-                        !isLoading && (
-                          <Button
-                            variant="hero"
-                            onClick={() => navigate("/auth")}
-                            className="w-full flex items-center justify-center gap-2 py-5 rounded-xl hover:scale-[1.02] transition-transform font-bold"
-                          >
-                            <LogIn className="w-5 h-5" />
-                            Login / Join
-                          </Button>
-                        )
-                      )}
-                    </div>
-                  </div>
-                </MobileMenu>
-              </div>
               <div className="flex-shrink-0 flex items-center">
                 <Logo />
               </div>
@@ -463,9 +309,6 @@ export function Header() {
               </div>
 
               <div className="flex items-center space-x-4">
-                {/* For Business link - always visible */}
-
-
                 {/* My Dashboard Button - Only for logged-in users */}
                 {isAuthenticated && !isLoading ? (
                   <Button
@@ -486,16 +329,196 @@ export function Header() {
                   )
                 )}
 
-                {/* Get Started Button removed per user request */}
-
                 {/* Auth Menu */}
                 <AuthMenu />
               </div>
             </div>
 
-            {/* Mobile Auth Menu */}
-            <div className="flex lg:hidden items-center -mr-2">
+            {/* Mobile Navigation Right Side: Auth Menu & Mobile Hamburger Menu */}
+            <div className="flex lg:hidden items-center space-x-2 -mr-1">
               <AuthMenu />
+              <MobileMenu>
+                <div className="flex flex-col space-y-5 pt-2 text-left">
+
+                  {/* AI Quick Banner Card */}
+                  <Link
+                    to="/ai-trainer"
+                    className="relative overflow-hidden group p-3.5 rounded-2xl bg-gradient-to-r from-[#22FF66]/15 via-blue-500/10 to-purple-500/15 border border-[#22FF66]/30 flex items-center justify-between transition-all duration-300 hover:border-[#22FF66]/60 shadow-[0_0_20px_rgba(34,255,102,0.1)] block"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="p-2.5 rounded-xl bg-[#22FF66]/20 text-[#22FF66] border border-[#22FF66]/30 group-hover:scale-110 transition-transform">
+                        <Bot className="w-5 h-5 animate-pulse" />
+                      </div>
+                      <div>
+                        <div className="text-xs font-bold text-white flex items-center gap-1.5">
+                          SmartFit AI Hub
+                          <span className="w-2 h-2 rounded-full bg-[#22FF66] animate-ping" />
+                        </div>
+                        <p className="text-[11px] text-gray-400">Ask 24/7 AI Personal Trainer</p>
+                      </div>
+                    </div>
+                  </Link>
+
+                  {/* Features Collapsible Accordion */}
+                  <div className="rounded-2xl border border-white/10 bg-white/[0.02] overflow-hidden">
+                    <button
+                      onClick={() => setActiveMobileDropdown(prev => prev === "features" ? null : "features")}
+                      className="w-full flex items-center justify-between p-3.5 hover:bg-white/5 transition-all text-left"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-2 h-2 rounded-full bg-[#22FF66]" />
+                        <span className="text-sm font-bold tracking-wide uppercase text-gray-200">AI Features</span>
+                      </div>
+                      <ChevronDown
+                        className={cn(
+                          "w-4 h-4 text-gray-400 transition-transform duration-200",
+                          activeMobileDropdown === "features" && "transform rotate-180"
+                        )}
+                      />
+                    </button>
+                    <AnimatePresence initial={false}>
+                      {(activeMobileDropdown === "features" || activeMobileDropdown === null) && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="px-3 pb-3 space-y-2"
+                        >
+                          {[
+                            { title: "AI Personal Trainer", href: "/ai-trainer", icon: Bot, desc: "24/7 AI Chat expert", badge: "Hot", color: "text-[#22FF66]" },
+                            { title: "AI Workout Generator", href: "/ai-workout", icon: Dumbbell, desc: "Customized routines", badge: "Popular", color: "text-cyan-400" },
+                            { title: "3D Trainer Mode", href: "/3d-trainer", icon: Video, desc: "Interactive 3D form", color: "text-purple-400" },
+                            { title: "Nutrition & Macro AI", href: "/nutrition", icon: Apple, desc: "Smart meal plans", color: "text-amber-400" },
+                            { title: "Online Coaching", href: "/online-coaching", icon: Laptop, desc: "1-on-1 coaching", badge: "New", color: "text-blue-400" },
+                            { title: "Real-time Form AI", href: "/workout-session", icon: Zap, desc: "Camera feedback", color: "text-emerald-400" },
+                          ].map((subItem) => (
+                            <Link
+                              key={subItem.title}
+                              to={subItem.href}
+                              className="flex items-center gap-3 p-2.5 rounded-xl bg-white/[0.03] border border-white/5 hover:border-[#22FF66]/30 hover:bg-white/[0.06] transition-all duration-200 group"
+                            >
+                              <div className={cn("p-2 rounded-lg bg-white/5 group-hover:scale-110 transition-transform", subItem.color)}>
+                                <subItem.icon className="w-4 h-4" />
+                              </div>
+                              <div className="flex flex-col min-w-0">
+                                <span className="text-xs font-semibold text-white group-hover:text-[#22FF66] transition-colors flex items-center gap-1.5">
+                                  {subItem.title}
+                                  {subItem.badge && (
+                                    <span className="px-1.5 py-0.5 text-[8px] bg-[#22FF66]/20 text-[#22FF66] border border-[#22FF66]/30 rounded-md font-bold uppercase">
+                                      {subItem.badge}
+                                    </span>
+                                  )}
+                                </span>
+                                <span className="text-[10px] text-gray-400 truncate">{subItem.desc}</span>
+                              </div>
+                            </Link>
+                          ))}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
+                  {/* Find Gyms Collapsible */}
+                  <div className="rounded-2xl border border-white/10 bg-white/[0.02] overflow-hidden">
+                    <button
+                      onClick={() => setActiveMobileDropdown(prev => prev === "gyms" ? null : "gyms")}
+                      className="w-full flex items-center justify-between p-3.5 hover:bg-white/5 transition-all text-left"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-2 h-2 rounded-full bg-blue-400" />
+                        <span className="text-sm font-bold tracking-wide uppercase text-gray-200">Find Gyms</span>
+                      </div>
+                      <ChevronDown
+                        className={cn(
+                          "w-4 h-4 text-gray-400 transition-transform duration-200",
+                          activeMobileDropdown === "gyms" && "transform rotate-180"
+                        )}
+                      />
+                    </button>
+                    <AnimatePresence initial={false}>
+                      {activeMobileDropdown === "gyms" && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="px-3 pb-3 space-y-2"
+                        >
+                          {[
+                            { title: "Find Nearby Gyms", href: "/gyms", icon: MapPin, desc: "Locate fitness centers" },
+                            { title: "View Map", href: "/gyms/map", icon: Map, desc: "Interactive gym map" },
+                            { title: "Browse All Gyms", href: "/gyms/list", icon: List, desc: "Compare memberships" },
+                          ].map((subItem) => (
+                            <Link
+                              key={subItem.title}
+                              to={subItem.href}
+                              className="flex items-center gap-3 p-2.5 rounded-xl bg-white/[0.03] border border-white/5 hover:border-blue-400/30 hover:bg-white/[0.06] transition-all duration-200 group"
+                            >
+                              <div className="p-2 rounded-lg bg-white/5 text-blue-400 group-hover:scale-110 transition-transform">
+                                <subItem.icon className="w-4 h-4" />
+                              </div>
+                              <div className="flex flex-col min-w-0">
+                                <span className="text-xs font-semibold text-white group-hover:text-blue-400 transition-colors">
+                                  {subItem.title}
+                                </span>
+                                <span className="text-[10px] text-gray-400 truncate">{subItem.desc}</span>
+                              </div>
+                            </Link>
+                          ))}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
+                  {/* Navigation Links Grid */}
+                  <div className="grid grid-cols-2 gap-2 pt-1">
+                    {[
+                      { label: "AI Workout", href: "/ai-workout", icon: Dumbbell },
+                      { label: "Pricing", href: "/pricing", icon: Zap },
+                      { label: "Become Coach", href: "/become-coach", icon: Laptop },
+                      { label: "Contact Us", href: "/contact", icon: Bot },
+                    ].map((item) => (
+                      <Link
+                        key={item.label}
+                        to={item.href}
+                        className={cn(
+                          "p-3 rounded-xl bg-white/[0.03] border border-white/10 hover:border-[#22FF66]/30 flex flex-col justify-between transition-all duration-200",
+                          isActive(item.href) ? "border-[#22FF66] bg-[#22FF66]/10" : ""
+                        )}
+                      >
+                        <item.icon className="w-4 h-4 text-gray-400 mb-1" />
+                        <span className="text-xs font-bold text-gray-200">{item.label}</span>
+                      </Link>
+                    ))}
+                  </div>
+
+                  {/* Account Action Footer */}
+                  <div className="pt-4 border-t border-white/10 space-y-3">
+                    {isAuthenticated && !isLoading ? (
+                      <Button
+                        variant="hero"
+                        onClick={() => navigate("/dashboard")}
+                        className="w-full flex items-center justify-center gap-2 py-4 rounded-xl font-bold text-xs uppercase tracking-wider bg-[#22FF66] text-black hover:bg-[#22FF66]/90 shadow-[0_0_20px_rgba(34,255,102,0.2)] transition-all hover:scale-[1.02]"
+                      >
+                        <LayoutDashboard className="w-4 h-4" />
+                        My Dashboard
+                      </Button>
+                    ) : (
+                      !isLoading && (
+                        <Button
+                          variant="hero"
+                          onClick={() => navigate("/auth")}
+                          className="w-full flex items-center justify-center gap-2 py-4 rounded-xl font-bold text-xs uppercase tracking-wider bg-[#22FF66] text-black hover:bg-[#22FF66]/90 shadow-[0_0_20px_rgba(34,255,102,0.2)] transition-all hover:scale-[1.02]"
+                        >
+                          <LogIn className="w-4 h-4" />
+                          Login / Sign Up
+                        </Button>
+                      )
+                    )}
+                  </div>
+                </div>
+              </MobileMenu>
             </div>
           </div>
         </nav>

@@ -39,7 +39,7 @@ export function useStats(): StatsData {
         };
 
         const [totalUsers, totalWorkouts, totalSessions, successRate] = await Promise.all([
-          getStat('get_total_users', 1250),
+          getStat('get_total_users', 10000),
           getStat('get_total_workouts', 890),
           getStat('get_total_sessions', 2100),
           getStat('get_success_rate', 88.0),
@@ -65,7 +65,7 @@ export function useStats(): StatsData {
 
         // Final catch-all fallback
         setStats({
-          totalUsers: 1250,
+          totalUsers: 10000,
           totalWorkouts: 890,
           totalSessions: 2100,
           successRate: 88.0,

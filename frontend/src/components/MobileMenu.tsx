@@ -53,7 +53,7 @@ export function MobileMenu({ children, className, onMenuToggle }: MobileMenuProp
     <>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-12 h-12 -ml-3 flex items-center justify-center text-gray-300 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4CC9F0] rounded-lg transition-colors relative"
+        className="w-10 h-10 flex items-center justify-center text-gray-300 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4CC9F0] rounded-lg transition-colors relative"
         aria-label="Toggle mobile menu"
         aria-expanded={isOpen}
       >
@@ -76,22 +76,30 @@ export function MobileMenu({ children, className, onMenuToggle }: MobileMenuProp
           <div
             ref={menuRef}
             className={cn(
-              "fixed left-0 top-0 bottom-0 z-[10001] w-[85%] max-w-sm bg-gray-950/98 overflow-y-auto shadow-2xl border-r border-white/5",
-              "animate-in slide-in-from-left duration-300 ease-out",
+              "fixed right-0 top-0 bottom-0 z-[10001] w-[88%] sm:w-[380px] bg-[#090a0f]/98 backdrop-blur-2xl overflow-y-auto shadow-[0_0_50px_rgba(0,0,0,0.9)] border-l border-white/10 flex flex-col",
+              "animate-in slide-in-from-right duration-300 ease-out",
               className
             )}
           >
-            <div className="flex items-center justify-between p-6 border-b border-gray-800/50">
-              <Logo />
+            {/* Top Bar inside Drawer */}
+            <div className="flex items-center justify-between p-5 border-b border-white/10 bg-white/[0.02]">
+              <div className="flex items-center gap-2">
+                <Logo />
+                <span className="px-2 py-0.5 text-[9px] font-black tracking-widest uppercase bg-[#22FF66]/10 text-[#22FF66] border border-[#22FF66]/30 rounded-full">
+                  PRO
+                </span>
+              </div>
               <button
                 onClick={() => setIsOpen(false)}
-                className="w-12 h-12 flex items-center justify-center text-gray-400 hover:text-white transition-colors hover:bg-white/5 rounded-lg"
+                className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-white transition-colors hover:bg-white/10 rounded-xl border border-white/5 active:scale-95"
                 aria-label="Close menu"
               >
-                <X className="w-6 h-6" />
+                <X className="w-5 h-5" />
               </button>
             </div>
-            <nav className="p-6 pb-24 space-y-8" role="navigation" aria-label="Mobile Navigation">
+
+            {/* Scrollable Navigation Area */}
+            <nav className="p-5 pb-28 space-y-6 flex-1 overflow-y-auto custom-scrollbar" role="navigation" aria-label="Mobile Navigation">
               {children}
             </nav>
           </div>
