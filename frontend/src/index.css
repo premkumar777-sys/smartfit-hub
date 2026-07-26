@@ -321,3 +321,15 @@ All colors MUST be HSL.
   animation: none !important;
   filter: none !important;
 }
+
+/* Fix browser autofill dark mode text color issue */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus, 
+input:-webkit-autofill:active {
+  -webkit-text-fill-color: #ffffff !important;
+  -webkit-box-shadow: 0 0 0px 1000px #050505 inset !important;
+  box-shadow: 0 0 0px 1000px #050505 inset !important;
+  caret-color: #ffffff !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
