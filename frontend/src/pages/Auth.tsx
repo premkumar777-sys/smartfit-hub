@@ -165,25 +165,54 @@ export default function Auth() {
     return () => subscription.unsubscribe();
   }, [navigate, showPostSignupFingerprintModal]);
 
-  // Fingerprint / Face ID Authentication Handler
+  // Fingerprint Authentication Handler
   const handleBiometricLogin = async () => {
     setIsBiometricLoading(true);
     setShowPhonePeBiometricModal(true);
     try {
       const verified = await authenticateBiometric();
       if (verified) {
-        const { data: { session } } = await supabase.auth.getSession();
+        let { data: { session } } = await supabase.auth.getSession();
+
+        // If session expired or not active, restore from saved biometric session
+        if (!session) {
+          const lastUser = localStorage.getItem('smartfit_last_biometric_user');
+          if (lastUser) {
+            const savedSessionStr = localStorage.getItem(`smartfit_biometric_session_${lastUser}`);
+            if (savedSessionStr) {
+              try {
+                const savedSession = JSON.parse(savedSessionStr);
+                const { data, error } = await supabase.auth.setSession({
+                  access_token: savedSession.access_token,
+                  refresh_token: savedSession.refresh_token,
+                });
+                if (!error && data?.session) {
+                  session = data.session;
+                  // Keep token refreshed
+                  localStorage.setItem(`smartfit_biometric_session_${lastUser}`, JSON.stringify({
+                    access_token: data.session.access_token,
+                    refresh_token: data.session.refresh_token,
+                  }));
+                }
+              } catch (e) {
+                console.error("Failed to restore biometric session:", e);
+              }
+            }
+          }
+        }
+
         if (session) {
           toast({
             title: "Fingerprint Verified! ⚡",
             description: "Instant biometric authentication successful.",
           });
           setShowPhonePeBiometricModal(false);
+          isModalActiveRef.current = false;
           navigate(returnUrl, { replace: true });
         } else {
           toast({
             title: "Biometric Verified!",
-            description: "Please enter your password once to connect your session.",
+            description: "Please enter your password once to reconnect your session.",
           });
           setShowPhonePeBiometricModal(false);
         }
@@ -212,7 +241,7 @@ export default function Auth() {
     try {
       const validated = authSchema.parse({ email, password });
 
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data: signInData, error } = await supabase.auth.signInWithPassword({
         email: validated.email,
         password: validated.password,
       });
@@ -224,6 +253,16 @@ export default function Auth() {
           variant: "destructive",
         });
         return;
+      }
+
+      // If biometric is registered for this user, save active session token for one-tap biometric login
+      if (signInData?.session) {
+        const cleanEmail = validated.email.toLowerCase().trim();
+        localStorage.setItem(`smartfit_biometric_session_${cleanEmail}`, JSON.stringify({
+          access_token: signInData.session.access_token,
+          refresh_token: signInData.session.refresh_token,
+        }));
+        localStorage.setItem('smartfit_last_biometric_user', cleanEmail);
       }
 
       // Prompt to register fingerprint for future one-tap logins if supported & not registered

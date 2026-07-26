@@ -1,7 +1,7 @@
-// WebAuthn Biometrics Utility for Fingerprint Login
-// Uses native browser WebAuthn API for zero overhead & native device hardware performance
+import { supabase } from "@/integrations/supabase/client";
 
 const BIOMETRIC_KEY_PREFIX = 'smartfit_biometric_';
+const BIOMETRIC_SESSION_PREFIX = 'smartfit_biometric_session_';
 
 /**
  * Check if the current device/browser supports Fingerprint Login
@@ -85,6 +85,16 @@ export async function registerBiometric(email: string): Promise<boolean> {
 
       localStorage.setItem(`${BIOMETRIC_KEY_PREFIX}${cleanEmail}`, JSON.stringify(credentialData));
       localStorage.setItem('smartfit_last_biometric_user', cleanEmail);
+
+      // Save current active session token for seamless biometric login
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        localStorage.setItem(`${BIOMETRIC_SESSION_PREFIX}${cleanEmail}`, JSON.stringify({
+          access_token: session.access_token,
+          refresh_token: session.refresh_token,
+        }));
+      }
+
       return true;
     }
     return false;
@@ -159,6 +169,7 @@ export async function authenticateBiometric(email?: string): Promise<boolean> {
 export function removeBiometric(email: string): void {
   const cleanEmail = email.toLowerCase().trim();
   localStorage.removeItem(`${BIOMETRIC_KEY_PREFIX}${cleanEmail}`);
+  localStorage.removeItem(`${BIOMETRIC_SESSION_PREFIX}${cleanEmail}`);
   if (localStorage.getItem('smartfit_last_biometric_user') === cleanEmail) {
     localStorage.removeItem('smartfit_last_biometric_user');
   }
