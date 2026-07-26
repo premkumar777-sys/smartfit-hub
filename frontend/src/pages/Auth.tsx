@@ -811,26 +811,6 @@ export default function Auth() {
             authMethod === "password" ? (
               // 1. Password Login Form
               <div className="space-y-4">
-                {/* Fingerprint / Face ID Quick Login Button */}
-                {isBiometricSupported && (
-                  <Button
-                    type="button"
-                    onClick={handleBiometricLogin}
-                    disabled={isBiometricLoading}
-                    className="w-full bg-gradient-to-r from-[#22FF66]/15 via-cyan-500/10 to-purple-500/15 border border-[#22FF66]/40 hover:border-[#22FF66] text-white font-bold h-[54px] rounded-[14px] transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_25px_rgba(34,255,102,0.15)] flex items-center justify-center gap-3 relative overflow-hidden group"
-                  >
-                    {isBiometricLoading ? (
-                      <Loader2 className="w-5 h-5 text-[#22FF66] animate-spin" />
-                    ) : (
-                      <Fingerprint className="w-6 h-6 text-[#22FF66] animate-pulse group-hover:scale-110 transition-transform" />
-                    )}
-                    <div className="flex flex-col text-left">
-                      <span className="text-xs font-bold text-white tracking-wide">Login with Fingerprint / Face ID</span>
-                      <span className="text-[9px] text-[#22FF66] font-semibold">One-Tap Touch Sign-In</span>
-                    </div>
-                  </Button>
-                )}
-
                 <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-1.5">
                   <Label htmlFor="login-email" className="text-[10px] font-black uppercase tracking-wider text-gray-400">Email Address</Label>
