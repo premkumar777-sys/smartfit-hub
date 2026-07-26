@@ -198,11 +198,18 @@ export default function Auth() {
           }
         }
 
-        // Set active user fallback so UI is immediately authenticated
+        // Retrieve stored user profile info if available
+        const storedInfoStr = localStorage.getItem(`smartfit_biometric_user_info_${lastUser}`);
+        const storedInfo = storedInfoStr ? JSON.parse(storedInfoStr) : null;
+
+        const effectiveUserId = session?.user?.id || storedInfo?.id;
+        const effectiveUserEmail = session?.user?.email || storedInfo?.email || lastUser;
+
+        // Set active user fallback with real Supabase UUID so queries & check-ins work cleanly
         localStorage.setItem('smartfit_biometric_active_user', JSON.stringify({
-          id: session?.user?.id || `bio_${Date.now()}`,
-          email: session?.user?.email || lastUser,
-          username: session?.user?.user_metadata?.username || lastUser.split('@')[0],
+          id: effectiveUserId || `bio_${Date.now()}`,
+          email: effectiveUserEmail,
+          username: session?.user?.user_metadata?.username || storedInfo?.username || effectiveUserEmail.split('@')[0],
         }));
 
         toast({
@@ -252,12 +259,17 @@ export default function Auth() {
         return;
       }
 
-      // If biometric is registered for this user, save active session token for one-tap biometric login
+      // Save active session token & user profile for one-tap biometric login
       if (signInData?.session) {
         const cleanEmail = validated.email.toLowerCase().trim();
         localStorage.setItem(`smartfit_biometric_session_${cleanEmail}`, JSON.stringify({
           access_token: signInData.session.access_token,
           refresh_token: signInData.session.refresh_token,
+        }));
+        localStorage.setItem(`smartfit_biometric_user_info_${cleanEmail}`, JSON.stringify({
+          id: signInData.session.user.id,
+          email: signInData.session.user.email!,
+          username: (signInData.session.user as any).username || signInData.session.user.email!.split('@')[0],
         }));
         localStorage.setItem('smartfit_last_biometric_user', cleanEmail);
       }

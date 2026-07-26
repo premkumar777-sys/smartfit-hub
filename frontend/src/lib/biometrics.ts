@@ -86,12 +86,17 @@ export async function registerBiometric(email: string): Promise<boolean> {
       localStorage.setItem(`${BIOMETRIC_KEY_PREFIX}${cleanEmail}`, JSON.stringify(credentialData));
       localStorage.setItem('smartfit_last_biometric_user', cleanEmail);
 
-      // Save current active session token for seamless biometric login
+      // Save current active session token and user profile for seamless biometric login
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         localStorage.setItem(`${BIOMETRIC_SESSION_PREFIX}${cleanEmail}`, JSON.stringify({
           access_token: session.access_token,
           refresh_token: session.refresh_token,
+        }));
+        localStorage.setItem(`smartfit_biometric_user_info_${cleanEmail}`, JSON.stringify({
+          id: session.user.id,
+          email: session.user.email!,
+          username: (session.user as any).username || session.user.email!.split('@')[0],
         }));
       }
 
