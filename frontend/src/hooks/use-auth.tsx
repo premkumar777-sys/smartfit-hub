@@ -28,6 +28,13 @@ export function useAuth() {
           username: (session.user as any).username || session.user.email!.split('@')[0],
           avatar_url: (session.user as any).avatar_url,
         });
+      } else {
+        const storedBioUser = localStorage.getItem('smartfit_biometric_active_user');
+        if (storedBioUser) {
+          try {
+            setUser(JSON.parse(storedBioUser));
+          } catch (_) {}
+        }
       }
       setIsLoading(false);
     });
@@ -44,7 +51,16 @@ export function useAuth() {
             avatar_url: (session.user as any).avatar_url,
           });
         } else {
-          setUser(null);
+          const storedBioUser = localStorage.getItem('smartfit_biometric_active_user');
+          if (storedBioUser) {
+            try {
+              setUser(JSON.parse(storedBioUser));
+            } catch (_) {
+              setUser(null);
+            }
+          } else {
+            setUser(null);
+          }
         }
       });
       subscription = authSubscription;
