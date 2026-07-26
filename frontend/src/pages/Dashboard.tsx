@@ -433,6 +433,8 @@ const Dashboard = () => {
 
   const isNewUser = profile?.created_at ? new Date().getTime() - new Date(profile.created_at).getTime() < 24 * 60 * 60 * 1000 : false;
 
+  const displayName = profile?.username || user?.username || (user?.email ? user.email.split('@')[0] : 'Athlete');
+
   return (
     <div className="min-h-screen pt-6 pb-28 lg:py-20">
       <Container className="space-y-8">
@@ -440,16 +442,14 @@ const Dashboard = () => {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-2">
-              {isNewUser ? 'Welcome' : 'Welcome Back'}{profile?.username ? `, ${profile.username}` : ''}!
+              {isNewUser ? 'Welcome' : 'Welcome Back'}{displayName ? `, ${displayName}` : ''}!
             </h1>
             <p className="text-lg md:text-xl leading-relaxed text-gray-300">
-              {profile ? `Level ${gamification.level} ${gamification.currentStreak > 0 ? `• ${gamification.currentStreak} Day Streak` : "• Let's crush your goals!"}` : 'Loading...'}
+              Level {gamification.level} {gamification.currentStreak > 0 ? `• ${gamification.currentStreak} Day Streak` : "• Let's crush your goals!"}
             </p>
-            {profile && (
-              <p className="text-sm text-muted-foreground mt-2">
-                Total XP: {gamification.xp.toLocaleString()} • Members since {new Date(profile.created_at).toLocaleDateString()}
-              </p>
-            )}
+            <p className="text-sm text-muted-foreground mt-2">
+              Total XP: {gamification.xp.toLocaleString()} {profile?.created_at ? `• Member since ${new Date(profile.created_at).toLocaleDateString()}` : ''}
+            </p>
           </div>
           <div className="flex gap-2">
             <Button asChild variant="hero" size="lg">
