@@ -388,6 +388,8 @@ export default function Profile() {
     };
 
     const handleLogout = async () => {
+        localStorage.removeItem('smartfit_biometric_active_user');
+        sessionStorage.removeItem("smartfit_checkin_prompted");
         await supabase.auth.signOut();
         navigate("/");
     };

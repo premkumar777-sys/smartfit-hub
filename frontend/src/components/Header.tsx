@@ -420,21 +420,43 @@ export function Header() {
                   </div>
 
                   {/* Account Action Button */}
-                  <div className="pt-4 border-t border-gray-800">
+                  <div className="pt-4 border-t border-gray-800 space-y-2">
                     {isAuthenticated && !isLoading ? (
-                      <Button
-                        variant="hero"
-                        onClick={() => navigate("/dashboard")}
-                        className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm bg-[#22FF66] text-black hover:bg-[#22FF66]/90 transition-colors"
-                      >
-                        <LayoutDashboard className="w-4 h-4" />
-                        My Dashboard
-                      </Button>
+                      <>
+                        <Button
+                          variant="hero"
+                          onClick={() => {
+                            setIsMobileMenuOpen(false);
+                            navigate("/dashboard");
+                          }}
+                          className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm bg-[#22FF66] text-black hover:bg-[#22FF66]/90 transition-colors"
+                        >
+                          <LayoutDashboard className="w-4 h-4" />
+                          My Dashboard
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={async () => {
+                            setIsMobileMenuOpen(false);
+                            localStorage.removeItem('smartfit_biometric_active_user');
+                            sessionStorage.removeItem("smartfit_checkin_prompted");
+                            await supabase.auth.signOut();
+                            navigate("/");
+                          }}
+                          className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm border-red-500/30 text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors"
+                        >
+                          <LogIn className="w-4 h-4 rotate-180" />
+                          Sign Out / Logout
+                        </Button>
+                      </>
                     ) : (
                       !isLoading && (
                         <Button
                           variant="hero"
-                          onClick={() => navigate("/auth")}
+                          onClick={() => {
+                            setIsMobileMenuOpen(false);
+                            navigate("/auth");
+                          }}
                           className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm bg-[#22FF66] text-black hover:bg-[#22FF66]/90 transition-colors"
                         >
                           <LogIn className="w-4 h-4" />

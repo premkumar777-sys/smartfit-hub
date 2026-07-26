@@ -35,8 +35,8 @@ export function AuthMenu() {
       }
     };
 
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const checkSessionAndLocalUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         setUser({
           id: session.user.id,
@@ -45,8 +45,28 @@ export function AuthMenu() {
           avatar_url: undefined,
         });
         fetchProfile(session.user.id);
+      } else {
+        const bioUserStr = localStorage.getItem('smartfit_biometric_active_user');
+        if (bioUserStr) {
+          try {
+            const bioUser = JSON.parse(bioUserStr);
+            setUser({
+              id: bioUser.id,
+              email: bioUser.email,
+              username: bioUser.username || bioUser.email.split('@')[0],
+              avatar_url: undefined,
+            });
+          } catch (e) {
+            setUser(null);
+          }
+        } else {
+          setUser(null);
+        }
       }
-    });
+    };
+
+    // Get initial session
+    checkSessionAndLocalUser();
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -59,7 +79,22 @@ export function AuthMenu() {
         });
         fetchProfile(session.user.id);
       } else {
-        setUser(null);
+        const bioUserStr = localStorage.getItem('smartfit_biometric_active_user');
+        if (bioUserStr) {
+          try {
+            const bioUser = JSON.parse(bioUserStr);
+            setUser({
+              id: bioUser.id,
+              email: bioUser.email,
+              username: bioUser.username || bioUser.email.split('@')[0],
+              avatar_url: undefined,
+            });
+          } catch (e) {
+            setUser(null);
+          }
+        } else {
+          setUser(null);
+        }
       }
     });
 
@@ -67,12 +102,14 @@ export function AuthMenu() {
   }, []);
 
   const handleLogout = async () => {
+    localStorage.removeItem('smartfit_biometric_active_user');
+    sessionStorage.removeItem("smartfit_checkin_prompted");
     const { error } = await supabase.auth.signOut();
     if (error) {
       console.error("Error logging out:", error);
-    } else {
-      navigate("/");
     }
+    setUser(null);
+    navigate("/");
   };
 
   if (!user) {

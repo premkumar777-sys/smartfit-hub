@@ -223,7 +223,12 @@ export default function Settings() {
         }
     };
 
-    const handleLogout = async () => { await supabase.auth.signOut(); navigate("/"); };
+    const handleLogout = async () => {
+        localStorage.removeItem('smartfit_biometric_active_user');
+        sessionStorage.removeItem("smartfit_checkin_prompted");
+        await supabase.auth.signOut();
+        navigate("/");
+    };
     const handleDeleteAccount = () => navigate("/delete-account");
 
     if (authLoading || loading) {
