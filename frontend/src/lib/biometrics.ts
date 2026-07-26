@@ -1,10 +1,10 @@
-// WebAuthn Biometrics Utility for Fingerprint / Face ID Login
+// WebAuthn Biometrics Utility for Fingerprint Login
 // Uses native browser WebAuthn API for zero overhead & native device hardware performance
 
 const BIOMETRIC_KEY_PREFIX = 'smartfit_biometric_';
 
 /**
- * Check if the current device/browser supports WebAuthn Fingerprint/Face ID
+ * Check if the current device/browser supports Fingerprint Login
  */
 export async function isBiometricsAvailable(): Promise<boolean> {
   if (typeof window === 'undefined') return false;
@@ -12,9 +12,11 @@ export async function isBiometricsAvailable(): Promise<boolean> {
   try {
     if (!window.PublicKeyCredential) return false;
     
-    // Check if biometric/platform authenticator (fingerprint, Touch ID, Face ID, Windows Hello) is available
-    const available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
-    return available;
+    // First check platform authenticator (Fingerprint scanner)
+    const platformAvailable = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().catch(() => false);
+    
+    // If platform authenticator or standard WebAuthn API is supported, return true
+    return platformAvailable || true;
   } catch (error) {
     console.warn("Biometrics check error:", error);
     return false;
@@ -22,7 +24,7 @@ export async function isBiometricsAvailable(): Promise<boolean> {
 }
 
 /**
- * Check if a biometric credential is already registered on this device for the user
+ * Check if a fingerprint credential is already registered on this device for the user
  */
 export function isBiometricRegistered(email?: string): boolean {
   if (!email) return false;
@@ -31,12 +33,12 @@ export function isBiometricRegistered(email?: string): boolean {
 }
 
 /**
- * Register device fingerprint / Face ID for a logged-in user
+ * Register device fingerprint for a logged-in user
  */
 export async function registerBiometric(email: string): Promise<boolean> {
   const isAvailable = await isBiometricsAvailable();
   if (!isAvailable) {
-    throw new Error("Biometric authentication (fingerprint / Face ID) is not supported on this device.");
+    throw new Error("Fingerprint authentication is not supported in this browser.");
   }
 
   const cleanEmail = email.toLowerCase().trim();
@@ -61,8 +63,7 @@ export async function registerBiometric(email: string): Promise<boolean> {
       { alg: -257, type: "public-key" }, // RS256
     ],
     authenticatorSelection: {
-      authenticatorAttachment: "platform", // Enforce local fingerprint/Face ID sensor
-      userVerification: "required",
+      userVerification: "preferred",
       requireResidentKey: false,
     },
     timeout: 60000,
@@ -127,7 +128,7 @@ export async function authenticateBiometric(email?: string): Promise<boolean> {
         type: "public-[#key]" as any,
       },
     ],
-    userVerification: "required",
+    userVerification: "preferred",
   };
 
   // Replace type workaround

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -85,14 +85,59 @@ export default function Auth() {
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
 
   // Biometrics States
+  const isModalActiveRef = useRef(false);
   const [isBiometricSupported, setIsBiometricSupported] = useState(false);
   const [isBiometricLoading, setIsBiometricLoading] = useState(false);
+  const [hasAutoPrompted, setHasAutoPrompted] = useState(false);
+  const [showPhonePeBiometricModal, setShowPhonePeBiometricModal] = useState(false);
+  const [showPostSignupFingerprintModal, setShowPostSignupFingerprintModal] = useState(false);
+  const [postSignupEmail, setPostSignupEmail] = useState("");
+
+  const handleEnablePostSignupFingerprint = async () => {
+    isModalActiveRef.current = false;
+    if (!postSignupEmail) {
+      navigate(returnUrl, { replace: true });
+      return;
+    }
+    setIsBiometricLoading(true);
+    try {
+      await registerBiometric(postSignupEmail);
+      toast({
+        title: "Fingerprint Enabled! 🔑",
+        description: "Your account is now secured with fingerprint login.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Fingerprint Setup Skipped",
+        description: error.message || "You can enable fingerprint login anytime in Settings.",
+      });
+    } finally {
+      setIsBiometricLoading(false);
+      setShowPostSignupFingerprintModal(false);
+      navigate(returnUrl, { replace: true });
+    }
+  };
 
   useEffect(() => {
     isBiometricsAvailable().then((supported) => {
       setIsBiometricSupported(supported);
     });
   }, []);
+
+  // PhonePe-Style Immediate Biometric Auto-Prompt on Page Load
+  useEffect(() => {
+    if (isBiometricSupported && !hasAutoPrompted) {
+      const lastUser = localStorage.getItem('smartfit_last_biometric_user');
+      if (lastUser && isBiometricRegistered(lastUser)) {
+        setHasAutoPrompted(true);
+        setShowPhonePeBiometricModal(true);
+        const timer = setTimeout(() => {
+          handleBiometricLogin();
+        }, 400);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [isBiometricSupported, hasAutoPrompted]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -103,7 +148,7 @@ export default function Auth() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
+      if (session && !isModalActiveRef.current && !showPostSignupFingerprintModal) {
         navigate(returnUrl, { replace: true });
       }
     });
@@ -112,17 +157,18 @@ export default function Auth() {
       if (event === "SIGNED_OUT" || event === "SIGNED_IN") {
         sessionStorage.removeItem("smartfit_checkin_prompted");
       }
-      if (session) {
+      if (session && !isModalActiveRef.current && !showPostSignupFingerprintModal) {
         navigate(returnUrl, { replace: true });
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, showPostSignupFingerprintModal]);
 
   // Fingerprint / Face ID Authentication Handler
   const handleBiometricLogin = async () => {
     setIsBiometricLoading(true);
+    setShowPhonePeBiometricModal(true);
     try {
       const verified = await authenticateBiometric();
       if (verified) {
@@ -132,20 +178,23 @@ export default function Auth() {
             title: "Fingerprint Verified! ⚡",
             description: "Instant biometric authentication successful.",
           });
+          setShowPhonePeBiometricModal(false);
           navigate(returnUrl, { replace: true });
         } else {
           toast({
             title: "Biometric Verified!",
             description: "Please enter your password once to connect your session.",
           });
+          setShowPhonePeBiometricModal(false);
         }
       }
     } catch (error: any) {
       toast({
         title: "Biometric Sign-In",
-        description: error.message || "Fingerprint verification failed.",
+        description: error.message || "Fingerprint verification canceled or failed.",
         variant: "destructive",
       });
+      setShowPhonePeBiometricModal(false);
     } finally {
       setIsBiometricLoading(false);
     }
@@ -240,8 +289,17 @@ export default function Auth() {
         body: { action: "signup-otp", email: validated.email }
       });
 
-      if (error) throw error;
-      if (data.error) throw new Error(data.error);
+      if (error) {
+        let errMsg = error.message;
+        try {
+          if (error.context && typeof error.context.json === "function") {
+            const body = await error.context.json();
+            if (body?.error) errMsg = body.error;
+          }
+        } catch (_) {}
+        throw new Error(errMsg);
+      }
+      if (data?.error) throw new Error(data.error);
 
       toast({
         title: "Verification code sent!",
@@ -286,13 +344,28 @@ export default function Auth() {
         }
       });
 
-      if (error) throw error;
-      if (data.error) throw new Error(data.error);
+      if (error) {
+        let errMsg = "Invalid or expired verification code.";
+        try {
+          if (error.context && typeof error.context.json === "function") {
+            const body = await error.context.json();
+            if (body?.error) errMsg = body.error;
+          }
+        } catch (_) {}
+        throw new Error(errMsg);
+      }
+      if (data?.error) throw new Error(data.error);
 
       toast({
         title: "Account verified!",
         description: "Completing sign in...",
       });
+
+      if (isBiometricSupported) {
+        isModalActiveRef.current = true;
+        setPostSignupEmail(pendingSignupData.email);
+        setShowPostSignupFingerprintModal(true);
+      }
 
       // Auto login user with credentials
       const { error: signInError } = await supabase.auth.signInWithPassword({
@@ -300,13 +373,19 @@ export default function Auth() {
         password: pendingSignupData.password,
       });
 
-      if (signInError) throw signInError;
+      if (signInError) {
+        isModalActiveRef.current = false;
+        setShowPostSignupFingerprintModal(false);
+        throw signInError;
+      }
 
-      toast({
-        title: "Welcome to SmartFit AI!",
-        description: "Your account is active.",
-      });
-      navigate(returnUrl, { replace: true });
+      if (!isBiometricSupported) {
+        toast({
+          title: "Welcome to SmartFit AI!",
+          description: "Your account is active.",
+        });
+        navigate(returnUrl, { replace: true });
+      }
     } catch (error: any) {
       toast({
         title: "Verification failed",
@@ -732,26 +811,6 @@ export default function Auth() {
             authMethod === "password" ? (
               // 1. Password Login Form
               <div className="space-y-4">
-                {/* Fingerprint / Face ID Quick Login Button */}
-                {isBiometricSupported && (
-                  <Button
-                    type="button"
-                    onClick={handleBiometricLogin}
-                    disabled={isBiometricLoading}
-                    className="w-full bg-gradient-to-r from-[#22FF66]/15 via-cyan-500/10 to-purple-500/15 border border-[#22FF66]/40 hover:border-[#22FF66] text-white font-bold h-[54px] rounded-[14px] transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_25px_rgba(34,255,102,0.15)] flex items-center justify-center gap-3 relative overflow-hidden group"
-                  >
-                    {isBiometricLoading ? (
-                      <Loader2 className="w-5 h-5 text-[#22FF66] animate-spin" />
-                    ) : (
-                      <Fingerprint className="w-6 h-6 text-[#22FF66] animate-pulse group-hover:scale-110 transition-transform" />
-                    )}
-                    <div className="flex flex-col text-left">
-                      <span className="text-xs font-bold text-white tracking-wide">Login with Fingerprint / Face ID</span>
-                      <span className="text-[9px] text-[#22FF66] font-semibold">One-Tap Touch Sign-In</span>
-                    </div>
-                  </Button>
-                )}
-
                 <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-1.5">
                   <Label htmlFor="login-email" className="text-[10px] font-black uppercase tracking-wider text-gray-400">Email Address</Label>
@@ -1209,6 +1268,121 @@ export default function Auth() {
 
         </motion.div>
       </div>
+
+      {/* PhonePe-Style Fullscreen Biometric Unlock Modal */}
+      {showPhonePeBiometricModal && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.95 }}
+          className="fixed inset-0 z-50 bg-[#050505]/95 backdrop-blur-xl flex flex-col items-center justify-center p-6 text-center select-none"
+        >
+          <div className="w-full max-w-sm flex flex-col items-center space-y-6">
+            {/* PhonePe Style Pulsing Sensor Ring */}
+            <div className="relative flex items-center justify-center">
+              <motion.div
+                animate={{ scale: [1, 1.25, 1], opacity: [0.3, 0.7, 0.3] }}
+                transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+                className="absolute w-28 h-28 rounded-full bg-[#22FF66]/20 border border-[#22FF66]/40 blur-md"
+              />
+              <button
+                type="button"
+                onClick={handleBiometricLogin}
+                className="relative z-10 w-24 h-24 rounded-full bg-gradient-to-b from-[#111111] to-[#050505] border-2 border-[#22FF66]/80 flex items-center justify-center shadow-[0_0_40px_rgba(34,255,102,0.3)] hover:scale-105 transition-transform cursor-pointer group"
+              >
+                <Fingerprint className="w-12 h-12 text-[#22FF66] animate-pulse group-hover:scale-110 transition-transform" />
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              <h2 className="text-2xl font-bold text-white tracking-tight">
+                SmartFit App Lock
+              </h2>
+              <p className="text-xs text-gray-400 font-medium max-w-xs">
+                Touch your fingerprint sensor to verify identity
+              </p>
+              {localStorage.getItem('smartfit_last_biometric_user') && (
+                <div className="inline-block mt-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[11px] text-[#22FF66] font-mono">
+                  {localStorage.getItem('smartfit_last_biometric_user')}
+                </div>
+              )}
+            </div>
+
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowPhonePeBiometricModal(false)}
+              className="mt-6 border-white/15 hover:bg-white/10 text-gray-300 text-xs font-bold rounded-xl h-11 px-6"
+            >
+              Use Password Instead
+            </Button>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Post-Registration Fingerprint Setup Modal */}
+      {showPostSignupFingerprintModal && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.95 }}
+          className="fixed inset-0 z-50 bg-[#050505]/95 backdrop-blur-xl flex flex-col items-center justify-center p-6 text-center select-none"
+        >
+          <div className="w-full max-w-sm flex flex-col items-center space-y-6">
+            {/* Glowing Green Fingerprint Ring */}
+            <div className="relative flex items-center justify-center">
+              <motion.div
+                animate={{ scale: [1, 1.2, 1], opacity: [0.4, 0.8, 0.4] }}
+                transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+                className="absolute w-28 h-28 rounded-full bg-[#22FF66]/20 border border-[#22FF66]/40 blur-md"
+              />
+              <div className="relative z-10 w-24 h-24 rounded-full bg-gradient-to-b from-[#111111] to-[#050505] border-2 border-[#22FF66] flex items-center justify-center shadow-[0_0_40px_rgba(34,255,102,0.3)]">
+                <Fingerprint className="w-12 h-12 text-[#22FF66] animate-pulse" />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <span className="px-3 py-1 bg-[#22FF66]/10 border border-[#22FF66]/30 text-[#22FF66] text-[10px] font-bold uppercase tracking-widest rounded-full">
+                Account Created Successfully 🎉
+              </span>
+              <h2 className="text-2xl font-bold text-white tracking-tight pt-2">
+                Enable Fingerprint Login?
+              </h2>
+              <p className="text-xs text-gray-400 font-medium max-w-xs leading-relaxed">
+                Log in faster next time using your thumb or finger scanner on this device.
+              </p>
+            </div>
+
+            <div className="w-full space-y-3 pt-2">
+              <Button
+                type="button"
+                onClick={handleEnablePostSignupFingerprint}
+                disabled={isBiometricLoading}
+                className="w-full bg-[#22FF66] hover:bg-[#1ee059] text-black font-bold h-12 rounded-xl transition-all duration-300 shadow-[0_0_20px_rgba(34,255,102,0.3)] flex items-center justify-center gap-2 text-xs uppercase tracking-wider"
+              >
+                {isBiometricLoading ? (
+                  <Loader2 className="w-4 h-4 animate-spin text-black" />
+                ) : (
+                  <Fingerprint className="w-4 h-4 text-black" />
+                )}
+                Enable Fingerprint Login
+              </Button>
+
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => {
+                  setShowPostSignupFingerprintModal(false);
+                  navigate(returnUrl, { replace: true });
+                }}
+                className="w-full text-xs text-gray-400 hover:text-white font-semibold rounded-xl h-10"
+              >
+                Skip for Now
+              </Button>
+            </div>
+          </div>
+        </motion.div>
+      )}
     </div>
   </motion.div>
   );

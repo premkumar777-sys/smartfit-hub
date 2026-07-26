@@ -35,11 +35,13 @@ import {
     CheckCircle,
     Eye,
     EyeOff,
+    Fingerprint,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useTheme } from "@/components/ThemeProvider";
 import { useAuth } from "@/hooks/use-auth";
+import { isBiometricsAvailable, isBiometricRegistered, registerBiometric, removeBiometric } from "@/lib/biometrics";
 
 interface UserPreferences {
     notifications: { email: boolean; push: boolean; streakReminder: boolean };
@@ -104,6 +106,44 @@ export default function Settings() {
     const [confirmPassword, setConfirmPassword] = useState("");
     const [showPw, setShowPw] = useState(false);
     const [changingPw, setChangingPw] = useState(false);
+
+    // Fingerprint login state
+    const [isFingerprintEnabled, setIsFingerprintEnabled] = useState(false);
+    const [isBiometricSupported, setIsBiometricSupported] = useState(false);
+    const [fingerprintLoading, setFingerprintLoading] = useState(false);
+
+    useEffect(() => {
+        isBiometricsAvailable().then((supported) => {
+            setIsBiometricSupported(supported);
+        });
+    }, []);
+
+    useEffect(() => {
+        if (user?.email) {
+            setIsFingerprintEnabled(isBiometricRegistered(user.email));
+        }
+    }, [user]);
+
+    const handleToggleFingerprint = async (checked: boolean) => {
+        if (!user?.email) return;
+        setFingerprintLoading(true);
+        try {
+            if (checked) {
+                await registerBiometric(user.email);
+                setIsFingerprintEnabled(true);
+                toast.success("Fingerprint login enabled successfully! 🔑");
+            } else {
+                removeBiometric(user.email);
+                setIsFingerprintEnabled(false);
+                toast.info("Fingerprint login disabled on this device.");
+            }
+        } catch (error: any) {
+            toast.error(error.message || "Failed to update fingerprint login");
+            setIsFingerprintEnabled(isBiometricRegistered(user.email));
+        } finally {
+            setFingerprintLoading(false);
+        }
+    };
 
     useEffect(() => {
         const loadSettings = async (userId: string) => {
@@ -413,35 +453,6 @@ export default function Settings() {
                                         </SelectContent>
                                     </Select>
                                 </div>
-
-                                {/* Groq API Key */}
-                                <div className="pt-4 border-t border-white/5 space-y-3">
-                                    <div className="space-y-0.5">
-                                        <Label className="text-base font-semibold flex items-center gap-2">
-                                            <Key className="w-4 h-4 text-primary" />
-                                            Groq API Key
-                                        </Label>
-                                        <p className="text-sm text-muted-foreground">
-                                            Configure your Groq API key to power AI food scanning and meal planner.
-                                        </p>
-                                    </div>
-                                    <div className="relative flex items-center">
-                                        <Input
-                                            type={showGroqKey ? "text" : "password"}
-                                            placeholder="Enter your Groq API key (gsk_...)"
-                                            value={preferences.groq_api_key || ""}
-                                            onChange={(e) => handlePref(p => ({ ...p, groq_api_key: e.target.value }))}
-                                            className="pr-10 bg-white/5 border-white/10 text-white font-mono placeholder:text-white/20 focus-visible:ring-primary/50"
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowGroqKey(!showGroqKey)}
-                                            className="absolute right-3 text-white/50 hover:text-white transition-colors"
-                                        >
-                                            {showGroqKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                                        </button>
-                                    </div>
-                                </div>
                             </CardContent>
                         </Card>
 
@@ -562,16 +573,37 @@ export default function Settings() {
                             </CardContent>
                         </Card>
 
-                        {/* Change Password */}
+                        {/* Security Settings */}
                         <Card className="glass border-primary/10">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
                                     <Key className="w-5 h-5 text-primary" />
                                     Security
                                 </CardTitle>
-                                <CardDescription>Update your login password</CardDescription>
+                                <CardDescription>Manage your password and fingerprint authentication</CardDescription>
                             </CardHeader>
-                            <CardContent>
+                            <CardContent className="space-y-6">
+                                {/* Fingerprint Login Toggle */}
+                                {isBiometricSupported && (
+                                    <div className="flex items-center justify-between pb-4 border-b border-white/5">
+                                        <div className="space-y-0.5">
+                                            <Label className="text-base font-semibold flex items-center gap-2">
+                                                <Fingerprint className="w-4 h-4 text-primary" />
+                                                Fingerprint Login
+                                            </Label>
+                                            <p className="text-xs text-muted-foreground">Quick touch sign-in on this device</p>
+                                        </div>
+                                        {fingerprintLoading ? (
+                                            <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                                        ) : (
+                                            <Switch
+                                                checked={isFingerprintEnabled}
+                                                onCheckedChange={handleToggleFingerprint}
+                                            />
+                                        )}
+                                    </div>
+                                )}
+
                                 {!showPasswordForm ? (
                                     <Button
                                         variant="outline"
