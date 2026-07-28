@@ -72,7 +72,6 @@ export default defineConfig(({ mode }) => {
       plugins.push(componentTagger());
     } catch (e) {
       // Silently ignore if lovable-tagger is not available
-      // This is expected in production builds
     }
   }
 
@@ -85,19 +84,27 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
+        "long": path.resolve(__dirname, "./node_modules/long/dist/long.js"),
         "@mediapipe/pose": path.resolve(__dirname, "./src/lib/mediapipe-pose.ts"),
       },
     },
     optimizeDeps: {
+      include: [
+        "long",
+        "seedrandom",
+        "@tensorflow/tfjs",
+        "@tensorflow-models/pose-detection",
+      ],
       exclude: [
         "@mediapipe/pose",
-        "@tensorflow-models/pose-detection",
         "@tensorflow/tfjs-backend-webgpu",
       ],
     },
     build: {
-      // Increase chunk size warning limit
       chunkSizeWarningLimit: 1000,
+      commonjsOptions: {
+        include: [/long/, /protobufjs/, /node_modules/],
+      },
     },
   };
 });

@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Container } from "@/components/Container";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Dumbbell, ArrowLeft, Save, Zap, Calculator, Target } from "lucide-react";
+import { Loader2, Dumbbell, ArrowLeft, Save, Zap, Calculator, Target, Building2 } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,6 +23,7 @@ const AIWorkout = () => {
     height: "",
     gender: "" as "male" | "female" | "",
     goal: "",
+    equipment: "gym" as "gym" | "home" | "home-gym" | "dumbbells-only" | "bodyweight" | "",
   });
 
   const gamification = useGamification();
@@ -47,7 +48,7 @@ const AIWorkout = () => {
       return;
     }
 
-    // Explicit validation for goal and gender since they are custom Selects
+    // Explicit validation for goal, gender, and equipment
     if (!formData.goal) {
       toast.error("Please select a fitness goal");
       return;
@@ -55,6 +56,11 @@ const AIWorkout = () => {
 
     if (!formData.gender) {
       toast.error("Please select your gender");
+      return;
+    }
+
+    if (!formData.equipment) {
+      toast.error("Please select your available equipment");
       return;
     }
 
@@ -72,6 +78,7 @@ const AIWorkout = () => {
           height: parseFloat(formData.height),
           bmi: bmi ? parseFloat(bmi) : null,
           goal: formData.goal,
+          equipment: formData.equipment,
         },
       });
 
@@ -175,9 +182,6 @@ const AIWorkout = () => {
 
         <div className="text-center mb-8 relative">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-primary/10 rounded-full blur-[80px] -z-10" />
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full gradient-primary mb-4 shadow-[0_0_20px_rgba(0,255,156,0.3)]">
-            <Dumbbell className="w-8 h-8 text-white" />
-          </div>
           <h1 className="text-4xl md:text-5xl lg:text-7xl font-bold leading-tight mb-4 tracking-tight">
             AI Workout <span className="text-gradient">Generator</span>
           </h1>
@@ -301,6 +305,33 @@ const AIWorkout = () => {
                         <SelectItem value="strength">Strength</SelectItem>
                         <SelectItem value="flexibility">Flexibility</SelectItem>
                         <SelectItem value="general-fitness">General Fitness</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 pb-2 border-b border-white/10">
+                    <Building2 className="w-4 h-4 text-primary" />
+                    <h4 className="text-sm font-semibold text-white uppercase tracking-wider">Step 3: Location & Equipment</h4>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="equipment">Equipment & Environment</Label>
+                    <Select
+                      required
+                      value={formData.equipment}
+                      onValueChange={(value) => setFormData({ ...formData, equipment: value as any })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select equipment setup" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="gym">🏋️ Commercial Gym (Full Machines & Free Weights)</SelectItem>
+                        <SelectItem value="home-gym">🏡 Home Gym (Dumbbells, Barbell & Bench)</SelectItem>
+                        <SelectItem value="home">🏠 Home (Bodyweight & Minimal Equipment)</SelectItem>
+                        <SelectItem value="dumbbells-only">🛈 Dumbbells Only</SelectItem>
+                        <SelectItem value="bodyweight">🤸 Calisthenics / Bodyweight Only</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

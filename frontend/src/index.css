@@ -127,10 +127,24 @@ All colors MUST be HSL.
 @layer base {
   * {
     @apply border-border;
+    scroll-behavior: smooth;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, html {
+      scroll-behavior: auto !important;
+    }
   }
 
   html, body {
     touch-action: pan-x pan-y;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    overflow-x: hidden;
   }
 
   body {
@@ -210,6 +224,8 @@ All colors MUST be HSL.
   .custom-scrollbar {
     scrollbar-width: thin;
     scrollbar-color: hsl(var(--primary) / 0.2) transparent;
+    scroll-behavior: smooth;
+    overscroll-behavior: contain;
   }
 
   .animate-float {

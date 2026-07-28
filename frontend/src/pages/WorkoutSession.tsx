@@ -373,8 +373,22 @@ const WorkoutSession = () => {
 
             if (poses.length > 0 && poses[0].keypoints) {
                 const keypoints = poses[0].keypoints;
-                drawSkeleton(ctx, keypoints, canvas.width);
-                processExercise(keypoints, canvas.width);
+                const bodyInFrame = drawSkeleton(ctx, keypoints, canvas.width, canvas.height);
+                if (!bodyInFrame) {
+                    setRepState((prev) => ({
+                        ...prev,
+                        feedback: "⚠️ BODY OUT OF FRAME — Step back 3-6 feet so your full body is visible",
+                        feedbackType: "warning",
+                    }));
+                } else {
+                    processExercise(keypoints, canvas.width);
+                }
+            } else {
+                setRepState((prev) => ({
+                    ...prev,
+                    feedback: "⚠️ NO PERSON DETECTED — Step into camera view",
+                    feedbackType: "warning",
+                }));
             }
         } catch (err) {
             // Silently skip detection errors
@@ -383,58 +397,239 @@ const WorkoutSession = () => {
         animFrameRef.current = requestAnimationFrame(detectPose);
     }, []);
 
-    // ─── Skeleton Drawing ──────────────────────────────
+    // ─── Skeleton & Landmark Drawing ──────────────────────
     const drawSkeleton = (
         ctx: CanvasRenderingContext2D,
         keypoints: poseDetection.Keypoint[],
-        canvasWidth: number
+        canvasWidth: number,
+        canvasHeight: number
     ) => {
-        const MIN_CONFIDENCE = 0.3;
-
-        // Mirror X coordinates
+        const MIN_CONFIDENCE = 0.25;
         const mirror = (x: number) => canvasWidth - x;
 
-        // Draw keypoints
-        keypoints.forEach((kp) => {
-            if ((kp.score ?? 0) > MIN_CONFIDENCE) {
-                ctx.beginPath();
-                ctx.arc(mirror(kp.x), kp.y, 6, 0, 2 * Math.PI);
-                ctx.fillStyle = "#00FF9C";
-                ctx.fill();
-                ctx.strokeStyle = "#000";
-                ctx.lineWidth = 2;
-                ctx.stroke();
-            }
-        });
+        // Check if full body is in frame
+        const validKps = keypoints.filter((k) => (k.score ?? 0) >= MIN_CONFIDENCE);
+        const isBodyVisible = validKps.length >= 6;
+
+        if (!isBodyVisible) {
+            // Draw Out Of Frame Warning Box on Canvas
+            ctx.save();
+            ctx.strokeStyle = "rgba(239, 68, 68, 0.85)";
+            ctx.lineWidth = 6;
+            ctx.strokeRect(10, 10, canvasWidth - 20, canvasHeight - 20);
+
+            ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
+            ctx.fillRect(canvasWidth / 2 - 180, 20, 360, 48);
+            ctx.strokeStyle = "#ef4444";
+            ctx.lineWidth = 2;
+            ctx.strokeRect(canvasWidth / 2 - 180, 20, 360, 48);
+
+            ctx.fillStyle = "#ef4444";
+            ctx.font = "bold 13px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("⚠️ BODY OUT OF FRAME", canvasWidth / 2, 40);
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "11px sans-serif";
+            ctx.fillText("Step back so head to feet are visible in camera", canvasWidth / 2, 56);
+            ctx.restore();
+            return false;
+        }
 
         // Draw connections
         const connections = [
+            ["nose", "left_eye"], ["nose", "right_eye"],
+            ["left_eye", "left_ear"], ["right_eye", "right_ear"],
             ["left_shoulder", "right_shoulder"],
-            ["left_shoulder", "left_elbow"],
-            ["left_elbow", "left_wrist"],
-            ["right_shoulder", "right_elbow"],
-            ["right_elbow", "right_wrist"],
-            ["left_shoulder", "left_hip"],
-            ["right_shoulder", "right_hip"],
+            ["left_shoulder", "left_elbow"], ["left_elbow", "left_wrist"],
+            ["right_shoulder", "right_elbow"], ["right_elbow", "right_wrist"],
+            ["left_shoulder", "left_hip"], ["right_shoulder", "right_hip"],
             ["left_hip", "right_hip"],
-            ["left_hip", "left_knee"],
-            ["left_knee", "left_ankle"],
-            ["right_hip", "right_knee"],
-            ["right_knee", "right_ankle"],
+            ["left_hip", "left_knee"], ["left_knee", "left_ankle"],
+            ["right_hip", "right_knee"], ["right_knee", "right_ankle"],
         ];
 
         connections.forEach(([nameA, nameB]) => {
             const a = keypoints.find((k) => k.name === nameA);
             const b = keypoints.find((k) => k.name === nameB);
-            if (a && b && (a.score ?? 0) > MIN_CONFIDENCE && (b.score ?? 0) > MIN_CONFIDENCE) {
+            if (a && b && (a.score ?? 0) >= MIN_CONFIDENCE && (b.score ?? 0) >= MIN_CONFIDENCE) {
                 ctx.beginPath();
                 ctx.moveTo(mirror(a.x), a.y);
                 ctx.lineTo(mirror(b.x), b.y);
-                ctx.strokeStyle = "rgba(0, 255, 156, 0.7)";
-                ctx.lineWidth = 3;
+                ctx.strokeStyle = "rgba(0, 255, 156, 0.85)";
+                ctx.lineWidth = 3.5;
                 ctx.stroke();
             }
         });
+
+        // ─── 5-Finger Articulated Hand & Finger Tracking ───
+        const drawHandFingers = (
+            elbow: poseDetection.Keypoint | undefined,
+            wrist: poseDetection.Keypoint | undefined,
+            isLeft: boolean
+        ) => {
+            if (!elbow || !wrist || (elbow.score ?? 0) < MIN_CONFIDENCE || (wrist.score ?? 0) < MIN_CONFIDENCE) return;
+
+            const armDx = wrist.x - elbow.x;
+            const armDy = wrist.y - elbow.y;
+            const armLen = Math.hypot(armDx, armDy);
+            if (armLen === 0) return;
+
+            const ux = armDx / armLen;
+            const uy = armDy / armLen;
+            const sideMult = isLeft ? 1 : -1;
+            const wx = mirror(wrist.x);
+            const wy = wrist.y;
+
+            // 5 Digits: Thumb, Index, Middle, Ring, Pinky
+            const fingers = [
+                { name: "Thumb", angleDeg: -35 * sideMult, lenRatio: 0.28, joints: 2 },
+                { name: "Index", angleDeg: -12 * sideMult, lenRatio: 0.38, joints: 3 },
+                { name: "Middle", angleDeg: 0, lenRatio: 0.44, joints: 3 },
+                { name: "Ring", angleDeg: 12 * sideMult, lenRatio: 0.38, joints: 3 },
+                { name: "Pinky", angleDeg: 28 * sideMult, lenRatio: 0.30, joints: 3 },
+            ];
+
+            // Palm Base Reticle
+            ctx.beginPath();
+            ctx.arc(wx, wy, 6, 0, Math.PI * 2);
+            ctx.fillStyle = "#38bdf8";
+            ctx.fill();
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+
+            fingers.forEach((finger) => {
+                const rad = (finger.angleDeg * Math.PI) / 180;
+                const fx = ux * Math.cos(rad) - uy * Math.sin(rad);
+                const fy = ux * Math.sin(rad) + uy * Math.cos(rad);
+
+                const mFx = -fx;
+                const mFy = fy;
+                const totalLen = Math.max(25, Math.min(75, armLen * finger.lenRatio));
+
+                let prevX = wx;
+                let prevY = wy;
+                const numJoints = finger.joints;
+
+                for (let j = 1; j <= numJoints; j++) {
+                    const frac = j / numJoints;
+                    const jx = wx + mFx * totalLen * frac;
+                    const jy = wy + mFy * totalLen * frac;
+
+                    // Bone Segment
+                    ctx.beginPath();
+                    ctx.moveTo(prevX, prevY);
+                    ctx.lineTo(jx, jy);
+                    ctx.strokeStyle = j === numJoints ? "rgba(56, 189, 248, 0.95)" : "rgba(0, 255, 156, 0.8)";
+                    ctx.lineWidth = j === numJoints ? 2 : 2.5;
+                    ctx.stroke();
+
+                    // Joint Node
+                    ctx.beginPath();
+                    ctx.arc(jx, jy, j === numJoints ? 3.5 : 2.5, 0, Math.PI * 2);
+                    ctx.fillStyle = j === numJoints ? "#38bdf8" : "#00FF9C";
+                    ctx.fill();
+                    ctx.strokeStyle = "#ffffff";
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+
+                    // Fingertip Reticle Label
+                    if (j === numJoints) {
+                        ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
+                        ctx.fillRect(jx - 14, jy - 14, 28, 11);
+                        ctx.fillStyle = "#38bdf8";
+                        ctx.font = "bold 7px monospace";
+                        ctx.textAlign = "center";
+                        ctx.fillText(finger.name.slice(0, 3).toUpperCase(), jx, jy - 5);
+                    }
+
+                    prevX = jx;
+                    prevY = jy;
+                }
+            });
+        };
+
+        // ─── 3-Toe Foot Tracking ───
+        const drawFootToes = (
+            knee: poseDetection.Keypoint | undefined,
+            ankle: poseDetection.Keypoint | undefined,
+            isLeft: boolean
+        ) => {
+            if (!knee || !ankle || (knee.score ?? 0) < MIN_CONFIDENCE || (ankle.score ?? 0) < MIN_CONFIDENCE) return;
+
+            const legDx = ankle.x - knee.x;
+            const legDy = ankle.y - knee.y;
+            const legLen = Math.hypot(legDx, legDy);
+            if (legLen === 0) return;
+
+            const ux = legDx / legLen;
+            const uy = legDy / legLen;
+            const sideMult = isLeft ? 1 : -1;
+            const ax = mirror(ankle.x);
+            const ay = ankle.y;
+
+            const toes = [
+                { name: "BigToe", angleDeg: -18 * sideMult, lenRatio: 0.22 },
+                { name: "MidToe", angleDeg: 0, lenRatio: 0.25 },
+                { name: "PinkyToe", angleDeg: 18 * sideMult, lenRatio: 0.20 },
+            ];
+
+            toes.forEach((toe) => {
+                const rad = (toe.angleDeg * Math.PI) / 180;
+                const fx = ux * Math.cos(rad) - uy * Math.sin(rad);
+                const fy = ux * Math.sin(rad) + uy * Math.cos(rad);
+
+                const mFx = -fx;
+                const mFy = fy;
+                const totalLen = Math.max(18, Math.min(50, legLen * toe.lenRatio));
+
+                const tx = ax + mFx * totalLen;
+                const ty = ay + mFy * totalLen;
+
+                ctx.beginPath();
+                ctx.moveTo(ax, ay);
+                ctx.lineTo(tx, ty);
+                ctx.strokeStyle = "rgba(56, 189, 248, 0.85)";
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.arc(tx, ty, 3, 0, Math.PI * 2);
+                ctx.fillStyle = "#38bdf8";
+                ctx.fill();
+            });
+        };
+
+        // Render Left & Right Hand 5-Finger Skeletons
+        const lElbow = keypoints.find((k) => k.name === "left_elbow");
+        const lWrist = keypoints.find((k) => k.name === "left_wrist");
+        const rElbow = keypoints.find((k) => k.name === "right_elbow");
+        const rWrist = keypoints.find((k) => k.name === "right_wrist");
+        drawHandFingers(lElbow, lWrist, true);
+        drawHandFingers(rElbow, rWrist, false);
+
+        // Render Left & Right Foot Toe Skeletons
+        const lKnee = keypoints.find((k) => k.name === "left_knee");
+        const lAnkle = keypoints.find((k) => k.name === "left_ankle");
+        const rKnee = keypoints.find((k) => k.name === "right_knee");
+        const rAnkle = keypoints.find((k) => k.name === "right_ankle");
+        drawFootToes(lKnee, lAnkle, true);
+        drawFootToes(rKnee, rAnkle, false);
+
+        // Draw keypoints
+        keypoints.forEach((kp) => {
+            if ((kp.score ?? 0) >= MIN_CONFIDENCE) {
+                ctx.beginPath();
+                ctx.arc(mirror(kp.x), kp.y, 6, 0, 2 * Math.PI);
+                ctx.fillStyle = "#00FF9C";
+                ctx.fill();
+                ctx.strokeStyle = "#000000";
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+        });
+
+        return true;
     };
 
     // ─── Exercise Processing ───────────────────────────
@@ -688,52 +883,65 @@ const WorkoutSession = () => {
                     </Button>
                 </div>
 
-                {/* Exercise Selector */}
+                {/* Exercise Selector Dropdown */}
                 {!sessionActive && (
                     <motion.div
-                        initial={{ opacity: 0, y: 20 }}
+                        initial={{ opacity: 0, y: 15 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+                        className="bg-card/80 border border-border p-5 rounded-2xl shadow-xl backdrop-blur-md"
                     >
-                        {EXERCISES.map((ex) => (
-                            <button
-                                key={ex.id}
-                                onClick={() => {
-                                    setSelectedExercise(ex.id);
-                                    setRepState((prev) => ({
-                                        ...prev,
-                                        feedback: `${ex.name} selected. Start the camera to begin!`,
-                                        feedbackType: "info",
-                                    }));
-                                    setTimeout(() => {
-                                        cameraRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-                                    }, 100);
-                                }}
-                                className={`group relative p-6 rounded-2xl border transition-all duration-300 text-left ${selectedExercise === ex.id
-                                    ? "border-primary bg-primary/10 shadow-lg shadow-primary/20"
-                                    : "border-border bg-card/50 hover:border-primary/50 hover:bg-card/80"
-                                    }`}
-                            >
-                                <div
-                                    className={`w-12 h-12 rounded-xl flex items-center justify-center mb-3 transition-colors ${selectedExercise === ex.id
-                                        ? "bg-primary text-white"
-                                        : "bg-muted text-muted-foreground group-hover:bg-primary/20 group-hover:text-primary"
-                                        }`}
-                                >
-                                    {ex.icon}
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div className="flex items-center gap-3.5">
+                                <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0 shadow-inner">
+                                    {exerciseConfig?.icon || <Dumbbell className="w-6 h-6" />}
                                 </div>
-                                <h3 className="text-lg font-bold mb-1">{ex.name}</h3>
-                                <p className="text-sm text-muted-foreground">{ex.description}</p>
-                                {selectedExercise === ex.id && (
-                                    <motion.div
-                                        layoutId="exercise-check"
-                                        className="absolute top-4 right-4 text-primary"
+                                <div>
+                                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-primary bg-primary/10 border border-primary/20 px-2.5 py-0.5 rounded-full">
+                                        Selected Workout Target
+                                    </span>
+                                    <h3 className="text-base font-bold text-foreground mt-0.5">
+                                        {exerciseConfig?.name}
+                                    </h3>
+                                    <p className="text-xs text-muted-foreground">
+                                        {exerciseConfig?.description}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                                <div className="relative min-w-[240px] sm:min-w-[280px]">
+                                    <select
+                                        value={selectedExercise || "squat"}
+                                        onChange={(e) => {
+                                            const exId = e.target.value as Exercise;
+                                            const ex = EXERCISES.find((item) => item.id === exId);
+                                            setSelectedExercise(exId);
+                                            setRepState((prev) => ({
+                                                ...prev,
+                                                feedback: `${ex?.name || "Exercise"} selected. Start camera to track reps!`,
+                                                feedbackType: "info",
+                                            }));
+                                        }}
+                                        className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm font-semibold text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 shadow-sm cursor-pointer pr-10"
                                     >
-                                        <CheckCircle2 className="w-6 h-6" />
-                                    </motion.div>
-                                )}
-                            </button>
-                        ))}
+                                        {EXERCISES.map((ex) => (
+                                            <option key={ex.id} value={ex.id} className="bg-background text-foreground py-2">
+                                                {ex.name} — {ex.description}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <ChevronRight className="w-4 h-4 text-muted-foreground absolute right-3.5 top-1/2 -translate-y-1/2 rotate-90 pointer-events-none" />
+                                </div>
+
+                                <Button
+                                    onClick={startCamera}
+                                    disabled={isModelLoading}
+                                    className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold text-xs rounded-xl px-6 py-3 shadow-lg shadow-primary/20"
+                                >
+                                    <Camera className="w-4 h-4 mr-2" /> Start AI Form Check
+                                </Button>
+                            </div>
+                        </div>
                     </motion.div>
                 )}
 

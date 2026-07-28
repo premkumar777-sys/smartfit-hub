@@ -1,125 +1,140 @@
 import { DropdownItem } from "../DropdownItem";
-import { Dumbbell, Target, Zap, Apple, Bot, Video, Laptop, Activity } from "lucide-react";
+import {
+  User,
+  Dumbbell,
+  Video,
+  Users,
+  Calendar,
+  CreditCard,
+  Apple,
+  Utensils,
+  Droplet,
+  TrendingUp,
+  Award,
+  BarChart3,
+  LayoutGrid,
+  ArrowRight
+} from "lucide-react";
 import { Link } from "react-router-dom";
-
-const features = [
-  {
-    icon: Bot,
-    title: "AI Personal Trainer",
-    description: "24/7 AI Chat expert for workout plans, form tips, and nutrition advice",
-    href: "/ai-trainer",
-    badge: "Hot"
-  },
-  {
-    icon: Dumbbell,
-    title: "AI Workout Generator",
-    description: "Personalized workouts based on your goals, BMI, and fitness level",
-    href: "/ai-workout",
-    badge: "Popular"
-  },
-  {
-    icon: Video,
-    title: "3D Trainer Mode",
-    description: "Follow animated 3D demonstrations with voice coaching",
-    href: "/3d-trainer"
-  },
-  {
-    icon: Apple,
-    title: "Nutrition & Macro AI",
-    description: "AI-powered calorie and macro calculations tailored to your goals",
-    href: "/nutrition"
-  },
-  {
-    icon: Laptop,
-    title: "Online Coaching",
-    description: "1-on-1 remote video coaching with expert trainers",
-    href: "/online-coaching",
-    badge: "New"
-  },
-  {
-    icon: Zap,
-    title: "Real-time Form AI",
-    description: "Get instant feedback on your form using computer vision",
-    href: "/workout-session"
-  }
-];
-
-const quickLinks = [
-  { title: "AI Workout Plans", href: "/ai-workout" },
-  { title: "Nutrition Calculator", href: "/nutrition" },
-  { title: "Progress Dashboard", href: "/dashboard" },
-  { title: "Training Guides", href: "/guides" }
-];
 
 export default function FeaturesDropdown() {
   return (
-    <div className="p-4 sm:p-6" role="menu">
-      <div className="mb-6">
-        <h3 className="text-xl font-bold text-white mb-2">AI-Powered Features</h3>
-        <p className="text-sm text-gray-400 leading-relaxed">
-          Experience the future of fitness training with cutting-edge AI technology
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Main Features Column */}
+    <div className="p-6" role="menu">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        {/* Column 1: AI TRAINING */}
         <div className="space-y-3">
-          <h4 className="text-sm font-semibold text-gray-200 uppercase tracking-wide mb-3">
-            Core Features
+          <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-4 px-1">
+            AI Training
           </h4>
-          {features.slice(0, 3).map((feature) => (
-            <DropdownItem
-              key={feature.title}
-              href={feature.href}
-              icon={feature.icon}
-              title={feature.title}
-              description={feature.description}
-            />
-          ))}
+          <DropdownItem
+            href="/ai-trainer"
+            icon={User}
+            title="AI Trainer"
+            description="Personalized workout and nutrition coaching."
+          />
+          <DropdownItem
+            href="/ai-workout"
+            icon={Dumbbell}
+            title="Workout Generator"
+            description="Custom workouts based on your goals."
+          />
+          <DropdownItem
+            href="/workout-session"
+            icon={Video}
+            title="Form AI"
+            description="Real-time form feedback using computer vision."
+          />
         </div>
 
-        {/* Additional Features Column */}
+        {/* Column 2: GYM MANAGEMENT */}
         <div className="space-y-3">
-          <h4 className="text-sm font-semibold text-gray-200 uppercase tracking-wide mb-3">
-            Advanced Tools
+          <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-4 px-1">
+            Gym Management
           </h4>
-          {features.slice(3).map((feature) => (
-            <DropdownItem
-              key={feature.title}
-              href={feature.href}
-              icon={feature.icon}
-              title={feature.title}
-              description={feature.description}
-            />
-          ))}
+          <DropdownItem
+            href="/gyms"
+            icon={Users}
+            title="Member Management"
+            description="Manage members, plans and attendance."
+          />
+          <DropdownItem
+            href="/gyms/map"
+            icon={Calendar}
+            title="Class & Slot Booking"
+            description="Book classes, PT sessions and gym slots."
+          />
+          <DropdownItem
+            href="/gyms/list"
+            icon={CreditCard}
+            title="Payments"
+            description="Subscriptions, reminders and smart billing."
+          />
+        </div>
 
-          {/* Quick Links */}
-          <div className="mt-6 pt-4 border-t border-gray-800">
-            <h4 className="text-sm font-semibold text-gray-200 uppercase tracking-wide mb-3">
-              Quick Access
-            </h4>
-            <div className="space-y-2">
-              {quickLinks.map((link) => (
-                <Link
-                  key={link.title}
-                  to={link.href}
-                  className="block text-sm text-gray-300 hover:text-[#00FF9C] transition-colors"
-                >
-                  {link.title}
-                </Link>
-              ))}
-            </div>
-          </div>
+        {/* Column 3: NUTRITION */}
+        <div className="space-y-3">
+          <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-4 px-1">
+            Nutrition
+          </h4>
+          <DropdownItem
+            href="/nutrition"
+            icon={Apple}
+            title="Nutrition Plans"
+            description="AI-powered diet plans tailored to your goals."
+          />
+          <DropdownItem
+            href="/nutrition"
+            icon={Utensils}
+            title="Calories & Macros"
+            description="Calculate calories and macros instantly."
+          />
+          <DropdownItem
+            href="/nutrition"
+            icon={Droplet}
+            title="Hydration Tracker"
+            description="Track your daily water intake easily."
+          />
+        </div>
+
+        {/* Column 4: PROGRESS TRACKING */}
+        <div className="space-y-3">
+          <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-4 px-1">
+            Progress Tracking
+          </h4>
+          <DropdownItem
+            href="/dashboard"
+            icon={TrendingUp}
+            title="Progress Dashboard"
+            description="Track workouts, weight, body stats and more."
+          />
+          <DropdownItem
+            href="/dashboard"
+            icon={Award}
+            title="Achievements"
+            description="Earn badges and stay motivated."
+          />
+          <DropdownItem
+            href="/dashboard"
+            icon={BarChart3}
+            title="Reports"
+            description="Weekly reports and insights about you."
+          />
         </div>
       </div>
 
-      <div className="mt-6 pt-4 border-t border-gray-800">
+      {/* Dropdown Footer Bar */}
+      <div className="mt-6 pt-4 border-t border-white/10">
         <Link
           to="/features"
-          className="flex items-center justify-between w-full px-4 py-3 text-sm font-medium text-[#00FF9C] hover:text-white transition-colors rounded-lg hover:bg-white/10"
+          className="flex items-center justify-between w-full px-3 py-2 rounded-xl hover:bg-white/[0.04] transition-all group"
         >
-          <span>Explore All Features</span>
-          <span className="text-xs">→</span>
+          <div className="flex items-center gap-3">
+            <LayoutGrid className="w-5 h-5 text-gray-400 group-hover:text-[#22CC66] transition-colors" />
+            <span className="text-sm font-semibold text-white group-hover:text-[#22CC66] transition-colors">
+              View all features
+            </span>
+          </div>
+          <ArrowRight className="w-5 h-5 text-[#22CC66] group-hover:translate-x-1 transition-transform" />
         </Link>
       </div>
     </div>
