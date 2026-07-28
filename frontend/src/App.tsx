@@ -24,7 +24,6 @@ const AIWorkout = lazy(() => import("./pages/AIWorkout"));
 const Nutrition = lazy(() => import("./pages/Nutrition"));
 const Progress = lazy(() => import("./pages/Progress"));
 const Guides = lazy(() => import("./pages/Guides"));
-const HomeWorkouts = lazy(() => import("./pages/HomeWorkouts"));
 const AITrainer = lazy(() => import("./pages/AITrainer"));
 const Gamification = lazy(() => import("./pages/Gamification"));
 const CameraOffWorkout = lazy(() => import("./pages/CameraOffWorkout"));
@@ -156,7 +155,7 @@ const AppContent = () => {
               <Route path="/nutrition" element={<Nutrition />} />
               <Route path="/progress" element={<Progress />} />
               <Route path="/guides" element={<Guides />} />
-              <Route path="/home-workouts" element={<HomeWorkouts />} />
+              <Route path="/home-workouts" element={<AIWorkout />} />
               <Route path="/ai-trainer" element={<AITrainer />} />
               <Route path="/gamification" element={<Gamification />} />
               <Route path="/3d-trainer" element={<CameraOffWorkout />} />
@@ -167,6 +166,8 @@ const AppContent = () => {
               <Route path="/trainer-tools" element={<TrainerTools />} />
               <Route path="/online-coaching" element={<OnlineCoaching />} />
               <Route path="/become-a-coach" element={<BecomeCoach />} />
+              <Route path="/become-coach" element={<BecomeCoach />} />
+              <Route path="/features" element={<AIWorkout />} />
               <Route path="/gyms/*" element={<GymFinder />} />
 
               {/* Legal & Misc Pages */}

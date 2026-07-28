@@ -12,13 +12,15 @@ interface NavItemProps {
 }
 
 export function NavItem({ href, children, badge, className, onClick, isActive }: NavItemProps) {
-  const baseClasses = "px-4 py-2 text-sm font-medium text-gray-300 hover:text-white transition-colors rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4CC9F0] relative";
+  const baseClasses = "relative px-4 py-2 text-sm font-medium transition-all duration-200 focus:outline-none flex items-center rounded-full z-10";
 
   const content = (
     <>
-      {children}
+      <span className={cn("relative z-10 transition-colors duration-200", isActive ? "text-[#00FF9C] font-semibold" : "text-gray-300 group-hover:text-white")}>
+        {children}
+      </span>
       {badge && (
-        <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#00FF9C] text-black">
+        <span className="ml-2 relative z-10 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#00FF9C] text-black shadow-[0_0_10px_rgba(0,255,156,0.4)]">
           {badge}
         </span>
       )}
@@ -29,7 +31,7 @@ export function NavItem({ href, children, badge, className, onClick, isActive }:
     return (
       <Link
         to={href}
-        className={cn(baseClasses, isActive && "text-[#00FF9C] bg-white/10", className)}
+        className={cn(baseClasses, className)}
         onClick={onClick}
         aria-current={isActive ? "page" : undefined}
       >
@@ -40,7 +42,7 @@ export function NavItem({ href, children, badge, className, onClick, isActive }:
 
   return (
     <button
-      className={cn(baseClasses, isActive && "text-[#00FF9C] bg-white/10", className)}
+      className={cn(baseClasses, className)}
       onClick={onClick}
     >
       {content}

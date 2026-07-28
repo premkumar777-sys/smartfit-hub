@@ -339,12 +339,6 @@ const Home = () => {
                 description: "Earn rewards, unlock achievements, and compete with friends",
                 link: "/gamification",
               },
-              {
-                icon: Calendar,
-                title: "Home Workouts",
-                description: "Complete 6-day workout plan you can do anywhere – no equipment needed",
-                link: "/home-workouts",
-              },
             ].map((feature, index) => (
               <FeatureCard
                 key={feature.title}
