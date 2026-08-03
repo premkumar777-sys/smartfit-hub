@@ -36,10 +36,6 @@ const menuStructure = [
     badge: "New"
   },
   {
-    label: "AI Workout",
-    href: "/ai-workout"
-  },
-  {
     label: "Pricing",
     href: "/pricing"
   },
@@ -113,8 +109,10 @@ export function Header() {
     <>
       <header
         className={cn(
-          "sticky top-0 z-50 transition-all duration-300",
-          "bg-[#0a0b0e] border-b border-white/10 px-4 sm:px-8 py-3.5"
+          "fixed top-0 inset-x-0 z-50 header-liquid-transition px-4 sm:px-8",
+          isScrolled
+            ? "py-3.5 bg-[#0a0b0e]/95 backdrop-blur-xl border-b border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.5)]"
+            : "py-5 bg-transparent border-b border-transparent shadow-none"
         )}
       >
         <div className="max-w-7xl mx-auto flex items-center justify-between">

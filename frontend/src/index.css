@@ -349,3 +349,31 @@ input:-webkit-autofill:active {
   caret-color: #ffffff !important;
   transition: background-color 5000s ease-in-out 0s;
 }
+
+/* GPU Hardware-Accelerated Dual-Track Marquee Animation */
+@keyframes marquee-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+.animate-marquee {
+  display: flex;
+  shrink: 0;
+  will-change: transform;
+  animation: marquee-scroll 18s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* Liquid Smooth Header Scroll Transition */
+.header-liquid-transition {
+  transition: all 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, width, max-width, padding, border-radius, background-color;
+  transform: translateZ(0);
+}
