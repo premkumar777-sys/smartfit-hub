@@ -88,24 +88,46 @@ const GiveawayBanner = () => {
   );
 };
 
+const HERO_BACKGROUNDS = [
+  "/hero-slider/hero-1.jpg",
+  "/hero-slider/hero-2.jpg",
+  "/hero-slider/hero-3.jpg",
+];
+
 const Home = () => {
   const { user, isAuthenticated } = useAuth();
   const isNewUser = user?.created_at ? new Date().getTime() - new Date(user.created_at).getTime() < 24 * 60 * 60 * 1000 : false;
+  const [currentBgIndex, setCurrentBgIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentBgIndex((prevIndex) => (prevIndex + 1) % HERO_BACKGROUNDS.length);
+    }, 3000); // changes every 3 seconds
+
+    return () => clearInterval(timer);
+  }, []);
 
   return (
     <div className="min-h-screen">
       {/* Giveaway announcement banner */}
       <GiveawayBanner />
-      {/* Hero Section */}
-      <section className="relative overflow-hidden py-20 min-h-[85vh] flex items-center">
-        {/* Background Image */}
-        <div
-          className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: `url('/hero-bg-v2.png')` }}
-        />
-        {/* Layered dark overlays for text readability */}
-        <div className="absolute inset-0 z-0 bg-gradient-to-b from-black/65 via-black/40 to-black/80" />
-        <div className="absolute inset-0 z-0 bg-gradient-to-r from-black/35 via-transparent to-black/35" />
+      {/* Full-Screen Hero Section (Everfit-Style Viewport Height) */}
+      <section className="relative overflow-hidden min-h-screen w-full flex items-center justify-center pt-28 pb-20">
+        {/* Animated Background Image Slideshow (3-Second Interval, 100% Fullscreen) */}
+        {HERO_BACKGROUNDS.map((bg, idx) => (
+          <motion.div
+            key={bg}
+            className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat w-full h-full"
+            style={{ backgroundImage: `url('${bg}')` }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: idx === currentBgIndex ? 1 : 0 }}
+            transition={{ duration: 1.2, ease: "easeInOut" }}
+          />
+        ))}
+
+        {/* Everfit-style ambient dark vignette overlay for sharp image visibility & high contrast text */}
+        <div className="absolute inset-0 z-0 bg-gradient-to-b from-black/60 via-black/35 to-black/75 pointer-events-none" />
+        <div className="absolute inset-0 z-0 bg-black/20 pointer-events-none" />
 
         <div className="relative z-10 w-full max-w-4xl mx-auto px-6">
           <motion.div
@@ -126,28 +148,24 @@ const Home = () => {
             )}
 
             <motion.h1
-              className="text-4xl md:text-5xl lg:text-6xl font-bold leading-normal pb-2 text-white"
+              className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight pb-2 text-white max-w-4xl mx-auto"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
-              {isAuthenticated ? "Your Journey with" : "Transform Your Body with"}
-              <span className="text-gradient block mt-2 pb-1">
-                {isAuthenticated ? (
-                  "SmartFit AI"
-                ) : (
-                  <TypewriterText prefix="SmartFit AI " />
-                )}
+              Building the Digital Infrastructure for{" "}
+              <span className="text-gradient block sm:inline mt-1 sm:mt-0">
+                Global Fitness
               </span>
             </motion.h1>
 
             <motion.p
-              className="text-lg md:text-xl leading-relaxed text-gray-100 max-w-prose mx-auto" // Changed text-gray-300 to text-gray-100
+              className="text-lg md:text-xl leading-relaxed text-gray-200 max-w-2xl mx-auto font-normal"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}
             >
-              Experience the future of fitness with personalized workouts, smart nutrition plans, and real-time AI coaching
+              Connecting gyms, trainers, and individuals through AI to make lifelong fitness accessible, measurable, and sustainable.
             </motion.p>
 
             <motion.div
@@ -250,6 +268,75 @@ const Home = () => {
         </div>
 
 
+      </section>
+
+      {/* Everfit-Style Partner Trust Bar */}
+      <section className="py-4 bg-black/80 border-y border-white/10 relative overflow-hidden backdrop-blur-md">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row items-center gap-4 md:gap-8">
+          {/* Left Text */}
+          <div className="shrink-0 text-center md:text-left">
+            <p className="text-xs sm:text-sm font-medium text-gray-300 whitespace-nowrap">
+              Trusted by <span className="font-bold text-white">10,000+</span> Gym Goers & Elite Fitness Centers
+            </p>
+          </div>
+
+          {/* Inline Dual-Track Infinite Marquee Logobar */}
+          <div className="relative w-full overflow-hidden flex items-center">
+            {/* Fade Edges */}
+            <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-black/80 to-transparent z-10 pointer-events-none" />
+            <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-black/80 to-transparent z-10 pointer-events-none" />
+
+            <div className="flex w-full overflow-hidden select-none">
+              {/* Marquee Track 1 */}
+              <div className="flex shrink-0 items-center space-x-12 animate-marquee py-1 pr-12">
+                {[
+                  { name: "SANJAY FITNESS", logo: "/partners/sanjay-fitness.jpg" },
+                  { name: "OB FITNESS", logo: "/partners/ob-fitness.jpg" },
+                  { name: "SANJAY FITNESS", logo: "/partners/sanjay-fitness.jpg" },
+                  { name: "OB FITNESS", logo: "/partners/ob-fitness.jpg" },
+                ].map((partner, idx) => (
+                  <div
+                    key={`track1-${partner.name}-${idx}`}
+                    className="flex items-center gap-3 opacity-90 hover:opacity-100 transition-opacity duration-200 shrink-0 cursor-pointer"
+                  >
+                    <img
+                      src={partner.logo}
+                      alt={partner.name}
+                      className="w-8 h-8 rounded-full object-cover border border-white/20 shadow-md hover:scale-110 transition-transform duration-200"
+                    />
+                    <span className="text-xs font-bold tracking-widest text-white hover:text-primary transition-colors uppercase whitespace-nowrap">
+                      {partner.name}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Marquee Track 2 (Identical Duplicate for 100% Seamless Infinite Loop) */}
+              <div className="flex shrink-0 items-center space-x-12 animate-marquee py-1 pr-12" aria-hidden="true">
+                {[
+                  { name: "SANJAY FITNESS", logo: "/partners/sanjay-fitness.jpg" },
+                  { name: "OB FITNESS", logo: "/partners/ob-fitness.jpg" },
+                  { name: "SANJAY FITNESS", logo: "/partners/sanjay-fitness.jpg" },
+                  { name: "OB FITNESS", logo: "/partners/ob-fitness.jpg" },
+                ].map((partner, idx) => (
+                  <div
+                    key={`track2-${partner.name}-${idx}`}
+                    className="flex items-center gap-3 opacity-90 hover:opacity-100 transition-opacity duration-200 shrink-0 cursor-pointer"
+                  >
+                    <img
+                      src={partner.logo}
+                      alt={partner.name}
+                      className="w-8 h-8 rounded-full object-cover border border-white/20 shadow-md hover:scale-110 transition-transform duration-200"
+                    />
+                    <span className="text-xs font-bold tracking-widest text-white hover:text-primary transition-colors uppercase whitespace-nowrap">
+                      {partner.name}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* Features Carousel - only show for non-authenticated users */}

@@ -6,8 +6,16 @@ export function Footer() {
     const currentYear = new Date().getFullYear();
 
     return (
-        <footer className="bg-card/30 border-t border-border mt-auto">
-            <Container>
+        <footer className="relative overflow-hidden bg-card/30 border-t border-border mt-auto">
+            {/* Background Image - Option 2 Everfit Luminous Mesh with Light Opacity */}
+            <div
+                className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-20 mix-blend-screen pointer-events-none"
+                style={{ backgroundImage: `url('/bg-option-2.png')` }}
+            />
+            {/* Ambient Radial Glow */}
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-[200px] bg-primary/10 rounded-full blur-[120px] pointer-events-none" />
+
+            <Container className="relative z-10">
                 <div className="pt-12 pb-28 lg:pb-12">
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                         {/* Brand Column */}
@@ -24,51 +32,60 @@ export function Footer() {
                             <p className="text-sm text-muted-foreground mb-4">
                                 AI-powered fitness platform for personalized workouts, nutrition planning, and real-time coaching.
                             </p>
-                            <div className="flex gap-3">
-                                <a
-                                    href="https://www.instagram.com/smartfitaii/"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="p-2 rounded-lg bg-muted/50 hover:bg-primary/20 text-muted-foreground hover:text-primary transition-colors"
-                                    aria-label="Instagram"
-                                >
-                                    <Instagram className="w-4 h-4" />
-                                </a>
+                            <div className="flex items-center gap-3">
+                                {/* Facebook */}
                                 <a
                                     href="https://www.facebook.com/SmartFitAI"
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="p-2 rounded-lg bg-muted/50 hover:bg-primary/20 text-muted-foreground hover:text-primary transition-colors"
+                                    className="w-9 h-9 rounded-full bg-[#1877F2] text-white flex items-center justify-center shadow-md hover:scale-110 hover:shadow-[#1877F2]/30 transition-all duration-200"
                                     aria-label="Facebook"
                                 >
-                                    <Facebook className="w-4 h-4" />
+                                    <Facebook className="w-5 h-5 fill-white text-[#1877F2]" />
                                 </a>
+
+                                {/* Instagram */}
+                                <a
+                                    href="https://www.instagram.com/smartfitaii/"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] text-white flex items-center justify-center shadow-md hover:scale-110 hover:shadow-[#dc2743]/30 transition-all duration-200"
+                                    aria-label="Instagram"
+                                >
+                                    <Instagram className="w-5 h-5 text-white" />
+                                </a>
+
+                                {/* LinkedIn */}
                                 <a
                                     href="https://www.linkedin.com/company/112396192/"
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="p-2 rounded-lg bg-muted/50 hover:bg-primary/20 text-muted-foreground hover:text-primary transition-colors"
+                                    className="w-8 h-8 rounded bg-[#0A66C2] text-white flex items-center justify-center shadow-md hover:scale-110 hover:shadow-[#0A66C2]/30 transition-all duration-200"
                                     aria-label="LinkedIn"
                                 >
-                                    <Linkedin className="w-4 h-4" />
+                                    <Linkedin className="w-5 h-5 fill-white text-[#0A66C2]" />
                                 </a>
-                                <a
-                                    href="https://chat.whatsapp.com/EiRKjJBISlW2HmtYwpnbxh"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="p-2 rounded-lg bg-muted/50 hover:bg-primary/20 text-muted-foreground hover:text-primary transition-colors"
-                                    aria-label="WhatsApp Group"
-                                >
-                                    <MessageCircle className="w-4 h-4" />
-                                </a>
+
+                                {/* YouTube */}
                                 <a
                                     href="https://www.youtube.com/@Smartfitaii-p2m"
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="p-2 rounded-lg bg-muted/50 hover:bg-primary/20 text-muted-foreground hover:text-primary transition-colors"
+                                    className="w-10 h-7 rounded-lg bg-[#FF0000] text-white flex items-center justify-center shadow-md hover:scale-110 hover:shadow-[#FF0000]/30 transition-all duration-200"
                                     aria-label="YouTube"
                                 >
-                                    <Youtube className="w-4 h-4" />
+                                    <Youtube className="w-5 h-5 fill-white text-[#FF0000]" />
+                                </a>
+
+                                {/* WhatsApp */}
+                                <a
+                                    href="https://chat.whatsapp.com/EiRKjJBISlW2HmtYwpnbxh"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="w-9 h-9 rounded-full bg-[#25D366] text-white flex items-center justify-center shadow-md hover:scale-110 hover:shadow-[#25D366]/30 transition-all duration-200"
+                                    aria-label="WhatsApp Group"
+                                >
+                                    <MessageCircle className="w-5 h-5 fill-white text-[#25D366]" />
                                 </a>
                             </div>
                         </div>
