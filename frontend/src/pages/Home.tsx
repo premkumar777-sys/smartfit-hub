@@ -219,7 +219,7 @@ const Home = () => {
                 {[
                   {
                     icon: Users,
-                    value: "10,000+",
+                    value: "11,000+",
                     label: "Active Users",
                     iconColor: "text-primary",
                     delay: 1.0,
@@ -276,7 +276,7 @@ const Home = () => {
           {/* Left Text */}
           <div className="shrink-0 text-center md:text-left">
             <p className="text-xs sm:text-sm font-medium text-gray-300 whitespace-nowrap">
-              Trusted by <span className="font-bold text-white">10,000+</span> Gym Goers & Elite Fitness Centers
+              Trusted by <span className="font-bold text-white">11,000+</span> Gym Goers & Elite Fitness Centers
             </p>
           </div>
 
@@ -462,7 +462,7 @@ const Home = () => {
               Ready to <span className="text-gradient">Transform</span> Your Life?
             </h2>
             <p className="text-lg md:text-xl leading-relaxed text-gray-300 mb-10 max-w-prose mx-auto">
-              Join 10,000+ athletes already training smarter with personalized AI-powered workouts and nutrition plans
+              Join 11,000+ athletes already training smarter with personalized AI-powered workouts and nutrition plans
             </p>
             <Button asChild variant="hero" size="xl">
               <Link to="/auth">
