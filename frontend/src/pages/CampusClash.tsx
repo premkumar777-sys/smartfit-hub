@@ -33,7 +33,7 @@ export default function CampusClash() {
   const [password, setPassword] = useState("");
   const [department, setDepartment] = useState("");
   const [phone, setPhone] = useState("");
-  const [challengeType, setChallengeType] = useState("pushups");
+  const [challengeType, setChallengeType] = useState("pullups");
 
   // Interactive mock states
   const [userGoal, setUserGoal] = useState("");
@@ -87,9 +87,9 @@ export default function CampusClash() {
       const user = authData?.user;
       if (!user) throw new Error("User creation failed.");
 
-      // 2. Try inserting registration data to `campus_event_registrations`
+      // 2. Try inserting registration data to `gym_event_registrations`
       const { error: dbError } = await supabase
-        .from("campus_event_registrations" as any)
+        .from("gym_event_registrations" as any)
         .insert({
           user_id: user.id,
           full_name: fullName,
@@ -416,10 +416,9 @@ export default function CampusClash() {
                 onChange={(e) => setChallengeType(e.target.value)}
                 className="w-full bg-black/50 border border-white/10 text-white rounded-xl px-3 h-11 focus:outline-none focus:border-primary text-sm"
               >
-                <option value="pushups">Max Push-ups in 60 seconds 🏋️</option>
-                <option value="pullups">Max Pull-ups in 60 seconds 💪</option>
-                <option value="plank">Max Plank Hold (Duration) ⏱️</option>
-                <option value="general">General Attendee (No challenge / just merch) 🎟️</option>
+                <option value="pullups">Max Pull-ups (Reps) 💪</option>
+                <option value="deadlifts">Max Deadlift (Weight) 🏋️</option>
+                <option value="benchpress">Max Bench Press (Weight) 🏋️</option>
               </select>
             </div>
 
