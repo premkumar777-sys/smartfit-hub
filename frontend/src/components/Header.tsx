@@ -27,7 +27,10 @@ const menuStructure = [
     dropdown: "features",
     isMega: true
   },
-
+  {
+    label: "Events",
+    href: "/events"
+  },
   {
     label: "Find Gyms",
     hasDropdown: true,
@@ -48,6 +51,7 @@ const menuStructure = [
 const appMenuStructure = [
   { label: "Today", href: "/app/today" },
   { label: "Workouts", href: "/app/workout/session" },
+  { label: "Events", href: "/events" },
   { label: "Explore", href: "/app/explore" },
   { label: "Progress", href: "/app/progress" },
   { label: "Profile", href: "/app/profile" },
@@ -236,6 +240,7 @@ export function Header() {
                       General
                     </div>
                     {[
+                      { title: "Events & Competitions", href: "/events" },
                       { title: "Pricing Plans", href: "/pricing" },
                       { title: "Become a Coach", href: "/become-a-coach" },
                       { title: "Contact Us", href: "/contact" },

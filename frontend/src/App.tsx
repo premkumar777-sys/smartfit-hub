@@ -51,6 +51,7 @@ const EquipmentIntegration = lazy(() => import("./pages/business/EquipmentIntegr
 const RoadToICN = lazy(() => import("./pages/RoadToICN"));
 const WorkoutSession = lazy(() => import("./pages/WorkoutSession"));
 const Giveaway = lazy(() => import("./pages/Giveaway"));
+const Events = lazy(() => import("./pages/Events"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 import { SplashScreen } from "@/components/SplashScreen";
@@ -183,6 +184,7 @@ const AppContent = () => {
               <Route path="/road-to-icn" element={<RoadToICN />} />
               <Route path="/workout-session" element={<WorkoutSession />} />
               <Route path="/giveaway" element={<Giveaway />} />
+              <Route path="/events" element={<Events />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
