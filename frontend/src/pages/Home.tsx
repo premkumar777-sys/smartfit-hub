@@ -88,6 +88,40 @@ const GiveawayBanner = () => {
   );
 };
 
+const EventsBanner = () => {
+  const [visible, setVisible] = useState(true);
+  if (!visible) return null;
+  return (
+    <motion.div
+      className="relative z-50 bg-gradient-to-r from-emerald-600 via-primary/95 to-cyan-600 text-white border-b border-white/10"
+      initial={{ y: -60, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      exit={{ y: -60, opacity: 0 }}
+      transition={{ duration: 0.4 }}
+    >
+      <div className="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-center gap-3 text-center">
+        <Trophy className="w-4 h-4 shrink-0 animate-bounce text-amber-300" />
+        <span className="text-xs sm:text-sm font-bold tracking-wide">
+          🏆 SmartFit Strength Showdown is LIVE! Register for Pull-ups, Deadlifts, and Bench Press challenges —
+        </span>
+        <Link
+          to="/events/campus-clash"
+          className="underline underline-offset-2 text-xs sm:text-sm font-black hover:text-white/80 transition-colors flex items-center gap-1 shrink-0"
+        >
+          Register to Compete <ArrowRight className="w-3.5 h-3.5" />
+        </Link>
+        <button
+          onClick={() => setVisible(false)}
+          className="absolute right-4 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-white/20 transition-colors"
+          aria-label="Close banner"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+    </motion.div>
+  );
+};
+
 const HERO_BACKGROUNDS = [
   "/hero-slider/hero-1.jpg",
   "/hero-slider/hero-2.jpg",
@@ -111,6 +145,8 @@ const Home = () => {
     <div className="min-h-screen">
       {/* Giveaway announcement banner */}
       <GiveawayBanner />
+      {/* Gym event announcement banner */}
+      <EventsBanner />
       {/* Full-Screen Hero Section (Everfit-Style Viewport Height) */}
       <section className="relative overflow-hidden min-h-screen w-full flex items-center justify-center pt-28 pb-20">
         {/* Animated Background Image Slideshow (3-Second Interval, 100% Fullscreen) */}
