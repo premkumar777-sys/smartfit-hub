@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
 import { motion } from "framer-motion";
 import { 
   Trophy, 
@@ -24,6 +25,7 @@ import {
 export default function CampusClash() {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<"coach" | "logger" | "camera">("coach");
   
@@ -34,6 +36,14 @@ export default function CampusClash() {
   const [department, setDepartment] = useState("");
   const [phone, setPhone] = useState("");
   const [challengeType, setChallengeType] = useState("pullups");
+
+  // Prefill when logged in
+  useEffect(() => {
+    if (user) {
+      setEmail(user.email);
+      setFullName(user.username || user.email.split("@")[0]);
+    }
+  }, [user]);
 
   // Interactive mock states
   const [userGoal, setUserGoal] = useState("");
@@ -62,36 +72,41 @@ export default function CampusClash() {
     setIsLoading(true);
 
     try {
-      // 1. Sign up the user in Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/app/today`,
-          data: {
-            username: fullName.trim() || email.split("@")[0],
+      let userId = user?.id;
+
+      if (!isAuthenticated) {
+        // 1. Sign up the user in Supabase Auth if not logged in
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/app/today`,
+            data: {
+              username: fullName.trim() || email.split("@")[0],
+            },
           },
-        },
-      });
-
-      if (authError) {
-        toast({
-          title: "Signup failed",
-          description: authError.message,
-          variant: "destructive",
         });
-        setIsLoading(false);
-        return;
-      }
 
-      const user = authData?.user;
-      if (!user) throw new Error("User creation failed.");
+        if (authError) {
+          toast({
+            title: "Signup failed",
+            description: authError.message,
+            variant: "destructive",
+          });
+          setIsLoading(false);
+          return;
+        }
+
+        const newUser = authData?.user;
+        if (!newUser) throw new Error("User creation failed.");
+        userId = newUser.id;
+      }
 
       // 2. Try inserting registration data to `gym_event_registrations`
       const { error: dbError } = await supabase
         .from("gym_event_registrations" as any)
         .insert({
-          user_id: user.id,
+          user_id: userId,
           full_name: fullName,
           email: email,
           challenge_type: challengeType,
@@ -101,16 +116,18 @@ export default function CampusClash() {
         } as any);
 
       if (dbError) {
-        console.warn("DB registration failed. Table might not exist yet:", dbError);
+        console.warn("DB registration failed:", dbError);
         toast({
-          title: "Account Created!",
-          description: "Your user account was successfully created. (Please ask the event administrator to ensure the database schema table is set up).",
-          variant: "default",
+          title: "Account Setup Error",
+          description: "Your account is active, but we couldn't log your event details. Please contact the administrator.",
+          variant: "destructive",
         });
       } else {
         toast({
           title: "Registration Successful! 🎟️",
-          description: "You're registered for the Campus Clash. Head to the dashboard to explore the app!",
+          description: isAuthenticated 
+            ? "You've successfully registered for the competition!" 
+            : "Account created and registered for the competition. Head to the dashboard!",
         });
       }
 
@@ -344,47 +361,61 @@ export default function CampusClash() {
         {/* Right Column: Registration Card */}
         <div className="lg:col-span-5 bg-[#111111]/85 backdrop-blur-md border border-white/5 rounded-3xl p-6 md:p-8 shadow-2xl space-y-6">
           <div className="text-center space-y-2">
-            <h2 className="text-2xl font-bold">Register to Compete</h2>
+            <h2 className="text-2xl font-bold">
+              {isAuthenticated ? "Event Entry Registration" : "Register to Compete"}
+            </h2>
             <p className="text-zinc-500 text-xs leading-normal">
-              Create your SmartFit AI account and register for the event challenge in one go.
+              {isAuthenticated 
+                ? "You are logged in. Review details and choose your challenge event." 
+                : "Create your SmartFit AI account and register for the event challenge in one go."}
             </p>
           </div>
 
           <form onSubmit={handleRegister} className="space-y-4">
-            <div className="space-y-1.5">
-              <label className="text-xs text-zinc-400 font-semibold">Full Name</label>
-              <Input
-                required
-                placeholder="e.g. John Doe"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                className="bg-black/50 border-white/10 text-white rounded-xl placeholder:text-zinc-700 focus-visible:ring-primary text-sm h-11"
-              />
-            </div>
+            {!isAuthenticated ? (
+              <>
+                <div className="space-y-1.5">
+                  <label className="text-xs text-zinc-400 font-semibold">Full Name</label>
+                  <Input
+                    required
+                    placeholder="e.g. John Doe"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    className="bg-black/50 border-white/10 text-white rounded-xl placeholder:text-zinc-700 focus-visible:ring-primary text-sm h-11"
+                  />
+                </div>
 
-            <div className="space-y-1.5">
-              <label className="text-xs text-zinc-400 font-semibold">College Email</label>
-              <Input
-                required
-                type="email"
-                placeholder="e.g. john.doe@college.edu"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="bg-black/50 border-white/10 text-white rounded-xl placeholder:text-zinc-700 focus-visible:ring-primary text-sm h-11"
-              />
-            </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs text-zinc-400 font-semibold">College Email</label>
+                  <Input
+                    required
+                    type="email"
+                    placeholder="e.g. john.doe@college.edu"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="bg-black/50 border-white/10 text-white rounded-xl placeholder:text-zinc-700 focus-visible:ring-primary text-sm h-11"
+                  />
+                </div>
 
-            <div className="space-y-1.5">
-              <label className="text-xs text-zinc-400 font-semibold">Password (for your app account)</label>
-              <Input
-                required
-                type="password"
-                placeholder="Min 6 characters"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="bg-black/50 border-white/10 text-white rounded-xl placeholder:text-zinc-700 focus-visible:ring-primary text-sm h-11"
-              />
-            </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs text-zinc-400 font-semibold">Password (for your app account)</label>
+                  <Input
+                    required
+                    type="password"
+                    placeholder="Min 6 characters"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="bg-black/50 border-white/10 text-white rounded-xl placeholder:text-zinc-700 focus-visible:ring-primary text-sm h-11"
+                  />
+                </div>
+              </>
+            ) : (
+              <div className="space-y-3 bg-white/[0.02] border border-white/5 p-4 rounded-2xl mb-4">
+                <div className="text-xs text-zinc-500 font-semibold uppercase tracking-wider">Account Profile</div>
+                <div className="text-sm font-bold text-white">{fullName}</div>
+                <div className="text-xs text-zinc-400">{email}</div>
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
@@ -427,7 +458,9 @@ export default function CampusClash() {
               disabled={isLoading}
               className="w-full bg-[#00FF9C] hover:bg-[#00e08b] text-black font-extrabold h-11 rounded-xl flex items-center justify-center gap-1 shadow-lg shadow-[#00FF9C]/25 text-sm"
             >
-              {isLoading ? "Signing up..." : "Register & Create Account"}
+              {isLoading 
+                ? (isAuthenticated ? "Registering..." : "Signing up...") 
+                : (isAuthenticated ? "Register for Challenge" : "Register & Create Account")}
               <Zap className="w-4 h-4" />
             </Button>
           </form>
