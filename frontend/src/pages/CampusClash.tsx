@@ -158,13 +158,13 @@ export default function CampusClash() {
           <div className="space-y-4">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-semibold uppercase tracking-wider">
               <Trophy className="w-4 h-4 text-[#00FF9C]" />
-              SmartFit AI Campus Event 2026
+              SmartFit AI × OB Fitness Showdown 2026
             </div>
             <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight bg-gradient-to-r from-white via-zinc-200 to-zinc-400 bg-clip-text text-transparent">
-              Campus Clash Challenge
+              OB Fitness Strength Showdown
             </h1>
             <p className="text-zinc-400 text-lg leading-relaxed max-w-xl">
-              Compete against your fellow students in push-ups, pull-ups, or planks. Claim free merchandise, win prizes, and explore how AI can supercharge your fitness journey.
+              Compete against fellow members in pull-ups, deadlifts, or bench press. Claim premium gear, win cash prizes, and explore how AI can supercharge your fitness journey.
             </p>
           </div>
 
@@ -386,11 +386,11 @@ export default function CampusClash() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs text-zinc-400 font-semibold">College Email</label>
+                  <label className="text-xs text-zinc-400 font-semibold">Email Address</label>
                   <Input
                     required
                     type="email"
-                    placeholder="e.g. john.doe@college.edu"
+                    placeholder="e.g. john.doe@email.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="bg-black/50 border-white/10 text-white rounded-xl placeholder:text-zinc-700 focus-visible:ring-primary text-sm h-11"
@@ -419,9 +419,9 @@ export default function CampusClash() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="text-xs text-zinc-400 font-semibold">Dept / Branch</label>
+                <label className="text-xs text-zinc-400 font-semibold">Home Gym Branch</label>
                 <Input
-                  placeholder="e.g. CSE"
+                  placeholder="e.g. Hyderabad / Central"
                   value={department}
                   onChange={(e) => setDepartment(e.target.value)}
                   className="bg-black/50 border-white/10 text-white rounded-xl placeholder:text-zinc-700 focus-visible:ring-primary text-sm h-11"

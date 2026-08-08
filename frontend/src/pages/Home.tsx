@@ -102,7 +102,7 @@ const EventsBanner = () => {
       <div className="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-center gap-3 text-center">
         <Trophy className="w-4 h-4 shrink-0 animate-bounce text-amber-300" />
         <span className="text-xs sm:text-sm font-bold tracking-wide">
-          🏆 SmartFit Strength Showdown is LIVE! Register for Pull-ups, Deadlifts, and Bench Press challenges —
+          🏆 OB Fitness Strength Showdown is LIVE! Register for Pull-ups, Deadlifts, and Bench Press challenges —
         </span>
         <Link
           to="/events/campus-clash"
