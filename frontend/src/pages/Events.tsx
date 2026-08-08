@@ -44,13 +44,37 @@ export interface EventItem {
   prizes?: string;
   image: string;
   featured?: boolean;
-  targetLink?: string; // e.g. /road-to-icn or /giveaway
+  targetLink?: string; // e.g. /road-to-icn or /giveaway or /events/campus-clash
   description: string;
   tags: string[];
 }
 
 // --- Initial Mock Data ---
 const EVENTS_DATA: EventItem[] = [
+  {
+    id: "campus-clash-2026",
+    title: "Campus Clash 2026",
+    subtitle: "Are you the strongest on campus? Compete & win SmartFit AI merch",
+    category: "Competitions",
+    mode: "In-Person",
+    status: "Upcoming",
+    date: "July 2026",
+    time: "All Day",
+    isoDate: "2026-07-20T09:00:00+05:30",
+    location: "Main Campus Booth & SmartFit Portal",
+    host: {
+      name: "SmartFit Campus Crew",
+      role: "University Athletics",
+      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80",
+    },
+    attendeesCount: 520,
+    prizes: "Exclusive Merch & Live Leaderboards",
+    image: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=800&q=80",
+    featured: true,
+    targetLink: "/events/campus-clash",
+    description: "Compete in physical challenges (push-ups, pull-ups, planks) to win exclusive SmartFit AI merch and prizes. Track reps live with our AI camera!",
+    tags: ["Campus Clash", "Leaderboard", "Merch Prizes"],
+  },
   {
     id: "icn-evolution-2026",
     title: "Road to ICN Elite: Athlete Evolution Championship",
@@ -71,7 +95,7 @@ const EVENTS_DATA: EventItem[] = [
     maxCapacity: 600,
     prizes: "₹2,50,000 + Pro Cards",
     image: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=800&q=80",
-    featured: true,
+    featured: false,
     targetLink: "/road-to-icn",
     description: "The ultimate natural bodybuilding evaluation. Get your pose scanned by SmartFit AI Judicial Vision and compete for national recognition.",
     tags: ["ICN Natural", "X-Frame AI", "Live Stream"],
@@ -83,7 +107,7 @@ const EVENTS_DATA: EventItem[] = [
     category: "Community Challenges",
     mode: "Virtual",
     status: "Live Now",
-    date: "Active now (Ends May 25)",
+    date: "Active now",
     time: "24/7 Submission",
     isoDate: "2026-08-25T23:59:00+05:30",
     location: "Instagram @smartfitaii & Web Portal",
@@ -95,7 +119,7 @@ const EVENTS_DATA: EventItem[] = [
     attendeesCount: 342,
     prizes: "T-Shirt + Shaker + 1-Yr Premium",
     image: "https://images.unsplash.com/photo-1599058945522-28d584b6f0ff?auto=format&fit=crop&w=800&q=80",
-    featured: true,
+    featured: false,
     targetLink: "/giveaway",
     description: "Record your clean 40 pushups video, upload your submission on SmartFit, and get entered into our official prizes raffle!",
     tags: ["Viral Challenge", "Prizes", "Pushup AI"],
@@ -165,28 +189,6 @@ const EVENTS_DATA: EventItem[] = [
     image: "https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=800&q=80",
     description: "Break through weight loss plateaus with scientific carb-cycling protocols, micro-nutrient density tricks, and AI meal timing.",
     tags: ["Nutrition", "Macros", "Fat Loss"],
-  },
-  {
-    id: "ob-fitness-bootcamp",
-    title: "OB Fitness Outdoor Functional Conditioning",
-    subtitle: "High-intensity turf workout & group competition",
-    category: "Local Gym Meets",
-    mode: "In-Person",
-    status: "Upcoming",
-    date: "September 12, 2026",
-    time: "06:30 AM IST",
-    isoDate: "2026-09-12T06:30:00+05:30",
-    location: "OB Fitness Outdoor Turf Arena",
-    host: {
-      name: "Coach Marcus Vane",
-      role: "Functional Fitness Spec",
-      avatar: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=150&q=80",
-    },
-    attendeesCount: 85,
-    maxCapacity: 100,
-    image: "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=800&q=80",
-    description: "Conquer obstacle courses, sled pushes, and team relays with fellow SmartFit members under the sunrise.",
-    tags: ["Outdoor", "HIIT", "Community"],
   },
 ];
 
@@ -528,7 +530,7 @@ END:VCALENDAR`;
                       onClick={() => navigate(featuredEvent.targetLink!)}
                       className="bg-[#4ade80] hover:bg-[#3ce074] text-black font-extrabold px-6 py-3 text-sm rounded-xl gap-2 shadow-lg shadow-[#4ade80]/20"
                     >
-                      Enter Dedicated Page
+                      Enter Event Page
                       <ArrowRight className="w-4 h-4" />
                     </Button>
                   ) : (
@@ -781,7 +783,7 @@ END:VCALENDAR`;
                             onClick={() => navigate(event.targetLink!)}
                             className="w-full bg-white/10 hover:bg-[#4ade80] hover:text-black text-white font-bold text-xs rounded-xl py-2.5 transition-all gap-2"
                           >
-                            Explore Challenge
+                            Explore Event
                             <ArrowRight className="w-3.5 h-3.5" />
                           </Button>
                         ) : isRegistered ? (
