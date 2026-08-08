@@ -318,10 +318,12 @@ export default function EventsAdmin() {
                       {/* Name / Contact details */}
                       <td className="px-6 py-4 space-y-1">
                         <div className="font-bold text-white text-base">{reg.full_name}</div>
-                        <div className="text-xs text-zinc-500 flex flex-wrap gap-x-3">
+                        <div className="text-xs text-zinc-500 flex flex-wrap gap-x-3 gap-y-0.5">
                           <span>{reg.email}</span>
                           {reg.phone && <span>• {reg.phone}</span>}
-                          {reg.department && <span className="text-zinc-600">• {reg.department}</span>}
+                          {reg.department && <span className="text-zinc-600">• Branch: {reg.department}</span>}
+                          {(reg as any).age && <span>• Age: {(reg as any).age}</span>}
+                          {(reg as any).weight && <span>• Weight: {(reg as any).weight} kg</span>}
                         </div>
                       </td>
 

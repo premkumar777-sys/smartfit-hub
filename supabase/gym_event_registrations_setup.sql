@@ -12,6 +12,8 @@ CREATE TABLE IF NOT EXISTS public.gym_event_registrations (
   score NUMERIC NOT NULL DEFAULT 0,
   is_winner BOOLEAN NOT NULL DEFAULT false,
   winner_rank INTEGER CHECK (winner_rank IN (1, 2, 3)),
+  age INTEGER,
+  weight NUMERIC,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
