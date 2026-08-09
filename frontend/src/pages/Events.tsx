@@ -5,11 +5,12 @@ import {
   Calendar, Clock, MapPin, Users, Video, Trophy, Search, Filter,
   Sparkles, CheckCircle2, Plus, ArrowRight, ChevronRight, Star, Flame,
   Zap, Award, Info, X, Building2, ExternalLink, Share2, Bell, Check,
-  Radio, PlayCircle, ShieldCheck
+  Radio, PlayCircle, ShieldCheck, RefreshCw
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Container } from "@/components/Container";
+import { supabase } from "@/integrations/supabase/client";
 
 // --- Types ---
 export type EventCategory =
@@ -52,28 +53,28 @@ export interface EventItem {
 // --- Initial Mock Data ---
 const EVENTS_DATA: EventItem[] = [
   {
-    id: "campus-clash-2026",
-    title: "Campus Clash 2026",
-    subtitle: "Are you the strongest on campus? Compete & win SmartFit AI merch",
+    id: "ob-fitness-showdown-2026",
+    title: "OB Fitness Showdown 2026",
+    subtitle: "Are you the strongest in the gym? Compete & win premium fitness gear",
     category: "Competitions",
     mode: "In-Person",
     status: "Upcoming",
-    date: "July 2026",
-    time: "All Day",
-    isoDate: "2026-07-20T09:00:00+05:30",
-    location: "Main Campus Booth & SmartFit Portal",
+    date: "Wednesday",
+    time: "07:00 PM",
+    isoDate: "2026-08-12T19:00:00+05:30",
+    location: "OB Fitness, RTC Colony, Medchal",
     host: {
-      name: "SmartFit Campus Crew",
-      role: "University Athletics",
-      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80",
+      name: "OB Fitness Coaching Crew",
+      role: "Elite Strength Trainers",
+      avatar: "/partners/ob-fitness.jpg",
     },
-    attendeesCount: 520,
-    prizes: "Exclusive Merch & Live Leaderboards",
+    attendeesCount: 280,
+    prizes: "Premium Gear, Cash Prizes & Live Leaderboard",
     image: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=800&q=80",
     featured: true,
     targetLink: "/events/campus-clash",
-    description: "Compete in physical challenges (push-ups, pull-ups, planks) to win exclusive SmartFit AI merch and prizes. Track reps live with our AI camera!",
-    tags: ["Campus Clash", "Leaderboard", "Merch Prizes"],
+    description: "Compete in physical strength challenges (pull-ups, deadlifts, and bench press) to win premium OB Fitness gear and cash prizes. Track weights and reps live on the leaderboard!",
+    tags: ["OB Fitness Showdown", "Leaderboard", "Strength Challenge"],
   },
   {
     id: "icn-evolution-2026",
@@ -244,6 +245,30 @@ function useCountdown(targetIsoDate: string) {
 
 export default function Events() {
   const navigate = useNavigate();
+
+  // Leaderboard States
+  const [leaderboardData, setLeaderboardData] = useState<any[]>([]);
+  const [isLeaderboardLoading, setIsLeaderboardLoading] = useState(true);
+
+  const fetchLeaderboard = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("gym_event_registrations" as any)
+        .select("*")
+        .order("score", { ascending: false });
+
+      if (error) throw error;
+      setLeaderboardData(data || []);
+    } catch (err) {
+      console.error("Error loading leaderboard:", err);
+    } finally {
+      setIsLeaderboardLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLeaderboard();
+  }, []);
 
   // Filter States
   const [searchQuery, setSearchQuery] = useState("");
@@ -809,6 +834,130 @@ END:VCALENDAR`;
                       </div>
                     </div>
                   </motion.div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* --- GYM COMPETITION LIVE LEADERBOARD --- */}
+        <div className="mb-20 space-y-8 border-t border-white/10 pt-16">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div>
+              <div className="inline-flex items-center gap-2 text-xs font-bold text-[#4ade80] uppercase tracking-wider mb-2">
+                <Trophy className="w-4 h-4 text-amber-400" />
+                Live Standings & Highlights
+              </div>
+              <h2 className="text-3xl font-extrabold text-white">
+                Gym Competition Leaderboard
+              </h2>
+              <p className="text-gray-400 text-sm mt-1">
+                Real-time scores for the Pull-Ups, Deadlifts, and Bench Press showdowns.
+              </p>
+            </div>
+            
+            <Link
+              to="/events/admin"
+              className="text-xs bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors flex items-center gap-1.5 self-start md:self-auto"
+            >
+              <ShieldCheck className="w-3.5 h-3.5 text-primary" />
+              Admin Portal
+            </Link>
+          </div>
+
+          {isLeaderboardLoading ? (
+            <div className="py-12 text-center text-zinc-500">
+              <RefreshCw className="w-6 h-6 animate-spin text-primary mx-auto mb-2" />
+              Loading scores...
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Category Columns */}
+              {[
+                { type: "pullups", title: "Max Pull-Ups (Reps) 💪", unit: "reps", bg: "from-amber-950/20 to-zinc-950/50 border-amber-500/20" },
+                { type: "deadlifts", title: "Max Deadlift (Weight) 🏋️", unit: "kg", bg: "from-red-950/20 to-zinc-950/50 border-red-500/20" },
+                { type: "benchpress", title: "Max Bench Press (Weight) 🏋️", unit: "kg", bg: "from-emerald-950/20 to-zinc-950/50 border-emerald-500/20" },
+              ].map((category) => {
+                const categoryStandings = leaderboardData
+                  .filter(r => r.challenge_type === category.type)
+                  .sort((a, b) => {
+                    // Force highlighted winners to the top (ordered by rank 1, 2, 3), followed by others by score descending
+                    if (a.is_winner && b.is_winner) return (a.winner_rank || 4) - (b.winner_rank || 4);
+                    if (a.is_winner) return -1;
+                    if (b.is_winner) return 1;
+                    return b.score - a.score;
+                  });
+
+                return (
+                  <div
+                    key={category.type}
+                    className={`bg-gradient-to-b ${category.bg} border rounded-3xl p-6 shadow-xl space-y-4`}
+                  >
+                    <h3 className="font-extrabold text-lg text-white border-b border-white/5 pb-3">
+                      {category.title}
+                    </h3>
+
+                    {categoryStandings.length === 0 ? (
+                      <div className="py-8 text-center text-zinc-600 text-xs italic">
+                        No scores recorded yet.
+                      </div>
+                    ) : (
+                      <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1">
+                        {categoryStandings.map((competitor, idx) => {
+                          const rank = competitor.is_winner && competitor.winner_rank;
+                          return (
+                            <div
+                              key={competitor.id}
+                              className={`flex items-center justify-between p-3 rounded-2xl border transition-all ${
+                                rank === 1
+                                  ? "bg-amber-500/10 border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.15)]"
+                                  : rank === 2
+                                  ? "bg-slate-300/10 border-slate-300/30"
+                                  : rank === 3
+                                  ? "bg-amber-700/10 border-amber-700/30"
+                                  : "bg-white/[0.02] border-white/5"
+                              }`}
+                            >
+                              <div className="flex items-center gap-3">
+                                <span className={`w-6 text-center text-xs font-black ${
+                                  rank === 1 ? "text-amber-400" : rank === 2 ? "text-slate-300" : rank === 3 ? "text-amber-600" : "text-zinc-500"
+                                }`}>
+                                  {rank ? (
+                                    rank === 1 ? "🥇" : rank === 2 ? "🥈" : "🥉"
+                                  ) : (
+                                    idx + 1
+                                  )}
+                                </span>
+                                <div>
+                                  <div className="font-bold text-white text-sm flex items-center gap-1.5">
+                                    {competitor.full_name}
+                                    {rank && (
+                                      <span className="text-[10px] uppercase font-black tracking-wider px-1.5 py-0.5 rounded bg-white/5 text-primary border border-white/10">
+                                        Winner
+                                      </span>
+                                    )}
+                                  </div>
+                                  {competitor.department && (
+                                    <div className="text-[10px] text-zinc-500">
+                                      {competitor.department}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <div className="font-black text-white text-base">
+                                  {competitor.score}
+                                </div>
+                                <div className="text-[9px] uppercase tracking-wider text-zinc-500 font-bold">
+                                  {category.unit}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
                 );
               })}
             </div>

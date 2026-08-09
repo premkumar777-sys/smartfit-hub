@@ -52,6 +52,7 @@ const RoadToICN = lazy(() => import("./pages/RoadToICN"));
 const WorkoutSession = lazy(() => import("./pages/WorkoutSession"));
 const Giveaway = lazy(() => import("./pages/Giveaway"));
 const CampusClash = lazy(() => import("./pages/CampusClash"));
+const EventsAdmin = lazy(() => import("./pages/EventsAdmin"));
 const Events = lazy(() => import("./pages/Events"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
@@ -186,6 +187,7 @@ const AppContent = () => {
               <Route path="/workout-session" element={<WorkoutSession />} />
               <Route path="/giveaway" element={<Giveaway />} />
               <Route path="/events/campus-clash" element={<CampusClash />} />
+              <Route path="/events/admin" element={<EventsAdmin />} />
               <Route path="/events" element={<Events />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
