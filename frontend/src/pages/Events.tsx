@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Container } from "@/components/Container";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
 
 // --- Types ---
 export type EventCategory =
@@ -245,10 +246,17 @@ function useCountdown(targetIsoDate: string) {
 
 export default function Events() {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   // Leaderboard States
   const [leaderboardData, setLeaderboardData] = useState<any[]>([]);
   const [isLeaderboardLoading, setIsLeaderboardLoading] = useState(true);
+
+  // Check if current user is registered in the gym event registrations table
+  const isRegisteredForGymEvent = useMemo(() => {
+    if (!user?.id) return false;
+    return leaderboardData.some((reg) => reg.user_id === user.id);
+  }, [leaderboardData, user]);
 
   const fetchLeaderboard = async () => {
     try {
@@ -568,7 +576,7 @@ END:VCALENDAR`;
                     </Button>
                   )}
 
-                  {userRsvps.includes(featuredEvent.id) && (
+                  {(userRsvps.includes(featuredEvent.id) || (featuredEvent.id === "ob-fitness-showdown-2026" && isRegisteredForGymEvent)) && (
                     <span className="inline-flex items-center gap-1.5 text-xs text-[#4ade80] font-bold bg-[#4ade80]/10 px-3 py-2 rounded-xl border border-[#4ade80]/30">
                       <CheckCircle2 className="w-4 h-4" /> Registered
                     </span>
@@ -725,7 +733,7 @@ END:VCALENDAR`;
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredEvents.map((event) => {
-                const isRegistered = userRsvps.includes(event.id);
+                const isRegistered = userRsvps.includes(event.id) || (event.id === "ob-fitness-showdown-2026" && isRegisteredForGymEvent);
                 return (
                   <motion.div
                     key={event.id}
@@ -763,6 +771,13 @@ END:VCALENDAR`;
                       {event.status === "Live Now" && (
                         <div className="absolute bottom-3 left-3 px-2.5 py-1 rounded-full bg-red-500 text-white text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-lg animate-pulse">
                           <Radio className="w-3 h-3" /> Live Now
+                        </div>
+                      )}
+
+                      {/* Registered Indicator badge on Card thumbnail */}
+                      {isRegistered && (
+                        <div className="absolute bottom-3 right-3 px-2.5 py-1 rounded-full bg-[#4ade80]/95 backdrop-blur-sm text-black text-[10px] font-black uppercase tracking-wider flex items-center gap-1 shadow-lg">
+                          <Check className="w-3 h-3 stroke-[3]" /> Registered
                         </div>
                       )}
                     </div>

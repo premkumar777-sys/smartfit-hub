@@ -33,7 +33,9 @@ export function useAuth() {
         if (storedBioUser) {
           try {
             setUser(JSON.parse(storedBioUser));
-          } catch (_) {}
+          } catch (e) {
+            console.warn("Failed to parse biometric user from localStorage", e);
+          }
         }
       }
       setIsLoading(false);

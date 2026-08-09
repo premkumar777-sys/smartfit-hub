@@ -342,7 +342,9 @@ export default function Auth() {
             const body = await error.context.json();
             if (body?.error) errMsg = body.error;
           }
-        } catch (_) {}
+        } catch (e) {
+          console.warn("Error parsing response JSON in signup-otp:", e);
+        }
         throw new Error(errMsg);
       }
       if (data?.error) throw new Error(data.error);
@@ -397,7 +399,9 @@ export default function Auth() {
             const body = await error.context.json();
             if (body?.error) errMsg = body.error;
           }
-        } catch (_) {}
+        } catch (e) {
+          console.warn("Error parsing response JSON in verify-signup-otp:", e);
+        }
         throw new Error(errMsg);
       }
       if (data?.error) throw new Error(data.error);
