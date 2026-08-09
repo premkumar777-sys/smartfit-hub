@@ -90,6 +90,20 @@ const GiveawayBanner = () => {
 
 const EventsBanner = () => {
   const [visible, setVisible] = useState(true);
+  const [isRegistered, setIsRegistered] = useState(false);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("smartfit_user_rsvps");
+      const rsvps = saved ? JSON.parse(saved) : [];
+      if (rsvps.includes("ob-fitness-showdown-2026")) {
+        setIsRegistered(true);
+      }
+    } catch {
+      // Ignore
+    }
+  }, []);
+
   if (!visible) return null;
   return (
     <motion.div
@@ -102,13 +116,15 @@ const EventsBanner = () => {
       <div className="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-center gap-3 text-center">
         <Trophy className="w-4 h-4 shrink-0 animate-bounce text-amber-300" />
         <span className="text-xs sm:text-sm font-bold tracking-wide">
-          🏆 OB Fitness Strength Showdown is LIVE! Register for Pull-ups, Deadlifts, and Bench Press challenges —
+          {isRegistered 
+            ? "🏆 You're registered for the OB Fitness Strength Showdown! Track your progress and view standings —" 
+            : "🏆 OB Fitness Strength Showdown is LIVE! Register for Pull-ups, Deadlifts, and Bench Press challenges —"}
         </span>
         <Link
           to="/events/campus-clash"
           className="underline underline-offset-2 text-xs sm:text-sm font-black hover:text-white/80 transition-colors flex items-center gap-1 shrink-0"
         >
-          Register to Compete <ArrowRight className="w-3.5 h-3.5" />
+          {isRegistered ? "View Registration & Leaderboard" : "Register to Compete"} <ArrowRight className="w-3.5 h-3.5" />
         </Link>
         <button
           onClick={() => setVisible(false)}

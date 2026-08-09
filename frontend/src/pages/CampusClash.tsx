@@ -21,7 +21,8 @@ import {
   Heart,
   LineChart,
   MapPin,
-  Clock
+  Clock,
+  CheckCircle2
 } from "lucide-react";
 
 export default function CampusClash() {
@@ -39,6 +40,7 @@ export default function CampusClash() {
   const [challengeType, setChallengeType] = useState("pullups");
   const [age, setAge] = useState("");
   const [weight, setWeight] = useState("");
+  const [hasRegistered, setHasRegistered] = useState(false);
 
   // Interactive mock states
   const [userGoal, setUserGoal] = useState("");
@@ -46,13 +48,59 @@ export default function CampusClash() {
   const [isGeneratingResponse, setIsGeneratingResponse] = useState(false);
   const [mockSets, setMockSets] = useState<{ reps: number; weight: number }[]>([]);
 
-  // Prefill when logged in
+  // Check if user is already registered on mount/auth change
   useEffect(() => {
-    if (user) {
+    const checkRegistration = async () => {
+      if (!user?.id) return;
+      try {
+        const { data, error } = await supabase
+          .from("gym_event_registrations" as any)
+          .select("challenge_type, age, weight, department, phone, full_name, email")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        if (error) {
+          console.warn("Error checking registration status:", error);
+        } else if (data) {
+          setHasRegistered(true);
+          setChallengeType(data.challenge_type || "pullups");
+          if (data.age) setAge(data.age.toString());
+          if (data.weight) setWeight(data.weight.toString());
+          if (data.department) setDepartment(data.department);
+          if (data.phone) setPhone(data.phone);
+          if (data.full_name) setFullName(data.full_name);
+          if (data.email) setEmail(data.email);
+        } else {
+          setHasRegistered(false);
+          try {
+            const saved = localStorage.getItem("smartfit_user_rsvps");
+            const rsvps = saved ? JSON.parse(saved) : [];
+            if (rsvps.includes("ob-fitness-showdown-2026")) {
+              localStorage.setItem("smartfit_user_rsvps", JSON.stringify(rsvps.filter((id: string) => id !== "ob-fitness-showdown-2026")));
+            }
+          } catch (err) {
+            console.error("Error clearing local storage RSVP:", err);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch registration:", err);
+      }
+    };
+
+    if (isAuthenticated && user) {
+      checkRegistration();
+    } else {
+      setHasRegistered(false);
+    }
+  }, [user, isAuthenticated]);
+
+  // Prefill when logged in and not registered
+  useEffect(() => {
+    if (user && !hasRegistered) {
       setEmail(user.email);
       setFullName(user.username || user.email.split("@")[0]);
     }
-  }, [user]);
+  }, [user, hasRegistered]);
 
   const handleGoalSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -112,10 +160,19 @@ export default function CampusClash() {
           title: "Registration Successful! 🎟️",
           description: "You've successfully registered for the competition!",
         });
-      }
+        setHasRegistered(true);
 
-      // Redirect to dashboard
-      navigate("/app/today");
+        // Sync with local storage RSVP status for Events.tsx page
+        try {
+          const saved = localStorage.getItem("smartfit_user_rsvps");
+          const rsvps = saved ? JSON.parse(saved) : [];
+          if (!rsvps.includes("ob-fitness-showdown-2026")) {
+            localStorage.setItem("smartfit_user_rsvps", JSON.stringify([...rsvps, "ob-fitness-showdown-2026"]));
+          }
+        } catch (err) {
+          console.error("Error saving RSVP to localStorage:", err);
+        }
+      }
 
     } catch (err: any) {
       toast({
@@ -212,6 +269,18 @@ export default function CampusClash() {
               </div>
             ) : (
               <>
+                {hasRegistered && (
+                  <div className="bg-[#00FF9C]/10 border border-[#00FF9C]/30 text-[#00FF9C] p-4 rounded-2xl flex items-start gap-3 mb-4">
+                    <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5" />
+                    <div className="space-y-1">
+                      <div className="font-bold text-sm">Registration Confirmed! 🎟️</div>
+                      <p className="text-[11px] text-[#00FF9C]/80 leading-relaxed">
+                        You are officially entered into the SmartFit AI × OB Fitness Showdown. Your stats are logged for the leaderboard!
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 <div className="space-y-3 bg-white/[0.02] border border-white/5 p-4 rounded-2xl mb-4">
                   <div className="text-xs text-zinc-500 font-semibold uppercase tracking-wider">Account Profile</div>
                   <div className="text-sm font-bold text-white">{fullName}</div>
@@ -223,22 +292,24 @@ export default function CampusClash() {
                     <label className="text-xs text-zinc-400 font-semibold">Age (Years)</label>
                     <Input
                       required
+                      disabled={hasRegistered}
                       type="number"
                       placeholder="e.g. 24"
                       value={age}
                       onChange={(e) => setAge(e.target.value)}
-                      className="bg-black/50 border-white/10 text-white rounded-xl placeholder:text-zinc-700 focus-visible:ring-primary text-sm h-11"
+                      className="bg-black/50 border-white/10 text-white rounded-xl placeholder:text-zinc-700 focus-visible:ring-primary text-sm h-11 disabled:opacity-75 disabled:cursor-not-allowed"
                     />
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-xs text-zinc-400 font-semibold">Weight (kg)</label>
                     <Input
                       required
+                      disabled={hasRegistered}
                       type="number"
                       placeholder="e.g. 78"
                       value={weight}
                       onChange={(e) => setWeight(e.target.value)}
-                      className="bg-black/50 border-white/10 text-white rounded-xl placeholder:text-zinc-700 focus-visible:ring-primary text-sm h-11"
+                      className="bg-black/50 border-white/10 text-white rounded-xl placeholder:text-zinc-700 focus-visible:ring-primary text-sm h-11 disabled:opacity-75 disabled:cursor-not-allowed"
                     />
                   </div>
                 </div>
@@ -247,21 +318,23 @@ export default function CampusClash() {
                   <div className="space-y-1.5">
                     <label className="text-xs text-zinc-400 font-semibold">Home Gym Branch</label>
                     <Input
+                      disabled={hasRegistered}
                       placeholder="e.g. Medchal"
                       value={department}
                       onChange={(e) => setDepartment(e.target.value)}
-                      className="bg-black/50 border-white/10 text-white rounded-xl placeholder:text-zinc-700 focus-visible:ring-primary text-sm h-11"
+                      className="bg-black/50 border-white/10 text-white rounded-xl placeholder:text-zinc-700 focus-visible:ring-primary text-sm h-11 disabled:opacity-75 disabled:cursor-not-allowed"
                     />
                   </div>
 
                   <div className="space-y-1.5">
                     <label className="text-xs text-zinc-400 font-semibold">Phone Number</label>
                     <Input
+                      disabled={hasRegistered}
                       type="tel"
                       placeholder="e.g. 9876543210"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      className="bg-black/50 border-white/10 text-white rounded-xl placeholder:text-zinc-700 focus-visible:ring-primary text-sm h-11"
+                      className="bg-black/50 border-white/10 text-white rounded-xl placeholder:text-zinc-700 focus-visible:ring-primary text-sm h-11 disabled:opacity-75 disabled:cursor-not-allowed"
                     />
                   </div>
                 </div>
@@ -269,9 +342,10 @@ export default function CampusClash() {
                 <div className="space-y-1.5">
                   <label className="text-xs text-zinc-400 font-semibold">Select Your Event Challenge</label>
                   <select
+                    disabled={hasRegistered}
                     value={challengeType}
                     onChange={(e) => setChallengeType(e.target.value)}
-                    className="w-full bg-black/50 border border-white/10 text-white rounded-xl px-3 h-11 focus:outline-none focus:border-primary text-sm"
+                    className="w-full bg-black/50 border border-white/10 text-white rounded-xl px-3 h-11 focus:outline-none focus:border-primary text-sm disabled:opacity-75 disabled:cursor-not-allowed"
                   >
                     <option value="pullups">Max Pull-ups (Reps) 💪</option>
                     <option value="deadlifts">Max Deadlift (Weight) 🏋️</option>
@@ -279,14 +353,36 @@ export default function CampusClash() {
                   </select>
                 </div>
 
-                <Button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full bg-[#00FF9C] hover:bg-[#00e08b] text-black font-extrabold h-11 rounded-xl flex items-center justify-center gap-1 shadow-lg shadow-[#00FF9C]/25 text-sm"
-                >
-                  {isLoading ? "Registering..." : "Register for Challenge"}
-                  <Zap className="w-4 h-4" />
-                </Button>
+                {hasRegistered ? (
+                  <div className="space-y-3 pt-2">
+                    <Button
+                      type="button"
+                      disabled
+                      className="w-full bg-[#00FF9C]/20 border border-[#00FF9C]/30 text-[#00FF9C] font-extrabold h-11 rounded-xl flex items-center justify-center gap-2 text-sm cursor-default"
+                    >
+                      <CheckCircle2 className="w-5 h-5 text-[#00FF9C]" />
+                      Registered
+                    </Button>
+                    
+                    <Button
+                      type="button"
+                      onClick={() => navigate("/app/today")}
+                      className="w-full bg-white/5 hover:bg-white/10 text-white border border-white/10 font-bold h-11 rounded-xl flex items-center justify-center gap-2 text-sm transition-all"
+                    >
+                      Go to Workout Dashboard
+                      <ArrowRight className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <Button
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full bg-[#00FF9C] hover:bg-[#00e08b] text-black font-extrabold h-11 rounded-xl flex items-center justify-center gap-1 shadow-lg shadow-[#00FF9C]/25 text-sm"
+                  >
+                    {isLoading ? "Registering..." : "Register for Challenge"}
+                    <Zap className="w-4 h-4" />
+                  </Button>
+                )}
               </>
             )}
           </form>
