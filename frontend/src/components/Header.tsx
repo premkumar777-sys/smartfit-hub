@@ -8,7 +8,7 @@ import { AuthMenu } from "./AuthMenu";
 import { ThemeToggle } from "./ThemeToggle";
 import { Button } from "@/components/ui/button";
 import NeonButton from "@/components/NeonButton";
-import { Menu, X, ChevronDown, Bot, Dumbbell, Video, Apple, Laptop, Zap, MapPin, Map, List, LayoutDashboard, LogIn } from "lucide-react";
+import { Menu, X, ChevronDown, Bot, Dumbbell, Video, Apple, Laptop, Zap, MapPin, Map, List, LayoutDashboard, LogIn, Trophy, Gift, ArrowRight } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { supabase } from "@/integrations/supabase/client";
@@ -57,6 +57,103 @@ const appMenuStructure = [
   { label: "Profile", href: "/app/profile" },
 ];
 
+// ── Giveaway banner (shows during active window) ────────────────────────────
+const GIVEAWAY_END = new Date("2026-05-25T18:29:00Z"); // 25 May 11:59 PM IST
+const GIVEAWAY_START = new Date("2026-05-17T13:30:00Z"); // 17 May 7:00 PM IST
+
+const GiveawayBanner = () => {
+  const [visible, setVisible] = useState(true);
+  const now = new Date();
+  const isRelevant = now <= GIVEAWAY_END;
+  const isBefore = now < GIVEAWAY_START;
+  if (!visible || !isRelevant) return null;
+  return (
+    <motion.div
+      className="relative z-50 bg-gradient-to-r from-primary/90 via-accent/80 to-primary/90 text-white w-full"
+      initial={{ y: -60, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      exit={{ y: -60, opacity: 0 }}
+      transition={{ duration: 0.4 }}
+    >
+      <div className="max-w-7xl mx-auto pl-4 pr-12 py-3 sm:py-2.5 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 text-center relative">
+        <div className="flex items-center justify-center gap-2 flex-wrap">
+          <Gift className="w-4 h-4 shrink-0 animate-bounce" />
+          <span className="text-xs sm:text-sm font-semibold tracking-wide leading-relaxed">
+            {isBefore
+              ? "GIVEAWAY TONIGHT at 7:00 PM IST! Win a SmartFit T-Shirt + Gym Shaker —"
+              : "GIVEAWAY LIVE! Win a SmartFit T-Shirt + Gym Shaker Bundle —"}
+          </span>
+          <Link
+            to="/giveaway"
+            className="inline-flex items-center gap-1 underline underline-offset-2 text-xs sm:text-sm font-bold hover:text-white/80 transition-colors shrink-0 ml-1"
+          >
+            {isBefore ? "See Details" : "Enter Now"} <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+        <button
+          onClick={() => setVisible(false)}
+          className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-full hover:bg-white/20 transition-colors flex items-center justify-center"
+          aria-label="Close banner"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+    </motion.div>
+  );
+};
+
+const EventsBanner = () => {
+  const [visible, setVisible] = useState(true);
+  const [isRegistered, setIsRegistered] = useState(false);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("smartfit_user_rsvps");
+      const rsvps = saved ? JSON.parse(saved) : [];
+      if (rsvps.includes("ob-fitness-showdown-2026")) {
+        setIsRegistered(true);
+      }
+    } catch {
+      // Ignore
+    }
+  }, []);
+
+  if (!visible) return null;
+  return (
+    <motion.div
+      className="relative z-50 bg-gradient-to-r from-emerald-600 via-primary/95 to-cyan-600 text-white border-b border-white/10 w-full"
+      initial={{ y: -60, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      exit={{ y: -60, opacity: 0 }}
+      transition={{ duration: 0.4 }}
+    >
+      <div className="max-w-7xl mx-auto pl-4 pr-12 py-3 sm:py-2.5 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 text-center relative">
+        <div className="flex items-center justify-center gap-2 flex-wrap">
+          <Trophy className="w-4 h-4 shrink-0 animate-bounce text-amber-300" />
+          <span className="text-xs sm:text-sm font-bold tracking-wide leading-relaxed">
+            {isRegistered 
+              ? "You're registered for the OB Fitness Strength Showdown! Track progress & view standings —" 
+              : "OB Fitness Strength Showdown is LIVE! Register for Pull-ups, Deadlifts, and Bench Press —"}
+          </span>
+          <Link
+            to="/events/ob-fitness"
+            className="inline-flex items-center gap-1 underline underline-offset-2 text-xs sm:text-sm font-black hover:text-white/80 transition-colors shrink-0 ml-1"
+          >
+            {isRegistered ? "View Registration & Leaderboard" : "Register to Compete"} <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+        <button
+          onClick={() => setVisible(false)}
+          className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-full hover:bg-white/20 transition-colors flex items-center justify-center"
+          aria-label="Close banner"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+    </motion.div>
+  );
+};
+
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -64,6 +161,10 @@ export function Header() {
   const location = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated, isLoading } = useAuth();
+
+  const showBanners = !location.pathname.startsWith("/app") && 
+                      location.pathname !== "/dashboard" &&
+                      location.pathname !== "/settings";
 
   useEffect(() => {
     const handleScroll = () => {
@@ -111,14 +212,22 @@ export function Header() {
 
   return (
     <>
-      <header
-        className={cn(
-          "fixed top-0 inset-x-0 z-50 header-liquid-transition px-4 sm:px-8",
-          isScrolled
-            ? "py-3.5 bg-[#0a0b0e]/95 backdrop-blur-xl border-b border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.5)]"
-            : "py-5 bg-transparent border-b border-transparent shadow-none"
+      <div className="fixed top-0 inset-x-0 z-50 flex flex-col pointer-events-none w-full">
+        {showBanners && (
+          <div className="pointer-events-auto w-full">
+            <GiveawayBanner />
+            <EventsBanner />
+          </div>
         )}
-      >
+        <div className="pointer-events-auto w-full">
+          <header
+            className={cn(
+              "header-liquid-transition px-4 sm:px-8 w-full",
+              isScrolled
+                ? "py-3.5 bg-[#0a0b0e]/95 backdrop-blur-xl border-b border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.5)]"
+                : "py-5 bg-transparent border-b border-transparent shadow-none"
+            )}
+          >
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           {/* Left Side: Logo */}
           <div className="flex items-center space-x-2">
@@ -308,7 +417,9 @@ export function Header() {
               </MobileMenu>
             </div>
           </div>
-      </header>
+          </header>
+        </div>
+      </div>
     </>
   );
 }

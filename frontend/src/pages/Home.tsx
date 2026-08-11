@@ -44,99 +44,7 @@ const TypewriterText = ({
   );
 };
 
-// ── Giveaway banner (shows during active window) ────────────────────────────
-const GIVEAWAY_END = new Date("2026-05-25T18:29:00Z"); // 25 May 11:59 PM IST
-const GIVEAWAY_START = new Date("2026-05-17T13:30:00Z"); // 17 May 7:00 PM IST
 
-const GiveawayBanner = () => {
-  const [visible, setVisible] = useState(true);
-  const now = new Date();
-  const isActive = now >= GIVEAWAY_START && now <= GIVEAWAY_END;
-  const isBefore = now < GIVEAWAY_START;
-  const isRelevant = now <= GIVEAWAY_END; // show from TODAY until giveaway ends
-  if (!visible || !isRelevant) return null;
-  return (
-    <motion.div
-      className="relative z-50 bg-gradient-to-r from-primary/90 via-accent/80 to-primary/90 text-white"
-      initial={{ y: -60, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      exit={{ y: -60, opacity: 0 }}
-      transition={{ duration: 0.4 }}
-    >
-      <div className="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-center gap-3">
-        <Gift className="w-4 h-4 shrink-0 animate-bounce" />
-        <span className="text-sm font-semibold tracking-wide">
-          {isBefore
-            ? "🎁 GIVEAWAY TONIGHT at 7:00 PM IST! Win a SmartFit T-Shirt + Gym Shaker —"
-            : "🎁 GIVEAWAY LIVE! Win a SmartFit T-Shirt + Gym Shaker Bundle —"}
-        </span>
-        <Link
-          to="/giveaway"
-          className="underline underline-offset-2 text-sm font-bold hover:text-white/80 transition-colors flex items-center gap-1"
-        >
-          {isBefore ? "See Details" : "Enter Now"} <ArrowRight className="w-3.5 h-3.5" />
-        </Link>
-        <button
-          onClick={() => setVisible(false)}
-          className="absolute right-4 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-white/20 transition-colors"
-          aria-label="Close banner"
-        >
-          <X className="w-4 h-4" />
-        </button>
-      </div>
-    </motion.div>
-  );
-};
-
-const EventsBanner = () => {
-  const [visible, setVisible] = useState(true);
-  const [isRegistered, setIsRegistered] = useState(false);
-
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem("smartfit_user_rsvps");
-      const rsvps = saved ? JSON.parse(saved) : [];
-      if (rsvps.includes("ob-fitness-showdown-2026")) {
-        setIsRegistered(true);
-      }
-    } catch {
-      // Ignore
-    }
-  }, []);
-
-  if (!visible) return null;
-  return (
-    <motion.div
-      className="relative z-50 bg-gradient-to-r from-emerald-600 via-primary/95 to-cyan-600 text-white border-b border-white/10"
-      initial={{ y: -60, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      exit={{ y: -60, opacity: 0 }}
-      transition={{ duration: 0.4 }}
-    >
-      <div className="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-center gap-3 text-center">
-        <Trophy className="w-4 h-4 shrink-0 animate-bounce text-amber-300" />
-        <span className="text-xs sm:text-sm font-bold tracking-wide">
-          {isRegistered 
-            ? "🏆 You're registered for the OB Fitness Strength Showdown! Track your progress and view standings —" 
-            : "🏆 OB Fitness Strength Showdown is LIVE! Register for Pull-ups, Deadlifts, and Bench Press challenges —"}
-        </span>
-        <Link
-          to="/events/campus-clash"
-          className="underline underline-offset-2 text-xs sm:text-sm font-black hover:text-white/80 transition-colors flex items-center gap-1 shrink-0"
-        >
-          {isRegistered ? "View Registration & Leaderboard" : "Register to Compete"} <ArrowRight className="w-3.5 h-3.5" />
-        </Link>
-        <button
-          onClick={() => setVisible(false)}
-          className="absolute right-4 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-white/20 transition-colors"
-          aria-label="Close banner"
-        >
-          <X className="w-4 h-4" />
-        </button>
-      </div>
-    </motion.div>
-  );
-};
 
 const HERO_BACKGROUNDS = [
   "/hero-slider/hero-1.jpg",
@@ -159,10 +67,6 @@ const Home = () => {
 
   return (
     <div className="min-h-screen">
-      {/* Giveaway announcement banner */}
-      <GiveawayBanner />
-      {/* Gym event announcement banner */}
-      <EventsBanner />
       {/* Full-Screen Hero Section (Everfit-Style Viewport Height) */}
       <section className="relative overflow-hidden min-h-screen w-full flex items-center justify-center pt-28 pb-20">
         {/* Animated Background Image Slideshow (3-Second Interval, 100% Fullscreen) */}
