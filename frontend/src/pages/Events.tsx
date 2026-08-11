@@ -73,7 +73,7 @@ const EVENTS_DATA: EventItem[] = [
     prizes: "Premium Gear, Cash Prizes & Live Leaderboard",
     image: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=800&q=80",
     featured: true,
-    targetLink: "/events/campus-clash",
+    targetLink: "/events/ob-fitness",
     description: "Compete in physical strength challenges (pull-ups, deadlifts, and bench press) to win premium OB Fitness gear and cash prizes. Track weights and reps live on the leaderboard!",
     tags: ["OB Fitness Showdown", "Leaderboard", "Strength Challenge"],
   },
