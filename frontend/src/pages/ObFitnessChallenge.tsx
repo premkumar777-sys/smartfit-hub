@@ -432,6 +432,87 @@ export default function ObFitnessChallenge() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white overflow-hidden py-12 px-4 md:px-8 relative pt-24 pb-20">
+      {/* Custom print styling to isolate the ticket card when printing */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        @media print {
+          /* Hide global navbar, footer, chatbots, bottom navigations, buttons, and marked sections */
+          header, footer, nav, aside, [role="navigation"], .floating-chatbot, .print\\:hidden, button {
+            display: none !important;
+          }
+          
+          /* Reset container backgrounds for printing */
+          body, html, #root {
+            background: white !important;
+            color: black !important;
+          }
+          
+          .min-h-screen {
+            background: white !important;
+            min-height: auto !important;
+            padding: 0 !important;
+          }
+          
+          /* Remove absolute/floating background decorations */
+          .absolute {
+            display: none !important;
+          }
+
+          /* Force layouts to collapse and take full page width */
+          .grid {
+            display: block !important;
+          }
+
+          .lg\\:col-span-6 {
+            width: 100% !important;
+          }
+          
+          /* Center the ticket and strip glassmorphism/dark backgrounds */
+          #ob-fitness-ticket-card {
+            display: block !important;
+            position: relative !important;
+            width: 100% !important;
+            max-width: 600px !important;
+            margin: 40px auto !important;
+            padding: 32px !important;
+            background: white !important;
+            color: black !important;
+            border: 2px solid black !important;
+            border-radius: 24px !important;
+            box-shadow: none !important;
+            transform: none !important;
+          }
+
+          /* Ensure clear readability of texts */
+          #ob-fitness-ticket-card * {
+            color: black !important;
+            background: transparent !important;
+            border-color: #e4e4e7 !important;
+          }
+
+          #ob-fitness-ticket-card span {
+            color: #71717a !important; /* zinc-500 equivalent */
+          }
+
+          #ob-fitness-ticket-card span.text-white, 
+          #ob-fitness-ticket-card span.print\\:text-black,
+          #ob-fitness-ticket-card span.font-extrabold {
+            color: black !important;
+          }
+
+          /* Confirmed badge status border/color */
+          #ob-fitness-ticket-card .rounded-full {
+            border: 1px solid black !important;
+            background: white !important;
+            color: black !important;
+          }
+
+          /* Render the QR code as black on white */
+          #ob-fitness-ticket-card img {
+            filter: brightness(0) !important;
+            mix-blend-mode: multiply !important;
+          }
+        }
+      `}} />
       {/* Background Orbs */}
       <div className="absolute top-1/4 left-1/10 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl -z-10 pointer-events-none" />
       <div className="absolute bottom-1/4 right-1/10 w-96 h-96 bg-[#00FF9C]/10 rounded-full blur-3xl -z-10 pointer-events-none" />
@@ -439,7 +520,7 @@ export default function ObFitnessChallenge() {
       <div className="max-w-6xl mx-auto space-y-12 relative z-10">
         
         {/* Header Block */}
-        <div className="text-center space-y-4 max-w-3xl mx-auto">
+        <div className="text-center space-y-4 max-w-3xl mx-auto print:hidden">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#00FF9C]/10 border border-[#00FF9C]/25 text-[#00FF9C] text-xs font-semibold uppercase tracking-wider">
             <Trophy className="w-4 h-4" />
             SmartFit AI Official Competition
@@ -456,7 +537,7 @@ export default function ObFitnessChallenge() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
           {/* Left Column: Showcase & Info */}
-          <div className="lg:col-span-6 space-y-8">
+          <div className="lg:col-span-6 space-y-8 print:hidden">
             {/* Rebranded Showcase Tabs */}
             <div className="bg-[#111111]/85 border border-white/5 rounded-3xl p-6 backdrop-blur-md shadow-2xl space-y-6">
               <div>
@@ -649,6 +730,7 @@ export default function ObFitnessChallenge() {
               {userRegistration ? (
                 /* Glassmorphic Ticket Pass */
                 <motion.div 
+                  id="ob-fitness-ticket-card"
                   initial={{ opacity: 0, y: 15 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -15 }}
@@ -867,7 +949,7 @@ export default function ObFitnessChallenge() {
 
         {/* --- Admin Verification Scanner Portal --- */}
         {isAdmin && (
-          <div className="bg-gradient-to-br from-[#0c0d12] to-[#121620] border-2 border-red-500/25 rounded-3xl p-6 md:p-8 shadow-2xl space-y-6">
+          <div className="bg-gradient-to-br from-[#0c0d12] to-[#121620] border-2 border-red-500/25 rounded-3xl p-6 md:p-8 shadow-2xl space-y-6 print:hidden">
             <div className="flex items-center justify-between border-b border-red-500/10 pb-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400">
@@ -1060,7 +1142,7 @@ export default function ObFitnessChallenge() {
         )}
 
         {/* --- Live Event Leaderboard Section --- */}
-        <div className="bg-[#111111]/85 border border-white/5 rounded-3xl p-6 md:p-8 backdrop-blur-md shadow-2xl space-y-6">
+        <div className="bg-[#111111]/85 border border-white/5 rounded-3xl p-6 md:p-8 backdrop-blur-md shadow-2xl space-y-6 print:hidden">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-white/5 pb-4 gap-4">
             <div>
               <h2 className="text-2xl font-bold flex items-center gap-2">
