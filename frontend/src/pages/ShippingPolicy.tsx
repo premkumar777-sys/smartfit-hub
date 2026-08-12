@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 
 export default function ShippingPolicy() {
     return (
-        <div className="min-h-screen py-20 bg-background">
+        <div className="min-h-screen pb-20 bg-background" style={{ paddingTop: 'calc(var(--header-height) + 1.5rem)' }}>
             <Container className="max-w-4xl">
                 <Link
                     to="/"

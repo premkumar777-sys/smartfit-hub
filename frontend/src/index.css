@@ -66,6 +66,7 @@ All colors MUST be HSL.
     --sidebar-accent-foreground: 222 47% 11%;
     --sidebar-border: 214 32% 91%;
     --sidebar-ring: 204 100% 45%;
+    --header-height: 80px;
   }
 
   /* DARK THEME */

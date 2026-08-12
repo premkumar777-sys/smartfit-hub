@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +31,7 @@ interface Registration {
 }
 
 export default function EventsAdmin() {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [isAdmin, setIsAdmin] = useState(false);
   const [password, setPassword] = useState("");
@@ -39,13 +41,34 @@ export default function EventsAdmin() {
 
   // Check auth on load
   useEffect(() => {
-    const isAuth = sessionStorage.getItem("events_admin_auth") === "true";
-    setIsAdmin(isAuth);
-    if (isAuth) {
-      fetchRegistrations();
-    } else {
+    const checkAdminAuth = async () => {
+      const isAuth = sessionStorage.getItem("events_admin_auth") === "true";
+      if (isAuth) {
+        setIsAdmin(true);
+        fetchRegistrations();
+        return;
+      }
+
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user && user.email === "eslavathpremkumar17@gmail.com") {
+          setIsAdmin(true);
+          sessionStorage.setItem("events_admin_auth", "true");
+          fetchRegistrations();
+          toast({
+            title: "Access Granted",
+            description: "Welcome, Admin eslavathpremkumar17@gmail.com!",
+          });
+          return;
+        }
+      } catch (err) {
+        console.error("Error checking admin auth:", err);
+      }
+
       setIsLoading(false);
-    }
+    };
+
+    checkAdminAuth();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -69,9 +92,18 @@ export default function EventsAdmin() {
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     setIsAdmin(false);
     sessionStorage.removeItem("events_admin_auth");
+    try {
+      await supabase.auth.signOut();
+      toast({
+        title: "Logged Out",
+        description: "You have signed out and locked the admin panel.",
+      });
+    } catch (err) {
+      console.error("Error signing out:", err);
+    }
   };
 
   const fetchRegistrations = async () => {
@@ -159,7 +191,7 @@ export default function EventsAdmin() {
 
   if (!isAdmin) {
     return (
-      <div className="min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center p-6 text-white text-center">
+      <div className="min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center p-6 text-white text-center" style={{ paddingTop: 'calc(var(--header-height) + 1rem)' }}>
         {/* Background Gradients */}
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-primary/10 rounded-full blur-3xl -z-10" />
         
@@ -194,13 +226,29 @@ export default function EventsAdmin() {
               <ArrowRight className="w-4 h-4" />
             </Button>
           </form>
+
+          <div className="relative flex items-center justify-center my-4">
+            <div className="border-t border-white/10 w-full" />
+            <span className="absolute bg-[#111111] px-3 text-xs text-zinc-500">OR</span>
+          </div>
+
+          <Button
+            onClick={() => {
+              navigate("/auth", { state: { returnUrl: window.location.pathname } });
+            }}
+            variant="outline"
+            className="w-full border-white/10 text-white hover:bg-white/5 rounded-xl h-11 flex items-center justify-center gap-2 text-sm"
+          >
+            <Users className="w-4 h-4 text-[#00FF9C]" />
+            Sign in with SmartFit Account
+          </Button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white pt-24 pb-12 px-4 md:px-8">
+    <div className="min-h-screen bg-[#0a0a0a] text-white pb-12 px-4 md:px-8" style={{ paddingTop: 'calc(var(--header-height) + 1.5rem)' }}>
       {/* Background Blur */}
       <div className="absolute top-1/10 right-1/10 w-96 h-96 bg-primary/5 rounded-full blur-3xl -z-10" />
 

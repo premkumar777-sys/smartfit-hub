@@ -195,6 +195,7 @@ const AppContent = () => {
               <Route path="/ob-fitness" element={<Navigate to="/events/ob-fitness" replace />} />
               <Route path="/ob-fitness-challenge" element={<Navigate to="/events/ob-fitness" replace />} />
               <Route path="/events/admin" element={<EventsAdmin />} />
+              <Route path="/admin" element={<EventsAdmin />} />
               <Route path="/events" element={<Events />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

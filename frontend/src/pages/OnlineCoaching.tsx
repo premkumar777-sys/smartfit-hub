@@ -162,7 +162,7 @@ export default function OnlineCoaching() {
     };
 
     return (
-        <div className="min-h-screen pt-20 pb-24 lg:pb-12 bg-background">
+        <div className="min-h-screen pb-24 lg:pb-12 bg-background" style={{ paddingTop: 'calc(var(--header-height) + 1.5rem)' }}>
             <Container>
                 {/* Back Button */}
                 <Button

@@ -60,9 +60,9 @@ const EVENTS_DATA: EventItem[] = [
     category: "Competitions",
     mode: "In-Person",
     status: "Upcoming",
-    date: "Wednesday",
-    time: "07:00 PM",
-    isoDate: "2026-08-12T19:00:00+05:30",
+    date: "August 15, 2026",
+    time: "Saturday Evening, 05:30 PM Onwards",
+    isoDate: "2026-08-15T17:30:00+05:30",
     location: "OB Fitness, RTC Colony, Medchal",
     host: {
       name: "OB Fitness Coaching Crew",
@@ -422,7 +422,7 @@ END:VCALENDAR`;
   };
 
   return (
-    <div className="min-h-screen bg-[#07080b] text-white pt-24 pb-20 relative overflow-x-hidden font-sans">
+    <div className="min-h-screen bg-[#07080b] text-white pb-20 relative overflow-x-hidden font-sans" style={{ paddingTop: 'calc(var(--header-height) + 1.5rem)' }}>
       {/* Dynamic Background Glows */}
       <div className="pointer-events-none fixed inset-0 z-0">
         <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[900px] h-[500px] bg-[#4ade80]/10 rounded-full blur-[180px]" />
