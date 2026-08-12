@@ -60,9 +60,9 @@ const EVENTS_DATA: EventItem[] = [
     category: "Competitions",
     mode: "In-Person",
     status: "Upcoming",
-    date: "Wednesday",
-    time: "07:00 PM",
-    isoDate: "2026-08-12T19:00:00+05:30",
+    date: "August 15, 2026",
+    time: "Saturday Evening, 05:30 PM Onwards",
+    isoDate: "2026-08-15T17:30:00+05:30",
     location: "OB Fitness, RTC Colony, Medchal",
     host: {
       name: "OB Fitness Coaching Crew",

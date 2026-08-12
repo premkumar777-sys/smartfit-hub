@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import jsQR from "jsqr";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -82,6 +83,7 @@ export default function ObFitnessChallenge() {
   const [isCameraActive, setIsCameraActive] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const isScanningRef = useRef(false);
 
   // Interactive mock states
   const [userGoal, setUserGoal] = useState("");
@@ -342,39 +344,59 @@ export default function ObFitnessChallenge() {
   // Webcam Scanning Toggle
   const startCameraScanner = async () => {
     setIsCameraActive(true);
+    isScanningRef.current = true;
     try {
       const constraints = { video: { facingMode: "environment" } };
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       streamRef.current = stream;
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        // Wait for video metadata to load so we know its dimensions
+        await new Promise<void>((resolve) => {
+          if (videoRef.current) {
+            videoRef.current.onloadedmetadata = () => resolve();
+          } else {
+            resolve();
+          }
+        });
+        videoRef.current.play().catch(() => {});
       }
+
+      // Create a canvas element to extract frames
+      const canvas = document.createElement("canvas");
+      const context = canvas.getContext("2d", { willReadFrequently: true });
+
+      const scanFrame = () => {
+        if (!videoRef.current || !streamRef.current || !isScanningRef.current) {
+          return;
+        }
+
+        const video = videoRef.current;
+        if (video.readyState === video.HAVE_ENOUGH_DATA && context) {
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          context.drawImage(video, 0, 0, canvas.width, canvas.height);
+          const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+          const code = jsQR(imageData.data, imageData.width, imageData.height, {
+            inversionAttempts: "dontInvert",
+          });
+
+          if (code && code.data) {
+            const scannedValue = code.data;
+            stopCameraScanner();
+            setAdminSearchId(scannedValue);
+            handleAdminSearch(scannedValue);
+            return; // Stop loop
+          }
+        }
+
+        // Loop next frame
+        requestAnimationFrame(scanFrame);
+      };
+
+      // Start the scan loop
+      requestAnimationFrame(scanFrame);
       
-      // Native Barcode Detector support check
-      if ('BarcodeDetector' in window) {
-        const barcodeDetector = new (window as any).BarcodeDetector({ formats: ['qr_code'] });
-        const intervalId = setInterval(async () => {
-          if (!videoRef.current || !streamRef.current || !isCameraActive) {
-            clearInterval(intervalId);
-            return;
-          }
-          try {
-            const barcodes = await barcodeDetector.detect(videoRef.current);
-            if (barcodes.length > 0) {
-              const scannedValue = barcodes[0].rawValue;
-              // Check if it's a UUID/Registration ID
-              if (scannedValue) {
-                clearInterval(intervalId);
-                stopCameraScanner();
-                setAdminSearchId(scannedValue);
-                handleAdminSearch(scannedValue);
-              }
-            }
-          } catch (e) {
-            // Ignore detector errors
-          }
-        }, 500);
-      }
     } catch (err) {
       console.warn("Failed to get webcam stream:", err);
       toast({
@@ -382,11 +404,14 @@ export default function ObFitnessChallenge() {
         description: "Could not open camera. Please use manual entry or file upload instead.",
         variant: "destructive",
       });
+      setIsCameraActive(false);
+      isScanningRef.current = false;
     }
   };
 
   const stopCameraScanner = () => {
     setIsCameraActive(false);
+    isScanningRef.current = false;
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
       streamRef.current = null;
@@ -396,38 +421,63 @@ export default function ObFitnessChallenge() {
     }
   };
 
-  // Mock scan from uploaded image
+  // Scan from uploaded image
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
-    // Simulate QR reading delay
+
     setIsSearchingAdmin(true);
-    setTimeout(async () => {
-      // In testing we fetch a random ticket or the logged user's ticket if available
-      try {
-        const { data } = await supabase
-          .from("gym_event_registrations" as any)
-          .select("id")
-          .limit(1);
-          
-        if (data && data.length > 0) {
-          const id = data[0].id;
-          setAdminSearchId(id);
-          handleAdminSearch(id);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d");
+        if (context) {
+          canvas.width = img.width;
+          canvas.height = img.height;
+          context.drawImage(img, 0, 0);
+          const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+          const code = jsQR(imageData.data, imageData.width, imageData.height);
+          if (code && code.data) {
+            const scannedValue = code.data;
+            setAdminSearchId(scannedValue);
+            handleAdminSearch(scannedValue);
+          } else {
+            toast({
+              title: "QR Code Not Found",
+              description: "Could not detect a valid QR code in the uploaded image. Please try another photo or enter the Ticket ID manually.",
+              variant: "destructive",
+            });
+          }
         } else {
           toast({
-            title: "Simulated Scan Error",
-            description: "No registration records found in database to simulate scan.",
+            title: "Scan Error",
+            description: "Failed to process image.",
             variant: "destructive",
           });
         }
-      } catch (err) {
-        console.error(err);
-      } finally {
         setIsSearchingAdmin(false);
-      }
-    }, 1000);
+      };
+      img.onerror = () => {
+        toast({
+          title: "Image Load Error",
+          description: "Failed to load the image file.",
+          variant: "destructive",
+        });
+        setIsSearchingAdmin(false);
+      };
+      img.src = event.target?.result as string;
+    };
+    reader.onerror = () => {
+      toast({
+        title: "File Read Error",
+        description: "Failed to read the file.",
+        variant: "destructive",
+      });
+      setIsSearchingAdmin(false);
+    };
+    reader.readAsDataURL(file);
   };
 
   return (
