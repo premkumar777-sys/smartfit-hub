@@ -273,7 +273,7 @@ export default function RoadToICN() {
     };
 
     return (
-        <div className="min-h-screen bg-[#050505] text-white pt-24 pb-12 font-sans overflow-x-hidden relative">
+        <div className="min-h-screen bg-[#050505] text-white pb-12 font-sans overflow-x-hidden relative" style={{ paddingTop: 'calc(var(--header-height) + 1.5rem)' }}>
             {/* Background Image - Refined Placement */}
             <div className="fixed top-0 right-0 w-[55%] h-full pointer-events-none z-0 overflow-hidden translate-x-[5%]">
                 <div

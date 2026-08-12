@@ -57,7 +57,7 @@ export default function ContactUs() {
     };
 
     return (
-        <div className="min-h-screen py-20 bg-background text-white">
+        <div className="min-h-screen pb-20 bg-background text-white" style={{ paddingTop: 'calc(var(--header-height) + 1.5rem)' }}>
             <Container className="max-w-6xl">
                 <Link
                     to="/"

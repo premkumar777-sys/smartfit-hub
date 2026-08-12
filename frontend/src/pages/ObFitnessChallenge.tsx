@@ -431,7 +431,7 @@ export default function ObFitnessChallenge() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white overflow-hidden py-12 px-4 md:px-8 relative pt-24 pb-20">
+    <div className="min-h-screen bg-[#0a0a0a] text-white overflow-hidden pb-20 px-4 md:px-8 relative" style={{ paddingTop: 'calc(var(--header-height) + 1.5rem)' }}>
       {/* Custom print styling to isolate the ticket card when printing */}
       <style dangerouslySetInnerHTML={{ __html: `
         @media print {

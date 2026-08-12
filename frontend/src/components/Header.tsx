@@ -175,6 +175,33 @@ export function Header() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const headerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!headerRef.current) return;
+
+    const updateHeight = () => {
+      if (headerRef.current) {
+        const height = headerRef.current.offsetHeight;
+        document.documentElement.style.setProperty("--header-height", `${height}px`);
+      }
+    };
+
+    updateHeight();
+
+    const observer = new ResizeObserver(() => {
+      updateHeight();
+    });
+
+    observer.observe(headerRef.current);
+
+    window.addEventListener("resize", updateHeight);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", updateHeight);
+    };
+  }, [location.pathname, showBanners]);
+
   useEffect(() => {
     if (isMobileMenuOpen) {
       document.body.setAttribute("data-mobile-menu-open", "true");
@@ -212,7 +239,7 @@ export function Header() {
 
   return (
     <>
-      <div className="fixed top-0 inset-x-0 z-50 flex flex-col pointer-events-none w-full">
+      <div ref={headerRef} className="fixed top-0 inset-x-0 z-50 flex flex-col pointer-events-none w-full">
         {showBanners && (
           <div className="pointer-events-auto w-full">
             <GiveawayBanner />

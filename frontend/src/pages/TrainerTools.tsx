@@ -448,7 +448,7 @@ export default function TrainerTools() {
     }
 
     return (
-        <div className="min-h-screen bg-background pt-20 pb-12">
+        <div className="min-h-screen bg-background pb-12" style={{ paddingTop: 'calc(var(--header-height) + 1.5rem)' }}>
             <Container>
                 {/* Back Button */}
                 <Button
