@@ -188,6 +188,12 @@ const AppContent = () => {
               <Route path="/giveaway" element={<Giveaway />} />
               <Route path="/events/campus-clash" element={<Navigate to="/events/ob-fitness" replace />} />
               <Route path="/events/ob-fitness" element={<ObFitnessChallenge />} />
+              <Route path="/events/ob-fitness-showdown" element={<Navigate to="/events/ob-fitness" replace />} />
+              <Route path="/events/ob-fitness-showdown-2026" element={<Navigate to="/events/ob-fitness" replace />} />
+              <Route path="/events/fitness-challenge" element={<Navigate to="/events/ob-fitness" replace />} />
+              <Route path="/fitness-challenge" element={<Navigate to="/events/ob-fitness" replace />} />
+              <Route path="/ob-fitness" element={<Navigate to="/events/ob-fitness" replace />} />
+              <Route path="/ob-fitness-challenge" element={<Navigate to="/events/ob-fitness" replace />} />
               <Route path="/events/admin" element={<EventsAdmin />} />
               <Route path="/events" element={<Events />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

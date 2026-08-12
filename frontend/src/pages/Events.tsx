@@ -488,7 +488,14 @@ END:VCALENDAR`;
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.4 }}
-            className="mb-16 relative rounded-3xl overflow-hidden border border-[#4ade80]/30 bg-[#0d0f14]/80 backdrop-blur-xl p-6 sm:p-8 md:p-10 shadow-[0_0_50px_rgba(74,222,128,0.12)] group"
+            onClick={() => {
+              if (featuredEvent.targetLink) {
+                navigate(featuredEvent.targetLink);
+              } else {
+                setRsvpEvent(featuredEvent);
+              }
+            }}
+            className="mb-16 relative rounded-3xl overflow-hidden border border-[#4ade80]/30 bg-[#0d0f14]/80 backdrop-blur-xl p-6 sm:p-8 md:p-10 shadow-[0_0_50px_rgba(74,222,128,0.12)] group cursor-pointer hover:border-[#4ade80]/60 transition-all duration-300"
           >
             <div className="absolute top-6 left-6 z-20 flex items-center gap-2">
               <span className="px-3.5 py-1.5 rounded-full bg-[#4ade80] text-black text-xs font-black uppercase tracking-wider shadow-lg flex items-center gap-1.5">
@@ -740,7 +747,14 @@ END:VCALENDAR`;
                     layout
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-[#0f1117] border border-white/10 rounded-3xl overflow-hidden flex flex-col hover:border-[#4ade80]/40 transition-all duration-300 shadow-xl group hover:shadow-[0_10px_30px_rgba(0,0,0,0.5)]"
+                    onClick={() => {
+                      if (event.targetLink) {
+                        navigate(event.targetLink);
+                      } else {
+                        setRsvpEvent(event);
+                      }
+                    }}
+                    className="bg-[#0f1117] border border-white/10 rounded-3xl overflow-hidden flex flex-col hover:border-[#4ade80]/40 transition-all duration-300 shadow-xl group hover:shadow-[0_10px_30px_rgba(0,0,0,0.5)] cursor-pointer"
                   >
                     {/* Thumbnail Card Header */}
                     <div className="relative aspect-[16/9] overflow-hidden bg-zinc-900">
@@ -832,7 +846,10 @@ END:VCALENDAR`;
                               <CheckCircle2 className="w-4 h-4" /> RSVP Confirmed
                             </span>
                             <button
-                              onClick={() => downloadIcsFile(event)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                downloadIcsFile(event);
+                              }}
                               className="text-[10px] underline hover:text-white"
                             >
                               Add to Cal
