@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import jsQR from "jsqr";
 import { 
   Trophy, 
   Trash2, 
@@ -14,7 +15,13 @@ import {
   Activity,
   ArrowRight,
   LogOut,
-  RefreshCw
+  RefreshCw,
+  Video,
+  Upload,
+  Search,
+  UserCheck,
+  CheckCircle,
+  Award
 } from "lucide-react";
 
 interface Registration {
@@ -38,6 +45,243 @@ export default function EventsAdmin() {
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+
+  // QR Check-in states
+  const [adminSearchId, setAdminSearchId] = useState("");
+  const [scannedRegistration, setScannedRegistration] = useState<Registration | null>(null);
+  const [isSearchingAdmin, setIsSearchingAdmin] = useState(false);
+  const [adminScore, setAdminScore] = useState("");
+  const [isSubmittingScore, setIsSubmittingScore] = useState(false);
+
+  // Camera states
+  const [isCameraActive, setIsCameraActive] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const isScanningRef = useRef(false);
+
+  // Cleanup camera on unmount
+  useEffect(() => {
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, []);
+
+  // Search Ticket ID manually or from scanner
+  const handleAdminSearch = async (ticketId?: string) => {
+    const idToSearch = ticketId || adminSearchId;
+    if (!idToSearch.trim()) return;
+
+    setIsSearchingAdmin(true);
+    try {
+      const { data, error } = await supabase
+        .from("gym_event_registrations" as any)
+        .select("*")
+        .eq("id", idToSearch.trim())
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (data) {
+        setScannedRegistration(data as Registration);
+        setAdminScore(data.score.toString());
+        toast({
+          title: "Ticket Found",
+          description: `Loaded registration for ${data.full_name}`,
+        });
+      } else {
+        toast({
+          title: "Ticket Not Found",
+          description: "No registration matching this Ticket ID was found.",
+          variant: "destructive",
+        });
+      }
+    } catch (err: any) {
+      toast({
+        title: "Search Error",
+        description: err.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSearchingAdmin(false);
+    }
+  };
+
+  // Submit/Update score for scanned registration
+  const handleScoreUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!scannedRegistration) return;
+
+    setIsSubmittingScore(true);
+    try {
+      const scoreNum = parseInt(adminScore) || 0;
+
+      const { error } = await supabase
+        .from("gym_event_registrations" as any)
+        .update({ score: scoreNum } as any)
+        .eq("id", scannedRegistration.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Score Verified! 🏆",
+        description: `Logged score of ${scoreNum} for ${scannedRegistration.full_name}.`,
+      });
+
+      // Update scanned state locally
+      setScannedRegistration({
+        ...scannedRegistration,
+        score: scoreNum
+      });
+
+      // Refresh list
+      fetchRegistrations();
+
+    } catch (err: any) {
+      toast({
+        title: "Failed to Update Score",
+        description: err.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmittingScore(false);
+    }
+  };
+
+  // Webcam Scanner
+  const startCameraScanner = async () => {
+    setIsCameraActive(true);
+    isScanningRef.current = true;
+    try {
+      const constraints = { video: { facingMode: "environment" } };
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await new Promise<void>((resolve) => {
+          if (videoRef.current) {
+            videoRef.current.onloadedmetadata = () => resolve();
+          } else {
+            resolve();
+          }
+        });
+        videoRef.current.play().catch(() => {});
+      }
+
+      const canvas = document.createElement("canvas");
+      const context = canvas.getContext("2d", { willReadFrequently: true });
+
+      const scanFrame = () => {
+        if (!videoRef.current || !streamRef.current || !isScanningRef.current) {
+          return;
+        }
+
+        const video = videoRef.current;
+        if (video.readyState === video.HAVE_ENOUGH_DATA && context) {
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          context.drawImage(video, 0, 0, canvas.width, canvas.height);
+          const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+          const code = jsQR(imageData.data, imageData.width, imageData.height, {
+            inversionAttempts: "dontInvert",
+          });
+
+          if (code && code.data) {
+            const scannedValue = code.data;
+            stopCameraScanner();
+            setAdminSearchId(scannedValue);
+            handleAdminSearch(scannedValue);
+            return;
+          }
+        }
+        requestAnimationFrame(scanFrame);
+      };
+
+      requestAnimationFrame(scanFrame);
+      
+    } catch (err) {
+      console.warn("Failed to get webcam stream:", err);
+      toast({
+        title: "Camera Access Error",
+        description: "Could not open camera. Please use manual entry or file upload instead.",
+        variant: "destructive",
+      });
+      setIsCameraActive(false);
+      isScanningRef.current = false;
+    }
+  };
+
+  const stopCameraScanner = () => {
+    setIsCameraActive(false);
+    isScanningRef.current = false;
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+  };
+
+  // Scan uploaded image
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsSearchingAdmin(true);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d");
+        if (context) {
+          canvas.width = img.width;
+          canvas.height = img.height;
+          context.drawImage(img, 0, 0);
+          const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+          const code = jsQR(imageData.data, imageData.width, imageData.height);
+          if (code && code.data) {
+            const scannedValue = code.data;
+            setAdminSearchId(scannedValue);
+            handleAdminSearch(scannedValue);
+          } else {
+            toast({
+              title: "QR Code Not Found",
+              description: "Could not detect a valid QR code in the uploaded image. Please try another photo or enter the Ticket ID manually.",
+              variant: "destructive",
+            });
+          }
+        } else {
+          toast({
+            title: "Scan Error",
+            description: "Failed to process image.",
+            variant: "destructive",
+          });
+        }
+        setIsSearchingAdmin(false);
+      };
+      img.onerror = () => {
+        toast({
+          title: "Image Load Error",
+          description: "Failed to load the image file.",
+          variant: "destructive",
+        });
+        setIsSearchingAdmin(false);
+      };
+      img.src = event.target?.result as string;
+    };
+    reader.onerror = () => {
+      toast({
+        title: "File Read Error",
+        description: "Failed to read the file.",
+        variant: "destructive",
+      });
+      setIsSearchingAdmin(false);
+    };
+    reader.readAsDataURL(file);
+  };
 
   // Check auth on load
   useEffect(() => {
@@ -93,6 +337,7 @@ export default function EventsAdmin() {
   };
 
   const handleLogout = async () => {
+    stopCameraScanner();
     setIsAdmin(false);
     sessionStorage.removeItem("events_admin_auth");
     try {
@@ -328,6 +573,181 @@ export default function EventsAdmin() {
             <div>
               <div className="text-zinc-500 text-xs">Bench Press Contenders</div>
               <div className="text-2xl font-bold">{benchpressCount}</div>
+            </div>
+          </div>
+        </div>
+
+        {/* --- Admin Verification Scanner Portal --- */}
+        <div className="bg-gradient-to-br from-[#0c0d12] to-[#121620] border-2 border-red-500/25 rounded-3xl p-6 md:p-8 shadow-2xl space-y-6">
+          <div className="flex items-center justify-between border-b border-red-500/10 pb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400">
+                <UserCheck className="w-5 h-5 text-red-500" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-white">QR Code Check-in & Verification</h2>
+                <p className="text-zinc-500 text-xs mt-0.5">Verify participant tickets using live camera, photo upload, or ID search.</p>
+              </div>
+            </div>
+            <span className="px-3 py-1 rounded-full bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-black uppercase tracking-widest">
+              Live Scanner
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            {/* Left Side: Scanner controls */}
+            <div className="lg:col-span-7 space-y-6">
+              
+              {/* Mode Selectors */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                
+                {/* Camera Scanner Viewport */}
+                <div className="bg-black/45 border border-white/5 rounded-2xl p-4 flex flex-col items-center justify-center space-y-4">
+                  <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Webcam Scanner</span>
+                  
+                  {isCameraActive ? (
+                    <div className="space-y-3 w-full">
+                      <div className="relative aspect-video rounded-xl bg-zinc-900 border border-red-500/30 overflow-hidden flex items-center justify-center shadow-inner">
+                        <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 flex flex-col justify-between p-3 border-2 border-red-500/20 rounded-xl">
+                          <div className="flex justify-between items-center text-[9px] text-[#00FF9C] font-mono">
+                            <span>• SCANNING ACTIVE</span>
+                            <span className="animate-pulse">REC ●</span>
+                          </div>
+                          {/* Scanning horizontal neon laser line */}
+                          <div className="w-full h-0.5 bg-[#00FF9C] shadow-[0_0_10px_#00FF9C] animate-bounce" />
+                          <div className="text-center text-[9px] text-zinc-400 font-mono">Center QR in viewfinder</div>
+                        </div>
+                      </div>
+                      <Button 
+                        onClick={stopCameraScanner}
+                        className="w-full bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl"
+                      >
+                        Stop Scanner
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button
+                      onClick={startCameraScanner}
+                      className="bg-white/5 hover:bg-white/10 text-white font-bold text-xs rounded-xl px-6 py-4 flex items-center gap-2 border border-white/10 w-full justify-center"
+                    >
+                      <Video className="w-4 h-4 text-emerald-400" />
+                      Start Webcam Scanner
+                    </Button>
+                  )}
+                </div>
+
+                {/* Drag-drop & Upload simulation */}
+                <div className="bg-black/45 border border-white/5 rounded-2xl p-4 flex flex-col items-center justify-center space-y-4">
+                  <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Upload QR Image</span>
+                  <label className="w-full">
+                    <div className="border border-dashed border-white/10 hover:border-red-500/30 bg-white/5 p-4 rounded-xl flex flex-col items-center justify-center cursor-pointer transition-colors text-center">
+                      <Upload className="w-8 h-8 text-zinc-500 mb-2" />
+                      <span className="text-xs font-semibold text-zinc-300">Select ticket QR photo</span>
+                      <span className="text-[10px] text-zinc-600 mt-1">Upload pass to auto-detect</span>
+                    </div>
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={handleImageUpload} 
+                      className="hidden" 
+                    />
+                  </label>
+                </div>
+              </div>
+
+              {/* Manual Ticket ID Entry */}
+              <div className="bg-black/30 border border-white/5 rounded-2xl p-4 space-y-3">
+                <label className="text-xs font-bold text-zinc-400 block uppercase tracking-wider">Manual Ticket ID Entry</label>
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Search className="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <Input
+                      placeholder="Paste unique ticket UUID..."
+                      value={adminSearchId}
+                      onChange={(e) => setAdminSearchId(e.target.value)}
+                      className="bg-black border-white/10 text-white pl-9 rounded-xl text-xs placeholder:text-zinc-600 focus-visible:ring-red-500 h-10"
+                    />
+                  </div>
+                  <Button
+                    onClick={() => handleAdminSearch()}
+                    disabled={isSearchingAdmin}
+                    className="bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl px-5 h-10"
+                  >
+                    {isSearchingAdmin ? "Checking..." : "Verify Pass"}
+                  </Button>
+                </div>
+              </div>
+
+            </div>
+
+            {/* Right Side: Ticket verification details and score logging */}
+            <div className="lg:col-span-5">
+              {scannedRegistration ? (
+                <div className="bg-black/50 border border-red-500/20 rounded-2xl p-5 space-y-5">
+                  <div className="border-b border-white/10 pb-3 flex justify-between items-center">
+                    <span className="text-xs font-bold text-[#00FF9C] uppercase tracking-wider">Verified Ticket Info</span>
+                    <Button 
+                      variant="ghost" 
+                      onClick={() => {
+                        setScannedRegistration(null);
+                        setAdminSearchId("");
+                      }}
+                      className="h-6 px-2 text-zinc-500 hover:text-white text-xs"
+                    >
+                      Clear
+                    </Button>
+                  </div>
+
+                  <div className="space-y-3 text-xs">
+                    <div>
+                      <span className="text-zinc-500 block uppercase text-[10px] font-bold">Full Name</span>
+                      <span className="text-sm font-extrabold text-white">{scannedRegistration.full_name}</span>
+                    </div>
+                    <div>
+                      <span className="text-zinc-500 block uppercase text-[10px] font-bold">Email & Phone</span>
+                      <span className="text-zinc-300 block">{scannedRegistration.email}</span>
+                      <span className="text-zinc-400 block font-mono text-[10px]">{scannedRegistration.phone || "No phone"}</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <span className="text-zinc-500 block uppercase text-[10px] font-bold">Challenge Category</span>
+                        <span className="text-xs font-extrabold text-[#00FF9C] capitalize">{scannedRegistration.challenge_type}</span>
+                      </div>
+                      <div>
+                        <span className="text-zinc-500 block uppercase text-[10px] font-bold">Dept / Location</span>
+                        <span className="text-xs font-bold text-zinc-300">{scannedRegistration.department || "General"}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Score Logging Form */}
+                  <form onSubmit={handleScoreUpdate} className="border-t border-white/10 pt-4 space-y-3">
+                    <label className="text-xs font-bold text-zinc-400 block uppercase tracking-wider">Log Verified Score</label>
+                    <div className="flex gap-2">
+                      <Input
+                        required
+                        type="number"
+                        placeholder="Enter score (reps or kg)"
+                        value={adminScore}
+                        onChange={(e) => setAdminScore(e.target.value)}
+                        className="bg-black border-white/10 text-white rounded-xl text-sm focus-visible:ring-[#00FF9C] h-11"
+                      />
+                      <Button
+                        type="submit"
+                        disabled={isSubmittingScore}
+                        className="bg-[#00FF9C] hover:bg-[#00e08b] text-black font-extrabold px-6 rounded-xl shrink-0 h-11 shadow-lg shadow-[#00FF9C]/20"
+                      >
+                        {isSubmittingScore ? "Saving..." : "Log Score"}
+                      </Button>
+                    </div>
+                  </form>
+                </div>
+              ) : (
+                <div className="bg-black/20 border border-white/5 rounded-2xl p-8 text-center text-zinc-600 text-xs h-full flex flex-col items-center justify-center min-h-[220px]">
+                  No ticket currently loaded. Scan a QR code or search a Ticket ID to load participant details.
+                </div>
+              )}
             </div>
           </div>
         </div>

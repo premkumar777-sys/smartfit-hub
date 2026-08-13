@@ -11,6 +11,7 @@ export interface PaymentPlan {
     id: string;
     name: string;
     price: string;
+    originalPrice?: string;
     period: string;
     link: string;
     badge?: string;
@@ -21,27 +22,30 @@ export interface PaymentPlan {
 // ===========================================
 export const PRO_PLANS: PaymentPlan[] = [
     {
-        id: "intro",
-        name: "Intro Offer",
-        price: "₹79",
-        period: "1st month",
-        link: "https://imjo.in/KHh48R",
-
+        id: "trial",
+        name: "7-Day Trial",
+        price: "₹0",
+        period: "7 days",
+        link: "#",
+        badge: "Free Trial"
     },
     {
-        id: "semiannual",
-        name: "6 Months",
-        price: "₹399",
-        period: "every 6 months",
-        link: "https://imjo.in/DHbKMq"
-    },
-    {
-        id: "annual",
-        name: "Yearly",
+        id: "monthly_31",
+        name: "31 Days Plan",
         price: "₹699",
-        period: "per year",
-        link: "https://imjo.in/fMMzWK",
-        badge: "Best Value",
+        originalPrice: "₹899",
+        period: "31 days",
+        link: "https://imjo.in/KHh48R",
+        badge: "Save 22%"
+    },
+    {
+        id: "quarterly_90",
+        name: "90 Days Plan",
+        price: "₹1279",
+        originalPrice: "₹2097",
+        period: "90 days",
+        link: "https://imjo.in/DHbKMq",
+        badge: "39% Off"
     }
 ];
 

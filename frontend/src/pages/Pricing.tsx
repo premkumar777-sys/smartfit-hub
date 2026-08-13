@@ -1,238 +1,150 @@
 import { Button } from "@/components/ui/button";
-import { Check, Flame, Zap, Shield, Sparkles, Building2, User, ArrowRight, Video, Target, Trophy, Clock, Dumbbell, Star } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Check, Shield, Clock, Trophy, Sparkles } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Container } from "@/components/Container";
-import { COACHING_PLAN, BODY_TRANSFORMATION_PLAN, openPaymentLink } from "@/config/payments";
+import { PRO_PLANS } from "@/config/payments";
 import { Badge } from "@/components/ui/badge";
 
 export default function Pricing() {
-    const freeFeatures = [
-        "AI Workout Generation",
-        "Real-time AI Form Detection",
-        "Nutrition & Macro Tracking",
-        "Advanced Gamification",
-        "Progress Analytics",
-        "Home Workout access"
-    ];
+    const navigate = useNavigate();
+
+    const getPlanFeatures = (planId: string) => {
+        const baseFeatures = [
+            "AI Workout Generation",
+            "Real-time AI Pose Form Detection",
+            "Custom Nutrition & Macro Planner",
+            "Interactive 3D Workout Demos",
+            "Progress & Biometric Analytics",
+            "B2B Admin Dashboard access"
+        ];
+
+        if (planId === "trial") {
+            return [...baseFeatures, "7 Days Full Access", "No credit card required"];
+        }
+        if (planId === "monthly_31") {
+            return [...baseFeatures, "31 Days Full Access", "Save 22% vs base rate"];
+        }
+        return [...baseFeatures, "90 Days Full Access", "39% discount applied"];
+    };
 
     return (
-        <div className="min-h-screen py-20 relative overflow-hidden">
-            {/* Background Glows */}
-            <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-[120px] -z-10" />
-            <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-[120px] -z-10" />
-
+        <div className="min-h-screen bg-[#050505] text-white pb-20" style={{ paddingTop: 'calc(var(--header-height) + 2rem)' }}>
             <Container>
+                {/* Header */}
                 <div className="text-center max-w-3xl mx-auto mb-16">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5 }}
+                        className="space-y-4"
                     >
-                        <Badge className="mb-4 bg-primary/10 text-primary border-primary/20 hover:bg-primary/20">
-                            SmartFit AI 2.0 — Choose Your Plan
+                        <Badge className="bg-[#00FF9C]/10 text-[#00FF9C] hover:bg-[#00FF9C]/20 border-none px-3 py-1 font-semibold text-xs rounded-md">
+                            PRICING PLANS
                         </Badge>
-                        <h1 className="text-4xl md:text-5xl lg:text-7xl font-bold leading-tight mb-4 text-white">
-                            Simple, <span className="text-gradient">Transparent</span> Pricing
+                        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-outfit leading-tight text-white">
+                            Simple, <span className="text-[#00FF9C]">Transparent</span> Pricing
                         </h1>
-                        <p className="text-lg md:text-xl text-muted-foreground">
-                            Start free with all core AI features, or level up with a guided transformation plan or 1:1 personal coaching.
+                        <p className="text-base md:text-lg text-zinc-400 max-w-xl mx-auto">
+                            Choose the plan that matches your training goals. Get premium access to computer vision workout tracking, AI coaching, and custom nutrition guides.
                         </p>
                     </motion.div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-20">
-                    {/* Free Everything Card */}
-                    <motion.div
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.5 }}
-                        className="relative flex flex-col p-8 rounded-3xl glass border border-white/10 bg-white/5"
-                    >
-                        <div className="flex items-center gap-4 mb-6">
-                            <div className="p-3 rounded-2xl bg-gradient-to-br from-primary to-blue-500">
-                                <Zap className="w-6 h-6 text-black" />
-                            </div>
-                            <div>
-                                <h3 className="text-2xl font-bold text-white">All-In-One Free</h3>
-                            </div>
-                        </div>
+                {/* Cards Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
+                    {PRO_PLANS.map((plan, index) => {
+                        const features = getPlanFeatures(plan.id);
+                        const isTrial = plan.id === "trial";
+                        const isMonthly = plan.id === "monthly_31";
 
-                        <div className="mb-6">
-                            <div className="flex items-baseline gap-1">
-                                <span className="text-sm font-medium text-muted-foreground mr-1">₹</span>
-                                <span className="text-5xl font-bold text-white tracking-tight">0</span>
-                                <span className="text-sm text-muted-foreground ml-2">Forever</span>
-                            </div>
-                            <p className="mt-2 text-sm text-muted-foreground">
-                                Everything you need to transform your fitness.
-                            </p>
-                        </div>
-
-                        <div className="grid sm:grid-cols-2 gap-4 mb-8">
-                            {freeFeatures.map((feature) => (
-                                <div key={feature} className="flex items-start gap-3">
-                                    <div className="mt-1 p-0.5 rounded-full bg-primary/20">
-                                        <Check className="w-3 h-3 text-primary" />
+                        return (
+                            <motion.div
+                                key={plan.id}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.5, delay: index * 0.1 }}
+                                className={`relative flex flex-col p-8 rounded-2xl border bg-[#0c0d10] ${
+                                    isMonthly 
+                                        ? "border-[#00FF9C] shadow-[0_0_30px_rgba(0,255,156,0.05)]" 
+                                        : "border-zinc-800"
+                                }`}
+                            >
+                                {plan.badge && (
+                                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 bg-[#00FF9C] text-black text-[10px] font-bold rounded uppercase tracking-wider">
+                                        {plan.badge}
                                     </div>
-                                    <span className="text-sm text-gray-300">{feature}</span>
-                                </div>
-                            ))}
-                        </div>
+                                )}
 
-                        <Button
-                            asChild
-                            variant="hero"
-                            size="lg"
-                            className="w-full font-bold shadow-lg shadow-primary/20"
-                        >
-                            <Link to="/auth">
-                                Get Started Free
-                                <ArrowRight className="ml-2 w-4 h-4" />
-                            </Link>
-                        </Button>
-                    </motion.div>
-
-                    {/* Body Transformation Plan Card */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5, delay: 0.1 }}
-                        className="relative flex flex-col p-8 rounded-3xl glass border border-amber-400/40 bg-amber-500/5 shadow-[0_0_40px_rgba(251,191,36,0.1)]"
-                    >
-                        <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-amber-400 text-black text-xs font-bold rounded-full flex items-center gap-1 shadow-[0_0_20px_rgba(251,191,36,0.4)]">
-                            <Star className="w-3 h-3 fill-current" />
-                            MOST POPULAR
-                        </div>
-
-                        <div className="flex items-center gap-4 mb-6">
-                            <div className="p-3 rounded-2xl bg-amber-400">
-                                <Dumbbell className="w-6 h-6 text-black" />
-                            </div>
-                            <div>
-                                <h3 className="text-2xl font-bold text-white font-outfit uppercase tracking-wider">Body Transformation</h3>
-                            </div>
-                        </div>
-
-                        <div className="mb-6">
-                            <div className="flex items-baseline gap-1">
-                                <span className="text-sm font-medium text-muted-foreground mr-1">₹</span>
-                                <span className="text-5xl font-bold text-white tracking-tight">{BODY_TRANSFORMATION_PLAN.price}</span>
-                                <span className="text-sm text-muted-foreground ml-2">/ 40 days</span>
-                            </div>
-                            <p className="mt-2 text-sm text-muted-foreground">
-                                A complete 40-day body overhaul with expert-guided coaching.
-                            </p>
-                        </div>
-
-                        <div className="space-y-4 mb-8 flex-1">
-                            {[
-                                "Custom 40-Day Workout Plan",
-                                "Personalized Nutrition Guide",
-                                "Daily Check-in & Accountability",
-                                "WhatsApp Coach Support",
-                                "Progress Tracking & Adjustments",
-                                "Before & After Analysis"
-                            ].map((feature) => (
-                                <div key={feature} className="flex items-start gap-3">
-                                    <div className="mt-1 p-0.5 rounded-full bg-amber-400/20">
-                                        <Check className="w-3 h-3 text-amber-400" />
+                                <div className="space-y-6 flex-1">
+                                    <div className="space-y-2">
+                                        <h3 className="text-xl font-bold text-white font-outfit uppercase tracking-wider">
+                                            {plan.name}
+                                        </h3>
+                                        <div className="flex items-baseline gap-2">
+                                            <span className="text-4xl font-black text-white">{plan.price}</span>
+                                            {plan.originalPrice && (
+                                                <span className="text-base text-zinc-500 line-through font-normal">{plan.originalPrice}</span>
+                                            )}
+                                            <span className="text-xs text-zinc-400">/ {plan.period}</span>
+                                        </div>
                                     </div>
-                                    <span className="text-sm text-gray-300">{feature}</span>
-                                </div>
-                            ))}
-                        </div>
 
-                        <Button
-                            size="lg"
-                            onClick={() => openPaymentLink(BODY_TRANSFORMATION_PLAN.link)}
-                            className="w-full font-bold bg-amber-400 text-black hover:bg-amber-300 shadow-[0_0_20px_rgba(251,191,36,0.3)]"
-                        >
-                            Start Transformation
-                            <ArrowRight className="ml-2 w-4 h-4" />
-                        </Button>
-                    </motion.div>
+                                    <div className="h-px bg-zinc-800" />
 
-                    {/* Paid Add-on Card: Online Coaching */}
-                    <motion.div
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.5, delay: 0.2 }}
-                        className="relative flex flex-col p-8 rounded-3xl glass border border-[#00FF9C]/30 bg-primary/5"
-                    >
-                        <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-[#00FF9C] text-black text-xs font-bold rounded-full flex items-center gap-1 shadow-[0_0_20px_rgba(0,255,156,0.3)]">
-                            <Sparkles className="w-3 h-3 fill-current" />
-                            EXCLUSIVE ADD-ON
-                        </div>
-
-                        <div className="flex items-center gap-4 mb-6">
-                            <div className="p-3 rounded-2xl bg-[#00FF9C]">
-                                <Video className="w-6 h-6 text-black" />
-                            </div>
-                            <div>
-                                <h3 className="text-2xl font-bold text-white font-outfit uppercase tracking-wider">Online Coaching</h3>
-                            </div>
-                        </div>
-
-                        <div className="mb-6">
-                            <div className="flex items-baseline gap-1">
-                                <span className="text-sm font-medium text-muted-foreground mr-1">₹</span>
-                                <span className="text-5xl font-bold text-white tracking-tight">{COACHING_PLAN.price}</span>
-                                <span className="text-sm text-muted-foreground ml-2">per month</span>
-                            </div>
-                            <p className="mt-2 text-sm text-muted-foreground">
-                                Personalized 1:1 mentorship from elite trainers.
-                            </p>
-                        </div>
-
-                        <div className="space-y-4 mb-8 flex-1">
-                            {[
-                                "Weekly 1:1 Video Consultations",
-                                "Custom Workout Periodization",
-                                "Daily Direct Chat Access",
-                                "Professional Form Analysis",
-                                "Personal Bio-feedback Monitoring"
-                            ].map((feature) => (
-                                <div key={feature} className="flex items-start gap-3">
-                                    <div className="mt-1 p-0.5 rounded-full bg-[#00FF9C]/20">
-                                        <Target className="w-3 h-3 text-[#00FF9C]" />
+                                    {/* Features */}
+                                    <div className="space-y-4">
+                                        {features.map((feature, i) => (
+                                            <div key={i} className="flex items-start gap-3">
+                                                <div className="mt-1 flex-shrink-0 w-4 h-4 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-[#00FF9C]">
+                                                    <Check className="w-2.5 h-2.5" />
+                                                </div>
+                                                <span className="text-xs text-zinc-300">{feature}</span>
+                                            </div>
+                                        ))}
                                     </div>
-                                    <span className="text-sm text-gray-300">{feature}</span>
                                 </div>
-                            ))}
-                        </div>
 
-                        <Button
-                            asChild
-                            variant="outline"
-                            size="lg"
-                            className="w-full font-bold border-[#00FF9C]/30 text-[#00FF9C] hover:bg-[#00FF9C]/10"
-                        >
-                            <Link to="/online-coaching">
-                                View Coaching Details
-                                <ArrowRight className="ml-2 w-4 h-4" />
-                            </Link>
-                        </Button>
-                    </motion.div>
+                                <div className="mt-8">
+                                    <Button
+                                        onClick={() => navigate(`/upgrade?plan=${plan.id}`)}
+                                        className={`w-full h-11 font-bold text-xs uppercase tracking-wider rounded-lg transition-colors ${
+                                            isMonthly 
+                                                ? "bg-[#00FF9C] text-black hover:bg-[#00e08b]" 
+                                                : "border border-zinc-800 bg-transparent text-white hover:bg-zinc-900"
+                                        }`}
+                                    >
+                                        {isTrial ? "Start Free Trial" : "Choose Plan"}
+                                    </Button>
+                                </div>
+                            </motion.div>
+                        );
+                    })}
                 </div>
 
                 {/* FAQ / Trust Section */}
-                <div className="mt-20">
+                <div className="mt-20 border-t border-zinc-900 pt-16">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        <div className="p-6 rounded-2xl bg-white/5 border border-white/10 text-center">
-                            <Shield className="w-8 h-8 mx-auto mb-4 text-blue-400" />
-                            <h4 className="text-lg font-bold text-white mb-2">No Credit Card Required</h4>
-                            <p className="text-sm text-gray-400">Start training immediately with all our core AI features for ₹0.</p>
+                        <div className="p-6 rounded-2xl bg-[#0c0d10] border border-zinc-900 text-center space-y-3">
+                            <Shield className="w-6 h-6 mx-auto text-[#00FF9C]" />
+                            <h4 className="text-base font-bold text-white">Cancel Anytime</h4>
+                            <p className="text-xs text-zinc-400 leading-relaxed">
+                                No commitments or lock-ins. Easily pause or cancel your subscription directly from your settings.
+                            </p>
                         </div>
-                        <div className="p-6 rounded-2xl bg-white/5 border border-white/10 text-center">
-                            <Clock className="w-8 h-8 mx-auto mb-4 text-primary" />
-                            <h4 className="text-lg font-bold text-white mb-2">Unlimited Access</h4>
-                            <p className="text-sm text-gray-400">No session limits or locked features. Full power, all the time.</p>
+                        <div className="p-6 rounded-2xl bg-[#0c0d10] border border-zinc-900 text-center space-y-3">
+                            <Clock className="w-6 h-6 mx-auto text-[#00FF9C]" />
+                            <h4 className="text-base font-bold text-white">Instant Activation</h4>
+                            <p className="text-xs text-zinc-400 leading-relaxed">
+                                Get access immediately. Your Pro tools and features will be unlocked as soon as checkout completes.
+                            </p>
                         </div>
-                        <div className="p-6 rounded-2xl bg-white/5 border border-white/10 text-center">
-                            <Trophy className="w-8 h-8 mx-auto mb-4 text-amber-400" />
-                            <h4 className="text-lg font-bold text-white mb-2">Quality Commitment</h4>
-                            <p className="text-sm text-gray-400">Our coaching add-on comes with a 100% satisfaction guarantee.</p>
+                        <div className="p-6 rounded-2xl bg-[#0c0d10] border border-zinc-900 text-center space-y-3">
+                            <Trophy className="w-6 h-6 mx-auto text-[#00FF9C]" />
+                            <h4 className="text-base font-bold text-white">100% Secure Checkout</h4>
+                            <p className="text-xs text-zinc-400 leading-relaxed">
+                                All transactions are fully encrypted and processed securely via our payments partner Instamojo.
+                            </p>
                         </div>
                     </div>
                 </div>

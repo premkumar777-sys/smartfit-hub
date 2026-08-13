@@ -142,20 +142,25 @@ export function PremiumLock({
                                 <div
                                     key={plan.id}
                                     onClick={() => setSelectedPlan(plan)}
-                                    className={`cursor-pointer rounded-xl p-3 border-2 transition-all relative ${selectedPlan.id === plan.id
-                                        ? "border-[#00FF9C] bg-[#00FF9C]/10 scale-105 shadow-lg shadow-[#00FF9C]/10"
-                                        : "border-white/10 hover:border-white/20 hover:bg-white/5"
+                                    className={`cursor-pointer rounded-xl p-3 border transition-all relative ${selectedPlan.id === plan.id
+                                        ? "border-[#00FF9C] bg-zinc-900"
+                                        : "border-zinc-800 hover:border-zinc-700 bg-zinc-950/40"
                                         }`}
                                 >
                                     {plan.badge && (
-                                        <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#00FF9C] text-black hover:bg-[#00FF9C] px-2 py-0.5 text-[10px] whitespace-nowrap">
+                                        <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#00FF9C] text-black hover:bg-[#00FF9C] px-2 py-0.5 text-[9px] whitespace-nowrap font-bold">
                                             {plan.badge}
                                         </Badge>
                                     )}
                                     <div className="flex flex-col items-center gap-1 mt-1">
-                                        <span className="text-sm font-medium text-gray-300">{plan.name}</span>
-                                        <span className="text-xl font-bold text-white">{plan.price}</span>
-                                        <span className="text-[10px] text-gray-400">{plan.period}</span>
+                                        <span className="text-sm font-bold text-zinc-300">{plan.name}</span>
+                                        <div className="flex items-baseline gap-1.5 justify-center">
+                                            <span className="text-lg font-black text-white">{plan.price}</span>
+                                            {plan.originalPrice && (
+                                                <span className="text-xs text-zinc-500 line-through font-normal">{plan.originalPrice}</span>
+                                            )}
+                                        </div>
+                                        <span className="text-[10px] text-zinc-400">{plan.period}</span>
                                     </div>
                                     {selectedPlan.id === plan.id && (
                                         <div className="absolute top-2 right-2 text-[#00FF9C]">
@@ -170,15 +175,14 @@ export function PremiumLock({
                             <Button
                                 onClick={() => {
                                     toast.success(`Redirecting to upgrade page...`);
-                                    // Redirect to upgrade page
-                                    window.location.href = "/upgrade";
+                                    navigate(`/upgrade?plan=${selectedPlan.id}`);
                                 }}
-                                className="w-full bg-[#00FF9C] hover:bg-[#00FF9C]/90 text-black font-bold h-12 text-lg shadow-[0_0_20px_rgba(0,255,156,0.4)] transition-all hover:scale-[1.02]"
+                                className="w-full bg-[#00FF9C] hover:bg-[#00e08b] text-black font-bold h-12 text-sm uppercase tracking-wider rounded-lg transition-colors"
                             >
                                 Upgrade Now - {selectedPlan.price}
                             </Button>
 
-                            <p className="text-xs text-gray-500">
+                            <p className="text-xs text-zinc-500">
                                 Cancel anytime. Secure payment via Instamojo.
                             </p>
                         </div>
