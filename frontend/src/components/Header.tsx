@@ -102,57 +102,7 @@ const GiveawayBanner = () => {
   );
 };
 
-const EventsBanner = () => {
-  const [visible, setVisible] = useState(true);
-  const [isRegistered, setIsRegistered] = useState(false);
 
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem("smartfit_user_rsvps");
-      const rsvps = saved ? JSON.parse(saved) : [];
-      if (rsvps.includes("ob-fitness-showdown-2026")) {
-        setIsRegistered(true);
-      }
-    } catch {
-      // Ignore
-    }
-  }, []);
-
-  if (!visible) return null;
-  return (
-    <motion.div
-      className="relative z-50 bg-gradient-to-r from-emerald-600 via-primary/95 to-cyan-600 text-white border-b border-white/10 w-full"
-      initial={{ y: -60, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      exit={{ y: -60, opacity: 0 }}
-      transition={{ duration: 0.4 }}
-    >
-      <div className="max-w-7xl mx-auto pl-4 pr-12 py-3 sm:py-2.5 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 text-center relative">
-        <div className="flex items-center justify-center gap-2 flex-wrap">
-          <Trophy className="w-4 h-4 shrink-0 animate-bounce text-amber-300" />
-          <span className="text-xs sm:text-sm font-bold tracking-wide leading-relaxed">
-            {isRegistered 
-              ? "You're registered for the OB Fitness Strength Showdown! Track progress & view standings —" 
-              : "OB Fitness Strength Showdown is LIVE! Register for Pull-ups, Deadlifts, and Bench Press —"}
-          </span>
-          <Link
-            to="/events/ob-fitness"
-            className="inline-flex items-center gap-1 underline underline-offset-2 text-xs sm:text-sm font-black hover:text-white/80 transition-colors shrink-0 ml-1"
-          >
-            {isRegistered ? "View Registration & Leaderboard" : "Register to Compete"} <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
-        </div>
-        <button
-          onClick={() => setVisible(false)}
-          className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-full hover:bg-white/20 transition-colors flex items-center justify-center"
-          aria-label="Close banner"
-        >
-          <X className="w-4 h-4" />
-        </button>
-      </div>
-    </motion.div>
-  );
-};
 
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -243,7 +193,6 @@ export function Header() {
         {showBanners && (
           <div className="pointer-events-auto w-full">
             <GiveawayBanner />
-            <EventsBanner />
           </div>
         )}
         <div className="pointer-events-auto w-full">
