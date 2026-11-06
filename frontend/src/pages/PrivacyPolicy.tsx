@@ -22,7 +22,7 @@ export default function PrivacyPolicy() {
                 </div>
 
                 <p className="text-muted-foreground mb-8">
-                    Last updated: January 19, 2026
+                    Last updated: November 6, 2026
                 </p>
 
                 <div className="prose prose-invert prose-green max-w-none space-y-8">
@@ -39,6 +39,7 @@ export default function PrivacyPolicy() {
                         <ul className="list-disc list-inside text-gray-300 space-y-2">
                             <li><strong>Personal Information:</strong> Name, email address, phone number when you register.</li>
                             <li><strong>Health & Fitness Data:</strong> Workout logs, progress photos, body measurements you voluntarily provide.</li>
+                            <li><strong>Meal Data:</strong> Food photos, meal weights, optional meal details, and nutrition estimates when you use food scanning.</li>
                             <li><strong>Usage Data:</strong> Pages visited, features used, time spent on the platform.</li>
                             <li><strong>Device Information:</strong> Browser type, IP address, device identifiers.</li>
                             <li><strong>Payment Information:</strong> Processed securely through our payment partner (Razorpay). We do not store your card details.</li>
@@ -60,7 +61,7 @@ export default function PrivacyPolicy() {
                     <section>
                         <h2 className="text-xl font-semibold text-white mb-3">4. Data Storage & Security</h2>
                         <p className="text-gray-300 leading-relaxed">
-                            Your data is stored securely using Supabase, a trusted database provider with industry-standard encryption. We implement appropriate technical and organizational measures to protect your personal information against unauthorized access, alteration, or destruction.
+                            Your account and meal records are stored in Supabase. Food photos are stored in private, user-specific storage. When you request a food scan, the photo and optional meal details are sent to Groq for AI analysis; the resulting estimate and photo reference are saved with the confirmed meal. You can delete a logged meal and its photo from Nutrition. We implement appropriate technical and organizational measures to protect your personal information against unauthorized access, alteration, or destruction.
                         </p>
                     </section>
 
@@ -73,6 +74,7 @@ export default function PrivacyPolicy() {
                             <li>Supabase (Authentication & Database)</li>
                             <li>Razorpay (Payment Processing)</li>
                             <li>Google AI / Gemini (AI-powered features)</li>
+                            <li>Groq (food-image analysis when you use the Nutrition scanner)</li>
                         </ul>
                     </section>
 
