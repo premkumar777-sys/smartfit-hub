@@ -57,7 +57,6 @@ interface UserPreferences {
     defaultDuration: number;
     defaultDifficulty: string;
     showOnLeaderboard: boolean;
-    groq_api_key?: string;
 }
 
 const DEFAULT_PREFERENCES: UserPreferences = {
@@ -74,7 +73,6 @@ const DEFAULT_PREFERENCES: UserPreferences = {
     defaultDuration: 30,
     defaultDifficulty: "intermediate",
     showOnLeaderboard: true,
-    groq_api_key: "",
 };
 
 const ACCENT_COLORS = [
@@ -98,8 +96,6 @@ export default function Settings() {
     const [user, setUser] = useState<any>(null);
     const [preferences, setPreferences] = useState<UserPreferences>(DEFAULT_PREFERENCES);
     const [hasChanges, setHasChanges] = useState(false);
-    const [showGroqKey, setShowGroqKey] = useState(false);
-
     // Change password state
     const [showPasswordForm, setShowPasswordForm] = useState(false);
     const [newPassword, setNewPassword] = useState("");
@@ -155,7 +151,9 @@ export default function Settings() {
                     .single();
 
                 if (profile?.preferences) {
-                    const loaded = { ...DEFAULT_PREFERENCES, ...(profile.preferences as any) };
+                    const profilePreferences = { ...(profile.preferences as any) };
+                    delete profilePreferences.groq_api_key;
+                    const loaded = { ...DEFAULT_PREFERENCES, ...profilePreferences };
                     setPreferences(loaded);
                     if (loaded.theme !== currentTheme) setTheme(loaded.theme);
                 }

@@ -149,12 +149,13 @@ cd ..
 
 ### Step 2: Configure Environment Variables
 
-1. **Frontend Environment:** Create a `.env` in the root folder.
+1. **Frontend Environment:** Vite runs from `frontend/`; create `frontend/.env.local` (a root `.env` is not loaded by the current Vite setup). Use real credentials from your Supabase project's **Project Settings → API**; these placeholders will not authenticate.
 ```env
-VITE_SUPABASE_URL=https://your-project-id.supabase.co
-VITE_SUPABASE_ANON_KEY=your-supabase-anonymous-key
+VITE_SUPABASE_URL=https://<project-ref>.supabase.co
+VITE_SUPABASE_ANON_KEY=<publishable-or-anon-key>
 VITE_API_URL=http://localhost:3000
 ```
+Restart the Vite server after editing the file.
 
 2. **Backend Environment:** Create a `.env.local` inside the `backend/` folder.
 ```env
