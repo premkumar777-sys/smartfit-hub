@@ -11,8 +11,10 @@ import {
   ImagePlus,
   Loader2,
   Plus,
+  RefreshCw,
   ScanLine,
   Sparkles,
+  SwitchCamera,
   Trash2,
   Utensils,
   X,
@@ -175,6 +177,10 @@ function MacroProgress({
 export default function Nutrition() {
   const navigate = useNavigate();
   const fileInput = useRef<HTMLInputElement>(null);
+  const cameraInput = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const cameraStreamRef = useRef<MediaStream | null>(null);
+  const cameraRequestId = useRef(0);
   const analysisLock = useRef(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -183,7 +189,15 @@ export default function Nutrition() {
   const [targets, setTargets] = useState({ calories: 2000, protein: 150, carbs: 200, fats: 65 });
   const [dialogOpen, setDialogOpen] = useState(false);
   const [photo, setPhoto] = useState<File | null>(null);
+  const [photoSource, setPhotoSource] = useState<"camera" | "upload" | null>(null);
+  const [imageError, setImageError] = useState("");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
+  const [cameraStatus, setCameraStatus] = useState<"idle" | "loading" | "live" | "error">("idle");
+  const [cameraError, setCameraError] = useState("");
+  const [cameraFacingMode, setCameraFacingMode] = useState<"environment" | "user">("environment");
+  const [cameraDevices, setCameraDevices] = useState<MediaDeviceInfo[]>([]);
+  const [canSwitchCamera, setCanSwitchCamera] = useState(false);
   const [weightGrams, setWeightGrams] = useState("");
   const [context, setContext] = useState("");
   const [category, setCategory] = useState<MealCategory>(categoryForTime);
@@ -228,6 +242,29 @@ export default function Nutrition() {
     setPreviewUrl(url);
     return () => URL.revokeObjectURL(url);
   }, [photo]);
+
+  useEffect(() => {
+    if (!cameraStream) return;
+    const video = videoRef.current;
+    if (video) {
+      video.srcObject = cameraStream;
+      void video.play().catch((error: unknown) => {
+        console.warn("Could not start the camera preview:", error);
+      });
+    }
+    return () => {
+      if (video) video.srcObject = null;
+    };
+  }, [cameraStream]);
+
+  useEffect(
+    () => () => {
+      cameraRequestId.current += 1;
+      cameraStreamRef.current?.getTracks().forEach((track) => track.stop());
+      cameraStreamRef.current = null;
+    },
+    [],
+  );
 
   const loadMeals = useCallback(async (id: string) => {
     setLoading(true);
@@ -345,32 +382,147 @@ export default function Nutrition() {
     if (error) console.error("Temporary meal image cleanup failed:", error.message);
   }, []);
 
+  const stopCamera = useCallback(() => {
+    cameraRequestId.current += 1;
+    cameraStreamRef.current?.getTracks().forEach((track) => track.stop());
+    cameraStreamRef.current = null;
+    setCameraStream(null);
+    setCameraStatus("idle");
+  }, []);
+
   const closeScanner = useCallback(() => {
     if (isAnalyzing || isSaving || estimatingItem) return;
+    stopCamera();
     void clearTemporaryImage(analysis?.imagePath ?? null);
     setDialogOpen(false);
     setPhoto(null);
+    setPhotoSource(null);
+    setImageError("");
+    setCameraError("");
     setWeightGrams("");
     setContext("");
     setCategory(categoryForTime());
     setAnalysis(null);
     setNewFoodName("");
     setNewFoodWeight("");
-  }, [analysis?.imagePath, clearTemporaryImage, estimatingItem, isAnalyzing, isSaving]);
+  }, [analysis?.imagePath, clearTemporaryImage, estimatingItem, isAnalyzing, isSaving, stopCamera]);
 
-  const selectPhoto = (file?: File) => {
+  const selectPhoto = (file: File | undefined, source: "camera" | "upload") => {
     if (!file) return;
     if (!IMAGE_TYPES.includes(file.type)) {
-      toast.error("Choose a JPEG, PNG, or WebP image.");
+      setImageError("Choose a JPEG, PNG, or WebP image. Some camera apps save photos in an unsupported format.");
       return;
     }
     if (file.size > MAX_IMAGE_BYTES) {
-      toast.error("Image must be 8 MB or smaller.");
+      setImageError("Image must be 8 MB or smaller. Choose or capture a smaller image.");
       return;
     }
     if (analysis?.imagePath) void clearTemporaryImage(analysis.imagePath);
+    stopCamera();
+    setImageError("");
     setPhoto(file);
+    setPhotoSource(source);
     setAnalysis(null);
+  };
+
+  const startCamera = async (
+    facingMode: "environment" | "user" = cameraFacingMode,
+    deviceId?: string,
+  ) => {
+    const requestId = ++cameraRequestId.current;
+    cameraStreamRef.current?.getTracks().forEach((track) => track.stop());
+    cameraStreamRef.current = null;
+    setCameraStream(null);
+    setCameraStatus("loading");
+    setCameraError("");
+    setCameraFacingMode(facingMode);
+    setCanSwitchCamera(false);
+
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setCameraStatus("error");
+      setCameraError("Live camera preview isn't supported here. You can still upload a photo.");
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: false,
+        video: deviceId ? { deviceId: { exact: deviceId } } : { facingMode: { ideal: facingMode } },
+      });
+      if (requestId !== cameraRequestId.current) {
+        stream.getTracks().forEach((track) => track.stop());
+        return;
+      }
+
+      cameraStreamRef.current = stream;
+      setCameraStream(stream);
+      setCameraStatus("live");
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const cameras = devices.filter((device) => device.kind === "videoinput");
+        setCameraDevices(cameras);
+        setCanSwitchCamera(cameras.length > 1);
+      } catch (error) {
+        console.warn("Could not list available cameras:", error);
+        setCanSwitchCamera(false);
+      }
+    } catch (error) {
+      if (requestId !== cameraRequestId.current) return;
+      setCameraStatus("error");
+      if (error instanceof DOMException && error.name === "NotAllowedError") {
+        setCameraError("Camera access was denied. Allow camera access in your browser settings, or upload an image instead.");
+      } else if (error instanceof DOMException && error.name === "NotFoundError") {
+        setCameraError("No camera was found on this device. You can upload an image instead.");
+      } else if (error instanceof DOMException && error.name === "NotReadableError") {
+        setCameraError("The camera is already in use by another app. Close it or upload an image instead.");
+      } else {
+        setCameraError("We couldn't start the camera. Check your browser permissions, or upload an image instead.");
+        console.error("Could not start the food scanner camera:", error);
+      }
+    }
+  };
+
+  const takePhoto = () => {
+    if (typeof window !== "undefined" && window.matchMedia("(max-width: 768px), (pointer: coarse)").matches) {
+      cameraInput.current?.click();
+      return;
+    }
+    void startCamera();
+  };
+
+  const capturePhoto = async () => {
+    const video = videoRef.current;
+    if (!video || video.videoWidth === 0 || video.videoHeight === 0) {
+      setCameraError("The camera preview isn't ready yet. Wait a moment and try again.");
+      return;
+    }
+
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const context = canvas.getContext("2d");
+    if (!context) {
+      setCameraError("We couldn't capture this photo. Please try again or upload an image.");
+      return;
+    }
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.92));
+    if (!blob) {
+      setCameraError("We couldn't capture this photo. Please try again or upload an image.");
+      return;
+    }
+
+    stopCamera();
+    selectPhoto(new File([blob], `meal-${Date.now()}.jpg`, { type: "image/jpeg" }), "camera");
+  };
+
+  const clearSelectedPhoto = () => {
+    if (analysis?.imagePath) void clearTemporaryImage(analysis.imagePath);
+    stopCamera();
+    setPhoto(null);
+    setPhotoSource(null);
+    setAnalysis(null);
+    setImageError("");
   };
 
   const analyzeMeal = async (event: FormEvent<HTMLFormElement>) => {
@@ -717,7 +869,10 @@ export default function Nutrition() {
   };
 
   return (
-    <main className="min-h-screen bg-[#080b0a] pb-28 pt-6 text-white selection:bg-[#00e58a]/30">
+    <main
+      className="min-h-screen overflow-x-clip bg-[#080b0a] pb-28 text-white selection:bg-[#00e58a]/30"
+      style={{ paddingTop: "calc(var(--header-height, 5rem) + 1.5rem)" }}
+    >
       <Container className="relative z-10 max-w-5xl px-4 sm:px-6">
         <header className="mb-8 flex flex-col gap-5 rounded-3xl border border-white/10 bg-[#101412] p-5 sm:flex-row sm:items-center sm:justify-between sm:p-7">
           <div className="flex items-center gap-4">
@@ -932,7 +1087,7 @@ export default function Nutrition() {
           else closeScanner();
         }}
       >
-        <DialogContent className="max-h-[92vh] max-w-2xl overflow-y-auto border-white/10 bg-[#101412] p-0 text-white">
+        <DialogContent className="max-h-[92dvh] w-[calc(100vw-1rem)] max-w-2xl overflow-y-auto border-white/10 bg-[#101412] p-0 text-white">
           <div className="p-5 sm:p-7">
             <DialogHeader className="mb-6 pr-7 text-left">
               <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-[#00e58a]/10 text-[#00e58a]"><ScanLine className="h-5 w-5" /></div>
@@ -946,29 +1101,132 @@ export default function Nutrition() {
               <form onSubmit={analyzeMeal} className="space-y-5">
                 <div>
                   <label className="mb-2 block text-sm font-medium">Food image</label>
-                  {previewUrl ? (
-                    <div className="relative overflow-hidden rounded-2xl border border-white/10">
-                      <img src={previewUrl} alt="Meal preview" className="max-h-64 w-full object-cover" />
-                      <div className="absolute right-3 top-3 flex gap-2">
-                        <Button type="button" variant="secondary" onClick={() => fileInput.current?.click()} className="h-9 bg-black/75 text-white hover:bg-black"><ImagePlus className="mr-1 h-4 w-4" />Replace</Button>
-                        <Button type="button" variant="secondary" onClick={() => { setPhoto(null); setAnalysis(null); }} className="h-9 bg-black/75 text-white hover:bg-black" aria-label="Remove image"><X className="h-4 w-4" /></Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <button type="button" onClick={() => fileInput.current?.click()} className="flex min-h-44 w-full flex-col items-center justify-center rounded-2xl border border-dashed border-white/20 bg-black/20 px-5 py-7 text-center hover:border-[#00e58a]/50 hover:bg-[#00e58a]/[0.03]">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/[0.06] text-[#00e58a]"><Camera className="h-6 w-6" /></div>
-                      <span className="mt-3 font-semibold">Add a meal photo</span>
-                      <span className="mt-1 text-xs text-white/45">JPEG, PNG, or WebP · up to 8 MB</span>
-                    </button>
-                  )}
+                  <div className="mb-4 grid gap-3 sm:grid-cols-2">
+                    <Button
+                      type="button"
+                      disabled={isAnalyzing || cameraStatus === "loading" || cameraStatus === "live"}
+                      onClick={takePhoto}
+                      className="h-14 rounded-xl bg-[#00e58a] font-bold text-black hover:bg-[#00cc7a] disabled:opacity-50"
+                    >
+                      {cameraStatus === "loading" ? (
+                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      ) : (
+                        <Camera className="mr-2 h-5 w-5" />
+                      )}
+                      Take a Photo
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={isAnalyzing}
+                      onClick={() => fileInput.current?.click()}
+                      className="h-14 rounded-xl border-white/15 bg-white/[0.03] font-semibold text-white hover:bg-white/10"
+                    >
+                      <ImagePlus className="mr-2 h-5 w-5 text-[#00e58a]" />
+                      Upload Image
+                    </Button>
+                  </div>
                   <input
                     ref={fileInput}
                     type="file"
                     accept="image/jpeg,image/png,image/webp"
-                    capture="environment"
-                    onChange={(event) => selectPhoto(event.target.files?.[0])}
+                    onChange={(event) => {
+                      selectPhoto(event.target.files?.[0], "upload");
+                      event.currentTarget.value = "";
+                    }}
                     className="sr-only"
                   />
+                  <input
+                    ref={cameraInput}
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    onChange={(event) => {
+                      selectPhoto(event.target.files?.[0], "camera");
+                      event.currentTarget.value = "";
+                    }}
+                    className="sr-only"
+                  />
+                  {cameraStatus === "loading" && (
+                    <div className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-black/20 p-4 text-sm text-white/70">
+                      <span className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin text-[#00e58a]" />Waiting for camera permission…</span>
+                      <Button type="button" variant="ghost" onClick={stopCamera} className="text-white/70 hover:text-white">Cancel</Button>
+                    </div>
+                  )}
+                  {cameraError && cameraStatus !== "idle" && (
+                    <div role="alert" className="mb-4 flex flex-col gap-3 rounded-xl border border-amber-300/20 bg-amber-100/[0.04] p-4 text-sm text-amber-100 sm:flex-row sm:items-center sm:justify-between">
+                      <span>{cameraError}</span>
+                      <Button type="button" variant="outline" onClick={() => fileInput.current?.click()} className="shrink-0 border-white/15 text-white hover:bg-white/10">
+                        <ImagePlus className="mr-2 h-4 w-4" />Upload Image
+                      </Button>
+                    </div>
+                  )}
+                  {cameraStatus === "live" && (
+                    <div className="mb-4 overflow-hidden rounded-2xl border border-white/10 bg-black">
+                      <video ref={videoRef} autoPlay muted playsInline aria-label="Live meal camera preview" className="max-h-[50dvh] min-h-48 w-full object-contain" />
+                      <div className="flex items-center justify-between gap-3 border-t border-white/10 p-3">
+                        <Button type="button" variant="ghost" onClick={stopCamera} className="text-white/70 hover:text-white">
+                          <X className="mr-2 h-4 w-4" />Close camera
+                        </Button>
+                        <div className="flex items-center gap-2">
+                          {canSwitchCamera && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              aria-label="Switch camera"
+                              onClick={() => {
+                                const currentDeviceId = cameraStreamRef.current
+                                  ?.getVideoTracks()[0]
+                                  ?.getSettings().deviceId;
+                                const currentIndex = cameraDevices.findIndex((device) => device.deviceId === currentDeviceId);
+                                const nextDevice = cameraDevices[(currentIndex + 1) % cameraDevices.length];
+                                void startCamera(
+                                  cameraFacingMode === "environment" ? "user" : "environment",
+                                  nextDevice?.deviceId,
+                                );
+                              }}
+                              className="h-10 w-10 border-white/15 p-0 text-white hover:bg-white/10"
+                            >
+                              <SwitchCamera className="h-4 w-4" />
+                            </Button>
+                          )}
+                          <Button type="button" onClick={() => void capturePhoto()} className="h-10 rounded-xl bg-[#00e58a] px-4 font-bold text-black hover:bg-[#00cc7a]">
+                            <Camera className="mr-2 h-4 w-4" />Capture
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {imageError && (
+                    <p role="alert" className="mb-3 flex items-center gap-2 text-sm text-red-300">
+                      <AlertCircle className="h-4 w-4 shrink-0" />{imageError}
+                    </p>
+                  )}
+                  {previewUrl ? (
+                    <div className="relative overflow-hidden rounded-2xl border border-white/10">
+                      <img src={previewUrl} alt="Selected meal preview" className="max-h-64 w-full object-contain" />
+                      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-white/10 p-3">
+                        <span className="text-xs text-white/50">{photoSource === "camera" ? "Photo captured" : "Image uploaded"}</span>
+                        <div className="flex flex-wrap gap-2">
+                          {photoSource === "camera" && (
+                            <Button type="button" variant="secondary" disabled={cameraStatus === "loading" || cameraStatus === "live"} onClick={takePhoto} className="h-9 bg-black/75 text-white hover:bg-black">
+                              <RefreshCw className="mr-1 h-4 w-4" />Retake photo
+                            </Button>
+                          )}
+                          <Button type="button" variant="secondary" onClick={clearSelectedPhoto} className="h-9 bg-black/75 text-white hover:bg-black">
+                            <ImagePlus className="mr-1 h-4 w-4" />Replace
+                          </Button>
+                          <Button type="button" variant="secondary" onClick={clearSelectedPhoto} className="h-9 bg-black/75 text-white hover:bg-black" aria-label="Remove image">
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : cameraStatus !== "live" && (
+                    <p className="rounded-xl border border-dashed border-white/15 bg-black/20 px-4 py-3 text-center text-xs text-white/45">
+                      JPEG, PNG, or WebP · up to 8 MB
+                    </p>
+                  )}
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2">
@@ -997,7 +1255,7 @@ export default function Nutrition() {
                   />
                 </label>
 
-                <Button type="submit" disabled={isAnalyzing || !photo} className="h-12 w-full rounded-xl bg-[#00e58a] font-bold text-black hover:bg-[#00cc7a] disabled:opacity-50">
+                <Button type="submit" disabled={isAnalyzing || !photo || cameraStatus === "loading" || cameraStatus === "live"} className="h-12 w-full rounded-xl bg-[#00e58a] font-bold text-black hover:bg-[#00cc7a] disabled:opacity-50">
                   {isAnalyzing ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Analyzing your meal…</> : <><Sparkles className="mr-2 h-4 w-4" />Analyze My Meal</>}
                 </Button>
                 {isAnalyzing && <p className="text-center text-xs text-white/45">Identifying foods and estimating nutrients. This can take a few seconds.</p>}
