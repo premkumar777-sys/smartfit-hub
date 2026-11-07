@@ -33,7 +33,7 @@ export default function CookieConsent() {
                     animate={{ y: 0, opacity: 1 }}
                     exit={{ y: 50, opacity: 0 }}
                     transition={{ type: "spring", stiffness: 100, damping: 15 }}
-                    className="fixed bottom-24 left-4 right-4 sm:bottom-6 sm:left-6 sm:right-auto z-50 p-0 w-auto sm:w-[380px] pointer-events-none"
+                    className="fixed bottom-40 left-4 right-4 sm:bottom-6 sm:left-6 sm:right-auto z-50 p-0 w-auto sm:w-[380px] pointer-events-none"
                 >
                     <div className="w-full bg-[#0a0a0a]/95 border border-white/10 backdrop-blur-xl rounded-2xl p-5 shadow-[10px_-10px_50px_rgba(0,180,255,0.15)] flex flex-col gap-4 pointer-events-auto relative overflow-hidden">
                         {/* Glow effect */}
