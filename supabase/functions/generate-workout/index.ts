@@ -126,6 +126,34 @@ Format the plan clearly with markdown headings and bullet points.
 Keep it practical, achievable, and motivating.`;
         }
 
+        // Query Groq models dynamically to use an active model for this key
+        let selectedModel = Deno.env.get("GROQ_MODEL") || "llama-3.3-70b-versatile";
+        let availableModels: string[] = [];
+
+        try {
+            const modelsRes = await fetch("https://api.groq.com/openai/v1/models", {
+                headers: { "Authorization": `Bearer ${GROQ_API_KEY}` }
+            });
+            if (modelsRes.ok) {
+                const modelsJson = await modelsRes.json();
+                availableModels = (modelsJson.data || []).map((m: any) => m.id);
+                console.log("Available Groq models:", availableModels);
+                
+                if (availableModels.length > 0 && !availableModels.includes(selectedModel)) {
+                    const preferred = availableModels.find((id: string) => id.includes("llama-3.3") || id.includes("llama3") || id.includes("70b"))
+                                   || availableModels.find((id: string) => id.includes("llama") || id.includes("mixtral") || id.includes("qwen") || id.includes("gpt"))
+                                   || availableModels.find((id: string) => !id.includes("whisper") && !id.includes("guard"))
+                                   || availableModels[0];
+                    if (preferred) {
+                        console.log(`Auto-selected model from ${selectedModel} to ${preferred}`);
+                        selectedModel = preferred;
+                    }
+                }
+            }
+        } catch (e) {
+            console.warn("Could not query Groq models list:", e);
+        }
+
         // Call Groq API
         const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
             method: "POST",
@@ -134,7 +162,7 @@ Keep it practical, achievable, and motivating.`;
                 "Content-Type": "application/json",
             },
             body: JSON.stringify({
-                model: Deno.env.get("GROQ_MODEL") || "llama-3.3-70b-versatile",
+                model: selectedModel,
                 messages: [
                     { role: "system", content: systemMessage },
                     { role: "user", content: prompt }
@@ -152,8 +180,10 @@ Keep it practical, achievable, and motivating.`;
                 detailedError = parsed?.error?.message || errorText;
             } catch (_) {}
 
+            const modelsNote = availableModels.length > 0 ? ` (Available: ${availableModels.join(', ')})` : '';
+
             return new Response(
-                JSON.stringify({ error: `Groq error (${response.status}): ${detailedError}` }),
+                JSON.stringify({ error: `Groq error (${response.status}) on ${selectedModel}: ${detailedError}${modelsNote}` }),
                 { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
             );
         }
