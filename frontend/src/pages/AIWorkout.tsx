@@ -82,14 +82,24 @@ const AIWorkout = () => {
         },
       });
 
-      // Check for error in response data (Edge Function returns error in data when status is non-2xx)
+      // Check for error in response
       if (error) {
-        // Try to get detailed error from data
-        const errorMessage = data?.error || error.message || "Failed to generate workout";
+        let serverMessage = data?.error;
+        if (!serverMessage && 'context' in error && error.context) {
+          try {
+            const body = await (error.context as any).json();
+            serverMessage = body?.error || body?.message;
+          } catch (_) {
+            try {
+              serverMessage = await (error.context as any).text();
+            } catch (_) {}
+          }
+        }
+        const errorMessage = serverMessage || data?.error || error.message || "Failed to generate workout";
         throw new Error(errorMessage);
       }
 
-      // Also check if data contains an error field (happens with 4xx/5xx responses)
+      // Also check if data contains an error field
       if (data?.error) {
         throw new Error(data.error);
       }
@@ -106,8 +116,11 @@ const AIWorkout = () => {
       console.error("Error generating workout:", err);
       const errorMessage = err instanceof Error ? err.message : "";
       
-      // If it is a 401 or Edge Function non-2xx error, it's likely auth-related
-      if (errorMessage.includes("non-2xx") || errorMessage.includes("401") || errorMessage.includes("status code 4")) {
+      const isAuthError = errorMessage.toLowerCase().includes("invalid token") || 
+                          errorMessage.toLowerCase().includes("user not found") ||
+                          errorMessage.toLowerCase().includes("missing authorization");
+
+      if (isAuthError) {
         toast.error("Please sign in or create an account to generate a personalized workout plan.");
         navigate("/auth", { state: { returnUrl: "/ai-workout" } });
       } else {
