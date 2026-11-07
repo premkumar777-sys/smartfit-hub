@@ -88,7 +88,7 @@ const AIWorkout = () => {
         if (!serverMessage && 'context' in error && error.context) {
           try {
             const body = await (error.context as any).json();
-            serverMessage = body?.error || body?.message;
+            serverMessage = body?.error || body?.details || body?.message;
           } catch (_) {
             try {
               serverMessage = await (error.context as any).text();

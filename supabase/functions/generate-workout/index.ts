@@ -144,24 +144,16 @@ Keep it practical, achievable, and motivating.`;
 
         if (!response.ok) {
             const errorText = await response.text();
-            console.error("Lovable AI error:", response.status, errorText);
+            console.error("Groq error:", response.status, errorText);
 
-            if (response.status === 429) {
-                return new Response(
-                    JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
-                    { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-                );
-            }
-
-            if (response.status === 402) {
-                return new Response(
-                    JSON.stringify({ error: "AI credits exhausted. Please add credits to your workspace." }),
-                    { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-                );
-            }
+            let detailedError = errorText;
+            try {
+                const parsed = JSON.parse(errorText);
+                detailedError = parsed?.error?.message || errorText;
+            } catch (_) {}
 
             return new Response(
-                JSON.stringify({ error: "Failed to generate workout plan. Please try again.", details: errorText }),
+                JSON.stringify({ error: `Groq error (${response.status}): ${detailedError}` }),
                 { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
             );
         }
