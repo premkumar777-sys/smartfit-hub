@@ -55,6 +55,7 @@ const ObFitnessChallenge = lazy(() => import("./pages/ObFitnessChallenge"));
 const EventsAdmin = lazy(() => import("./pages/EventsAdmin"));
 const Events = lazy(() => import("./pages/Events"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const GoalSelection = lazy(() => import("./pages/onboarding/GoalSelection"));
 
 import { SplashScreen } from "@/components/SplashScreen";
 import { BottomNavigation } from "@/components/BottomNavigation";
@@ -84,7 +85,8 @@ const AppContent = () => {
 
   const isAuthPage = location.pathname === "/auth";
   const isWorkoutSessionPage = location.pathname === "/workout-session";
-  const hideLayout = isAuthPage || isWorkoutSessionPage;
+  const isOnboardingPage = location.pathname.startsWith("/onboarding");
+  const hideLayout = isAuthPage || isWorkoutSessionPage || isOnboardingPage;
 
   const isConfigMissing = !import.meta.env.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL === 'https://placeholder.supabase.co';
 
@@ -197,6 +199,9 @@ const AppContent = () => {
               <Route path="/events/admin" element={<EventsAdmin />} />
               <Route path="/admin" element={<EventsAdmin />} />
               <Route path="/events" element={<Events />} />
+              {/* Onboarding */}
+              <Route path="/onboarding/goals" element={<GoalSelection />} />
+
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

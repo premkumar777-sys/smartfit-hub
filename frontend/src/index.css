@@ -2,6 +2,49 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─── SmartFit Design Tokens ────────────────────────────────────────────────
+   Flat, mobile-first design system. No gradients, glow, or heavy shadows.
+   Hex-based tokens live as --sf-* vars; HSL shadcn tokens below are kept for
+   existing components and must not be removed.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* Light theme (default) */
+:root {
+  --sf-bg:            #F7F5F0;
+  --sf-surface:       #FFFFFF;
+  --sf-tint:          #EAF1EC;
+  --sf-border:        #E3E0D8;
+  --sf-text:          #16211C;
+  --sf-text-2:        #4A554F;
+  --sf-primary:       #1F7A5A;
+  --sf-primary-pressed: #176147;
+  --sf-on-primary:    #FFFFFF;
+  --sf-warning:       #B7791F;
+  --sf-error:         #C53030;
+
+  /* z-index scale */
+  --z-content:  1;
+  --z-bars:     40;
+  --z-sheets:   50;
+  --z-modals:   60;
+  --z-toasts:   70;
+}
+
+/* Dark theme */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --sf-bg:            #101412;
+    --sf-surface:       #181D1A;
+    --sf-tint:          #1F2722;
+    --sf-border:        #2A312D;
+    --sf-text:          #EEF2EF;
+    --sf-text-2:        #A3ADA7;
+    --sf-primary:       #4CC38A;
+    --sf-primary-pressed: #3DAF78;
+    --sf-on-primary:    #0B1A12;
+  }
+}
+
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
 All colors MUST be HSL.
 */
