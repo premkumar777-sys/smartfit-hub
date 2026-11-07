@@ -134,7 +134,7 @@ Keep it practical, achievable, and motivating.`;
                 "Content-Type": "application/json",
             },
             body: JSON.stringify({
-                model: "llama-3.1-8b-instant",
+                model: Deno.env.get("GROQ_MODEL") || "llama-3.3-70b-versatile",
                 messages: [
                     { role: "system", content: systemMessage },
                     { role: "user", content: prompt }
