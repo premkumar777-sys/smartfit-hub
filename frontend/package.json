@@ -82,7 +82,6 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.32.0",
-    "@rolldown/binding-darwin-arm64": "^1.1.4",
     "@tailwindcss/typography": "^0.5.16",
     "@types/node": "^22.16.5",
     "@types/react": "^18.3.23",
@@ -108,6 +107,7 @@
     "three-mesh-bvh": "^0.8.0"
   },
   "optionalDependencies": {
-    "@rolldown/binding-linux-x64-gnu": "^1.2.0"
+    "@rolldown/binding-darwin-arm64": "^1.1.4",
+    "@rolldown/binding-linux-x64-gnu": "^1.1.4"
   }
 }
