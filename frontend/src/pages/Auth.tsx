@@ -237,6 +237,9 @@ export default function Auth() {
   // Standard Email/Password Login
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
     setIsLoading(true);
 
     const formData = new FormData(e.currentTarget);
@@ -318,6 +321,9 @@ export default function Auth() {
   // Custom Signup Trigger - OTP Verification Step 1
   const handleSignupSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
     setIsLoading(true);
 
     const formData = new FormData(e.currentTarget);
@@ -380,6 +386,9 @@ export default function Auth() {
   // Custom Signup verification - OTP Verification Step 2
   const handleVerifySignupOtp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
     if (!pendingSignupData) return;
     setIsLoading(true);
 
@@ -458,6 +467,9 @@ export default function Auth() {
   // OTP Login Trigger - Step 1: Send OTP
   const handleSendLoginOtp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
     setIsLoading(true);
 
     const formData = new FormData(e.currentTarget);
@@ -492,6 +504,9 @@ export default function Auth() {
   // OTP Login Trigger - Step 2: Verify OTP
   const handleVerifyLoginOtp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
     setIsLoading(true);
 
     try {
@@ -530,6 +545,9 @@ export default function Auth() {
   // Forgot Password Link Trigger
   const handleForgotPasswordSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
     setIsLoading(true);
 
     const formData = new FormData(e.currentTarget);

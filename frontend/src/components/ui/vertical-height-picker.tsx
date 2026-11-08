@@ -22,15 +22,36 @@ export function VerticalHeightPicker({
   step = 1,
   className,
 }: VerticalHeightPickerProps) {
+  const stageRef = useRef<HTMLDivElement>(null);
   const rulerContainerRef = useRef<HTMLDivElement>(null);
   const isScrollingByCode = useRef(false);
   const scrollTimeout = useRef<number | null>(null);
+
+  // Dynamically measured stage height to fit full screen on any device
+  const [stageHeight, setStageHeight] = useState(480);
 
   // Live float value for butter-smooth dragging
   const [liveValue, setLiveValue] = useState<number>(value);
   const [isDragging, setIsDragging] = useState(false);
   const dragStartY = useRef(0);
   const dragStartVal = useRef(value);
+
+  // Measure stage element dynamically so it fills mobile screen to the bottom
+  useEffect(() => {
+    const el = stageRef.current;
+    if (!el) return;
+
+    const updateHeight = () => {
+      if (el.clientHeight > 200) {
+        setStageHeight(el.clientHeight);
+      }
+    };
+    updateHeight();
+
+    const ro = new ResizeObserver(updateHeight);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   // Sync external value changes when not actively dragging
   useEffect(() => {
@@ -39,11 +60,11 @@ export function VerticalHeightPicker({
     }
   }, [value, isDragging]);
 
-  // Stage geometry
-  const STAGE_HEIGHT = 400;
-  const FLOOR_Y = 375;
-  const MIN_ATHLETE_H = 150;
-  const MAX_ATHLETE_H = 315;
+  // Stage geometry: Grounded at bottom of screen
+  const BOTTOM_PADDING = 8;
+  const FLOOR_Y = stageHeight - BOTTOM_PADDING;
+  const MIN_ATHLETE_H = Math.max(160, Math.round(stageHeight * 0.40));
+  const MAX_ATHLETE_H = Math.max(280, Math.round(stageHeight * 0.82));
   const TICK_HEIGHT = 7;
   const PADDING_TOP = 250;
 
@@ -151,11 +172,11 @@ export function VerticalHeightPicker({
   };
 
   return (
-    <div className={cn("w-full flex flex-col items-center select-none", className)}>
+    <div className={cn("w-full flex-1 flex flex-col items-center min-h-0 select-none", className)}>
       {/* ── Unit toggle (FT / CM) ── */}
       {onUnitsChange && (
         <div
-          className="flex rounded-full p-1 mb-4"
+          className="flex rounded-full p-1 mb-2.5 shrink-0"
           style={{ backgroundColor: "var(--sf-tint)" }}
           role="group"
           aria-label="Height unit"
@@ -197,20 +218,20 @@ export function VerticalHeightPicker({
         </div>
       )}
 
-      {/* ── Main Stage (Touch anywhere to drag smoothly) ── */}
+      {/* ── Main Stage (Fills available screen height right down to Save button) ── */}
       <div
+        ref={stageRef}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
-        className="relative w-full rounded-2xl border overflow-hidden flex items-start justify-between cursor-ns-resize touch-none"
+        className="relative w-full flex-1 min-h-[360px] rounded-2xl border overflow-hidden flex items-start justify-between cursor-ns-resize touch-none"
         style={{
-          height: `${STAGE_HEIGHT}px`,
           backgroundColor: "var(--sf-surface)",
           borderColor: "var(--sf-border)",
         }}
       >
-        {/* Yellow Horizontal Indicator Line (Moves smoothly with headY) */}
+        {/* Horizontal Indicator Line & Readout (Moves smoothly with headY) */}
         <div
           className="absolute inset-x-0 z-20 pointer-events-none"
           style={{
@@ -219,17 +240,17 @@ export function VerticalHeightPicker({
             willChange: "top",
           }}
         >
-          {/* Readout sitting directly ABOVE the yellow line */}
-          <div className="absolute left-6 bottom-[3px] flex items-baseline gap-1 pointer-events-none select-none">
+          {/* Readout sitting directly ABOVE the green line */}
+          <div className="absolute left-5 bottom-[3px] flex items-baseline gap-1 pointer-events-none select-none">
             <span
-              className="text-5xl font-black tracking-tight leading-none"
+              className="text-4xl sm:text-5xl font-black tracking-tight leading-none"
               style={{ color: "var(--sf-text)" }}
             >
               {displayValue}
             </span>
             {displayUnit && (
               <span
-                className="text-lg font-bold ml-0.5"
+                className="text-base sm:text-lg font-bold ml-0.5"
                 style={{ color: "var(--sf-text-2)" }}
               >
                 {displayUnit}
@@ -247,23 +268,21 @@ export function VerticalHeightPicker({
           />
         </div>
 
-        {/* Scaled Athlete Figure: Smoothly expands/shrinks with headY */}
+        {/* Scaled Athlete Figure: Grounded at bottom, rises upward from mobile screen bottom */}
         <div className="relative flex-1 h-full overflow-hidden select-none pointer-events-none">
           <div
             className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center pointer-events-none select-none"
             style={{
-              top: `${headY + 2}px`,
+              bottom: `${BOTTOM_PADDING}px`,
               height: `${athleteHeight}px`,
-              transition: isDragging ? "none" : "top 0.15s cubic-bezier(0.2, 0, 0, 1), height 0.15s cubic-bezier(0.2, 0, 0, 1)",
-              willChange: "top, height",
-              maskImage: "linear-gradient(to bottom, black 80%, transparent 100%)",
-              WebkitMaskImage: "linear-gradient(to bottom, black 80%, transparent 100%)",
+              transition: isDragging ? "none" : "height 0.15s cubic-bezier(0.2, 0, 0, 1)",
+              willChange: "height",
             }}
           >
             <img
               src="/height-athlete.png"
               alt="Height visual indicator"
-              className="h-full w-auto object-top object-contain select-none pointer-events-none"
+              className="h-full w-auto object-bottom object-contain select-none pointer-events-none"
               draggable={false}
             />
           </div>
@@ -273,13 +292,13 @@ export function VerticalHeightPicker({
         <div className="relative w-24 h-full shrink-0 z-10 pointer-events-none">
           {/* Top & Bottom fade gradients */}
           <div
-            className="absolute top-0 inset-x-0 h-12 pointer-events-none z-20"
+            className="absolute top-0 inset-x-0 h-10 pointer-events-none z-20"
             style={{
               background: "linear-gradient(to bottom, var(--sf-surface), transparent)",
             }}
           />
           <div
-            className="absolute bottom-0 inset-x-0 h-12 pointer-events-none z-20"
+            className="absolute bottom-0 inset-x-0 h-10 pointer-events-none z-20"
             style={{
               background: "linear-gradient(to top, var(--sf-surface), transparent)",
             }}
@@ -341,7 +360,7 @@ export function VerticalHeightPicker({
             </div>
 
             {/* Bottom spacer so minimum tick (120 cm / 3' 11") can scroll all the way up to the indicator line */}
-            <div className="shrink-0 w-full" style={{ height: "450px" }} />
+            <div className="shrink-0 w-full" style={{ height: `${stageHeight + 100}px` }} />
           </div>
         </div>
       </div>

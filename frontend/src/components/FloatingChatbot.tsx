@@ -266,7 +266,7 @@ export const FloatingChatbot = () => {
       <motion.button
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "fixed bottom-24 right-4 lg:bottom-6 lg:right-6 z-[60] w-12 h-12 lg:w-16 lg:h-16 rounded-xl lg:rounded-2xl flex items-center justify-center",
+          "fixed bottom-[calc(4.75rem+env(safe-area-inset-bottom,0px))] right-4 lg:bottom-6 lg:right-6 z-[60] w-12 h-12 lg:w-16 lg:h-16 rounded-xl lg:rounded-2xl flex items-center justify-center",
           "bg-[#0a0a0a]/90 border border-white/10 backdrop-blur-md shadow-2xl",
           isOpen && "scale-0 opacity-0 rotate-180"
         )}

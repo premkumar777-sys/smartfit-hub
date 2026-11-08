@@ -40,15 +40,11 @@ export function BottomNavigation() {
   if (isLoading || !isAuthenticated) return null;
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-50 lg:hidden pb-safe">
-      <div 
-        className={cn(
-          "w-full h-16 px-4 flex items-center justify-around",
-          "bg-[#0a0a0a]/85 backdrop-blur-xl border border-white/10 rounded-2xl",
-          "shadow-[0_8px_32px_0_rgba(0,0,0,0.6)]",
-          "transition-all duration-300"
-        )}
-      >
+    <nav 
+      className="fixed bottom-0 left-0 right-0 w-full z-50 lg:hidden bg-[#0a0a0a]/95 backdrop-blur-xl border-t border-white/10 shadow-[0_-4px_24px_rgba(0,0,0,0.6)]"
+      style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
+    >
+      <div className="w-full max-w-md mx-auto h-16 px-2 flex items-center justify-between">
         {navigationItems.map((item) => {
           const isActive =
             location.pathname === item.href ||
@@ -61,23 +57,23 @@ export function BottomNavigation() {
             <Link
               key={item.href}
               to={item.href}
-              className="relative flex flex-col items-center justify-center flex-1 h-full py-1 text-xs font-medium transition-all active:scale-90"
+              className="relative flex flex-col items-center justify-center flex-1 min-w-0 h-full py-1 text-xs font-medium transition-all active:scale-90"
               aria-label={item.label}
             >
               <div 
                 className={cn(
-                  "relative flex flex-col items-center justify-center gap-1 transition-all duration-300",
-                  isActive ? "text-primary scale-110 drop-shadow-[0_0_8px_rgba(0,255,156,0.3)]" : "text-gray-400 hover:text-white"
+                  "relative flex flex-col items-center justify-center gap-1 transition-all duration-300 w-full min-w-0 px-1",
+                  isActive ? "text-[#4CC38A] scale-105 drop-shadow-[0_0_8px_rgba(76,195,138,0.3)]" : "text-gray-400 hover:text-white"
                 )}
               >
-                <Icon className="w-5 h-5 transition-transform" />
-                <span className="text-[10px] tracking-tight">{item.label}</span>
+                <Icon className="w-5 h-5 transition-transform shrink-0" />
+                <span className="text-[10px] tracking-tight truncate max-w-full block leading-none">{item.label}</span>
               </div>
 
               {isActive && (
                 <motion.div
                   layoutId="bottom-nav-indicator"
-                  className="absolute bottom-1 w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_8px_#00FF9C]"
+                  className="absolute bottom-1 w-1.5 h-1.5 rounded-full bg-[#4CC38A] shadow-[0_0_8px_#4CC38A]"
                   transition={{ type: "spring", stiffness: 380, damping: 30 }}
                 />
               )}
@@ -85,6 +81,6 @@ export function BottomNavigation() {
           );
         })}
       </div>
-    </div>
+    </nav>
   );
 }
