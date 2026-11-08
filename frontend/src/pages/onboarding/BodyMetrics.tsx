@@ -351,7 +351,7 @@ export default function BodyMetrics() {
       </header>
 
       {/* Main Picker Content */}
-      <main className="flex-1 flex flex-col items-center justify-start px-4 pt-1 pb-2 w-full max-w-md mx-auto min-h-0 overflow-hidden">
+      <main className="flex-1 flex flex-col items-center justify-start px-4 pt-2 pb-6 w-full max-w-md mx-auto">
         {/* AGE PICKER */}
         {view === "age" && (
           <div className="w-full flex flex-col items-center animate-in fade-in duration-200">
@@ -375,15 +375,15 @@ export default function BodyMetrics() {
 
         {/* HEIGHT PICKER */}
         {view === "height" && (
-          <div className="w-full flex-1 flex flex-col items-center min-h-0 animate-in fade-in duration-200">
+          <div className="w-full flex flex-col items-center animate-in fade-in duration-200">
             <h1
-              className="text-2xl sm:text-3xl font-extrabold tracking-tight text-center mb-0.5 shrink-0"
+              className="text-2xl sm:text-3xl font-extrabold tracking-tight text-center mb-1"
               style={{ color: "var(--sf-text)" }}
             >
               Your height
             </h1>
             <p
-              className="text-xs sm:text-sm text-center mb-2 leading-relaxed max-w-xs shrink-0"
+              className="text-xs sm:text-sm text-center mb-4 leading-relaxed max-w-xs"
               style={{ color: "var(--sf-text-2)" }}
             >
               Height information helps us calculate your BMI more accurately
@@ -395,7 +395,6 @@ export default function BodyMetrics() {
               onUnitsChange={(newU) => handleUnitSystemToggle(newU)}
               min={120}
               max={220}
-              className="flex-1 w-full min-h-0"
             />
           </div>
         )}
@@ -428,7 +427,7 @@ export default function BodyMetrics() {
 
       {/* Save Button to Return to Overview */}
       <footer
-        className="w-full max-w-md mx-auto px-4 pb-4 pt-2 shrink-0"
+        className="w-full max-w-md mx-auto px-4 pb-4 pt-2"
         style={{
           paddingBottom: "calc(env(safe-area-inset-bottom) + 14px)",
         }}
