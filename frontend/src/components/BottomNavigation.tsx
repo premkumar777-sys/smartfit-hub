@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Compass, PlusCircle, LineChart, User } from "lucide-react";
+import { LayoutDashboard, Compass, PlusCircle, LineChart, Settings } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
@@ -26,9 +26,9 @@ const navigationItems = [
     icon: LineChart,
   },
   {
-    label: "Profile",
-    href: "/app/profile",
-    icon: User,
+    label: "Settings",
+    href: "/settings",
+    icon: Settings,
   },
 ];
 
@@ -50,7 +50,13 @@ export function BottomNavigation() {
         )}
       >
         {navigationItems.map((item) => {
-          const isActive = location.pathname === item.href;
+          const isActive =
+            location.pathname === item.href ||
+            (item.href === "/settings" &&
+              (location.pathname === "/settings" ||
+                location.pathname === "/app/settings" ||
+                location.pathname === "/profile" ||
+                location.pathname === "/app/profile"));
           const Icon = item.icon;
 
           return (

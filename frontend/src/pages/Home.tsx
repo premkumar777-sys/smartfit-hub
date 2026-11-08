@@ -146,7 +146,7 @@ const Home = () => {
               ) : (
                 <>
                   <Button asChild variant="hero" size="xl" className="hover:scale-[1.03] hover:shadow-[0_0_20px_rgba(0,255,156,0.35)] transition-all duration-200 ease-out">
-                    <Link to="/auth" aria-label="Start Transformation">
+                    <Link to="/onboarding/basics" aria-label="Start Transformation">
                       Start Transformation <ArrowRight className="ml-2" />
                     </Link>
                   </Button>
@@ -421,7 +421,7 @@ const Home = () => {
               Join 11,000+ athletes already training smarter with personalized AI-powered workouts and nutrition plans
             </p>
             <Button asChild variant="hero" size="xl">
-              <Link to="/auth">
+              <Link to="/onboarding/basics">
                 Start Your Journey <ArrowRight className="ml-2" />
               </Link>
             </Button>

@@ -10,6 +10,7 @@ import { Loader2, Mail, Lock, User, Key, KeyRound, ShieldAlert, Eye, EyeOff, Arr
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { motion } from "framer-motion";
 import { isBiometricsAvailable, isBiometricRegistered, registerBiometric, authenticateBiometric } from "@/lib/biometrics";
+import { syncOnboardingToProfile } from "@/lib/onboarding";
 
 const authSchema = z.object({
   email: z.string().trim().email({ message: "Invalid email address" }).max(255),
@@ -147,6 +148,7 @@ export default function Auth() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session && !isModalActiveRef.current && !showPostSignupFingerprintModal) {
+        syncOnboardingToProfile(session.user.id).catch(console.error);
         navigate(returnUrl, { replace: true });
       }
     });
@@ -156,6 +158,7 @@ export default function Auth() {
         sessionStorage.removeItem("smartfit_checkin_prompted");
       }
       if (session && !isModalActiveRef.current && !showPostSignupFingerprintModal) {
+        syncOnboardingToProfile(session.user.id).catch(console.error);
         navigate(returnUrl, { replace: true });
       }
     });
@@ -270,6 +273,7 @@ export default function Auth() {
           username: (signInData.session.user as any).username || signInData.session.user.email!.split('@')[0],
         }));
         localStorage.setItem('smartfit_last_biometric_user', cleanEmail);
+        syncOnboardingToProfile(signInData.session.user.id).catch(console.error);
       }
 
       // Prompt to register fingerprint for future one-tap logins if supported & not registered
@@ -418,7 +422,7 @@ export default function Auth() {
       }
 
       // Auto login user with credentials
-      const { error: signInError } = await supabase.auth.signInWithPassword({
+      const { data: verifiedSignInData, error: signInError } = await supabase.auth.signInWithPassword({
         email: pendingSignupData.email,
         password: pendingSignupData.password,
       });
@@ -427,6 +431,10 @@ export default function Auth() {
         isModalActiveRef.current = false;
         setShowPostSignupFingerprintModal(false);
         throw signInError;
+      }
+
+      if (verifiedSignInData?.session?.user) {
+        syncOnboardingToProfile(verifiedSignInData.session.user.id).catch(console.error);
       }
 
       if (!isBiometricSupported) {

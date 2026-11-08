@@ -31,8 +31,20 @@
 }
 
 /* Dark theme */
+.dark {
+  --sf-bg:            #101412;
+  --sf-surface:       #181D1A;
+  --sf-tint:          #1F2722;
+  --sf-border:        #2A312D;
+  --sf-text:          #EEF2EF;
+  --sf-text-2:        #A3ADA7;
+  --sf-primary:       #4CC38A;
+  --sf-primary-pressed: #3DAF78;
+  --sf-on-primary:    #0B1A12;
+}
+
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not(.light) {
     --sf-bg:            #101412;
     --sf-surface:       #181D1A;
     --sf-tint:          #1F2722;

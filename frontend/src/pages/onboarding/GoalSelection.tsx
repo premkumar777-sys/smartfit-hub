@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, Dumbbell, Flame, Zap, Activity, CalendarCheck, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
+import { getOnboardingDraft, updateOnboardingDraft } from "@/lib/onboarding";
 
 /* ─── Types ──────────────────────────────────────────────────────────────── */
 interface Goal {
@@ -47,8 +48,8 @@ const GOALS: Goal[] = [
 ];
 
 const MAX_SELECT = 2;
-const TOTAL_STEPS = 8;
-const CURRENT_STEP = 1;
+const TOTAL_STEPS = 5;
+const CURRENT_STEP = 2;
 
 /* ─── GoalCard ───────────────────────────────────────────────────────────── */
 interface GoalCardProps {
@@ -131,19 +132,23 @@ function GoalCard({ goal, isSelected, isDisabled, onToggle, reducedMotion }: Goa
 export default function GoalSelection() {
   const navigate = useNavigate();
   const reducedMotion = useReducedMotion();
-  const [selected, setSelected] = useState<string[]>([]);
+  const [selected, setSelected] = useState<string[]>(() => getOnboardingDraft().goals);
 
   const toggle = (id: string) => {
     setSelected((prev) => {
-      if (prev.includes(id)) return prev.filter((g) => g !== id);
-      if (prev.length >= MAX_SELECT) return prev;
-      return [...prev, id];
+      const updated = prev.includes(id)
+        ? prev.filter((g) => g !== id)
+        : prev.length >= MAX_SELECT
+        ? prev
+        : [...prev, id];
+      updateOnboardingDraft({ goals: updated });
+      return updated;
     });
   };
 
   const handleContinue = () => {
-    // Navigation destination for step 2 — to be wired when Step 2 is built
-    navigate("/dashboard");
+    updateOnboardingDraft({ goals: selected });
+    navigate("/onboarding/body-metrics");
   };
 
   return (
@@ -161,9 +166,9 @@ export default function GoalSelection() {
       >
         <button
           type="button"
-          onClick={() => navigate(-1)}
+          onClick={() => navigate("/onboarding/basics")}
           aria-label="Go back"
-          className="flex items-center justify-center w-10 h-10 -ml-2 rounded-full"
+          className="flex items-center justify-center w-10 h-10 -ml-2 rounded-full active:scale-95 transition-transform"
           style={{ color: "var(--sf-text)" }}
         >
           <ChevronLeft className="w-6 h-6" strokeWidth={2} aria-hidden="true" />

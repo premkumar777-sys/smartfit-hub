@@ -1,696 +1,827 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Container } from "@/components/Container";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Input } from "@/components/ui/input";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
-import {
-    ArrowLeft,
-    Settings as SettingsIcon,
-    Bell,
-    Lock,
-    User,
-    LogOut,
-    Moon,
-    Sun,
-    Shield,
-    Smartphone,
-    Save,
-    Loader2,
-    Trash2,
-    Dumbbell,
-    Bot,
-    Palette,
-    Key,
-    Volume2,
-    CheckCircle,
-    Eye,
-    EyeOff,
-    Fingerprint,
+  ArrowLeft,
+  ChevronRight,
+  User,
+  Minus,
+  Plus,
+  Fingerprint,
+  Calendar,
+  ArrowUpRight,
+  LogOut,
+  Check,
+  Loader2,
+  X,
+  Lock,
 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useTheme } from "@/components/ThemeProvider";
 import { useAuth } from "@/hooks/use-auth";
-import { isBiometricsAvailable, isBiometricRegistered, registerBiometric, removeBiometric } from "@/lib/biometrics";
+import { useSubscription } from "@/hooks/useSubscription";
+import {
+  isBiometricsAvailable,
+  isBiometricRegistered,
+  registerBiometric,
+  removeBiometric,
+} from "@/lib/biometrics";
+import { cn } from "@/lib/utils";
 
 interface UserPreferences {
-    notifications: { email: boolean; push: boolean; streakReminder: boolean };
-    units: "metric" | "imperial";
-    privacy: "public" | "private";
-    theme: "dark" | "light";
-    accentColor: string;
-    fitnessGoal: string;
-    activityLevel: string;
-    weeklyTarget: number;
-    coachingTone: string;
-    voiceCoach: boolean;
-    defaultDuration: number;
-    defaultDifficulty: string;
-    showOnLeaderboard: boolean;
+  units?: "metric" | "imperial";
+  fitnessGoal?: string;
+  activityLevel?: string;
+  weeklyTarget?: number;
+  coachingTone?: string;
+  voiceCoach?: boolean;
+  theme?: "light" | "dark";
+  notifications?: { email?: boolean; push?: boolean; streakReminder?: boolean };
 }
 
 const DEFAULT_PREFERENCES: UserPreferences = {
-    notifications: { email: true, push: true, streakReminder: true },
-    units: "metric",
-    privacy: "public",
-    theme: "dark",
-    accentColor: "green",
-    fitnessGoal: "",
-    activityLevel: "moderate",
-    weeklyTarget: 4,
-    coachingTone: "motivational",
-    voiceCoach: true,
-    defaultDuration: 30,
-    defaultDifficulty: "intermediate",
-    showOnLeaderboard: true,
+  units: "metric",
+  fitnessGoal: "Build muscle & strength",
+  activityLevel: "Advanced (4+ sessions)",
+  weeklyTarget: 4,
+  coachingTone: "Supportive & analytical",
+  voiceCoach: true,
 };
 
-const ACCENT_COLORS = [
-    { id: "green", label: "Neon Green", class: "bg-[#00FF9C]" },
-    { id: "blue", label: "Electric Blue", class: "bg-[#4CC9F0]" },
-    { id: "purple", label: "Violet", class: "bg-[#A855F7]" },
-    { id: "orange", label: "Energy Orange", class: "bg-[#F97316]" },
+const GOAL_OPTIONS = [
+  "Build muscle & strength",
+  "Lose fat & get lean",
+  "Improve endurance & stamina",
+  "Maintain weight & stay active",
+  "Functional mobility & agility",
 ];
 
-const FITNESS_GOALS = [
-    "Fat Loss", "Muscle Gain", "Endurance",
-    "Flexibility", "General Fitness", "Strength Training", "Weight Maintenance",
+const ACTIVITY_OPTIONS = [
+  "Beginner (1-2 sessions)",
+  "Moderate (2-3 sessions)",
+  "Advanced (4+ sessions)",
+  "Elite athlete (5-6 sessions)",
+];
+
+const COACHING_TONES = [
+  "Supportive & analytical",
+  "Motivational & energetic",
+  "Direct & no-nonsense",
+  "Calm & mindful",
+  "Tough love & disciplined",
 ];
 
 export default function Settings() {
-    const navigate = useNavigate();
-    const { theme: currentTheme, setTheme } = useTheme();
-    const { user: authUser, isLoading: authLoading } = useAuth();
-    const [loading, setLoading] = useState(true);
-    const [saving, setSaving] = useState(false);
-    const [user, setUser] = useState<any>(null);
-    const [preferences, setPreferences] = useState<UserPreferences>(DEFAULT_PREFERENCES);
-    const [hasChanges, setHasChanges] = useState(false);
-    // Change password state
-    const [showPasswordForm, setShowPasswordForm] = useState(false);
-    const [newPassword, setNewPassword] = useState("");
-    const [confirmPassword, setConfirmPassword] = useState("");
-    const [showPw, setShowPw] = useState(false);
-    const [changingPw, setChangingPw] = useState(false);
+  const navigate = useNavigate();
+  const { user: authUser, isLoading: authLoading } = useAuth();
+  const { plan, hasPremiumAccess } = useSubscription();
 
-    // Fingerprint login state
-    const [isFingerprintEnabled, setIsFingerprintEnabled] = useState(false);
-    const [isBiometricSupported, setIsBiometricSupported] = useState(false);
-    const [fingerprintLoading, setFingerprintLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState<any>(null);
+  const [preferences, setPreferences] = useState<UserPreferences>(DEFAULT_PREFERENCES);
 
-    useEffect(() => {
-        isBiometricsAvailable().then((supported) => {
-            setIsBiometricSupported(supported);
-        });
-    }, []);
+  // Biometrics
+  const [isFingerprintEnabled, setIsFingerprintEnabled] = useState(false);
+  const [isBiometricSupported, setIsBiometricSupported] = useState(false);
+  const [fingerprintLoading, setFingerprintLoading] = useState(false);
 
-    useEffect(() => {
-        if (user?.email) {
-            setIsFingerprintEnabled(isBiometricRegistered(user.email));
+  // Dialog states
+  const [goalModalOpen, setGoalModalOpen] = useState(false);
+  const [activityModalOpen, setActivityModalOpen] = useState(false);
+  const [unitsModalOpen, setUnitsModalOpen] = useState(false);
+  const [toneModalOpen, setToneModalOpen] = useState(false);
+  const [passwordModalOpen, setPasswordModalOpen] = useState(false);
+
+  // Password fields
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [changingPw, setChangingPw] = useState(false);
+
+  // Load preferences & profile from Supabase
+  useEffect(() => {
+    isBiometricsAvailable().then((supported) => {
+      setIsBiometricSupported(supported);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (authUser?.email) {
+      setIsFingerprintEnabled(isBiometricRegistered(authUser.email));
+    }
+  }, [authUser]);
+
+  useEffect(() => {
+    const loadData = async (userId: string) => {
+      try {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("full_name, username, avatar_url, preferences, bio")
+          .eq("id", userId)
+          .single();
+
+        if (data) {
+          setProfile(data);
+          if (data.preferences) {
+            setPreferences((prev) => ({
+              ...prev,
+              ...(data.preferences as Record<string, any>),
+            }));
+          }
         }
-    }, [user]);
-
-    const handleToggleFingerprint = async (checked: boolean) => {
-        if (!user?.email) return;
-        setFingerprintLoading(true);
-        try {
-            if (checked) {
-                await registerBiometric(user.email);
-                setIsFingerprintEnabled(true);
-                toast.success("Fingerprint login enabled successfully! 🔑");
-            } else {
-                removeBiometric(user.email);
-                setIsFingerprintEnabled(false);
-                toast.info("Fingerprint login disabled on this device.");
-            }
-        } catch (error: any) {
-            toast.error(error.message || "Failed to update fingerprint login");
-            setIsFingerprintEnabled(isBiometricRegistered(user.email));
-        } finally {
-            setFingerprintLoading(false);
-        }
+      } catch (err) {
+        console.error("Error loading user profile:", err);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    useEffect(() => {
-        const loadSettings = async (userId: string) => {
-            try {
-                const { data: profile } = await supabase
-                    .from("profiles")
-                    .select("preferences")
-                    .eq("id", userId)
-                    .single();
+    if (!authLoading) {
+      if (!authUser) {
+        navigate("/auth");
+      } else {
+        loadData(authUser.id);
+      }
+    }
+  }, [authUser, authLoading, navigate]);
 
-                if (profile?.preferences) {
-                    const profilePreferences = { ...(profile.preferences as any) };
-                    delete profilePreferences.groq_api_key;
-                    const loaded = { ...DEFAULT_PREFERENCES, ...profilePreferences };
-                    setPreferences(loaded);
-                    if (loaded.theme !== currentTheme) setTheme(loaded.theme);
-                }
-            } catch (error) {
-                console.error("Error loading settings:", error);
-                toast.error("Failed to load settings");
-            } finally {
-                setLoading(false);
-            }
-        };
+  // Persist preference updates
+  const savePreference = async (updated: Partial<UserPreferences>) => {
+    const nextPrefs = { ...preferences, ...updated };
+    setPreferences(nextPrefs);
 
-        if (!authLoading) {
-            if (!authUser) {
-                navigate("/auth");
-            } else {
-                setUser(authUser);
-                loadSettings(authUser.id);
-            }
-        }
-    }, [authUser, authLoading, navigate, setTheme, currentTheme]);
+    if (!authUser) return;
+    try {
+      await supabase.from("profiles").upsert(
+        {
+          id: authUser.id,
+          preferences: nextPrefs,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "id" }
+      );
+    } catch (err: any) {
+      console.error("Failed to auto-save preference:", err);
+    }
+  };
 
-    const handlePref = (updater: (prev: UserPreferences) => UserPreferences) => {
-        setPreferences(prev => { const next = updater(prev); setHasChanges(true); return next; });
-    };
+  // Stepper handlers
+  const handleDecrementWeekly = () => {
+    const current = preferences.weeklyTarget ?? 4;
+    if (current > 1) {
+      savePreference({ weeklyTarget: current - 1 });
+    }
+  };
 
-    const handleSave = async () => {
-        if (!user) return;
-        setSaving(true);
-        try {
-            const { error } = await supabase.from("profiles").upsert(
-                { id: user.id, preferences, updated_at: new Date().toISOString() },
-                { onConflict: "id" }
-            );
-            if (error) throw error;
-            toast.success("Settings saved!");
-            setHasChanges(false);
-        } catch (error: any) {
-            toast.error(error.message || "Failed to save");
-        } finally {
-            setSaving(false);
-        }
-    };
+  const handleIncrementWeekly = () => {
+    const current = preferences.weeklyTarget ?? 4;
+    if (current < 7) {
+      savePreference({ weeklyTarget: current + 1 });
+    }
+  };
 
-    const handleChangePassword = async () => {
-        if (!newPassword || newPassword !== confirmPassword) {
-            toast.error("Passwords don't match");
-            return;
-        }
-        if (newPassword.length < 6) {
-            toast.error("Password must be at least 6 characters");
-            return;
-        }
-        setChangingPw(true);
-        try {
-            const { error } = await supabase.auth.updateUser({ password: newPassword });
-            if (error) throw error;
-            toast.success("Password updated successfully!");
-            setShowPasswordForm(false);
-            setNewPassword("");
-            setConfirmPassword("");
-        } catch (error: any) {
-            toast.error(error.message || "Failed to update password");
-        } finally {
-            setChangingPw(false);
-        }
-    };
+  // Biometrics toggle
+  const handleToggleFingerprint = async (checked: boolean) => {
+    if (!authUser?.email) return;
+    setFingerprintLoading(true);
+    try {
+      if (checked) {
+        await registerBiometric(authUser.email);
+        setIsFingerprintEnabled(true);
+        toast.success("Fingerprint authentication enabled! 🔑");
+      } else {
+        removeBiometric(authUser.email);
+        setIsFingerprintEnabled(false);
+        toast.info("Fingerprint login disabled on this device.");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to update biometric login");
+      setIsFingerprintEnabled(isBiometricRegistered(authUser.email));
+    } finally {
+      setFingerprintLoading(false);
+    }
+  };
 
-    const handleLogout = async () => {
-        localStorage.removeItem('smartfit_biometric_active_user');
-        sessionStorage.removeItem("smartfit_checkin_prompted");
-        await supabase.auth.signOut();
-        navigate("/");
-    };
-    const handleDeleteAccount = () => navigate("/delete-account");
-
-    if (authLoading || loading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            </div>
-        );
+  // Password update
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newPassword || newPassword !== confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+    if (newPassword.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
     }
 
+    setChangingPw(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) throw error;
+      toast.success("Password updated successfully!");
+      setPasswordModalOpen(false);
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to update password");
+    } finally {
+      setChangingPw(false);
+    }
+  };
+
+  // Sign out
+  const handleLogout = async () => {
+    localStorage.removeItem("smartfit_biometric_active_user");
+    sessionStorage.removeItem("smartfit_checkin_prompted");
+    await supabase.auth.signOut();
+    navigate("/");
+  };
+
+  const displayName =
+    profile?.full_name ||
+    authUser?.user_metadata?.full_name ||
+    profile?.username ||
+    "Alex Morgan";
+
+  const displayEmail =
+    authUser?.email ||
+    authUser?.user_metadata?.email ||
+    "alex.morgan@smartfit.ai";
+
+  const isPro = hasPremiumAccess || plan?.plan_name?.toLowerCase().includes("pro");
+
+  if (authLoading || loading) {
     return (
-        <div className="min-h-screen py-12">
-            <Container>
-                {/* Header */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-                    <div>
-                        <Link to="/profile" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4">
-                            <ArrowLeft className="w-4 h-4 mr-2" />
-                            Back to Profile
-                        </Link>
-                        <div className="flex items-center gap-3">
-                            <div className="p-3 rounded-2xl bg-primary/10 border border-primary/20">
-                                <SettingsIcon className="w-6 h-6 text-primary" />
-                            </div>
-                            <div>
-                                <h1 className="text-3xl font-bold">Settings</h1>
-                                <p className="text-muted-foreground">Manage your account and preferences</p>
-                            </div>
-                        </div>
-                    </div>
-                    {hasChanges && (
-                        <div className="flex items-center gap-4 p-4 rounded-xl bg-primary/5 border border-primary/20 animate-in fade-in slide-in-from-right-4">
-                            <span className="text-sm font-medium text-primary">Unsaved changes</span>
-                            <Button onClick={handleSave} disabled={saving} size="sm" className="bg-primary text-black">
-                                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
-                                Save
-                            </Button>
-                        </div>
-                    )}
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* LEFT COLUMN */}
-                    <div className="lg:col-span-2 space-y-6">
-
-                        {/* 1. FITNESS PREFERENCES */}
-                        <Card className="glass border-primary/10">
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <Dumbbell className="w-5 h-5 text-primary" />
-                                    Fitness Preferences
-                                </CardTitle>
-                                <CardDescription>Personalise your training profile</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-6">
-                                {/* Fitness Goal */}
-                                <div className="flex items-center justify-between">
-                                    <div className="space-y-0.5">
-                                        <Label className="text-base font-semibold">Fitness Goal</Label>
-                                        <p className="text-sm text-muted-foreground">Your primary training objective</p>
-                                    </div>
-                                    <Select
-                                        value={preferences.fitnessGoal}
-                                        onValueChange={(v) => handlePref(p => ({ ...p, fitnessGoal: v }))}
-                                    >
-                                        <SelectTrigger className="w-44">
-                                            <SelectValue placeholder="Select goal" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {FITNESS_GOALS.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-
-                                {/* Activity Level */}
-                                <div className="flex items-center justify-between">
-                                    <div className="space-y-0.5">
-                                        <Label className="text-base font-semibold">Activity Level</Label>
-                                        <p className="text-sm text-muted-foreground">Your current lifestyle activity</p>
-                                    </div>
-                                    <Select
-                                        value={preferences.activityLevel}
-                                        onValueChange={(v) => handlePref(p => ({ ...p, activityLevel: v }))}
-                                    >
-                                        <SelectTrigger className="w-44">
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="sedentary">Sedentary</SelectItem>
-                                            <SelectItem value="light">Lightly Active</SelectItem>
-                                            <SelectItem value="moderate">Moderately Active</SelectItem>
-                                            <SelectItem value="active">Very Active</SelectItem>
-                                            <SelectItem value="extreme">Athlete</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-
-                                {/* Weekly Workout Target */}
-                                <div className="flex items-center justify-between">
-                                    <div className="space-y-0.5">
-                                        <Label className="text-base font-semibold">Weekly Workout Target</Label>
-                                        <p className="text-sm text-muted-foreground">Days per week you plan to train</p>
-                                    </div>
-                                    <div className="flex items-center gap-3">
-                                        <button
-                                            className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-primary/10 transition font-bold"
-                                            onClick={() => handlePref(p => ({ ...p, weeklyTarget: Math.max(1, p.weeklyTarget - 1) }))}
-                                        >−</button>
-                                        <span className="text-xl font-bold w-6 text-center">{preferences.weeklyTarget}</span>
-                                        <button
-                                            className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-primary/10 transition font-bold"
-                                            onClick={() => handlePref(p => ({ ...p, weeklyTarget: Math.min(7, p.weeklyTarget + 1) }))}
-                                        >+</button>
-                                        <span className="text-sm text-muted-foreground ml-1">days</span>
-                                    </div>
-                                </div>
-
-                                {/* Measurement Units */}
-                                <div className="flex items-center justify-between">
-                                    <div className="space-y-0.5">
-                                        <Label className="text-base font-semibold">Measurement Units</Label>
-                                        <p className="text-sm text-muted-foreground">Metric or Imperial</p>
-                                    </div>
-                                    <Select
-                                        value={preferences.units}
-                                        onValueChange={(v: any) => handlePref(p => ({ ...p, units: v }))}
-                                    >
-                                        <SelectTrigger className="w-44">
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="metric">Metric (kg / cm)</SelectItem>
-                                            <SelectItem value="imperial">Imperial (lb / in)</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        {/* 2. AI TRAINER PREFERENCES */}
-                        <Card className="glass border-primary/10">
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <Bot className="w-5 h-5 text-primary" />
-                                    AI Trainer Preferences
-                                </CardTitle>
-                                <CardDescription>Customise how your AI coach behaves</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-6">
-                                {/* Coaching Tone */}
-                                <div className="flex items-center justify-between">
-                                    <div className="space-y-0.5">
-                                        <Label className="text-base font-semibold">Coaching Tone</Label>
-                                        <p className="text-sm text-muted-foreground">How your AI trainer communicates</p>
-                                    </div>
-                                    <Select
-                                        value={preferences.coachingTone}
-                                        onValueChange={(v) => handlePref(p => ({ ...p, coachingTone: v }))}
-                                    >
-                                        <SelectTrigger className="w-44">
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="motivational">🔥 Motivational</SelectItem>
-                                            <SelectItem value="calm">🧘 Calm & Steady</SelectItem>
-                                            <SelectItem value="strict">💪 Strict Coach</SelectItem>
-                                            <SelectItem value="friendly">😊 Friendly</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-
-                                {/* Voice Coach */}
-                                <div className="flex items-center justify-between">
-                                    <div className="space-y-0.5">
-                                        <Label className="text-base font-semibold flex items-center gap-2">
-                                            <Volume2 className="w-4 h-4 text-primary" />
-                                            Voice Coach
-                                        </Label>
-                                        <p className="text-sm text-muted-foreground">Enable spoken cues in 3D Trainer Mode</p>
-                                    </div>
-                                    <Switch
-                                        checked={preferences.voiceCoach}
-                                        onCheckedChange={(v) => handlePref(p => ({ ...p, voiceCoach: v }))}
-                                    />
-                                </div>
-
-                                {/* Default Workout Duration */}
-                                <div className="flex items-center justify-between">
-                                    <div className="space-y-0.5">
-                                        <Label className="text-base font-semibold">Default Workout Duration</Label>
-                                        <p className="text-sm text-muted-foreground">Pre-fill when generating workouts</p>
-                                    </div>
-                                    <Select
-                                        value={String(preferences.defaultDuration)}
-                                        onValueChange={(v) => handlePref(p => ({ ...p, defaultDuration: Number(v) }))}
-                                    >
-                                        <SelectTrigger className="w-44">
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="15">15 minutes</SelectItem>
-                                            <SelectItem value="30">30 minutes</SelectItem>
-                                            <SelectItem value="45">45 minutes</SelectItem>
-                                            <SelectItem value="60">60 minutes</SelectItem>
-                                            <SelectItem value="90">90 minutes</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-
-                                {/* Default Difficulty */}
-                                <div className="flex items-center justify-between">
-                                    <div className="space-y-0.5">
-                                        <Label className="text-base font-semibold">Default Difficulty</Label>
-                                        <p className="text-sm text-muted-foreground">Starting intensity for AI workouts</p>
-                                    </div>
-                                    <Select
-                                        value={preferences.defaultDifficulty}
-                                        onValueChange={(v) => handlePref(p => ({ ...p, defaultDifficulty: v }))}
-                                    >
-                                        <SelectTrigger className="w-44">
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="beginner">🟢 Beginner</SelectItem>
-                                            <SelectItem value="intermediate">🟡 Intermediate</SelectItem>
-                                            <SelectItem value="advanced">🔴 Advanced</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-
-                        {/* 4. NOTIFICATIONS */}
-                        <Card className="glass border-primary/10 opacity-80">
-                            <CardHeader>
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <Bell className="w-5 h-5 text-primary" />
-                                        <CardTitle>Notifications</CardTitle>
-                                    </div>
-                                    <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest bg-primary/20 text-primary border border-primary/20">
-                                        Coming Soon
-                                    </span>
-                                </div>
-                                <CardDescription>Manage alerts and reminders (in development)</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-4 pointer-events-none opacity-50">
-                                {[
-                                    { label: "Email Notifications", desc: "Workout summaries sent to your email" },
-                                    { label: "Streak Reminder", desc: "Daily nudge if you haven't trained" },
-                                    { label: "Weekly Progress Report", desc: "Sunday summary of your week" },
-                                ].map(item => (
-                                    <div key={item.label} className="flex items-center justify-between">
-                                        <div className="space-y-0.5">
-                                            <Label className="text-base font-semibold">{item.label}</Label>
-                                            <p className="text-sm text-muted-foreground">{item.desc}</p>
-                                        </div>
-                                        <Switch checked={false} disabled />
-                                    </div>
-                                ))}
-                            </CardContent>
-                        </Card>
-
-                        {/* 5. PRIVACY */}
-                        <Card className="glass border-primary/10">
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <Shield className="w-5 h-5 text-primary" />
-                                    Privacy & Safety
-                                </CardTitle>
-                                <CardDescription>Control your visibility and data sharing</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-6">
-                                <div className="flex items-center justify-between">
-                                    <div className="space-y-0.5">
-                                        <Label className="text-base font-semibold">Profile Visibility</Label>
-                                        <p className="text-sm text-muted-foreground">Public profiles appear on leaderboards</p>
-                                    </div>
-                                    <Select
-                                        value={preferences.privacy}
-                                        onValueChange={(v: any) => handlePref(p => ({ ...p, privacy: v }))}
-                                    >
-                                        <SelectTrigger className="w-32">
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="public">Public</SelectItem>
-                                            <SelectItem value="private">Private</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <div className="space-y-0.5">
-                                        <Label className="text-base font-semibold">Show on Leaderboard</Label>
-                                        <p className="text-sm text-muted-foreground">Appear in global rankings</p>
-                                    </div>
-                                    <Switch
-                                        checked={preferences.showOnLeaderboard}
-                                        onCheckedChange={(v) => handlePref(p => ({ ...p, showOnLeaderboard: v }))}
-                                    />
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        {/* Mobile Save Button */}
-                        {hasChanges && (
-                            <div className="lg:hidden p-4 rounded-xl bg-primary/10 border border-primary/20 space-y-3">
-                                <p className="text-sm text-center">You have unsaved changes</p>
-                                <Button onClick={handleSave} disabled={saving} className="w-full bg-primary text-black font-bold">
-                                    {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
-                                    Save All Settings
-                                </Button>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* RIGHT COLUMN */}
-                    <div className="space-y-6">
-                        {/* Account Info */}
-                        <Card className="glass border-primary/10">
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <User className="w-5 h-5 text-primary" />
-                                    Account
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="space-y-1">
-                                    <p className="text-xs text-muted-foreground uppercase font-semibold">Logged in as</p>
-                                    <p className="text-sm font-medium truncate">{user?.email}</p>
-                                </div>
-                                <div className="pt-2 space-y-3">
-                                    <Button variant="outline" className="w-full justify-start border-white/10 hover:bg-white/5" onClick={handleLogout}>
-                                        <LogOut className="w-4 h-4 mr-2" />
-                                        Sign Out
-                                    </Button>
-                                    <Button
-                                        variant="destructive"
-                                        className="w-full justify-start text-red-400 hover:text-red-300 bg-red-500/10 border-red-500/20"
-                                        onClick={handleDeleteAccount}
-                                    >
-                                        <Trash2 className="w-4 h-4 mr-2" />
-                                        Delete Account
-                                    </Button>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        {/* Security Settings */}
-                        <Card className="glass border-primary/10">
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <Key className="w-5 h-5 text-primary" />
-                                    Security
-                                </CardTitle>
-                                <CardDescription>Manage your password and fingerprint authentication</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-6">
-                                {/* Fingerprint Login Toggle */}
-                                {isBiometricSupported && (
-                                    <div className="flex items-center justify-between pb-4 border-b border-white/5">
-                                        <div className="space-y-0.5">
-                                            <Label className="text-base font-semibold flex items-center gap-2">
-                                                <Fingerprint className="w-4 h-4 text-primary" />
-                                                Fingerprint Login
-                                            </Label>
-                                            <p className="text-xs text-muted-foreground">Quick touch sign-in on this device</p>
-                                        </div>
-                                        {fingerprintLoading ? (
-                                            <Loader2 className="w-5 h-5 animate-spin text-primary" />
-                                        ) : (
-                                            <Switch
-                                                checked={isFingerprintEnabled}
-                                                onCheckedChange={handleToggleFingerprint}
-                                            />
-                                        )}
-                                    </div>
-                                )}
-
-                                {!showPasswordForm ? (
-                                    <Button
-                                        variant="outline"
-                                        className="w-full border-white/10 hover:bg-white/5"
-                                        onClick={() => setShowPasswordForm(true)}
-                                    >
-                                        <Lock className="w-4 h-4 mr-2" />
-                                        Change Password
-                                    </Button>
-                                ) : (
-                                    <div className="space-y-3">
-                                        <div className="relative">
-                                            <Input
-                                                type={showPw ? "text" : "password"}
-                                                placeholder="New password"
-                                                value={newPassword}
-                                                onChange={(e) => setNewPassword(e.target.value)}
-                                                className="pr-10"
-                                            />
-                                            <button
-                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                                                onClick={() => setShowPw(!showPw)}
-                                            >
-                                                {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                                            </button>
-                                        </div>
-                                        <Input
-                                            type={showPw ? "text" : "password"}
-                                            placeholder="Confirm password"
-                                            value={confirmPassword}
-                                            onChange={(e) => setConfirmPassword(e.target.value)}
-                                        />
-                                        <div className="flex gap-2">
-                                            <Button
-                                                variant="outline"
-                                                className="flex-1 border-white/10"
-                                                onClick={() => { setShowPasswordForm(false); setNewPassword(""); setConfirmPassword(""); }}
-                                            >
-                                                Cancel
-                                            </Button>
-                                            <Button
-                                                className="flex-1 bg-primary text-black font-bold"
-                                                onClick={handleChangePassword}
-                                                disabled={changingPw}
-                                            >
-                                                {changingPw ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4 mr-1" />}
-                                                Update
-                                            </Button>
-                                        </div>
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
-
-                        {/* App Info */}
-                        <Card className="glass border-primary/10">
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <Smartphone className="w-5 h-5 text-primary" />
-                                    App Info
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-2">
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-muted-foreground">Version</span>
-                                    <span className="font-medium">SmartFit AI 2.0</span>
-                                </div>
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-muted-foreground">Plan</span>
-                                    <span className="font-medium text-primary">Free — All Features</span>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-                </div>
-
-                {/* Legal Footer */}
-                <div className="mt-12 pt-6 border-t border-border/50 flex flex-wrap justify-center gap-x-6 gap-y-2 text-xs text-muted-foreground">
-                    <Link to="/privacy-policy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
-                    <Link to="/terms-of-service" className="hover:text-foreground transition-colors">Terms of Service</Link>
-                    <Link to="/refund-policy" className="hover:text-foreground transition-colors">Refund Policy</Link>
-                    <Link to="/contact-us" className="hover:text-foreground transition-colors">Contact Us</Link>
-                </div>
-            </Container>
-        </div>
+      <div
+        className="min-h-dvh flex items-center justify-center"
+        style={{ backgroundColor: "var(--sf-bg, #F2F7F4)" }}
+      >
+        <Loader2 className="w-8 h-8 animate-spin text-[#1F7A5A] dark:text-[#4CC38A]" />
+      </div>
     );
+  }
+
+  return (
+    <div
+      className="min-h-dvh flex flex-col"
+      style={{
+        backgroundColor: "var(--sf-bg, #F2F7F4)",
+        color: "var(--sf-text, #16211C)",
+      }}
+    >
+      <div className="w-full max-w-md mx-auto px-4 pt-3 pb-28">
+        {/* ── Top Bar ── */}
+        <header className="flex items-center justify-between h-14 mb-3">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              aria-label="Back"
+              className="flex items-center justify-center w-10 h-10 -ml-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 active:scale-95 transition-transform"
+            >
+              <ArrowLeft className="w-5 h-5" strokeWidth={2.2} />
+            </button>
+            <h1 className="text-xl font-bold tracking-tight">Settings</h1>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => navigate("/app/profile")}
+            aria-label="View Profile"
+            className="w-9 h-9 rounded-full bg-[#0D3B29] text-[#4CC38A] flex items-center justify-center hover:opacity-90 active:scale-95 transition-transform shadow-xs"
+          >
+            {profile?.avatar_url ? (
+              <img
+                src={profile.avatar_url}
+                alt=""
+                className="w-full h-full rounded-full object-cover"
+              />
+            ) : (
+              <User className="w-5 h-5 text-[#4CC38A]" strokeWidth={2.2} />
+            )}
+          </button>
+        </header>
+
+        {/* ── Profile Header Card ── */}
+        <div
+          onClick={() => navigate("/app/profile")}
+          role="button"
+          tabIndex={0}
+          className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 flex items-center justify-between border border-emerald-950/5 dark:border-neutral-800 shadow-xs mb-5 cursor-pointer active:scale-[0.99] transition-transform"
+        >
+          <div className="flex items-center gap-3.5 min-w-0">
+            <div className="w-12 h-12 rounded-full bg-[#E5F3EB] dark:bg-[#1E2D24] text-[#1E5C41] dark:text-[#4CC38A] flex items-center justify-center shrink-0 overflow-hidden">
+              {profile?.avatar_url ? (
+                <img
+                  src={profile.avatar_url}
+                  alt=""
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <User className="w-6 h-6" strokeWidth={2} />
+              )}
+            </div>
+            <div className="min-w-0">
+              <h2 className="font-bold text-sm leading-tight truncate">
+                {displayName}
+              </h2>
+              <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5 truncate">
+                {displayEmail}
+              </p>
+            </div>
+          </div>
+
+          <span className="px-3 py-1 rounded-full text-[11px] font-semibold bg-[#EAF5EE] dark:bg-[#1E3326] text-[#1D6A48] dark:text-[#52D696] border border-[#D5EEDB] dark:border-[#2A4B38] shrink-0">
+            {isPro ? "Pro athlete" : "Active athlete"}
+          </span>
+        </div>
+
+        {/* ── SECTION: Training ── */}
+        <section className="mb-5">
+          <h2 className="text-sm font-bold tracking-tight mb-2 px-1 text-neutral-900 dark:text-neutral-100">
+            Training
+          </h2>
+          <div className="bg-white dark:bg-[#181D1A] rounded-2xl border border-emerald-950/5 dark:border-neutral-800 shadow-xs divide-y divide-neutral-100 dark:divide-neutral-800/70 overflow-hidden">
+            {/* Goal */}
+            <button
+              type="button"
+              onClick={() => setGoalModalOpen(true)}
+              className="w-full flex items-center justify-between p-4 min-h-[64px] text-left hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30 active:bg-neutral-100/60 transition-colors"
+            >
+              <div>
+                <p className="font-semibold text-sm leading-snug">Goal</p>
+                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+                  {preferences.fitnessGoal || "Build muscle & strength"}
+                </p>
+              </div>
+              <ChevronRight className="w-4 h-4 text-neutral-400 shrink-0 ml-2" />
+            </button>
+
+            {/* Activity Level */}
+            <button
+              type="button"
+              onClick={() => setActivityModalOpen(true)}
+              className="w-full flex items-center justify-between p-4 min-h-[64px] text-left hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30 active:bg-neutral-100/60 transition-colors"
+            >
+              <div>
+                <p className="font-semibold text-sm leading-snug">Activity level</p>
+                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+                  {preferences.activityLevel || "Advanced (4+ sessions)"}
+                </p>
+              </div>
+              <ChevronRight className="w-4 h-4 text-neutral-400 shrink-0 ml-2" />
+            </button>
+
+            {/* Weekly Target Stepper */}
+            <div className="flex items-center justify-between p-4 min-h-[64px]">
+              <div>
+                <p className="font-semibold text-sm leading-snug">Weekly target</p>
+                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+                  {preferences.weeklyTarget ?? 4} workouts / week
+                </p>
+              </div>
+
+              <div className="flex items-center border border-neutral-200 dark:border-neutral-700 rounded-xl overflow-hidden bg-neutral-50/50 dark:bg-neutral-800/40 h-8 shadow-2xs">
+                <button
+                  type="button"
+                  onClick={handleDecrementWeekly}
+                  aria-label="Decrease target workouts"
+                  className="w-8 h-full flex items-center justify-center text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 active:scale-95 transition-transform"
+                >
+                  <Minus className="w-3.5 h-3.5" />
+                </button>
+                <span className="w-8 text-center font-bold text-sm text-neutral-900 dark:text-neutral-100 select-none">
+                  {preferences.weeklyTarget ?? 4}
+                </span>
+                <button
+                  type="button"
+                  onClick={handleIncrementWeekly}
+                  aria-label="Increase target workouts"
+                  className="w-8 h-full flex items-center justify-center text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 active:scale-95 transition-transform"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Units */}
+            <button
+              type="button"
+              onClick={() => setUnitsModalOpen(true)}
+              className="w-full flex items-center justify-between p-4 min-h-[64px] text-left hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30 active:bg-neutral-100/60 transition-colors"
+            >
+              <div>
+                <p className="font-semibold text-sm leading-snug">Units</p>
+                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+                  {preferences.units === "imperial"
+                    ? "Imperial (lb, ft)"
+                    : "Metric (kg, cm)"}
+                </p>
+              </div>
+              <ChevronRight className="w-4 h-4 text-neutral-400 shrink-0 ml-2" />
+            </button>
+          </div>
+        </section>
+
+        {/* ── SECTION: Coach ── */}
+        <section className="mb-5">
+          <h2 className="text-sm font-bold tracking-tight mb-2 px-1 text-neutral-900 dark:text-neutral-100">
+            Coach
+          </h2>
+          <div className="bg-white dark:bg-[#181D1A] rounded-2xl border border-emerald-950/5 dark:border-neutral-800 shadow-xs divide-y divide-neutral-100 dark:divide-neutral-800/70 overflow-hidden">
+            {/* Coaching Tone */}
+            <button
+              type="button"
+              onClick={() => setToneDialogOpen(true)}
+              className="w-full flex items-center justify-between p-4 min-h-[64px] text-left hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30 active:bg-neutral-100/60 transition-colors"
+            >
+              <div>
+                <p className="font-semibold text-sm leading-snug">Coaching tone</p>
+                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+                  {preferences.coachingTone || "Supportive & analytical"}
+                </p>
+              </div>
+              <ChevronRight className="w-4 h-4 text-neutral-400 shrink-0 ml-2" />
+            </button>
+
+            {/* Voice Coach Toggle */}
+            <div className="flex items-center justify-between p-4 min-h-[64px]">
+              <div className="pr-3">
+                <p className="font-semibold text-sm leading-snug">Voice coach</p>
+                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5 leading-relaxed">
+                  Provides audio cues during sets and rest intervals
+                </p>
+              </div>
+              <Switch
+                checked={preferences.voiceCoach !== false}
+                onCheckedChange={(val) => savePreference({ voiceCoach: val })}
+                className="shrink-0 data-[state=checked]:!bg-[#0D3B29] dark:data-[state=checked]:!bg-[#1F7A5A]"
+                aria-label="Toggle voice coach audio cues"
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* ── SECTION: Security ── */}
+        <section className="mb-5">
+          <h2 className="text-sm font-bold tracking-tight mb-2 px-1 text-neutral-900 dark:text-neutral-100">
+            Security
+          </h2>
+          <div className="bg-white dark:bg-[#181D1A] rounded-2xl border border-emerald-950/5 dark:border-neutral-800 shadow-xs divide-y divide-neutral-100 dark:divide-neutral-800/70 overflow-hidden">
+            {/* Fingerprint Login */}
+            <div className="flex items-center justify-between p-4 min-h-[64px]">
+              <div className="flex items-center gap-3 pr-2 min-w-0">
+                <Fingerprint className="w-5 h-5 text-neutral-600 dark:text-neutral-400 shrink-0" />
+                <div className="min-w-0">
+                  <p className="font-semibold text-sm leading-snug">Fingerprint login</p>
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+                    Quick biometric authentication
+                  </p>
+                </div>
+              </div>
+              <Switch
+                checked={isFingerprintEnabled}
+                onCheckedChange={handleToggleFingerprint}
+                disabled={fingerprintLoading}
+                className="shrink-0 data-[state=checked]:!bg-[#0D3B29] dark:data-[state=checked]:!bg-[#1F7A5A]"
+                aria-label="Toggle fingerprint login"
+              />
+            </div>
+
+            {/* Change Password */}
+            <button
+              type="button"
+              onClick={() => setPasswordModalOpen(true)}
+              className="w-full flex items-center justify-between p-4 min-h-[64px] text-left hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30 active:bg-neutral-100/60 transition-colors"
+            >
+              <div>
+                <p className="font-semibold text-sm leading-snug">Change password</p>
+                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+                  Last updated 3 months ago
+                </p>
+              </div>
+              <ChevronRight className="w-4 h-4 text-neutral-400 shrink-0 ml-2" />
+            </button>
+          </div>
+        </section>
+
+        {/* ── SECTION: Plan ── */}
+        <section className="mb-5">
+          <h2 className="text-sm font-bold tracking-tight mb-2 px-1 text-neutral-900 dark:text-neutral-100">
+            Plan
+          </h2>
+          <div className="bg-white dark:bg-[#181D1A] rounded-2xl border border-emerald-950/5 dark:border-neutral-800 shadow-xs p-4 space-y-3.5">
+            {/* Plan Header */}
+            <div className="flex items-center justify-between">
+              <p className="font-bold text-sm text-neutral-900 dark:text-neutral-100">
+                SmartFit Pro <span className="text-neutral-400 font-normal">•</span> $9.99/mo
+              </p>
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#0D3B29] text-white flex items-center gap-1">
+                <Check className="w-3.5 h-3.5" strokeWidth={3} /> Active
+              </span>
+            </div>
+
+            {/* Auto-renew box */}
+            <div className="bg-[#EAF5EE] dark:bg-[#1E2D24] p-3 rounded-xl flex items-center justify-between text-xs">
+              <div className="flex items-center gap-2 text-neutral-700 dark:text-neutral-300 font-medium">
+                <Calendar className="w-4 h-4 text-neutral-600 dark:text-neutral-300 shrink-0" />
+                <span>Renews Nov 24, 2026</span>
+              </div>
+              <span className="font-semibold text-neutral-700 dark:text-neutral-300">
+                Auto-renew on
+              </span>
+            </div>
+
+            {/* Manage link */}
+            <button
+              type="button"
+              onClick={() => navigate("/pricing")}
+              className="w-full flex items-center justify-between pt-1 text-sm font-semibold text-[#0D3B29] dark:text-[#4CC38A] hover:opacity-85 transition-opacity"
+            >
+              <span>Manage subscription / Upgrade</span>
+              <ChevronRight className="w-4 h-4 shrink-0 text-neutral-400" />
+            </button>
+          </div>
+        </section>
+
+        {/* ── SECTION: About ── */}
+        <section className="mb-6">
+          <h2 className="text-sm font-bold tracking-tight mb-2 px-1 text-neutral-900 dark:text-neutral-100">
+            About
+          </h2>
+          <div className="bg-white dark:bg-[#181D1A] rounded-2xl border border-emerald-950/5 dark:border-neutral-800 shadow-xs divide-y divide-neutral-100 dark:divide-neutral-800/70 overflow-hidden">
+            {/* App Version */}
+            <div className="flex items-center justify-between p-4 min-h-[52px]">
+              <span className="font-semibold text-sm">App version</span>
+              <span className="text-xs text-neutral-500 dark:text-neutral-400 font-medium">
+                Version 2.4.1 (Build 820)
+              </span>
+            </div>
+
+            {/* Privacy policy */}
+            <Link
+              to="/privacy"
+              className="flex items-center justify-between p-4 min-h-[52px] hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30 transition-colors"
+            >
+              <span className="font-semibold text-sm">Privacy policy</span>
+              <ArrowUpRight className="w-4 h-4 text-neutral-400 shrink-0" />
+            </Link>
+
+            {/* Terms of service */}
+            <Link
+              to="/terms"
+              className="flex items-center justify-between p-4 min-h-[52px] hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30 transition-colors"
+            >
+              <span className="font-semibold text-sm">Terms of service</span>
+              <ChevronRight className="w-4 h-4 text-neutral-400 shrink-0" />
+            </Link>
+
+            {/* Help & support */}
+            <Link
+              to="/contact"
+              className="flex items-center justify-between p-4 min-h-[52px] hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30 transition-colors"
+            >
+              <span className="font-semibold text-sm">Help & support</span>
+              <ChevronRight className="w-4 h-4 text-neutral-400 shrink-0" />
+            </Link>
+          </div>
+        </section>
+
+        {/* ── Sign out Button ── */}
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="w-full h-[52px] bg-white dark:bg-[#181D1A] rounded-2xl border border-emerald-950/5 dark:border-neutral-800 shadow-xs flex items-center justify-center gap-2.5 font-semibold text-sm text-neutral-900 dark:text-neutral-100 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 active:scale-[0.99] transition-all cursor-pointer"
+        >
+          <LogOut className="w-4 h-4 text-neutral-700 dark:text-neutral-300" />
+          <span>Sign out</span>
+        </button>
+
+        {/* ── Delete account ── */}
+        <div className="text-center mt-6">
+          <button
+            type="button"
+            onClick={() => navigate("/delete-account")}
+            className="text-sm font-semibold text-red-600 hover:text-red-700 active:scale-95 transition-transform cursor-pointer"
+          >
+            Delete account
+          </button>
+          <p className="text-xs text-neutral-500 dark:text-neutral-400 max-w-[270px] mx-auto mt-1 leading-relaxed">
+            This will permanently erase your workout logs and biometric history.
+          </p>
+        </div>
+      </div>
+
+      {/* ── Dialog: Goal ── */}
+      <Dialog open={goalModalOpen} onOpenChange={setGoalModalOpen}>
+        <DialogContent className="max-w-sm rounded-3xl p-6">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold">Select Goal</DialogTitle>
+            <DialogDescription className="text-xs text-neutral-500">
+              Personalize your adaptive workout volume and rep targets.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 mt-3">
+            {GOAL_OPTIONS.map((g) => {
+              const isSelected = preferences.fitnessGoal === g;
+              return (
+                <button
+                  key={g}
+                  type="button"
+                  onClick={() => {
+                    savePreference({ fitnessGoal: g });
+                    setGoalModalOpen(false);
+                  }}
+                  className={cn(
+                    "w-full flex items-center justify-between p-3.5 rounded-xl border text-sm font-semibold transition-all text-left",
+                    isSelected
+                      ? "border-[#1F7A5A] bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A]"
+                      : "border-neutral-200 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-800"
+                  )}
+                >
+                  <span>{g}</span>
+                  {isSelected && <Check className="w-4 h-4 text-[#1F7A5A] dark:text-[#4CC38A]" />}
+                </button>
+              );
+            })}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Dialog: Activity Level ── */}
+      <Dialog open={activityModalOpen} onOpenChange={setActivityModalOpen}>
+        <DialogContent className="max-w-sm rounded-3xl p-6">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold">Activity Level</DialogTitle>
+            <DialogDescription className="text-xs text-neutral-500">
+              How frequently do you currently exercise each week?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 mt-3">
+            {ACTIVITY_OPTIONS.map((lvl) => {
+              const isSelected = preferences.activityLevel === lvl;
+              return (
+                <button
+                  key={lvl}
+                  type="button"
+                  onClick={() => {
+                    savePreference({ activityLevel: lvl });
+                    setActivityModalOpen(false);
+                  }}
+                  className={cn(
+                    "w-full flex items-center justify-between p-3.5 rounded-xl border text-sm font-semibold transition-all text-left",
+                    isSelected
+                      ? "border-[#1F7A5A] bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A]"
+                      : "border-neutral-200 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-800"
+                  )}
+                >
+                  <span>{lvl}</span>
+                  {isSelected && <Check className="w-4 h-4 text-[#1F7A5A] dark:text-[#4CC38A]" />}
+                </button>
+              );
+            })}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Dialog: Units ── */}
+      <Dialog open={unitsModalOpen} onOpenChange={setUnitsModalOpen}>
+        <DialogContent className="max-w-sm rounded-3xl p-6">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold">Preferred Units</DialogTitle>
+            <DialogDescription className="text-xs text-neutral-500">
+              Display metrics in kilograms/centimeters or pounds/feet.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 mt-3">
+            {[
+              { id: "metric" as const, label: "Metric (kg, cm)" },
+              { id: "imperial" as const, label: "Imperial (lb, ft)" },
+            ].map((u) => {
+              const isSelected = (preferences.units || "metric") === u.id;
+              return (
+                <button
+                  key={u.id}
+                  type="button"
+                  onClick={() => {
+                    savePreference({ units: u.id });
+                    setUnitsModalOpen(false);
+                  }}
+                  className={cn(
+                    "w-full flex items-center justify-between p-3.5 rounded-xl border text-sm font-semibold transition-all text-left",
+                    isSelected
+                      ? "border-[#1F7A5A] bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A]"
+                      : "border-neutral-200 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-800"
+                  )}
+                >
+                  <span>{u.label}</span>
+                  {isSelected && <Check className="w-4 h-4 text-[#1F7A5A] dark:text-[#4CC38A]" />}
+                </button>
+              );
+            })}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Dialog: Coaching Tone ── */}
+      <Dialog open={toneModalOpen} onOpenChange={setToneModalOpen}>
+        <DialogContent className="max-w-sm rounded-3xl p-6">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold">Coaching Tone</DialogTitle>
+            <DialogDescription className="text-xs text-neutral-500">
+              Select how your AI trainer speaks and motivates during workouts.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 mt-3">
+            {COACHING_TONES.map((tone) => {
+              const isSelected = preferences.coachingTone === tone;
+              return (
+                <button
+                  key={tone}
+                  type="button"
+                  onClick={() => {
+                    savePreference({ coachingTone: tone });
+                    setToneModalOpen(false);
+                  }}
+                  className={cn(
+                    "w-full flex items-center justify-between p-3.5 rounded-xl border text-sm font-semibold transition-all text-left",
+                    isSelected
+                      ? "border-[#1F7A5A] bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A]"
+                      : "border-neutral-200 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-800"
+                  )}
+                >
+                  <span>{tone}</span>
+                  {isSelected && <Check className="w-4 h-4 text-[#1F7A5A] dark:text-[#4CC38A]" />}
+                </button>
+              );
+            })}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Dialog: Change Password ── */}
+      <Dialog open={passwordModalOpen} onOpenChange={setPasswordModalOpen}>
+        <DialogContent className="max-w-sm rounded-3xl p-6">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold flex items-center gap-2">
+              <Lock className="w-5 h-5 text-[#1F7A5A]" /> Change Password
+            </DialogTitle>
+            <DialogDescription className="text-xs text-neutral-500">
+              Enter a new secure password for your account.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleChangePassword} className="space-y-3.5 mt-3">
+            <div>
+              <label className="text-xs font-semibold text-neutral-700 dark:text-neutral-300 block mb-1">
+                New Password
+              </label>
+              <input
+                type="password"
+                required
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="At least 6 characters"
+                className="w-full h-11 px-3.5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#1F7A5A]"
+              />
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-neutral-700 dark:text-neutral-300 block mb-1">
+                Confirm Password
+              </label>
+              <input
+                type="password"
+                required
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Re-enter new password"
+                className="w-full h-11 px-3.5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#1F7A5A]"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={changingPw}
+              className="w-full h-11 rounded-xl font-semibold text-sm bg-[#0D3B29] text-white hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-2 mt-2"
+            >
+              {changingPw ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Updating...
+                </>
+              ) : (
+                "Update Password"
+              )}
+            </button>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
 }

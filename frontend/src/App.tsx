@@ -55,7 +55,11 @@ const ObFitnessChallenge = lazy(() => import("./pages/ObFitnessChallenge"));
 const EventsAdmin = lazy(() => import("./pages/EventsAdmin"));
 const Events = lazy(() => import("./pages/Events"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const GenderSelection = lazy(() => import("./pages/onboarding/GenderSelection"));
 const GoalSelection = lazy(() => import("./pages/onboarding/GoalSelection"));
+const TrainingDays = lazy(() => import("./pages/onboarding/TrainingDays"));
+const BodyMetrics = lazy(() => import("./pages/onboarding/BodyMetrics"));
+const FirstWeekPlan = lazy(() => import("./pages/onboarding/FirstWeekPlan"));
 
 import { SplashScreen } from "@/components/SplashScreen";
 import { BottomNavigation } from "@/components/BottomNavigation";
@@ -166,6 +170,7 @@ const AppContent = () => {
               <Route path="/3d-trainer" element={<CameraOffWorkout />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/app/settings" element={<Settings />} />
               <Route path="/gym-analytics" element={<GymAnalytics />} />
               <Route path="/gym-analytics/ai" element={<GymAnalytics />} />
               <Route path="/trainer-tools" element={<TrainerTools />} />
@@ -200,7 +205,11 @@ const AppContent = () => {
               <Route path="/admin" element={<EventsAdmin />} />
               <Route path="/events" element={<Events />} />
               {/* Onboarding */}
+              <Route path="/onboarding/basics" element={<GenderSelection />} />
               <Route path="/onboarding/goals" element={<GoalSelection />} />
+              <Route path="/onboarding/training-days" element={<TrainingDays />} />
+              <Route path="/onboarding/body-metrics" element={<BodyMetrics />} />
+              <Route path="/onboarding/first-week" element={<FirstWeekPlan />} />
 
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
