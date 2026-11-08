@@ -94,7 +94,7 @@ async function callVisionModel(imageUrl: string, prompt: string) {
   const apiKey = Deno.env.get("GROQ_API_KEY")?.trim();
   if (!apiKey) throw new HttpError("Meal analysis is unavailable: the server's GROQ_API_KEY is not configured.", 503);
 
-  const model = Deno.env.get("GROQ_VISION_MODEL")?.trim() || "qwen/qwen3.8-27b";
+  const model = Deno.env.get("GROQ_VISION_MODEL")?.trim() || "llama-3.2-11b-vision-preview";
   const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
     headers: {
