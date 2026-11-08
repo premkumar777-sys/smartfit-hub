@@ -19,6 +19,8 @@ import {
   Sparkles,
   Trophy,
   Calendar,
+  Box,
+  Users,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -562,6 +564,54 @@ export default function Dashboard() {
             </div>
             <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 leading-relaxed">
               Real-time conversational advice on form, recovery, and nutrition
+            </p>
+          </div>
+        </button>
+
+        {/* Card 7: 3D Avatar Trainer */}
+        <button
+          type="button"
+          onClick={() => navigate("/3d-trainer")}
+          className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 shadow-xs border border-emerald-950/5 dark:border-neutral-800 flex items-start gap-3.5 text-left hover:bg-neutral-50/80 dark:hover:bg-neutral-800/40 hover:border-emerald-600/20 active:scale-[0.985] transition-all cursor-pointer group"
+        >
+          <div className="w-11 h-11 rounded-xl bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+            <Box className="w-5 h-5" strokeWidth={2} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between">
+              <p className="font-bold text-sm text-neutral-900 dark:text-neutral-100 leading-snug">
+                3D Avatar Trainer
+              </p>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A]">
+                3D Visual
+              </span>
+            </div>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 leading-relaxed">
+              Interactive 3D animated coach with real-time audio guidance (no camera needed)
+            </p>
+          </div>
+        </button>
+
+        {/* Card 8: 1-on-1 Online Coaching */}
+        <button
+          type="button"
+          onClick={() => navigate("/online-coaching")}
+          className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 shadow-xs border border-emerald-950/5 dark:border-neutral-800 flex items-start gap-3.5 text-left hover:bg-neutral-50/80 dark:hover:bg-neutral-800/40 hover:border-emerald-600/20 active:scale-[0.985] transition-all cursor-pointer group"
+        >
+          <div className="w-11 h-11 rounded-xl bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+            <Users className="w-5 h-5" strokeWidth={2} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between">
+              <p className="font-bold text-sm text-neutral-900 dark:text-neutral-100 leading-snug">
+                1-on-1 Online Coaching
+              </p>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A]">
+                Human Pro
+              </span>
+            </div>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 leading-relaxed">
+              Personalized programs, WhatsApp accountability, and consultation calls
             </p>
           </div>
         </button>

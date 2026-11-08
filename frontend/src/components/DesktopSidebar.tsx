@@ -12,6 +12,8 @@ import {
   Flame,
   Zap,
   Sparkles,
+  Box,
+  Users,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useGamification } from "@/hooks/useGamification";
@@ -67,6 +69,18 @@ export function DesktopSidebar({ avatarUrl, userName }: DesktopSidebarProps) {
       href: "/ai-trainer",
       icon: Bot,
       activePattern: ["/ai-trainer", "/ai-workout"],
+    },
+    {
+      label: "3D Trainer",
+      href: "/3d-trainer",
+      icon: Box,
+      activePattern: ["/3d-trainer"],
+    },
+    {
+      label: "Online Coaching",
+      href: "/online-coaching",
+      icon: Users,
+      activePattern: ["/online-coaching"],
     },
   ];
 
