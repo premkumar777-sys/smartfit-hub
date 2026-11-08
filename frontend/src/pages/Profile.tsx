@@ -31,6 +31,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
+import { DesktopSidebar } from "@/components/DesktopSidebar";
 
 type ProfileTab = "summary" | "biometrics" | "workouts" | "progress";
 
@@ -151,19 +152,24 @@ export default function Profile() {
 
   return (
     <div
-      className="min-h-dvh flex flex-col overflow-x-hidden"
+      className="min-h-dvh flex flex-col lg:flex-row overflow-x-hidden"
       style={{
         backgroundColor: "var(--sf-bg, #F2F7F4)",
         color: "var(--sf-text, #16211C)",
       }}
     >
-      <div
-        className="w-full max-w-md mx-auto px-4"
-        style={{
-          paddingTop: "calc(env(safe-area-inset-top, 0px) + 8px)",
-          paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 96px)",
-        }}
-      >
+      <DesktopSidebar
+        avatarUrl={profile?.avatar_url || "/prem-avatar.jpg"}
+        userName={displayName}
+      />
+
+      <main className="flex-1 min-w-0 w-full">
+        <div
+          className="w-full max-w-md lg:max-w-4xl mx-auto px-4 lg:px-8 py-2 lg:py-6"
+          style={{
+            paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 96px)",
+          }}
+        >
         {/* ── Top Bar ── */}
         <header className="flex items-center justify-between h-14 mb-2">
           <div className="flex items-center gap-3">
@@ -265,8 +271,9 @@ export default function Profile() {
 
         {/* ── TAB CONTENT: Summary ── */}
         {activeTab === "summary" && (
-          <div className="mt-4 space-y-4">
-            {/* Card 1: My Goal */}
+          <div className="mt-4 space-y-4 lg:grid lg:grid-cols-12 lg:gap-6 lg:space-y-0 items-start">
+            <div className="lg:col-span-7 space-y-4">
+              {/* Card 1: My Goal */}
             <div className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 border border-emerald-950/5 dark:border-neutral-800 shadow-xs">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -383,8 +390,10 @@ export default function Profile() {
                 })}
               </div>
             </div>
+            </div>
 
-            {/* Card 3: Achievements */}
+            {/* Right Column: Achievements (Card 3) */}
+            <div className="lg:col-span-5 space-y-4">
             <div className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 border border-emerald-950/5 dark:border-neutral-800 shadow-xs">
               <div className="flex items-center justify-between">
                 <h3 className="font-bold text-base text-neutral-900 dark:text-neutral-100">
@@ -448,6 +457,7 @@ export default function Profile() {
               >
                 View all badges
               </button>
+            </div>
             </div>
           </div>
         )}
@@ -536,7 +546,8 @@ export default function Profile() {
             </div>
           </div>
         )}
-      </div>
+        </div>
+      </main>
 
       {/* ── Edit Profile Modal ── */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>

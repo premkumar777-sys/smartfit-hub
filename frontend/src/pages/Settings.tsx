@@ -34,6 +34,7 @@ import {
   removeBiometric,
 } from "@/lib/biometrics";
 import { cn } from "@/lib/utils";
+import { DesktopSidebar } from "@/components/DesktopSidebar";
 
 interface UserPreferences {
   units?: "metric" | "imperial";
@@ -269,19 +270,24 @@ export default function Settings() {
 
   return (
     <div
-      className="min-h-dvh flex flex-col overflow-x-hidden"
+      className="min-h-dvh flex flex-col lg:flex-row overflow-x-hidden"
       style={{
         backgroundColor: "var(--sf-bg, #F2F7F4)",
         color: "var(--sf-text, #16211C)",
       }}
     >
-      <div
-        className="w-full max-w-md mx-auto px-4"
-        style={{
-          paddingTop: "calc(env(safe-area-inset-top, 0px) + 8px)",
-          paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 96px)",
-        }}
-      >
+      <DesktopSidebar
+        avatarUrl={profile?.avatar_url || "/prem-avatar.jpg"}
+        userName={displayName}
+      />
+
+      <main className="flex-1 min-w-0 w-full">
+        <div
+          className="w-full max-w-md lg:max-w-3xl mx-auto px-4 lg:px-8 py-2 lg:py-6"
+          style={{
+            paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 96px)",
+          }}
+        >
         {/* ── Top Bar ── */}
         <header className="flex items-center justify-between h-14 mb-3">
           <div className="flex items-center gap-3">
@@ -622,7 +628,8 @@ export default function Settings() {
             This will permanently erase your workout logs and biometric history.
           </p>
         </div>
-      </div>
+        </div>
+      </main>
 
       {/* ── Dialog: Goal ── */}
       <Dialog open={goalModalOpen} onOpenChange={setGoalModalOpen}>

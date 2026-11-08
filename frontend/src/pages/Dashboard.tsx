@@ -18,12 +18,14 @@ import {
   Video,
   Sparkles,
   Trophy,
+  Calendar,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 import { useGamification } from "@/hooks/useGamification";
 import { cn } from "@/lib/utils";
+import { DesktopSidebar } from "@/components/DesktopSidebar";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -86,6 +88,13 @@ export default function Dashboard() {
     "Prem";
   const firstName = rawName.split(" ")[0] || "Prem";
 
+  // Formatted date string for desktop header
+  const todayDateString = new Intl.DateTimeFormat("en-US", {
+    weekday: "long",
+    month: "short",
+    day: "numeric",
+  }).format(new Date());
+
   // Water increment
   const handleAddWater = () => {
     const next = Math.min(waterGlasses + 1, 12);
@@ -125,429 +134,588 @@ export default function Dashboard() {
     );
   }
 
+  // ─────────────────────────────────────────────────────────────
+  // Reusable Component: Hero Workout Card
+  // ─────────────────────────────────────────────────────────────
+  const WorkoutHeroCard = () => (
+    <div className="bg-white dark:bg-[#181D1A] rounded-3xl p-4 sm:p-6 shadow-xs border border-emerald-950/5 dark:border-neutral-800 space-y-3.5">
+      {/* Card Top Row */}
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-semibold text-neutral-500 dark:text-neutral-400">
+          Today's workout
+        </span>
+        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A]">
+          Scheduled
+        </span>
+      </div>
+
+      {/* Workout Title & Meta */}
+      <div>
+        <h3 className="text-xl lg:text-2xl font-bold text-neutral-900 dark:text-neutral-100 leading-tight">
+          Upper body strength
+        </h3>
+        <div className="flex items-center gap-2 text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 font-medium mt-1">
+          <div className="flex items-center gap-1">
+            <Clock className="w-3.5 h-3.5" />
+            <span>45 min</span>
+          </div>
+          <span>•</span>
+          <div className="flex items-center gap-1">
+            <Dumbbell className="w-3.5 h-3.5" />
+            <span>6 exercises</span>
+          </div>
+          <span>•</span>
+          <div className="flex items-center gap-1">
+            <MapPin className="w-3.5 h-3.5" />
+            <span>Gym</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Hero Workout Image */}
+      <div className="relative w-full h-40 sm:h-52 lg:h-64 rounded-2xl overflow-hidden shadow-2xs group">
+        <img
+          src="/today-workout.jpg"
+          alt="Upper body strength"
+          className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-500"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60" />
+      </div>
+
+      {/* Start Workout Button */}
+      <button
+        type="button"
+        onClick={() => navigate("/app/workout/session")}
+        className="w-full h-12 lg:h-13 rounded-xl bg-[#0D3B29] hover:bg-[#134e37] text-white font-bold text-sm lg:text-base active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-emerald-950/10"
+      >
+        <Dumbbell className="w-4 h-4 text-[#4CC38A]" />
+        <span>Start workout</span>
+      </button>
+    </div>
+  );
+
+  // ─────────────────────────────────────────────────────────────
+  // Reusable Component: 2x2 Stats Grid
+  // ─────────────────────────────────────────────────────────────
+  const StatsGrid = () => (
+    <div className="grid grid-cols-2 gap-3">
+      {/* Tile 1: Workouts */}
+      <div className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 shadow-xs border border-emerald-950/5 dark:border-neutral-800 flex flex-col justify-between">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-semibold text-neutral-500 dark:text-neutral-400">
+            Workouts
+          </span>
+          <Dumbbell className="w-4 h-4 text-neutral-600 dark:text-neutral-300" />
+        </div>
+
+        <div className="mt-2.5">
+          <p className="font-bold text-xl text-neutral-900 dark:text-neutral-100">
+            0/5
+          </p>
+          <div className="h-1.5 w-full bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden mt-3">
+            <div className="h-full bg-[#1F7A5A] dark:bg-[#4CC38A] rounded-full w-[10%]" />
+          </div>
+        </div>
+      </div>
+
+      {/* Tile 2: Streak */}
+      <div className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 shadow-xs border border-emerald-950/5 dark:border-neutral-800 flex flex-col justify-between">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-semibold text-neutral-500 dark:text-neutral-400">
+            Streak
+          </span>
+          <Flame className="w-4 h-4 text-neutral-600 dark:text-neutral-300" />
+        </div>
+
+        <div className="mt-2.5">
+          <p className="font-bold text-xl text-neutral-900 dark:text-neutral-100">
+            {streakDays} {streakDays === 1 ? "day" : "days"}
+          </p>
+          <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
+            Personal best: 14
+          </p>
+        </div>
+      </div>
+
+      {/* Tile 3: Calories */}
+      <div className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 shadow-xs border border-emerald-950/5 dark:border-neutral-800 flex flex-col justify-between">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-semibold text-neutral-500 dark:text-neutral-400">
+            Calories
+          </span>
+          <Zap className="w-4 h-4 text-neutral-600 dark:text-neutral-300" />
+        </div>
+
+        <div className="mt-2.5">
+          <p className="font-bold text-xl text-neutral-900 dark:text-neutral-100">
+            0 / 2,000
+          </p>
+          <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
+            kcal today
+          </p>
+        </div>
+      </div>
+
+      {/* Tile 4: Water */}
+      <div className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 shadow-xs border border-emerald-950/5 dark:border-neutral-800 flex flex-col justify-between">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-semibold text-neutral-500 dark:text-neutral-400">
+            Water
+          </span>
+          <Droplet className="w-4 h-4 text-neutral-600 dark:text-neutral-300" />
+        </div>
+
+        <div className="flex items-end justify-between mt-2.5">
+          <div>
+            <p className="font-bold text-xl text-neutral-900 dark:text-neutral-100">
+              {waterGlasses} / 8
+            </p>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
+              glasses logged
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleAddWater}
+            aria-label="Log a glass of water"
+            className="w-8 h-8 rounded-xl bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A] flex items-center justify-center font-bold text-base hover:opacity-85 active:scale-95 transition-transform cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  // ─────────────────────────────────────────────────────────────
+  // Reusable Component: Check In At Your Gym
+  // ─────────────────────────────────────────────────────────────
+  const GymCheckInCard = () => (
+    <div className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 shadow-xs border border-emerald-950/5 dark:border-neutral-800 flex items-center justify-between">
+      <div className="flex items-center gap-3 min-w-0">
+        <div className="w-11 h-11 rounded-xl bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A] flex items-center justify-center shrink-0">
+          <Building2 className="w-5 h-5" strokeWidth={2} />
+        </div>
+        <div className="min-w-0">
+          <h4 className="font-bold text-sm text-neutral-900 dark:text-neutral-100 leading-snug">
+            Check in at your gym
+          </h4>
+          <p className="text-xs font-semibold text-[#1F7A5A] dark:text-[#4CC38A] mt-0.5">
+            +30 XP
+          </p>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        onClick={handleCheckIn}
+        className={cn(
+          "px-4 h-9 rounded-xl border text-xs font-bold transition-all shrink-0 active:scale-95 cursor-pointer",
+          isCheckedIn
+            ? "bg-[#EAF5EE] dark:bg-[#1E2D24] border-[#1F7A5A] text-[#1F7A5A] dark:text-[#4CC38A]"
+            : "border-neutral-300 dark:border-neutral-700 text-neutral-800 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-neutral-800"
+        )}
+      >
+        {isCheckedIn ? "Checked in" : "Check in"}
+      </button>
+    </div>
+  );
+
+  // ─────────────────────────────────────────────────────────────
+  // Reusable Component: Coach Tip Card
+  // ─────────────────────────────────────────────────────────────
+  const CoachTipCard = () => (
+    <div className="rounded-2xl p-4.5 bg-[#EAF5EE] dark:bg-[#17221C] border border-[#D5EEDB] dark:border-[#24352B]">
+      <div className="flex items-center gap-2">
+        <Bot className="w-4 h-4 text-[#1F7A5A] dark:text-[#4CC38A]" />
+        <span className="text-xs font-bold text-[#1F7A5A] dark:text-[#4CC38A]">
+          Coach tip
+        </span>
+      </div>
+
+      <p className="text-xs leading-relaxed text-neutral-700 dark:text-neutral-300 mt-2">
+        Focus on controlled eccentrics on today's pressing movements to maximize
+        muscle tension and joint health.
+      </p>
+
+      <button
+        type="button"
+        onClick={() => navigate("/ai-trainer")}
+        className="text-xs font-bold text-[#1F7A5A] dark:text-[#4CC38A] flex items-center gap-1 mt-3 hover:underline cursor-pointer"
+      >
+        <span>Ask Coach</span>
+        <ArrowRight className="w-3.5 h-3.5" />
+      </button>
+    </div>
+  );
+
+  // ─────────────────────────────────────────────────────────────
+  // Reusable Component: Weekly Schedule Strip
+  // ─────────────────────────────────────────────────────────────
+  const WeeklyScheduleCard = () => {
+    const days = [
+      { name: "Mon", status: "done" },
+      { name: "Tue", status: "done" },
+      { name: "Wed", status: "rest" },
+      { name: "Thu", status: "done" },
+      { name: "Fri", status: "today" },
+      { name: "Sat", status: "rest" },
+      { name: "Sun", status: "rest" },
+    ];
+
+    return (
+      <div className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 shadow-xs border border-emerald-950/5 dark:border-neutral-800">
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-xs font-bold text-neutral-700 dark:text-neutral-300 flex items-center gap-1.5">
+            <Calendar className="w-3.5 h-3.5 text-[#1F7A5A] dark:text-[#4CC38A]" />
+            Weekly Schedule
+          </span>
+          <span className="text-[11px] font-semibold text-neutral-400">
+            3 of 4 done
+          </span>
+        </div>
+        <div className="flex items-center justify-between gap-1">
+          {days.map((d) => (
+            <div key={d.name} className="flex flex-col items-center gap-1.5">
+              <div
+                className={cn(
+                  "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all",
+                  d.status === "done" &&
+                    "bg-[#0D3B29] dark:bg-[#1E2D24] text-[#4CC38A]",
+                  d.status === "today" &&
+                    "bg-[#EAF5EE] dark:bg-[#1F7A5A]/30 text-[#1F7A5A] dark:text-[#4CC38A] ring-2 ring-[#1F7A5A]",
+                  d.status === "rest" &&
+                    "bg-neutral-100 dark:bg-neutral-800/60 text-neutral-400"
+                )}
+              >
+                {d.status === "done" ? (
+                  <Check className="w-3.5 h-3.5 stroke-[3]" />
+                ) : d.status === "rest" ? (
+                  "R"
+                ) : (
+                  "4"
+                )}
+              </div>
+              <span className="text-[10px] font-medium text-neutral-500">
+                {d.name}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  // ─────────────────────────────────────────────────────────────
+  // Reusable Component: Smart AI Tools Grid
+  // ─────────────────────────────────────────────────────────────
+  const SmartToolsSection = () => (
+    <section>
+      <div className="flex items-center justify-between mb-3 px-1">
+        <h3 className="text-sm font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
+          Smart AI Tools
+        </h3>
+        <span className="text-[11px] font-semibold text-[#1F7A5A] dark:text-[#4CC38A]">
+          Personalized for you
+        </span>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-3">
+        {/* Card 1: AI Meal Scanner */}
+        <button
+          type="button"
+          onClick={() => navigate("/nutrition")}
+          className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 shadow-xs border border-emerald-950/5 dark:border-neutral-800 flex items-start gap-3.5 text-left hover:bg-neutral-50/80 dark:hover:bg-neutral-800/40 hover:border-emerald-600/20 active:scale-[0.985] transition-all cursor-pointer group"
+        >
+          <div className="w-11 h-11 rounded-xl bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+            <Utensils className="w-5 h-5" strokeWidth={2} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between">
+              <p className="font-bold text-sm text-neutral-900 dark:text-neutral-100 leading-snug">
+                AI Meal Scanner
+              </p>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A]">
+                Vision AI
+              </span>
+            </div>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 leading-relaxed">
+              Snap a plate photo to estimate calories & macros in seconds
+            </p>
+          </div>
+        </button>
+
+        {/* Card 2: Camera Form Coach */}
+        <button
+          type="button"
+          onClick={() => navigate("/app/workout/session")}
+          className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 shadow-xs border border-emerald-950/5 dark:border-neutral-800 flex items-start gap-3.5 text-left hover:bg-neutral-50/80 dark:hover:bg-neutral-800/40 hover:border-emerald-600/20 active:scale-[0.985] transition-all cursor-pointer group"
+        >
+          <div className="w-11 h-11 rounded-xl bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+            <Video className="w-5 h-5" strokeWidth={2} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between">
+              <p className="font-bold text-sm text-neutral-900 dark:text-neutral-100 leading-snug">
+                Camera Form Coach
+              </p>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A]">
+                Live Reps
+              </span>
+            </div>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 leading-relaxed">
+              Real-time posture angle tracking and automatic rep counting
+            </p>
+          </div>
+        </button>
+
+        {/* Card 3: AI Workout Generator */}
+        <button
+          type="button"
+          onClick={() => navigate("/home-workouts")}
+          className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 shadow-xs border border-emerald-950/5 dark:border-neutral-800 flex items-start gap-3.5 text-left hover:bg-neutral-50/80 dark:hover:bg-neutral-800/40 hover:border-emerald-600/20 active:scale-[0.985] transition-all cursor-pointer group"
+        >
+          <div className="w-11 h-11 rounded-xl bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+            <Sparkles className="w-5 h-5" strokeWidth={2} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between">
+              <p className="font-bold text-sm text-neutral-900 dark:text-neutral-100 leading-snug">
+                AI Routine Generator
+              </p>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A]">
+                Adaptive
+              </span>
+            </div>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 leading-relaxed">
+              Generate splits tailored to your equipment, fatigue, and schedule
+            </p>
+          </div>
+        </button>
+
+        {/* Card 4: Leaderboard & XP */}
+        <button
+          type="button"
+          onClick={() => navigate("/gamification")}
+          className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 shadow-xs border border-emerald-950/5 dark:border-neutral-800 flex items-start gap-3.5 text-left hover:bg-neutral-50/80 dark:hover:bg-neutral-800/40 hover:border-emerald-600/20 active:scale-[0.985] transition-all cursor-pointer group"
+        >
+          <div className="w-11 h-11 rounded-xl bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+            <Trophy className="w-5 h-5" strokeWidth={2} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between">
+              <p className="font-bold text-sm text-neutral-900 dark:text-neutral-100 leading-snug">
+                Leaderboard & Badges
+              </p>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A]">
+                Tier Rank
+              </span>
+            </div>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 leading-relaxed">
+              Earn workout XP, maintain streaks, and climb community leaderboards
+            </p>
+          </div>
+        </button>
+
+        {/* Card 5: Partner Gyms Map */}
+        <button
+          type="button"
+          onClick={() => navigate("/gyms")}
+          className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 shadow-xs border border-emerald-950/5 dark:border-neutral-800 flex items-start gap-3.5 text-left hover:bg-neutral-50/80 dark:hover:bg-neutral-800/40 hover:border-emerald-600/20 active:scale-[0.985] transition-all cursor-pointer group"
+        >
+          <div className="w-11 h-11 rounded-xl bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+            <MapPin className="w-5 h-5" strokeWidth={2} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between">
+              <p className="font-bold text-sm text-neutral-900 dark:text-neutral-100 leading-snug">
+                Find Partner Gyms
+              </p>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A]">
+                GPS Pass
+              </span>
+            </div>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 leading-relaxed">
+              Interactive map to locate partner facilities and claim guest access
+            </p>
+          </div>
+        </button>
+
+        {/* Card 6: AI Voice Coach */}
+        <button
+          type="button"
+          onClick={() => navigate("/ai-trainer")}
+          className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 shadow-xs border border-emerald-950/5 dark:border-neutral-800 flex items-start gap-3.5 text-left hover:bg-neutral-50/80 dark:hover:bg-neutral-800/40 hover:border-emerald-600/20 active:scale-[0.985] transition-all cursor-pointer group"
+        >
+          <div className="w-11 h-11 rounded-xl bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+            <Bot className="w-5 h-5" strokeWidth={2} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between">
+              <p className="font-bold text-sm text-neutral-900 dark:text-neutral-100 leading-snug">
+                AI Voice Coach
+              </p>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A]">
+                24/7 Chat
+              </span>
+            </div>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 leading-relaxed">
+              Real-time conversational advice on form, recovery, and nutrition
+            </p>
+          </div>
+        </button>
+      </div>
+    </section>
+  );
+
   return (
     <div
-      className="min-h-dvh flex flex-col overflow-x-hidden"
+      className="min-h-dvh flex flex-col lg:flex-row overflow-x-hidden"
       style={{
         backgroundColor: "var(--sf-bg, #F2F7F4)",
         color: "var(--sf-text, #16211C)",
       }}
     >
-      <div
-        className="w-full max-w-md mx-auto px-4"
-        style={{
-          paddingTop: "calc(env(safe-area-inset-top, 0px) + 8px)",
-          paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 96px)",
-        }}
-      >
-        {/* ── Top Bar ── */}
-        <header className="flex items-center justify-between h-14 mb-2">
-          <h1 className="text-xl font-bold tracking-tight text-neutral-900 dark:text-neutral-50">
-            Today
-          </h1>
+      {/* ── Desktop Left Sidebar (Only visible on lg screens) ── */}
+      <DesktopSidebar
+        avatarUrl={profile?.avatar_url || "/prem-avatar.jpg"}
+        userName={firstName}
+      />
 
-          <button
-            type="button"
-            onClick={() => navigate("/app/profile")}
-            aria-label="Profile Avatar"
-            className="w-9 h-9 rounded-full bg-[#0D3B29] text-[#4CC38A] flex items-center justify-center shadow-2xs active:scale-95 transition-transform"
-          >
-            <User className="w-5 h-5 text-[#4CC38A]" strokeWidth={2.2} />
-          </button>
+      {/* ── Main Content Area ── */}
+      <main className="flex-1 min-w-0 w-full">
+        {/* ── Desktop Top Header Bar (lg:flex, hidden on mobile) ── */}
+        <header className="hidden lg:flex items-center justify-between px-8 py-5 border-b border-emerald-950/5 dark:border-neutral-800 bg-white/60 dark:bg-[#111413]/60 backdrop-blur-md sticky top-0 z-20">
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl xl:text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-neutral-50">
+                {greeting}, {firstName}
+              </h1>
+              <span className="text-2xl">👋</span>
+            </div>
+            <div className="flex items-center gap-3 mt-1 text-xs text-neutral-500 dark:text-neutral-400 font-medium">
+              <span className="px-2.5 py-0.5 rounded-full font-bold bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A]">
+                Level {level}
+              </span>
+              <span>•</span>
+              <span>
+                {xp} / {nextLevelXp} XP
+              </span>
+              <span>•</span>
+              <span>{todayDateString}</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <button
+              type="button"
+              onClick={handleCheckIn}
+              className={cn(
+                "px-4 py-2.5 rounded-xl border text-xs font-bold transition-all flex items-center gap-2 shadow-2xs active:scale-95 cursor-pointer",
+                isCheckedIn
+                  ? "bg-[#EAF5EE] dark:bg-[#1E2D24] border-[#1F7A5A] text-[#1F7A5A] dark:text-[#4CC38A]"
+                  : "border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-neutral-700"
+              )}
+            >
+              <Building2 className="w-4 h-4 text-[#1F7A5A] dark:text-[#4CC38A]" />
+              <span>{isCheckedIn ? "Gym Checked In" : "Check in at gym (+30 XP)"}</span>
+            </button>
+
+            <div
+              onClick={() => navigate("/app/profile")}
+              role="button"
+              tabIndex={0}
+              className="w-10 h-10 rounded-full overflow-hidden shadow-xs ring-2 ring-emerald-600/20 cursor-pointer active:scale-95 transition-transform"
+            >
+              <img
+                src={profile?.avatar_url || "/prem-avatar.jpg"}
+                alt={firstName}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          </div>
         </header>
 
-        {/* ── Greeting & XP Bar ── */}
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="text-xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
-              {greeting}, {firstName}
-            </h2>
-            <p className="text-xs text-neutral-600 dark:text-neutral-400 mt-0.5 font-medium flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-[#1F7A5A] dark:bg-[#4CC38A] shrink-0" />
-              <span>
-                Level {level} • {xp} / {nextLevelXp} XP
-              </span>
-            </p>
-          </div>
-
-          <div
-            onClick={() => navigate("/app/profile")}
-            role="button"
-            tabIndex={0}
-            className="w-11 h-11 rounded-full overflow-hidden shadow-xs ring-2 ring-white/80 dark:ring-neutral-800 cursor-pointer active:scale-95 transition-transform shrink-0"
-          >
-            {profile?.avatar_url ? (
-              <img
-                src={profile.avatar_url}
-                alt={firstName}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <img
-                src="/prem-avatar.jpg"
-                alt={firstName}
-                className="w-full h-full object-cover"
-              />
-            )}
-          </div>
-        </div>
-
-        {/* ── Today's Workout Hero Card ── */}
-        <div className="bg-white dark:bg-[#181D1A] rounded-3xl p-4 sm:p-5 shadow-xs border border-emerald-950/5 dark:border-neutral-800 space-y-3.5 mb-4">
-          {/* Card Top Row */}
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
-              Today's workout
-            </span>
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A]">
-              Scheduled
-            </span>
-          </div>
-
-          {/* Workout Title & Meta */}
-          <div>
-            <h3 className="text-lg font-bold text-neutral-900 dark:text-neutral-100 leading-tight">
-              Upper body strength
-            </h3>
-            <div className="flex items-center gap-2 text-xs text-neutral-500 dark:text-neutral-400 font-medium mt-1">
-              <div className="flex items-center gap-1">
-                <Clock className="w-3.5 h-3.5" />
-                <span>45 min</span>
-              </div>
-              <span>•</span>
-              <div className="flex items-center gap-1">
-                <Dumbbell className="w-3.5 h-3.5" />
-                <span>6 exercises</span>
-              </div>
-              <span>•</span>
-              <div className="flex items-center gap-1">
-                <MapPin className="w-3.5 h-3.5" />
-                <span>Gym</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Hero Workout Image */}
-          <div className="relative w-full h-36 sm:h-44 rounded-2xl overflow-hidden shadow-2xs">
-            <img
-              src="/today-workout.jpg"
-              alt="Upper body strength"
-              className="w-full h-full object-cover"
-            />
-          </div>
-
-          {/* Start Workout Button */}
-          <button
-            type="button"
-            onClick={() => navigate("/app/workout/session")}
-            className="w-full h-12 rounded-xl bg-[#0D3B29] text-white font-bold text-sm hover:opacity-90 active:scale-[0.99] transition-all flex items-center justify-center cursor-pointer shadow-xs"
-          >
-            Start workout
-          </button>
-        </div>
-
-        {/* ── 2x2 Stats Grid ── */}
-        <div className="grid grid-cols-2 gap-3 mb-4">
-          {/* Tile 1: Workouts */}
-          <div className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 shadow-xs border border-emerald-950/5 dark:border-neutral-800 flex flex-col justify-between">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
-                Workouts
-              </span>
-              <Dumbbell className="w-4 h-4 text-neutral-600 dark:text-neutral-300" />
-            </div>
-
-            <div className="mt-2.5">
-              <p className="font-bold text-xl text-neutral-900 dark:text-neutral-100">
-                0/5
-              </p>
-              <div className="h-1 w-full bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden mt-3">
-                <div className="h-full bg-[#1F7A5A] dark:bg-[#4CC38A] rounded-full w-[10%]" />
-              </div>
-            </div>
-          </div>
-
-          {/* Tile 2: Streak */}
-          <div className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 shadow-xs border border-emerald-950/5 dark:border-neutral-800 flex flex-col justify-between">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
-                Streak
-              </span>
-              <Flame className="w-4 h-4 text-neutral-600 dark:text-neutral-300" />
-            </div>
-
-            <div className="mt-2.5">
-              <p className="font-bold text-xl text-neutral-900 dark:text-neutral-100">
-                {streakDays} {streakDays === 1 ? "day" : "days"}
-              </p>
-              <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
-                Personal best: 14
-              </p>
-            </div>
-          </div>
-
-          {/* Tile 3: Calories */}
-          <div className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 shadow-xs border border-emerald-950/5 dark:border-neutral-800 flex flex-col justify-between">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
-                Calories
-              </span>
-              <Zap className="w-4 h-4 text-neutral-600 dark:text-neutral-300" />
-            </div>
-
-            <div className="mt-2.5">
-              <p className="font-bold text-xl text-neutral-900 dark:text-neutral-100">
-                0 / 2,000
-              </p>
-              <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
-                kcal today
-              </p>
-            </div>
-          </div>
-
-          {/* Tile 4: Water */}
-          <div className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 shadow-xs border border-emerald-950/5 dark:border-neutral-800 flex flex-col justify-between">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
-                Water
-              </span>
-              <Droplet className="w-4 h-4 text-neutral-600 dark:text-neutral-300" />
-            </div>
-
-            <div className="flex items-end justify-between mt-2.5">
-              <div>
-                <p className="font-bold text-xl text-neutral-900 dark:text-neutral-100">
-                  {waterGlasses} / 8
-                </p>
-                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
-                  glasses logged
-                </p>
-              </div>
+        {/* ── Content Container: Mobile max-w-md, Desktop max-w-7xl ── */}
+        <div
+          className="w-full max-w-md lg:max-w-7xl mx-auto px-4 lg:px-8 py-2 lg:py-8"
+          style={{
+            paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 96px)",
+          }}
+        >
+          {/* ── Mobile Top Bar & Greeting (Hidden on desktop) ── */}
+          <div className="lg:hidden">
+            <header className="flex items-center justify-between h-14 mb-2">
+              <h1 className="text-xl font-bold tracking-tight text-neutral-900 dark:text-neutral-50">
+                Today
+              </h1>
 
               <button
                 type="button"
-                onClick={handleAddWater}
-                aria-label="Log a glass of water"
-                className="w-8 h-8 rounded-xl bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A] flex items-center justify-center font-bold text-base hover:opacity-85 active:scale-95 transition-transform cursor-pointer"
+                onClick={() => navigate("/app/profile")}
+                aria-label="Profile Avatar"
+                className="w-9 h-9 rounded-full bg-[#0D3B29] text-[#4CC38A] flex items-center justify-center shadow-2xs active:scale-95 transition-transform"
               >
-                <Plus className="w-4 h-4" />
+                <User className="w-5 h-5 text-[#4CC38A]" strokeWidth={2.2} />
               </button>
+            </header>
+
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
+                  {greeting}, {firstName}
+                </h2>
+                <p className="text-xs text-neutral-600 dark:text-neutral-400 mt-0.5 font-medium flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-[#1F7A5A] dark:bg-[#4CC38A] shrink-0" />
+                  <span>
+                    Level {level} • {xp} / {nextLevelXp} XP
+                  </span>
+                </p>
+              </div>
+
+              <div
+                onClick={() => navigate("/app/profile")}
+                role="button"
+                tabIndex={0}
+                className="w-11 h-11 rounded-full overflow-hidden shadow-xs ring-2 ring-white/80 dark:ring-neutral-800 cursor-pointer active:scale-95 transition-transform shrink-0"
+              >
+                <img
+                  src={profile?.avatar_url || "/prem-avatar.jpg"}
+                  alt={firstName}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* ── Mobile Layout (Single Column) ── */}
+          <div className="lg:hidden space-y-4">
+            <WorkoutHeroCard />
+            <StatsGrid />
+            <GymCheckInCard />
+            <CoachTipCard />
+            <SmartToolsSection />
+          </div>
+
+          {/* ── Desktop Layout (2-Column Grid) ── */}
+          <div className="hidden lg:grid lg:grid-cols-12 lg:gap-8 items-start">
+            {/* Left Column (Main Focus: Workout Hero + Smart AI Tools) */}
+            <div className="lg:col-span-7 xl:col-span-8 space-y-8">
+              <WorkoutHeroCard />
+              <SmartToolsSection />
+            </div>
+
+            {/* Right Column (Side Focus: Stats + Gym Check-in + Coach Tip + Weekly Schedule) */}
+            <div className="lg:col-span-5 xl:col-span-4 space-y-5 sticky top-28">
+              <StatsGrid />
+              <WeeklyScheduleCard />
+              <GymCheckInCard />
+              <CoachTipCard />
             </div>
           </div>
         </div>
-
-        {/* ── Check In At Your Gym Card ── */}
-        <div className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 shadow-xs border border-emerald-950/5 dark:border-neutral-800 flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-11 h-11 rounded-xl bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A] flex items-center justify-center shrink-0">
-              <Building2 className="w-5 h-5" strokeWidth={2} />
-            </div>
-            <div className="min-w-0">
-              <h4 className="font-bold text-sm text-neutral-900 dark:text-neutral-100 leading-snug">
-                Check in at your gym
-              </h4>
-              <p className="text-xs font-semibold text-[#1F7A5A] dark:text-[#4CC38A] mt-0.5">
-                +30 XP
-              </p>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={handleCheckIn}
-            className={cn(
-              "px-4 h-9 rounded-xl border text-xs font-bold transition-all shrink-0 active:scale-95",
-              isCheckedIn
-                ? "bg-[#EAF5EE] dark:bg-[#1E2D24] border-[#1F7A5A] text-[#1F7A5A] dark:text-[#4CC38A]"
-                : "border-neutral-300 dark:border-neutral-700 text-neutral-800 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-neutral-800"
-            )}
-          >
-            {isCheckedIn ? "Checked in" : "Check in"}
-          </button>
-        </div>
-
-        {/* ── Coach Tip Card ── */}
-        <div className="rounded-2xl p-4 bg-[#EAF5EE] dark:bg-[#17221C] border border-[#D5EEDB] dark:border-[#24352B] mb-5">
-          <div className="flex items-center gap-2">
-            <Bot className="w-4 h-4 text-[#1F7A5A] dark:text-[#4CC38A]" />
-            <span className="text-xs font-bold text-[#1F7A5A] dark:text-[#4CC38A]">
-              Coach tip
-            </span>
-          </div>
-
-          <p className="text-xs leading-relaxed text-neutral-700 dark:text-neutral-300 mt-2">
-            Focus on controlled eccentrics on today's pressing movements to maximize
-            muscle tension and joint health.
-          </p>
-
-          <button
-            type="button"
-            onClick={() => navigate("/ai-trainer")}
-            className="text-xs font-bold text-[#1F7A5A] dark:text-[#4CC38A] flex items-center gap-1 mt-3 hover:underline cursor-pointer"
-          >
-            <span>Ask Coach</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </button>
-        </div>
-
-        {/* ── SECTION: Smart Tools & AI Features ── */}
-        <section className="mb-6">
-          <div className="flex items-center justify-between mb-3 px-1">
-            <h3 className="text-sm font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
-              Smart AI Tools
-            </h3>
-            <span className="text-[11px] font-semibold text-[#1F7A5A] dark:text-[#4CC38A]">
-              Personalized for you
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {/* Card 1: AI Meal Scanner */}
-            <button
-              type="button"
-              onClick={() => navigate("/nutrition")}
-              className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 shadow-xs border border-emerald-950/5 dark:border-neutral-800 flex items-start gap-3.5 text-left hover:bg-neutral-50/60 dark:hover:bg-neutral-800/40 active:scale-[0.985] transition-all cursor-pointer"
-            >
-              <div className="w-11 h-11 rounded-xl bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A] flex items-center justify-center shrink-0">
-                <Utensils className="w-5 h-5" strokeWidth={2} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between">
-                  <p className="font-bold text-sm text-neutral-900 dark:text-neutral-100 leading-snug">
-                    AI Meal Scanner
-                  </p>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A]">
-                    Vision AI
-                  </span>
-                </div>
-                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 leading-relaxed">
-                  Snap a plate photo to estimate calories & macros in seconds
-                </p>
-              </div>
-            </button>
-
-            {/* Card 2: Camera Form Coach */}
-            <button
-              type="button"
-              onClick={() => navigate("/app/workout/session")}
-              className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 shadow-xs border border-emerald-950/5 dark:border-neutral-800 flex items-start gap-3.5 text-left hover:bg-neutral-50/60 dark:hover:bg-neutral-800/40 active:scale-[0.985] transition-all cursor-pointer"
-            >
-              <div className="w-11 h-11 rounded-xl bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A] flex items-center justify-center shrink-0">
-                <Video className="w-5 h-5" strokeWidth={2} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between">
-                  <p className="font-bold text-sm text-neutral-900 dark:text-neutral-100 leading-snug">
-                    Camera Form Coach
-                  </p>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A]">
-                    Live Reps
-                  </span>
-                </div>
-                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 leading-relaxed">
-                  Real-time posture angle tracking and automatic rep counting
-                </p>
-              </div>
-            </button>
-
-            {/* Card 3: AI Workout Generator */}
-            <button
-              type="button"
-              onClick={() => navigate("/home-workouts")}
-              className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 shadow-xs border border-emerald-950/5 dark:border-neutral-800 flex items-start gap-3.5 text-left hover:bg-neutral-50/60 dark:hover:bg-neutral-800/40 active:scale-[0.985] transition-all cursor-pointer"
-            >
-              <div className="w-11 h-11 rounded-xl bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A] flex items-center justify-center shrink-0">
-                <Sparkles className="w-5 h-5" strokeWidth={2} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between">
-                  <p className="font-bold text-sm text-neutral-900 dark:text-neutral-100 leading-snug">
-                    AI Routine Generator
-                  </p>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A]">
-                    Adaptive
-                  </span>
-                </div>
-                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 leading-relaxed">
-                  Generate splits tailored to your equipment, fatigue, and schedule
-                </p>
-              </div>
-            </button>
-
-            {/* Card 4: Leaderboard & XP */}
-            <button
-              type="button"
-              onClick={() => navigate("/gamification")}
-              className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 shadow-xs border border-emerald-950/5 dark:border-neutral-800 flex items-start gap-3.5 text-left hover:bg-neutral-50/60 dark:hover:bg-neutral-800/40 active:scale-[0.985] transition-all cursor-pointer"
-            >
-              <div className="w-11 h-11 rounded-xl bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A] flex items-center justify-center shrink-0">
-                <Trophy className="w-5 h-5" strokeWidth={2} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between">
-                  <p className="font-bold text-sm text-neutral-900 dark:text-neutral-100 leading-snug">
-                    Leaderboard & Badges
-                  </p>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A]">
-                    Tier Rank
-                  </span>
-                </div>
-                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 leading-relaxed">
-                  Earn workout XP, maintain streaks, and climb community leaderboards
-                </p>
-              </div>
-            </button>
-
-            {/* Card 5: Partner Gyms Map */}
-            <button
-              type="button"
-              onClick={() => navigate("/gyms")}
-              className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 shadow-xs border border-emerald-950/5 dark:border-neutral-800 flex items-start gap-3.5 text-left hover:bg-neutral-50/60 dark:hover:bg-neutral-800/40 active:scale-[0.985] transition-all cursor-pointer"
-            >
-              <div className="w-11 h-11 rounded-xl bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A] flex items-center justify-center shrink-0">
-                <MapPin className="w-5 h-5" strokeWidth={2} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between">
-                  <p className="font-bold text-sm text-neutral-900 dark:text-neutral-100 leading-snug">
-                    Find Partner Gyms
-                  </p>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A]">
-                    GPS Pass
-                  </span>
-                </div>
-                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 leading-relaxed">
-                  Interactive map to locate partner facilities and claim guest access
-                </p>
-              </div>
-            </button>
-
-            {/* Card 6: AI Voice Coach */}
-            <button
-              type="button"
-              onClick={() => navigate("/ai-trainer")}
-              className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 shadow-xs border border-emerald-950/5 dark:border-neutral-800 flex items-start gap-3.5 text-left hover:bg-neutral-50/60 dark:hover:bg-neutral-800/40 active:scale-[0.985] transition-all cursor-pointer"
-            >
-              <div className="w-11 h-11 rounded-xl bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A] flex items-center justify-center shrink-0">
-                <Bot className="w-5 h-5" strokeWidth={2} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between">
-                  <p className="font-bold text-sm text-neutral-900 dark:text-neutral-100 leading-snug">
-                    AI Voice Coach
-                  </p>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A]">
-                    24/7 Chat
-                  </span>
-                </div>
-                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 leading-relaxed">
-                  Real-time conversational advice on form, recovery, and nutrition
-                </p>
-              </div>
-            </button>
-          </div>
-        </section>
-      </div>
+      </main>
     </div>
   );
 }
