@@ -1,15 +1,11 @@
 // SmartFit AI - Home Page
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Zap, Bot, Brain, Eye, BarChart3, Utensils, Calendar, QrCode, Trophy, Wrench, Sparkles, LineChart, Laptop, Calculator, Users, Clock, Shield, Star, Gift, X } from "lucide-react";
+import { ArrowRight, Users, Clock, Shield, Star } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { FeatureCard } from "@/components/FeatureCard";
 import { useAuth } from "@/hooks/use-auth";
-import "@/styles/feature-card.css";
-import { FeaturesCarousel } from "@/components/FeaturesCarousel";
 import { HowItWorksCarousel } from "@/components/HowItWorksCarousel";
-import { toast } from "sonner";
 
 
 const CYCLING_WORDS = [
@@ -154,11 +150,11 @@ const Home = () => {
                     variant="glass"
                     size="xl"
                     onClick={() => {
-                      document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
+                      document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' });
                     }}
-                    aria-label="Scroll to features section"
+                    aria-label="Scroll to how it works section"
                   >
-                    Explore Features
+                    How It Works
                   </Button>
                 </>
               )}
@@ -295,114 +291,8 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Features Carousel - only show for non-authenticated users */}
-      {!isAuthenticated && <FeaturesCarousel />}
-
-      {/* Features Section - shown for everyone */}
-      <section id="features" className="py-16">
-        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4 text-white">
-              {isAuthenticated ? (
-                <>Explore <span className="text-gradient">Features</span></>
-              ) : (
-                <>Why Choose <span className="text-gradient">SmartFit AI Hub</span></>
-              )}
-            </h2>
-            <p className="text-lg md:text-xl leading-relaxed text-gray-300 max-w-prose mx-auto">
-              {isAuthenticated
-                ? "Access all the powerful tools to reach your fitness goals"
-                : "Cutting-edge technology meets personalized fitness coaching"
-              }
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[
-              {
-                icon: Laptop,
-                title: "Online Coaching",
-                description: "Get 1-on-1 expert guidance with personalized workout and nutrition roadmap",
-                link: "/online-coaching",
-                badge: "LIVE",
-                isPremium: true
-              },
-              {
-                icon: Trophy,
-                title: "Road to ICN Elite",
-                description: "The interactive journey from 'Common Man' to 'Stage-Ready Competitor' with structural symmetry analysis",
-                link: "/road-to-icn",
-                variant: "icn",
-                isPremium: true
-              },
-              {
-                icon: Bot,
-                title: "AI Personal Trainer",
-                description: "24/7 AI Chat expert for personalized fitness advice, form tips, and nutrition guidance",
-                link: "/ai-trainer",
-                isPremium: true
-              },
-              {
-                icon: Zap,
-                title: "AI Workout Generator",
-                description: "Smart training programs with integrated BMI assessment and fitness goal tracking",
-                link: "/ai-workout",
-                isPremium: true
-              },
-              {
-                icon: Eye,
-                title: "Real-Time Form Detection",
-                description: "Computer vision technology analyzes your form and provides instant feedback",
-                link: "/workout-session",
-                isPremium: true
-              },
-              {
-                icon: Utensils,
-                title: "Nutrition & Macro AI",
-                description: "AI-powered meal planning with precise macro calculations",
-                link: "/nutrition",
-                isPremium: true
-              },
-              {
-                icon: Sparkles,
-                title: "3D Trainer Mode",
-                description: "Follow animated 3D demonstrations with voice coaching – no camera required",
-                link: "/3d-trainer",
-                isPremium: true
-              },
-              {
-                icon: BarChart3,
-                title: "Smart Progress Dashboard",
-                description: "Comprehensive analytics tracking your fitness journey and achievements",
-                link: "/progress",
-              },
-              {
-                icon: Trophy,
-                title: "Gamified Training System",
-                description: "Earn rewards, unlock achievements, and compete with friends",
-                link: "/gamification",
-              },
-            ].map((feature, index) => (
-              <FeatureCard
-                key={feature.title}
-                icon={feature.icon}
-                title={feature.title}
-                description={feature.description}
-                link={feature.link}
-                index={index}
-                badge={(feature as any).badge}
-                isPremium={(feature as any).isPremium}
-                isBusinessOnly={(feature as any).isBusinessOnly}
-                onClick={(feature as any).onClick}
-                variant={(feature as any).variant}
-              />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* How It Works Carousel - only show for non-authenticated users */}
-      {!isAuthenticated && <HowItWorksCarousel />}
+      {/* How It Works Section */}
+      <HowItWorksCarousel />
 
 
       {/* CTA Section */}

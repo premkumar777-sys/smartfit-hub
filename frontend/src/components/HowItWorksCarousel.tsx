@@ -62,7 +62,7 @@ export const HowItWorksCarousel = () => {
     }, [api]);
 
     return (
-        <section className="py-16 relative overflow-hidden">
+        <section id="how-it-works" className="py-16 relative overflow-hidden">
             {/* Decorative background */}
             <div className="absolute inset-0 opacity-30">
                 <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-primary/20 rounded-full blur-3xl" />
