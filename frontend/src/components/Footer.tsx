@@ -17,9 +17,9 @@ export function Footer() {
 
             <Container className="relative z-10">
                 <div className="pt-12 pb-28 lg:pb-12">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         {/* Brand Column */}
-                        <div className="md:col-span-1">
+                        <div>
                             <Link to="/" className="flex items-center gap-2 mb-4">
                                 <img
                                     src="/favicon.png"
@@ -88,22 +88,6 @@ export function Footer() {
                                     <MessageCircle className="w-5 h-5 fill-white text-[#25D366]" />
                                 </a>
                             </div>
-                        </div>
-
-                        {/* Quick Links */}
-                        <div>
-                            <h3 className="font-semibold mb-4 text-sm uppercase tracking-wider text-primary">Features</h3>
-                            <ul className="space-y-2 text-sm">
-                                <li><Link to="/events" className="text-[#00FF9C] font-semibold hover:text-[#00FF9C]/80 transition-colors">Events & Competitions 🔥</Link></li>
-                                <li><Link to="/ai-workout" className="text-muted-foreground hover:text-foreground transition-colors">AI Workout Generator</Link></li>
-                                <li><Link to="/ai-trainer" className="text-muted-foreground hover:text-foreground transition-colors">AI Personal Trainer</Link></li>
-                                <li><Link to="/nutrition" className="text-muted-foreground hover:text-foreground transition-colors">Nutrition Planner</Link></li>
-                                <li><Link to="/3d-trainer" className="text-muted-foreground hover:text-foreground transition-colors">3D Trainer Mode</Link></li>
-                                <li><Link to="/progress" className="text-muted-foreground hover:text-foreground transition-colors">Progress Tracking</Link></li>
-                                <li><Link to="/pricing" className="text-muted-foreground hover:text-foreground transition-colors">Pricing & Plans</Link></li>
-                                <li><Link to="/events" className="text-muted-foreground hover:text-foreground transition-colors">Campus Events 🏆</Link></li>
-                                <li><Link to="/become-a-coach" className="text-[#00FF9C] hover:text-[#00FF9C]/80 font-bold transition-colors">Join as Trainer / Coach 🤝</Link></li>
-                            </ul>
                         </div>
 
                         {/* Legal Links */}
