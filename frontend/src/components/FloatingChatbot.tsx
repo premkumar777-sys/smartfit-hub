@@ -1,4 +1,6 @@
 import { useState, useRef, useEffect } from "react";
+import { useLocation } from "react-router-dom";
+import { useAuth } from "@/hooks/use-auth";
 import { 
   X, 
   Send, 
@@ -159,6 +161,8 @@ const formatMessageContent = (text: string) => {
 };
 
 export const FloatingChatbot = () => {
+  const { isAuthenticated } = useAuth();
+  const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -166,6 +170,12 @@ export const FloatingChatbot = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Check if mobile bottom navigation is present for positioning
+  const isAuthPage = location.pathname === "/auth";
+  const isWorkoutSessionPage = location.pathname === "/workout-session";
+  const isOnboardingPage = location.pathname.startsWith("/onboarding");
+  const hasBottomNav = isAuthenticated && !isAuthPage && !isWorkoutSessionPage && !isOnboardingPage;
 
   const scrollToBottom = (behavior: ScrollBehavior = "smooth", force = false) => {
     requestAnimationFrame(() => {
@@ -266,28 +276,28 @@ export const FloatingChatbot = () => {
       <motion.button
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "fixed bottom-[calc(4.75rem+env(safe-area-inset-bottom,0px))] right-4 lg:bottom-6 lg:right-6 z-[60] w-12 h-12 lg:w-16 lg:h-16 rounded-xl lg:rounded-2xl flex items-center justify-center",
-          "bg-[#0a0a0a]/90 border border-white/10 backdrop-blur-md shadow-2xl",
-          isOpen && "scale-0 opacity-0 rotate-180"
+          "fixed right-4 lg:bottom-6 lg:right-6 z-[80] w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center cursor-pointer transition-all duration-300",
+          hasBottomNav
+            ? "bottom-[calc(5rem+env(safe-area-inset-bottom,0px))]"
+            : "bottom-[calc(1.25rem+env(safe-area-inset-bottom,0px))]",
+          "bg-[#0B3B24] border-2 border-[#4CC38A]/70 backdrop-blur-md shadow-[0_0_25px_rgba(76,195,138,0.45)] hover:shadow-[0_0_35px_rgba(76,195,138,0.7)]",
+          isOpen && "scale-0 opacity-0 rotate-180 pointer-events-none"
         )}
         whileHover={{
           scale: 1.08,
-          borderColor: "rgba(34, 204, 102, 0.4)",
+          borderColor: "rgba(76, 195, 138, 0.9)",
         }}
-        whileTap={{ scale: 0.95 }}
-        initial={{ scale: 0, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ type: "spring", stiffness: 260, damping: 20 }}
-        aria-label="Open chat"
+        whileTap={{ scale: 0.92 }}
+        aria-label="Open AI Fitness Chat"
       >
-        <div className="absolute -inset-[3px] rounded-xl lg:rounded-2xl bg-gradient-to-tr from-[#22CC66] via-[#38BDF8] to-[#818CF8] opacity-70 blur-[3px] animate-pulse" />
-        <div className="absolute inset-[1px] rounded-[11px] lg:rounded-[13px] bg-[#0a0a0a] z-0" />
+        <div className="absolute -inset-[3px] rounded-2xl bg-gradient-to-tr from-[#22CC66] via-[#38BDF8] to-[#818CF8] opacity-70 blur-[4px] animate-pulse pointer-events-none" />
+        <div className="absolute inset-[1px] rounded-[14px] bg-[#0B3B24] z-0" />
         
-        <div className="relative z-10 w-8 h-8 lg:w-11 lg:h-11 rounded-lg lg:rounded-xl bg-white/5 border border-white/10 flex items-center justify-center p-1 lg:p-1.5 overflow-hidden shadow-inner group">
+        <div className="relative z-10 w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center p-1 sm:p-1.5 overflow-hidden shadow-inner group">
           <img 
             src="/favicon.png" 
             alt="SmartFitAI Chatbot Launcher" 
-            className="w-full h-full object-contain filter drop-shadow-[0_0_8px_rgba(34,204,102,0.6)] transform group-hover:scale-110 transition-transform duration-300"
+            className="w-full h-full object-contain filter drop-shadow-[0_0_10px_rgba(76,195,138,0.8)] transform group-hover:scale-110 transition-transform duration-300"
           />
         </div>
 
@@ -306,7 +316,7 @@ export const FloatingChatbot = () => {
             exit={{ opacity: 0, y: 30, scale: 0.95 }}
             transition={{ type: "spring", damping: 25, stiffness: 280 }}
             className={cn(
-              "fixed bottom-0 right-0 left-0 sm:bottom-6 sm:right-6 sm:left-auto z-[60]",
+              "fixed bottom-0 right-0 left-0 sm:bottom-6 sm:right-6 sm:left-auto z-[80]",
               "w-full sm:w-[420px] sm:max-w-[calc(100vw-2rem)]",
               "h-[88dvh] sm:h-[540px] sm:max-h-[calc(100vh-8rem)]",
               "bg-[#0d0f17]/95 backdrop-blur-xl sm:backdrop-blur-2xl border-t border-x border-white/10 sm:border rounded-t-[2rem] sm:rounded-[2rem] shadow-[0_0_60px_rgba(0,0,0,0.85)]",
