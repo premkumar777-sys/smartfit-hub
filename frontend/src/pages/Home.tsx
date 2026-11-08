@@ -96,7 +96,7 @@ const Home = () => {
         </div>
 
         {/* Bottom Hero Action Buttons */}
-        <div className="relative z-10 w-full max-w-md mx-auto px-6 pb-4 sm:pb-8">
+        <div className="relative z-10 w-full max-w-md mx-auto px-6 pb-2 sm:pb-6">
           <motion.div
             className="flex flex-col gap-3.5 justify-center"
             initial={{ opacity: 0, y: 20 }}

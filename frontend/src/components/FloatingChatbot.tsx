@@ -171,11 +171,34 @@ export const FloatingChatbot = () => {
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Check if mobile bottom navigation is present for positioning
+  // Check if mobile bottom navigation or hero action buttons are present for positioning
+  const isHomePage = location.pathname === "/";
   const isAuthPage = location.pathname === "/auth";
   const isWorkoutSessionPage = location.pathname === "/workout-session";
   const isOnboardingPage = location.pathname.startsWith("/onboarding");
-  const hasBottomNav = isAuthenticated && !isAuthPage && !isWorkoutSessionPage && !isOnboardingPage;
+  const hasBottomNav = isAuthenticated && !isAuthPage && !isWorkoutSessionPage && !isOnboardingPage && !isHomePage;
+
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    if (!isHomePage) return;
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 80);
+    };
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [isHomePage]);
+
+  // On the home screen hero, lift the chatbot cleanly above "Start Transformation" (14rem clearance)
+  // When scrolled down into the page, let it rest in the standard bottom corner
+  const mobileBottomPosition = isHomePage
+    ? (isScrolled
+        ? "bottom-[calc(1.25rem+env(safe-area-inset-bottom,0px))]"
+        : "bottom-[calc(14rem+env(safe-area-inset-bottom,0px))]")
+    : hasBottomNav
+    ? "bottom-[calc(5rem+env(safe-area-inset-bottom,0px))]"
+    : "bottom-[calc(1.25rem+env(safe-area-inset-bottom,0px))]";
 
   const scrollToBottom = (behavior: ScrollBehavior = "smooth", force = false) => {
     requestAnimationFrame(() => {
@@ -277,9 +300,7 @@ export const FloatingChatbot = () => {
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
           "fixed right-4 lg:bottom-6 lg:right-6 z-[80] w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center cursor-pointer transition-all duration-300",
-          hasBottomNav
-            ? "bottom-[calc(5rem+env(safe-area-inset-bottom,0px))]"
-            : "bottom-[calc(1.25rem+env(safe-area-inset-bottom,0px))]",
+          mobileBottomPosition,
           "bg-[#0B3B24] border-2 border-[#4CC38A]/70 backdrop-blur-md shadow-[0_0_25px_rgba(76,195,138,0.45)] hover:shadow-[0_0_35px_rgba(76,195,138,0.7)]",
           isOpen && "scale-0 opacity-0 rotate-180 pointer-events-none"
         )}
