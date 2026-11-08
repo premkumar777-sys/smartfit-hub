@@ -90,7 +90,11 @@ const AppContent = () => {
   const isAuthPage = location.pathname === "/auth";
   const isWorkoutSessionPage = location.pathname === "/workout-session";
   const isOnboardingPage = location.pathname.startsWith("/onboarding");
+  const isSettingsPage = location.pathname === "/settings" || location.pathname === "/app/settings";
   const hideLayout = isAuthPage || isWorkoutSessionPage || isOnboardingPage;
+  const hideHeader = hideLayout || isSettingsPage;
+  const hideFooter = hideLayout || isSettingsPage;
+  const hideChatbot = hideLayout || isSettingsPage;
 
   const isConfigMissing = !import.meta.env.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL === 'https://placeholder.supabase.co';
 
@@ -129,8 +133,8 @@ const AppContent = () => {
         <ScrollToTop />
         <CookieConsent />
         <ErrorBoundary>
-          {!hideLayout && <FloatingChatbot />}
-          {!hideLayout && <Header />}
+          {!hideChatbot && <FloatingChatbot />}
+          {!hideHeader && <Header />}
           <Suspense fallback={<SplashScreen />}>
             <Routes>
               {/* Public & Marketing */}
@@ -216,7 +220,7 @@ const AppContent = () => {
             </Routes>
           </Suspense>
           {!hideLayout && <BottomNavigation />}
-          {!hideLayout && <Footer />}
+          {!hideFooter && <Footer />}
         </ErrorBoundary>
       </MotionConfig>
     </PwaMobileWrapper>

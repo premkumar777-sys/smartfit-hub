@@ -269,13 +269,19 @@ export default function Settings() {
 
   return (
     <div
-      className="min-h-dvh flex flex-col"
+      className="min-h-dvh flex flex-col overflow-x-hidden"
       style={{
         backgroundColor: "var(--sf-bg, #F2F7F4)",
         color: "var(--sf-text, #16211C)",
       }}
     >
-      <div className="w-full max-w-md mx-auto px-4 pt-3 pb-28">
+      <div
+        className="w-full max-w-md mx-auto px-4"
+        style={{
+          paddingTop: "calc(env(safe-area-inset-top, 0px) + 8px)",
+          paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 96px)",
+        }}
+      >
         {/* ── Top Bar ── */}
         <header className="flex items-center justify-between h-14 mb-3">
           <div className="flex items-center gap-3">
