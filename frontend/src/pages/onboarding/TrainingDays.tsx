@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { getOnboardingDraft, updateOnboardingDraft } from "@/lib/onboarding";
+import { OnboardingProgressBar } from "@/components/onboarding/OnboardingProgressBar";
 
 /* ─── Types ──────────────────────────────────────────────────────────────── */
 interface Day {
@@ -25,8 +26,6 @@ const DAYS: Day[] = [
 ];
 
 const DEFAULT_DAYS = ["mon", "wed", "fri"];
-const CURRENT_STEP = 4;
-const TOTAL_STEPS = 5;
 
 /* ─── Helpers ────────────────────────────────────────────────────────────── */
 function formatTime(value: string): string {
@@ -93,6 +92,9 @@ export default function TrainingDays() {
           <ChevronLeft className="w-6 h-6" strokeWidth={2} aria-hidden="true" />
         </button>
 
+        {/* Top Progress Track */}
+        <OnboardingProgressBar fromPercent={60} valuePercent={selectedDays.length > 0 ? 80 : 65} />
+
         <button
           type="button"
           onClick={() => navigate("/dashboard")}
@@ -108,11 +110,6 @@ export default function TrainingDays() {
         className="flex-1 overflow-y-auto px-4 pt-4"
         style={{ paddingBottom: "calc(96px + env(safe-area-inset-bottom))" }}
       >
-        {/* Step counter */}
-        <p className="text-sm mb-2" style={{ color: "var(--sf-text-2)" }}>
-          Step {CURRENT_STEP} of {TOTAL_STEPS}
-        </p>
-
         {/* Heading */}
         <h1
           className="text-2xl font-semibold mb-1 leading-tight"

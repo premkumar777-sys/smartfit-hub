@@ -4,6 +4,7 @@ import { ChevronLeft, Dumbbell, Flame, Zap, Activity, CalendarCheck, Check } fro
 import { cn } from "@/lib/utils";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { getOnboardingDraft, updateOnboardingDraft } from "@/lib/onboarding";
+import { OnboardingProgressBar } from "@/components/onboarding/OnboardingProgressBar";
 
 /* ─── Types ──────────────────────────────────────────────────────────────── */
 interface Goal {
@@ -48,8 +49,6 @@ const GOALS: Goal[] = [
 ];
 
 const MAX_SELECT = 2;
-const TOTAL_STEPS = 5;
-const CURRENT_STEP = 2;
 
 /* ─── GoalCard ───────────────────────────────────────────────────────────── */
 interface GoalCardProps {
@@ -174,6 +173,9 @@ export default function GoalSelection() {
           <ChevronLeft className="w-6 h-6" strokeWidth={2} aria-hidden="true" />
         </button>
 
+        {/* Top Progress Track */}
+        <OnboardingProgressBar fromPercent={20} valuePercent={selected.length > 0 ? 40 : 25} />
+
         <button
           type="button"
           onClick={() => navigate("/dashboard")}
@@ -190,11 +192,6 @@ export default function GoalSelection() {
         /* Bottom padding = fixed bar height (≈112px) + 16px breathing room */
         style={{ paddingBottom: "calc(128px + env(safe-area-inset-bottom))" }}
       >
-        {/* Step counter */}
-        <p className="text-sm mb-2" style={{ color: "var(--sf-text-2)" }}>
-          Step {CURRENT_STEP} of {TOTAL_STEPS}
-        </p>
-
         {/* Heading */}
         <h1
           className="text-2xl font-semibold mb-1 leading-tight"

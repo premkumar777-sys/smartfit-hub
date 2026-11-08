@@ -99,26 +99,6 @@ const Home = () => {
               </motion.p>
             )}
 
-            <motion.h1
-              className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight pb-2 text-white max-w-4xl mx-auto"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-            >
-              Building the Digital Infrastructure for{" "}
-              <span className="text-gradient block sm:inline mt-1 sm:mt-0">
-                Global Fitness
-              </span>
-            </motion.h1>
-
-            <motion.p
-              className="text-lg md:text-xl leading-relaxed text-gray-200 max-w-2xl mx-auto font-normal"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
-            >
-              Connecting gyms, trainers, and individuals through AI to make lifelong fitness accessible, measurable, and sustainable.
-            </motion.p>
 
             <motion.div
               className="flex flex-col sm:flex-row gap-4 justify-center pt-4"

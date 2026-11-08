@@ -10,6 +10,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { updateOnboardingDraft } from "@/lib/onboarding";
+import { OnboardingProgressBar } from "@/components/onboarding/OnboardingProgressBar";
 
 /* ─── Types ──────────────────────────────────────────────────────────────── */
 type DayType = "workout" | "rest";
@@ -106,8 +107,6 @@ const WEEK_PLAN: DayPlan[] = [
   },
 ];
 
-const CURRENT_STEP = 5;
-const TOTAL_STEPS = 5;
 
 /* ─── FirstWeekPlan Page ─────────────────────────────────────────────────── */
 export default function FirstWeekPlan() {
@@ -151,12 +150,10 @@ export default function FirstWeekPlan() {
           <ChevronLeft className="w-6 h-6" strokeWidth={2} aria-hidden="true" />
         </button>
 
-        {/* Centered step label */}
-        <p className="text-sm font-medium" style={{ color: "var(--sf-text-2)" }}>
-          Step {CURRENT_STEP} of {TOTAL_STEPS}
-        </p>
+        {/* Top Progress Track */}
+        <OnboardingProgressBar fromPercent={80} valuePercent={100} />
 
-        {/* Placeholder spacer to keep step label perfectly centered */}
+        {/* Placeholder spacer to keep track aligned */}
         <div className="w-10 -mr-2" aria-hidden="true" />
       </header>
 

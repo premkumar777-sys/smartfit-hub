@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { getOnboardingDraft, updateOnboardingDraft } from "@/lib/onboarding";
 import { RulerScalePicker } from "@/components/ui/ruler-scale-picker";
 import { VerticalHeightPicker } from "@/components/ui/vertical-height-picker";
+import { OnboardingProgressBar } from "@/components/onboarding/OnboardingProgressBar";
 
 /* ─── Types ──────────────────────────────────────────────────────────────── */
 type UnitSystem = "metric" | "imperial";
@@ -146,9 +147,8 @@ export default function BodyMetrics() {
             <ChevronLeft className="w-6 h-6" strokeWidth={2.5} aria-hidden="true" />
           </button>
 
-          <p className="text-xs font-semibold" style={{ color: "var(--sf-text-2)" }}>
-            Step 3 of 5
-          </p>
+          {/* Top Progress Track */}
+          <OnboardingProgressBar fromPercent={40} valuePercent={60} />
 
           <button
             type="button"

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ChevronLeft, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getOnboardingDraft, updateOnboardingDraft } from "@/lib/onboarding";
+import { OnboardingProgressBar } from "@/components/onboarding/OnboardingProgressBar";
 
 type GenderOption = "male" | "female" | "other";
 
@@ -130,15 +131,7 @@ export default function GenderSelection() {
         </button>
 
         {/* Top Progress Track */}
-        <div className="flex-1 max-w-[120px] mx-4 h-1 rounded-full overflow-hidden bg-neutral-200 dark:bg-neutral-800">
-          <div
-            className="h-full rounded-full transition-all duration-300"
-            style={{
-              width: "20%",
-              backgroundColor: "var(--sf-primary)",
-            }}
-          />
-        </div>
+        <OnboardingProgressBar fromPercent={0} valuePercent={selectedGender ? 20 : 6} />
 
         <button
           type="button"
