@@ -12,10 +12,10 @@ import { toast } from "sonner";
 import {
   Loader2, Trash2, TrendingUp, TrendingDown, Target, Scale,
   Ruler, Trophy, Flame, Calendar, ArrowLeft, Zap, ChevronRight, AlertTriangle, RefreshCcw,
-  Plus, Sparkles, Download, Share2
+  Plus, Sparkles, Download, Share2, Activity, LockKeyhole, Award
 } from "lucide-react";
-import { useGamification, XP_REWARDS } from "@/hooks/useGamification";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from "recharts";
+import { ACHIEVEMENTS, useGamification, XP_REWARDS } from "@/hooks/useGamification";
+import { Bar, BarChart, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from "recharts";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { WorkoutSummaryCard, WorkoutSummaryData } from "@/components/WorkoutSummaryCard";
 import { WorkoutSummaryLogModal } from "@/components/WorkoutSummaryLogModal";
@@ -47,6 +47,8 @@ interface GoalData {
   startDate: string;
 }
 
+type DashboardPeriod = "week" | "month" | "quarter";
+
 const STORAGE_KEYS = {
   MEASUREMENTS: "smartfit_measurements_v1",
   GOALS: "smartfit_goals_v1",
@@ -61,6 +63,9 @@ export default function Progress() {
   const [isLoading, setIsLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
   const [chartPeriod, setChartPeriod] = useState<30 | 60 | 90>(30);
+  const [dashboardPeriod, setDashboardPeriod] = useState<DashboardPeriod>("month");
+  const [calendarMonth, setCalendarMonth] = useState(() => new Date());
+  const [selectedExercise, setSelectedExercise] = useState("");
 
   // Body measurements
   const [measurements, setMeasurements] = useState<BodyMeasurements[]>([]);
@@ -140,7 +145,9 @@ export default function Progress() {
             const { data, error } = await supabase
               .from('completed_workouts')
               .select('*')
-              .order('date', { ascending: false });
+              .eq('user_id', user.id)
+              .order('created_at', { ascending: false })
+              .limit(500);
             if (!error && data) {
               const mapped: WorkoutSummaryData[] = data.map((row: any) => ({
                 id: row.id,
@@ -157,9 +164,11 @@ export default function Progress() {
               }));
               setCompletedWorkouts(mapped);
               localStorage.setItem("smartfit_completed_workouts_v1", JSON.stringify(mapped));
+            } else if (error) {
+              console.error("Could not load completed workouts from Supabase:", error.message);
             }
-          } catch (err) {
-            // ignore table doesn't exist error
+          } catch (error) {
+            console.error("Could not load completed workouts from Supabase:", error);
           }
         }
       } catch (err) {
@@ -210,6 +219,54 @@ export default function Progress() {
         fullDate: l.date,
       }));
   }, [logs, chartPeriod]);
+
+  const dashboardData = useMemo(
+    () => getDashboardData(completedWorkouts, logs, dashboardPeriod, calendarMonth, selectedExercise, gamification.unlockedAchievements),
+    [completedWorkouts, logs, dashboardPeriod, calendarMonth, selectedExercise, gamification.unlockedAchievements]
+  );
+
+  const exportReport = () => {
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) {
+      toast.error("Allow pop-ups to export your report");
+      return;
+    }
+
+    const weightSummary = dashboardData.reportMonthWeightChange === null
+      ? "Not enough weight entries for a period comparison"
+      : `${dashboardData.reportMonthWeightChange > 0 ? "+" : ""}${dashboardData.reportMonthWeightChange} kg`;
+    const reportMonthWeight = dashboardData.reportMonthWeightTrend[dashboardData.reportMonthWeightTrend.length - 1]?.weight;
+    const weightHistory = dashboardData.reportMonthWeightTrend
+      .map((entry) => `${entry.date}: ${entry.weight} kg`)
+      .join(" · ");
+    const strengthHistory = dashboardData.reportMonthStrengthProgression
+      .map((entry) => `${entry.date}: ${entry.weight} kg`)
+      .join(" · ");
+    printWindow.document.write(`<!doctype html><html><head><title>SmartFit AI Progress Report</title>
+      <style>body{font:16px/1.5 Arial,sans-serif;color:#15372a;max-width:760px;margin:40px auto;padding:0 24px}
+      h1{margin-bottom:4px}small{color:#547064}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+      section{border:1px solid #d5e8dc;border-radius:12px;padding:16px;margin:16px 0}
+      @media print{body{margin:0 auto}}</style></head><body>
+      <h1>SmartFit AI · Progress Report</h1><small>${dashboardData.reportMonthLabel} · Generated ${new Date().toLocaleDateString()}</small>
+      <section><h2>Workout activity</h2><div class="grid">
+      <p><b>${dashboardData.reportMonthWorkouts}</b><br>Completed workouts</p>
+      <p><b>${dashboardData.activeDays}</b><br>Active days</p>
+      <p><b>${dashboardData.workoutStreak} days</b><br>Current workout streak</p>
+      <p><b>${(dashboardData.reportMonthWorkouts / (dashboardData.monthDays / 7)).toFixed(1)}</b><br>Average workouts per week</p></div></section>
+      <section><h2>Body weight</h2><p>Latest this month: ${reportMonthWeight === undefined ? "Not recorded" : `${reportMonthWeight} kg`}</p>
+      <p>Change in report month: ${weightSummary}</p><p>Entries: ${weightHistory || "None"}</p></section>
+      <section><h2>Strength progression</h2><p>${dashboardData.reportMonthStrengthProgression.length
+        ? `${escapeHtml(dashboardData.selectedExercise)} · ${strengthHistory}`
+        : "Unavailable: no structured exercise load data for the report month."}</p>
+      <small>Recorded loads only. No one-rep max is estimated because the legacy workout records do not reliably include repetitions.</small></section>
+      <section><h2>Milestones</h2><p>${dashboardData.earnedMilestones.length
+        ? dashboardData.earnedMilestones.map((milestone) => escapeHtml(milestone.name)).join(", ")
+        : "No unlocked milestones are recorded yet."}</p>
+      <small>Achievement unlock dates are not stored, so these cannot be attributed to a specific month.</small></section>
+      <p><small>Private report for your personal use. This document contains data from your SmartFit AI account.</small></p>
+      <script>window.onload=()=>window.print()</script></body></html>`);
+    printWindow.document.close();
+  };
 
   // Goal progress
   const goalProgress = useMemo(() => {
@@ -364,7 +421,7 @@ export default function Progress() {
 
     if (userId) {
       try {
-        await supabase.from("completed_workouts").insert({
+        const { error } = await supabase.from("completed_workouts").insert({
           id,
           user_id: userId,
           routine_name: workout.routineName,
@@ -378,8 +435,13 @@ export default function Progress() {
           personal_records_count: workout.personalRecordsCount,
           photo_url: workout.photoUrl
         });
-      } catch (err) {
-        // ignore if table doesn't exist
+        if (error) {
+          console.error("Could not sync completed workout to Supabase:", error.message);
+          toast.error("Workout is saved on this device but could not sync to your account");
+        }
+      } catch (error) {
+        console.error("Could not sync completed workout to Supabase:", error);
+        toast.error("Workout is saved on this device but could not sync to your account");
       }
     }
   };
@@ -447,53 +509,60 @@ export default function Progress() {
   }
 
   return (
-    <div className="min-h-screen pt-4 pb-28 lg:py-16 relative overflow-hidden">
-      <div className="absolute inset-0 gradient-hero opacity-15" />
+    <div className="min-h-screen bg-[#f1faf5] pt-20 pb-32 text-[#15372a] lg:py-24 relative overflow-hidden">
       <Container className="relative z-10">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="bg-transparent hover:bg-transparent p-0 inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6"
-          onClick={() => navigate(-1)}
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back
-        </Button>
-
-        {/* Header */}
-        <div className="text-center space-y-3 mb-8">
-          <p className="text-xs uppercase tracking-[0.3em] text-primary">Dashboard</p>
-          <h1 className="text-4xl md:text-5xl font-bold">
-            <span className="text-gradient">Smart</span> Progress
-          </h1>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            Track your fitness journey with comprehensive analytics
-          </p>
+        <div className="mb-7 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="mb-2 -ml-3 text-[#547064] hover:bg-emerald-50 hover:text-[#15372a]"
+              onClick={() => navigate(-1)}
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back
+            </Button>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-800">SmartFit AI</p>
+            <h1 className="mt-1 text-3xl font-bold tracking-tight text-[#15372a] md:text-4xl">Smart Progress</h1>
+            <p className="mt-1 text-sm text-[#547064]">Your fitness journey, measured over time.</p>
+          </div>
         </div>
 
-        {/* Quick Stats Row */}
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8">
-          <StatCard icon={Scale} label="Current" value={stats ? `${stats.latest} kg` : "--"} accent />
+        <div className="mb-7 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+          <StatCard icon={Scale} label="Current weight" value={dashboardData.latestWeight !== null ? `${dashboardData.latestWeight} kg` : "Log your first weight"} accent />
           <StatCard
-            icon={stats?.change && stats.change < 0 ? TrendingDown : TrendingUp}
-            label="Change"
-            value={stats ? `${stats.change > 0 ? "+" : ""}${stats.change} kg` : "--"}
+            icon={dashboardData.weightChange !== null && dashboardData.weightChange < 0 ? TrendingDown : TrendingUp}
+            label="Weight change"
+            value={dashboardData.weightChange !== null ? `${dashboardData.weightChange > 0 ? "+" : ""}${dashboardData.weightChange} kg` : "Add another entry"}
           />
-          <StatCard icon={Flame} label="Streak" value={stats ? `${stats.streak} days` : "--"} />
-          <StatCard icon={Calendar} label="Weekly Avg" value={stats?.weeklyAvg ? `${stats.weeklyAvg} kg` : "--"} />
+          <StatCard icon={Flame} label="Workout streak" value={`${dashboardData.workoutStreak} days`} />
+          <StatCard icon={Calendar} label="Weekly average" value={`${dashboardData.weeklyWorkoutAverage} workouts`} />
           <StatCard icon={Trophy} label="XP Earned" value={`${gamification.xp}`} />
           <StatCard icon={Target} label="Level" value={`${gamification.level}`} />
         </div>
 
         {/* Main Tabs */}
-        <Tabs defaultValue="weight" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:inline-grid">
+        <Tabs defaultValue="overview" className="space-y-6">
+          <TabsList className="flex h-auto w-full justify-start gap-1 overflow-x-auto bg-white p-1 shadow-sm sm:w-fit">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="weight">Weight</TabsTrigger>
             <TabsTrigger value="measurements">Measurements</TabsTrigger>
             <TabsTrigger value="goals">Goals</TabsTrigger>
             <TabsTrigger value="workouts">Workouts</TabsTrigger>
             <TabsTrigger value="history">History</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="overview">
+            <ProgressOverview
+              data={dashboardData}
+              period={dashboardPeriod}
+              onPeriodChange={setDashboardPeriod}
+              calendarMonth={calendarMonth}
+              onCalendarMonthChange={setCalendarMonth}
+              onExerciseChange={setSelectedExercise}
+              onExport={exportReport}
+            />
+          </TabsContent>
 
           {/* Weight Tab */}
           <TabsContent value="weight" className="space-y-6">
@@ -1025,18 +1094,503 @@ export default function Progress() {
   );
 }
 
+interface DashboardData {
+  latestWeight: number | null;
+  weightChange: number | null;
+  reportMonthLabel: string;
+  reportMonthWorkouts: number;
+  reportMonthWeightChange: number | null;
+  reportMonthWeightTrend: Array<{ date: string; weight: number; fullDate: string }>;
+  reportMonthStrengthProgression: Array<{ date: string; weight: number; fullDate: string }>;
+  workoutStreak: number;
+  weeklyWorkoutAverage: string;
+  periodWorkouts: number;
+  previousWorkouts: number;
+  workoutChange: number;
+  activityChart: Array<{ label: string; workouts: number }>;
+  weightTrend: Array<{ date: string; weight: number; fullDate: string }>;
+  activeDays: number;
+  monthDays: number;
+  calendarDays: Array<{ day: number | null; workouts: number; today: boolean }>;
+  strengthExercises: string[];
+  selectedExercise: string;
+  strengthProgression: Array<{ date: string; weight: number; fullDate: string }>;
+  earnedMilestones: Array<{ id: string; name: string; description: string }>;
+}
+
+function ProgressOverview({
+  data,
+  period,
+  onPeriodChange,
+  calendarMonth,
+  onCalendarMonthChange,
+  onExerciseChange,
+  onExport,
+}: {
+  data: DashboardData;
+  period: DashboardPeriod;
+  onPeriodChange: (period: DashboardPeriod) => void;
+  calendarMonth: Date;
+  onCalendarMonthChange: (month: Date) => void;
+  onExerciseChange: (exercise: string) => void;
+  onExport: () => void;
+}) {
+  const periodLabels: Record<DashboardPeriod, string> = {
+    week: "Week",
+    month: "Month",
+    quarter: "3 months",
+  };
+  const workoutDeltaLabel = data.periodWorkouts > 0 || data.previousWorkouts > 0
+    ? `${data.workoutChange > 0 ? "+" : ""}${data.workoutChange} vs previous period`
+    : "Your first workout will appear here";
+  const monthLabel = calendarMonth.toLocaleDateString(undefined, { month: "long", year: "numeric" });
+
+  return (
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="text-xl font-semibold text-[#15372a]">Your activity</h2>
+          <p className="text-sm text-[#668075]">A clear view of your recent training and progress.</p>
+        </div>
+        <div className="inline-flex rounded-xl border border-[#d7e8de] bg-white p-1 shadow-sm" role="group" aria-label="Dashboard time range">
+          {(Object.keys(periodLabels) as DashboardPeriod[]).map((range) => (
+            <button
+              type="button"
+              key={range}
+              onClick={() => onPeriodChange(range)}
+              aria-pressed={period === range}
+              className={`rounded-lg px-3 py-2 text-sm transition-colors ${period === range ? "bg-[#075b3e] text-white shadow-sm" : "text-[#547064] hover:bg-emerald-50"}`}
+            >
+              {periodLabels[range]}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid gap-5 lg:grid-cols-2">
+        <Card className="rounded-2xl border-[#d7e8de] bg-white shadow-sm">
+          <CardHeader className="pb-2">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <CardTitle className="text-lg text-[#15372a]">Workout activity</CardTitle>
+                <CardDescription className="text-[#668075]">{data.periodWorkouts} {data.periodWorkouts === 1 ? "workout" : "workouts"} in this period</CardDescription>
+              </div>
+              <span className="rounded-full bg-[#e6f5ec] px-3 py-1 text-xs font-medium text-[#075b3e]">{workoutDeltaLabel}</span>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {data.periodWorkouts === 0 ? (
+              <div className="flex h-52 flex-col items-center justify-center text-center text-[#668075]">
+                <Activity className="mb-2 h-8 w-8 text-[#8bb7a0]" />
+                <p className="font-medium text-[#15372a]">No workouts in this period yet</p>
+                <p className="mt-1 text-sm">Completed sessions will build your activity chart.</p>
+              </div>
+            ) : (
+              <div className="h-52">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={data.activityChart} margin={{ top: 10, right: 4, left: -20, bottom: 0 }}>
+                    <CartesianGrid vertical={false} stroke="#e8f0eb" />
+                    <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fill: "#668075", fontSize: 11 }} />
+                    <YAxis allowDecimals={false} axisLine={false} tickLine={false} tick={{ fill: "#668075", fontSize: 11 }} />
+                    <Tooltip cursor={{ fill: "#f1faf5" }} contentStyle={{ border: "1px solid #d7e8de", borderRadius: 12 }} />
+                    <Bar dataKey="workouts" name="Workouts" fill="#08734d" radius={[6, 6, 0, 0]} maxBarSize={34} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-2xl border-[#d7e8de] bg-white shadow-sm">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <CardTitle className="text-lg text-[#15372a]">Body weight</CardTitle>
+                <CardDescription className="flex items-center gap-1 text-[#668075]"><LockKeyhole className="h-3 w-3" /> Only you can see this data</CardDescription>
+              </div>
+              <div className="text-right">
+                <p className="text-2xl font-semibold text-[#15372a]">{data.latestWeight === null ? "—" : `${data.latestWeight} kg`}</p>
+                <p className="text-xs text-[#668075]">{data.weightChange === null ? "Log another entry to compare" : `${data.weightChange > 0 ? "+" : ""}${data.weightChange} kg in period`}</p>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {data.weightTrend.length < 2 ? (
+              <div className="flex h-52 flex-col items-center justify-center text-center text-[#668075]">
+                <Scale className="mb-2 h-8 w-8 text-[#8bb7a0]" />
+                <p className="font-medium text-[#15372a]">{data.weightTrend.length ? "One weight entry recorded" : "Start tracking your weight"}</p>
+                <p className="mt-1 text-sm">Your history stays private to your account.</p>
+              </div>
+            ) : (
+              <div className="h-52">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={data.weightTrend} margin={{ top: 12, right: 8, left: -18, bottom: 0 }}>
+                    <CartesianGrid vertical={false} stroke="#e8f0eb" />
+                    <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: "#668075", fontSize: 11 }} />
+                    <YAxis domain={["auto", "auto"]} axisLine={false} tickLine={false} tick={{ fill: "#668075", fontSize: 11 }} />
+                    <Tooltip contentStyle={{ border: "1px solid #d7e8de", borderRadius: 12 }} formatter={(value: number) => [`${value} kg`, "Weight"]} />
+                    <Line type="monotone" dataKey="weight" stroke="#08734d" strokeWidth={2.5} dot={{ r: 3, fill: "#08734d" }} activeDot={{ r: 5 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
+        <Card className="rounded-2xl border-[#d7e8de] bg-white shadow-sm">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <CardTitle className="text-lg text-[#15372a]">Consistency</CardTitle>
+                <CardDescription className="text-[#668075]">{data.activeDays} active days in {monthLabel}</CardDescription>
+              </div>
+              <div className="flex items-center gap-1">
+                <Button variant="ghost" size="icon" aria-label="Previous month" onClick={() => onCalendarMonthChange(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1, 1))}>
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" size="icon" aria-label="Next month" disabled={calendarMonth.getFullYear() === new Date().getFullYear() && calendarMonth.getMonth() >= new Date().getMonth()} onClick={() => onCalendarMonthChange(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 1))}>
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="mb-2 grid grid-cols-7 gap-1.5 text-center text-[11px] font-medium text-[#668075]">
+              {["M", "T", "W", "T", "F", "S", "S"].map((day, index) => <span key={`${day}-${index}`}>{day}</span>)}
+            </div>
+            <div className="grid grid-cols-7 gap-1.5">
+              {data.calendarDays.map((cell, index) => (
+                <div
+                  key={`${calendarMonth.toISOString()}-${index}`}
+                  title={cell.day ? `${monthLabel} ${cell.day}: ${cell.workouts} completed workout(s)` : undefined}
+                  className={`flex aspect-square items-center justify-center rounded-lg border text-xs ${!cell.day
+                    ? "border-transparent"
+                    : cell.workouts === 0
+                      ? "border-[#e8f0eb] bg-[#f7faf8] text-[#668075]"
+                      : cell.workouts === 1
+                        ? "border-emerald-200 bg-emerald-100 text-[#075b3e]"
+                        : cell.workouts === 2
+                          ? "border-emerald-600 bg-emerald-600 text-white"
+                          : "border-[#075b3e] bg-[#075b3e] font-semibold text-white"} ${cell.today ? "ring-2 ring-emerald-300 ring-offset-1" : ""}`}
+                >
+                  {cell.day}
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-[#668075]">
+              <span>{data.workoutStreak}-day current streak</span>
+              <span>Active-day frequency: {data.monthDays ? Math.round((data.activeDays / data.monthDays) * 100) : 0}% of calendar days</span>
+            </div>
+            <p className="mt-2 text-xs text-[#879b91]">Frequency uses calendar days, not planned training days; no schedule is stored for this account.</p>
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-2xl border-[#d7e8de] bg-white shadow-sm">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <CardTitle className="text-lg text-[#15372a]">Strength progression</CardTitle>
+                <CardDescription className="text-[#668075]">Recorded loads only · kg</CardDescription>
+              </div>
+              <select
+                aria-label="Select exercise"
+                value={data.selectedExercise}
+                onChange={(event) => onExerciseChange(event.target.value)}
+                className="max-w-[150px] rounded-lg border border-[#d7e8de] bg-white px-2 py-2 text-sm text-[#15372a]"
+              >
+                {data.strengthExercises.map((exercise) => <option key={exercise} value={exercise}>{exercise}</option>)}
+              </select>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {data.strengthProgression.length < 2 ? (
+              <div className="flex h-52 flex-col items-center justify-center text-center text-[#668075]">
+                <TrendingUp className="mb-2 h-8 w-8 text-[#8bb7a0]" />
+                <p className="font-medium text-[#15372a]">{data.strengthExercises.length ? "More recorded sessions needed" : "No structured strength data yet"}</p>
+                <p className="mt-1 max-w-xs text-sm">Add numeric loads with kg units to exercise records. Reps are not stored consistently, so estimated 1RM is unavailable.</p>
+              </div>
+            ) : (
+              <>
+                <p className="mb-1 text-sm text-[#668075]">
+                  Latest <strong className="text-[#15372a]">{data.strengthProgression[data.strengthProgression.length - 1].weight} kg</strong>
+                  {" · "}change {formatChange(data.strengthProgression[0].weight, data.strengthProgression[data.strengthProgression.length - 1].weight)} kg
+                </p>
+                <div className="h-44">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={data.strengthProgression} margin={{ top: 10, right: 8, left: -18, bottom: 0 }}>
+                      <CartesianGrid vertical={false} stroke="#e8f0eb" />
+                      <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: "#668075", fontSize: 10 }} />
+                      <YAxis domain={["auto", "auto"]} axisLine={false} tickLine={false} tick={{ fill: "#668075", fontSize: 10 }} />
+                      <Tooltip contentStyle={{ border: "1px solid #d7e8de", borderRadius: 12 }} formatter={(value: number) => [`${value} kg`, "Recorded load"]} />
+                      <Line type="monotone" dataKey="weight" stroke="#08734d" strokeWidth={2.5} dot={{ r: 3, fill: "#08734d" }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card className="rounded-2xl border-[#d7e8de] bg-white shadow-sm">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg text-[#15372a]"><Award className="h-5 w-5 text-emerald-700" />Milestones</CardTitle>
+          <CardDescription className="text-[#668075]">Achievements already unlocked in your SmartFit account.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {data.earnedMilestones.length ? (
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {data.earnedMilestones.map((milestone) => (
+                <div key={milestone.id} className="flex gap-3 rounded-xl border border-[#d7e8de] bg-[#f8fcf9] p-4">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#e6f5ec] text-[#075b3e]"><Trophy className="h-5 w-5" /></span>
+                  <div><p className="font-semibold text-[#15372a]">{milestone.name}</p><p className="mt-1 text-sm text-[#668075]">{milestone.description}</p></div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="rounded-xl bg-[#f8fcf9] p-5 text-sm text-[#668075]">No unlocked milestones are recorded yet. Keep logging completed workouts to earn achievements.</p>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card className="rounded-2xl border-[#c9e2d4] bg-[#eaf7ef] shadow-sm">
+        <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+          <div>
+            <h3 className="font-semibold text-[#15372a]">Monthly fitness review</h3>
+            <p className="mt-1 text-sm text-[#547064]">{data.reportMonthLabel}: {data.reportMonthWorkouts} workouts · {data.activeDays} active days · {data.earnedMilestones.length} unlocked overall</p>
+            <p className="mt-1 text-sm text-[#668075]">Export a private report for this month using activity recorded in your account.</p>
+          </div>
+          <Button onClick={onExport} className="shrink-0 bg-[#075b3e] text-white hover:bg-[#064a33]">
+            <Download className="mr-2 h-4 w-4" />Export summary report
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function getDashboardData(
+  workouts: WorkoutSummaryData[],
+  logs: ProgressLog[],
+  period: DashboardPeriod,
+  calendarMonth: Date,
+  requestedExercise: string,
+  unlockedAchievementIds: string[]
+): DashboardData {
+  const periodDays = period === "week" ? 7 : period === "month" ? 30 : 90;
+  const today = localMidnight(new Date());
+  const start = new Date(today);
+  start.setDate(start.getDate() - periodDays + 1);
+  const previousStart = new Date(start);
+  previousStart.setDate(previousStart.getDate() - periodDays);
+  const currentWorkouts = workouts
+    .map((workout) => ({ workout, date: parseWorkoutDate(workout.date) }))
+    .filter((entry): entry is { workout: WorkoutSummaryData; date: Date } => entry.date !== null);
+  const inRangeWorkouts = currentWorkouts.filter(({ date }) => date >= start && date <= today);
+  const previousWorkouts = currentWorkouts.filter(({ date }) => date >= previousStart && date < start).length;
+  const workoutChange = inRangeWorkouts.length - previousWorkouts;
+  const activityChart: DashboardData["activityChart"] = [];
+  const intervalCount = period === "week" ? 7 : Math.ceil(periodDays / 7);
+  for (let index = 0; index < intervalCount; index += 1) {
+    const bucketStart = new Date(start);
+    bucketStart.setDate(bucketStart.getDate() + (period === "week" ? index : index * 7));
+    const bucketEnd = new Date(bucketStart);
+    bucketEnd.setDate(bucketEnd.getDate() + (period === "week" ? 1 : 7));
+    const count = inRangeWorkouts.filter(({ date }) => date >= bucketStart && date < bucketEnd).length;
+    activityChart.push({
+      label: period === "week" ? bucketStart.toLocaleDateString(undefined, { weekday: "short" }) : `Week ${index + 1}`,
+      workouts: count,
+    });
+  }
+
+  const sortedLogs = logs
+    .filter((entry) => entry.weight !== null && Number.isFinite(Number(entry.weight)))
+    .map((entry) => ({ ...entry, parsedDate: parseWorkoutDate(entry.date) }))
+    .filter((entry): entry is ProgressLog & { parsedDate: Date } => entry.parsedDate !== null)
+    .sort((a, b) => a.parsedDate.getTime() - b.parsedDate.getTime());
+  const latestWeight = sortedLogs.length ? Number(sortedLogs[sortedLogs.length - 1].weight) : null;
+  const periodLogs = sortedLogs.filter((entry) => entry.parsedDate >= start && entry.parsedDate <= today);
+  const weightChange = periodLogs.length > 1
+    ? Number((Number(periodLogs[periodLogs.length - 1].weight) - Number(periodLogs[0].weight)).toFixed(1))
+    : null;
+  const weightTrend = periodLogs.map((entry) => ({
+    date: entry.parsedDate.toLocaleDateString(undefined, { month: "short", day: "numeric" }),
+    weight: Number(entry.weight),
+    fullDate: entry.date,
+  }));
+  const workoutDates = currentWorkouts.map(({ date }) => dateKey(date));
+  const uniqueWorkoutDates = [...new Set(workoutDates)].sort().reverse();
+  const workoutStreak = calculateDateStreak(uniqueWorkoutDates);
+  const firstDay = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), 1);
+  const monthDays = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 0).getDate();
+  const nextMonthStart = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 1);
+  const reportMonthLabel = calendarMonth.toLocaleDateString(undefined, { month: "long", year: "numeric" });
+  const reportMonthWorkouts = currentWorkouts.filter(({ date }) => date >= firstDay && date < nextMonthStart).length;
+  const leadingDays = (firstDay.getDay() + 6) % 7;
+  const workoutsByDate = new Map<string, number>();
+  currentWorkouts.forEach(({ date }) => {
+    const key = dateKey(date);
+    workoutsByDate.set(key, (workoutsByDate.get(key) || 0) + 1);
+  });
+  const calendarDays: DashboardData["calendarDays"] = [
+    ...Array.from({ length: leadingDays }, () => ({ day: null, workouts: 0, today: false })),
+    ...Array.from({ length: monthDays }, (_, index) => {
+      const day = index + 1;
+      const date = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), day);
+      return {
+        day,
+        workouts: workoutsByDate.get(dateKey(date)) || 0,
+        today: dateKey(date) === dateKey(today),
+      };
+    }),
+  ];
+
+  const strengthRecords = currentWorkouts.flatMap(({ workout, date }) =>
+    (workout.exercises || []).flatMap((exercise) => {
+      const weight = parseKilogramLoad(exercise.weight);
+      return weight === null || !exercise.name?.trim()
+        ? []
+        : [{ name: exercise.name.trim(), date, weight }];
+    })
+  );
+  const strengthExercises = [...new Set(strengthRecords.map((record) => record.name))].sort((a, b) => a.localeCompare(b));
+  const selectedExercise = strengthExercises.includes(requestedExercise) ? requestedExercise : strengthExercises[0] || "";
+  const strengthProgression = strengthRecords
+    .filter((record) => record.name === selectedExercise && record.date >= start && record.date <= today)
+    .sort((a, b) => a.date.getTime() - b.date.getTime())
+    .map((record) => ({
+      date: record.date.toLocaleDateString(undefined, { month: "short", day: "numeric" }),
+      weight: record.weight,
+      fullDate: dateKey(record.date),
+    }));
+  const reportMonthStrengthProgression = strengthRecords
+    .filter((record) => record.name === selectedExercise && record.date >= firstDay && record.date < nextMonthStart)
+    .sort((a, b) => a.date.getTime() - b.date.getTime())
+    .map((record) => ({
+      date: record.date.toLocaleDateString(undefined, { month: "short", day: "numeric" }),
+      weight: record.weight,
+      fullDate: dateKey(record.date),
+    }));
+  const reportMonthWeightTrend = sortedLogs
+    .filter((entry) => entry.parsedDate >= firstDay && entry.parsedDate < nextMonthStart)
+    .map((entry) => ({
+      date: entry.parsedDate.toLocaleDateString(undefined, { month: "short", day: "numeric" }),
+      weight: Number(entry.weight),
+      fullDate: entry.date,
+    }));
+  const reportMonthWeightChange = reportMonthWeightTrend.length > 1
+    ? Number((reportMonthWeightTrend[reportMonthWeightTrend.length - 1].weight - reportMonthWeightTrend[0].weight).toFixed(1))
+    : null;
+
+  const unlocked = new Set(unlockedAchievementIds);
+  const earnedMilestones = ACHIEVEMENTS
+    .filter((achievement) => unlocked.has(achievement.id))
+    .map(({ id, name, description }) => ({ id, name, description }));
+
+  return {
+    latestWeight,
+    weightChange,
+    reportMonthLabel,
+    reportMonthWorkouts,
+    reportMonthWeightChange,
+    reportMonthWeightTrend,
+    reportMonthStrengthProgression,
+    workoutStreak,
+    weeklyWorkoutAverage: (inRangeWorkouts.length / (periodDays / 7)).toFixed(1),
+    periodWorkouts: inRangeWorkouts.length,
+    previousWorkouts,
+    workoutChange,
+    activityChart,
+    weightTrend,
+    activeDays: calendarDays.filter((day) => day.day !== null && day.workouts > 0).length,
+    monthDays,
+    calendarDays,
+    strengthExercises,
+    selectedExercise,
+    strengthProgression,
+    earnedMilestones,
+  };
+}
+
+function parseWorkoutDate(value: string): Date | null {
+  const isoDate = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (isoDate) {
+    return new Date(Number(isoDate[1]), Number(isoDate[2]) - 1, Number(isoDate[3]));
+  }
+  const explicitYear = /\b(?:19|20)\d{2}\b/.test(value);
+  let date = new Date(value);
+  if (!explicitYear && !Number.isNaN(date.getTime()) && date.getFullYear() < 2010) {
+    date.setFullYear(new Date().getFullYear());
+  }
+  if (Number.isNaN(date.getTime())) {
+    const partialDate = value.match(/(?:\w+,\s*)?(\d{1,2}\s+[A-Za-z]{3,})/);
+    if (partialDate) date = new Date(`${partialDate[1]} ${new Date().getFullYear()}`);
+  }
+  return Number.isNaN(date.getTime()) ? null : localMidnight(date);
+}
+
+function localMidnight(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+function dateKey(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+function calculateDateStreak(datesNewestFirst: string[]): number {
+  if (!datesNewestFirst.length) return 0;
+  const today = dateKey(localMidnight(new Date()));
+  const yesterdayDate = new Date();
+  yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+  const yesterday = dateKey(localMidnight(yesterdayDate));
+  if (datesNewestFirst[0] !== today && datesNewestFirst[0] !== yesterday) return 0;
+  let streak = 1;
+  for (let index = 0; index < datesNewestFirst.length - 1; index += 1) {
+    const current = new Date(`${datesNewestFirst[index]}T00:00:00`);
+    const previous = new Date(`${datesNewestFirst[index + 1]}T00:00:00`);
+    const diff = (current.getTime() - previous.getTime()) / 86400000;
+    if (diff !== 1) break;
+    streak += 1;
+  }
+  return streak;
+}
+
+function parseKilogramLoad(value: string): number | null {
+  const match = value.trim().match(/^(\d+(?:\.\d+)?)\s*kg$/i);
+  if (!match) return null;
+  const load = Number(match[1]);
+  return Number.isFinite(load) && load > 0 ? load : null;
+}
+
+function formatChange(start: number, end: number): string {
+  const change = Number((end - start).toFixed(1));
+  return `${change > 0 ? "+" : ""}${change}`;
+}
+
+function escapeHtml(value: string): string {
+  return value.replace(/[&<>"']/g, (character) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;",
+  })[character] || character);
+}
+
 // Stat Card Component
 function StatCard({ icon: Icon, label, value, accent }: { icon: React.ElementType; label: string; value: string; accent?: boolean }) {
   return (
-    <Card className={`glass ${accent ? "border-primary/50 bg-primary/5" : "border-gray-800"}`}>
-      <CardContent className="p-4">
+    <Card className={`rounded-2xl shadow-sm ${accent ? "border-emerald-300 bg-[#e8f7ee]" : "border-[#d7e8de] bg-white"}`}>
+      <CardContent className="p-3 sm:p-4">
         <div className="flex items-center gap-3">
-          <div className={`p-2 rounded-lg ${accent ? "bg-primary/20" : "bg-gray-800"}`}>
-            <Icon className={`w-4 h-4 ${accent ? "text-primary" : "text-muted-foreground"}`} />
+          <div className={`rounded-lg p-2 ${accent ? "bg-emerald-100" : "bg-[#f1faf5]"}`}>
+            <Icon className={`h-4 w-4 ${accent ? "text-[#075b3e]" : "text-[#668075]"}`} />
           </div>
-          <div>
-            <p className="text-xs text-muted-foreground">{label}</p>
-            <p className="text-lg font-semibold">{value}</p>
+          <div className="min-w-0">
+            <p className="text-xs text-[#668075]">{label}</p>
+            <p className="truncate text-base font-semibold text-[#15372a] sm:text-lg">{value}</p>
           </div>
         </div>
       </CardContent>
