@@ -92,10 +92,11 @@ const AppContent = () => {
   const isOnboardingPage = location.pathname.startsWith("/onboarding");
   const isSettingsPage = location.pathname === "/settings" || location.pathname === "/app/settings";
   const isProfilePage = location.pathname === "/profile" || location.pathname === "/app/profile";
+  const isTodayPage = location.pathname === "/app/today" || location.pathname === "/dashboard";
   const hideLayout = isAuthPage || isWorkoutSessionPage || isOnboardingPage;
-  const hideHeader = hideLayout || isSettingsPage || isProfilePage;
-  const hideFooter = hideLayout || isSettingsPage || isProfilePage;
-  const hideChatbot = hideLayout || isSettingsPage || isProfilePage;
+  const hideHeader = hideLayout || isSettingsPage || isProfilePage || isTodayPage;
+  const hideFooter = hideLayout || isSettingsPage || isProfilePage || isTodayPage;
+  const hideChatbot = hideLayout || isSettingsPage || isProfilePage || isTodayPage;
 
   const isConfigMissing = !import.meta.env.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL === 'https://placeholder.supabase.co';
 

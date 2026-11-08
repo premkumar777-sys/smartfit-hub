@@ -1,770 +1,391 @@
-import { useEffect, useState, useMemo } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  User,
+  Clock,
+  Dumbbell,
+  MapPin,
+  Flame,
+  Zap,
+  Droplet,
+  Plus,
+  Building2,
+  Bot,
+  ArrowRight,
+  Loader2,
+  Check,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { Card } from "@/components/ui/card";
-import { Container } from "@/components/Container";
-import { Activity, Apple, Dumbbell, Target, TrendingUp, FileText, Trash2, ArrowLeft, Loader2, Bot, Video, LineChart, Trophy } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-import type { Tables } from "@/integrations/supabase/types";
+import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 import { useGamification } from "@/hooks/useGamification";
-import { WorkoutSummaryData } from "@/components/WorkoutSummaryCard";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
 
-type ProfileBase = Tables<"profiles">;
-type Profile = ProfileBase & {
-  preferences?: Record<string, unknown>;
-  daily_calories_target?: number;
-  protein_target?: number;
-  carbs_target?: number;
-  fats_target?: number;
-};
-
-interface Workout {
-  id: string;
-  title: string;
-  content: string;
-  goal: string | null;
-  bmi: number | null;
-  created_at: string;
-}
-
-interface ActivityLog {
-  id: string;
-  activity_type: string;
-  value: number;
-  created_at: string;
-}
-
-// Helper to parse duration string (e.g., "1H 16M", "45M", "1M 15S", "20S") to minutes
-const parseDurationToMinutes = (durStr: string): number => {
-  if (!durStr) return 0;
-  let minutes = 0;
-  
-  const hourMatch = durStr.match(/(\d+)\s*[hH]/);
-  const minMatch = durStr.match(/(\d+)\s*[mM]/);
-  const secMatch = durStr.match(/(\d+)\s*[sS]/);
-  
-  if (hourMatch) {
-    minutes += parseInt(hourMatch[1]) * 60;
-  }
-  if (minMatch) {
-    minutes += parseInt(minMatch[1]);
-  }
-  if (!hourMatch && !minMatch && secMatch) {
-    minutes += Math.max(1, Math.round(parseInt(secMatch[1]) / 60));
-  }
-  
-  if (!hourMatch && !minMatch && !secMatch) {
-    const num = parseInt(durStr);
-    if (!isNaN(num)) return num;
-  }
-  
-  return minutes;
-};
-
-// Helper to parse date string or created_at to a valid Date object
-const parseWorkoutDateToObj = (dateStr: string, createdAt?: string): Date => {
-  if (createdAt) {
-    const d = new Date(createdAt);
-    if (!isNaN(d.getTime())) return d;
-  }
-  
-  if (!dateStr) return new Date();
-  
-  const parsed = new Date(dateStr);
-  if (!isNaN(parsed.getTime())) return parsed;
-  
-  const currentYear = new Date().getFullYear();
-  const parsedWithYear = new Date(`${dateStr}, ${currentYear}`);
-  if (!isNaN(parsedWithYear.getTime())) return parsedWithYear;
-  
-  return new Date();
-};
-
-const Dashboard = () => {
+export default function Dashboard() {
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const { user: authUser, isLoading: authLoading } = useAuth();
   const gamification = useGamification();
-  const { user, isLoading: authLoading } = useAuth();
-  const [isInitialLoading, setIsInitialLoading] = useState(true);
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [savedWorkouts, setSavedWorkouts] = useState<Workout[]>([]);
-  const [weeklyLogs, setWeeklyLogs] = useState<ActivityLog[]>([]);
-  const [activityFeed, setActivityFeed] = useState<ActivityLog[]>([]);
-  const [completedWorkouts, setCompletedWorkouts] = useState<WorkoutSummaryData[]>(() => {
-    const saved = localStorage.getItem("smartfit_completed_workouts_v1");
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        console.error(e);
-      }
-    }
-    return [];
+
+  const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState<any>(null);
+
+  // Water tracking state (persisted locally)
+  const [waterGlasses, setWaterGlasses] = useState<number>(() => {
+    const today = new Date().toISOString().slice(0, 10);
+    const stored = localStorage.getItem(`smartfit_water_${today}`);
+    return stored ? parseInt(stored, 10) : 0;
   });
-  const [nutritionToday, setNutritionToday] = useState({ calories: 0, protein: 0, carbs: 0, fats: 0 });
-  const [showCheckInReminder, setShowCheckInReminder] = useState(false);
-  const [isCheckingIn, setIsCheckingIn] = useState(false);
 
-  const isValidUuid = (id?: string) => !!id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
-
-  const loadDashboardData = async (userId: string) => {
-    try {
-      if (!isValidUuid(userId)) {
-        console.warn("Non-UUID session detected; loading local state.");
-        setIsInitialLoading(false);
-        return;
-      }
-
-      const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-      
-      const todayStart = new Date();
-      todayStart.setHours(0, 0, 0, 0);
-
-      const [
-        profileRes,
-        workoutsRes,
-        logsRes,
-        nutritionRes,
-        feedRes
-      ] = await Promise.all([
-        supabase.from('profiles').select('*').eq('id', userId).single(),
-        supabase.from('workouts').select('*').eq('user_id', userId).neq('title', 'Gym Check-In').order('created_at', { ascending: false }).limit(5),
-        supabase.from('activity_logs').select('*').eq('user_id', userId).gte('created_at', sevenDaysAgo.toISOString()).order('created_at', { ascending: true }),
-        supabase.from('nutrition_logs').select('*').eq('user_id', userId).gte('logged_at', todayStart.toISOString()),
-        supabase.from('activity_logs').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(10)
-      ]);
-
-      if (profileRes.error && profileRes.error.code !== 'PGRST116') {
-        console.error("Profile error:", profileRes.error);
-      }
-      if (profileRes.data) setProfile(profileRes.data);
-
-      if (workoutsRes.error) {
-        console.error("Workouts error:", workoutsRes.error);
-      } else if (workoutsRes.data) {
-        setSavedWorkouts(workoutsRes.data);
-      }
-
-      if (logsRes.data) setWeeklyLogs(logsRes.data);
-
-      if (nutritionRes.data) {
-        const totals = nutritionRes.data.reduce((acc, curr) => ({
-          calories: acc.calories + (curr.calories || 0),
-          protein: acc.protein + (curr.protein || 0),
-          carbs: acc.carbs + (curr.carbs || 0),
-          fats: acc.fats + (curr.fats || 0)
-        }), { calories: 0, protein: 0, carbs: 0, fats: 0 });
-        setNutritionToday(totals);
-      }
-
-      if (feedRes.data) setActivityFeed(feedRes.data);
-
-      // Load completed workouts from Supabase
-      try {
-        const { data: completedWorkoutsData, error: completedError } = await supabase
-          .from('completed_workouts')
-          .select('*')
-          .eq('user_id', userId)
-          .order('date', { ascending: false });
-
-        if (!completedError && completedWorkoutsData) {
-          const mapped: WorkoutSummaryData[] = completedWorkoutsData.map((row: any) => ({
-            id: row.id,
-            routineName: row.routine_name,
-            date: row.date,
-            duration: row.duration,
-            sets: row.sets,
-            volume: row.volume,
-            kcal: row.kcal,
-            muscleGroups: row.muscle_groups || [],
-            exercises: row.exercises || [],
-            personalRecordsCount: row.personal_records_count || 0,
-            photoUrl: row.photo_url,
-            created_at: row.created_at
-          }));
-          setCompletedWorkouts(mapped);
-          localStorage.setItem("smartfit_completed_workouts_v1", JSON.stringify(mapped));
-        }
-      } catch (err) {
-        console.error("Failed to load completed workouts in dashboard:", err);
-      }
-
-      // Check if user checked in today
-      try {
-        const todayStart = new Date();
-        todayStart.setHours(0, 0, 0, 0);
-
-        const { data: todayCheckIns, error: checkInError } = await supabase
-          .from('workouts')
-          .select('id')
-          .eq('user_id', userId)
-          .eq('title', 'Gym Check-In')
-          .gte('created_at', todayStart.toISOString())
-          .limit(1);
-
-        const hasCheckedIn = !checkInError && todayCheckIns && todayCheckIns.length > 0;
-        const alreadyPrompted = sessionStorage.getItem("smartfit_checkin_prompted") === "true";
-
-        if (!hasCheckedIn && !alreadyPrompted) {
-          setShowCheckInReminder(true);
-          sessionStorage.setItem("smartfit_checkin_prompted", "true");
-        }
-      } catch (err) {
-        console.error("Failed to check daily check-in:", err);
-      }
-
-    } catch (err) {
-      console.error("Error loading dashboard data:", err);
-    } finally {
-      setIsInitialLoading(false);
-    }
-  };
-
-  const handleDeleteWorkout = async (workoutId: string) => {
-    try {
-      const { error } = await supabase
-        .from('workouts')
-        .delete()
-        .eq('id', workoutId);
-
-      if (error) throw error;
-
-      setSavedWorkouts(prev => prev.filter(w => w.id !== workoutId));
-      toast({
-        title: "Workout deleted",
-        description: "The workout plan has been removed.",
-      });
-    } catch (err) {
-      console.error("Error deleting workout:", err);
-      toast({
-        title: "Error",
-        description: "Failed to delete workout.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleGymCheckIn = async () => {
-    if (!user) return;
-    setIsCheckingIn(true);
-    try {
-      if (isValidUuid(user.id)) {
-        const checkInWorkout = {
-          user_id: user.id,
-          title: "Gym Check-In",
-          content: `Checked in to gym session at ${new Date().toLocaleTimeString()}`,
-          goal: "Attendance",
-          created_at: new Date().toISOString()
-        };
-        
-        await supabase
-          .from('workouts')
-          .insert([checkInWorkout]);
-      }
-      
-      // Award XP & update daily streak
-      gamification.recordWorkout(30); // 30 minutes check-in session
-      
-      toast({
-        title: "Checked In!",
-        description: "Gym check-in logged! Streak updated & 30 XP awarded.",
-      });
-      setShowCheckInReminder(false);
-    } catch (err) {
-      console.error("Check-in error:", err);
-      gamification.recordWorkout(30);
-      toast({
-        title: "Checked In!",
-        description: "Gym check-in logged! Streak updated & 30 XP awarded.",
-      });
-      setShowCheckInReminder(false);
-    } finally {
-      setIsCheckingIn(false);
-    }
-  };
+  // Gym check-in state
+  const [isCheckedIn, setIsCheckedIn] = useState(false);
 
   useEffect(() => {
+    const loadUserData = async (userId: string) => {
+      try {
+        const { data } = await supabase
+          .from("profiles")
+          .select("full_name, username, avatar_url, preferences, daily_calories_target")
+          .eq("id", userId)
+          .single();
+
+        if (data) {
+          setProfile(data);
+        }
+      } catch (err) {
+        console.error("Error loading dashboard profile:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     if (!authLoading) {
-      if (!user) {
+      if (!authUser) {
         navigate("/auth");
       } else {
-        loadDashboardData(user.id);
+        loadUserData(authUser.id);
       }
     }
-  }, [user, authLoading, navigate]);
+  }, [authUser, authLoading, navigate]);
 
-  // Process weekly data for chart combining activity_logs and completed_workouts
-  const weeklyChartData = useMemo(() => {
-    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    const chartData = [];
-    const now = new Date();
+  // Greeting by time of day
+  const greeting = (() => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 17) return "Good afternoon";
+    return "Good evening";
+  })();
 
-    for (let i = 6; i >= 0; i--) {
-      const date = new Date();
-      date.setDate(now.getDate() - i);
-      const dayName = days[date.getDay()];
-      const dateString = date.toDateString();
+  const rawName =
+    profile?.full_name ||
+    authUser?.user_metadata?.full_name ||
+    profile?.username ||
+    "Prem";
+  const firstName = rawName.split(" ")[0] || "Prem";
 
-      // Hours from activity_logs
-      const logsForDay = weeklyLogs.filter(log => new Date(log.created_at).toDateString() === dateString);
-      const logDuration = logsForDay
-        .filter(l => l.activity_type === 'workout')
-        .reduce((sum, curr) => sum + curr.value, 0);
+  // Water increment
+  const handleAddWater = () => {
+    const next = Math.min(waterGlasses + 1, 12);
+    setWaterGlasses(next);
+    const today = new Date().toISOString().slice(0, 10);
+    localStorage.setItem(`smartfit_water_${today}`, next.toString());
+    toast.success(`Logged 1 glass of water (${next}/8) 💧`);
+  };
 
-      // Hours from completed_workouts
-      const workoutsForDay = completedWorkouts.filter(workout => {
-        const wDate = parseWorkoutDateToObj(workout.date, (workout as any).created_at);
-        return wDate.toDateString() === dateString;
-      });
-      const workoutDuration = workoutsForDay.reduce((sum, w) => {
-        return sum + parseDurationToMinutes(w.duration);
-      }, 0);
-
-      const totalMinutes = logDuration + workoutDuration;
-
-      chartData.push({
-        day: dayName,
-        hours: totalMinutes / 60, // convert minutes to hours for chart scaling
-        completed: totalMinutes > 0,
-        fullDate: dateString
-      });
+  // Gym Check-in
+  const handleCheckIn = () => {
+    if (isCheckedIn) {
+      toast.info("Already checked in today! Great consistency!");
+      return;
     }
-    return chartData;
-  }, [weeklyLogs, completedWorkouts]);
+    setIsCheckedIn(true);
+    if (gamification?.addXP) {
+      gamification.addXP(30);
+    }
+    toast.success("Checked in at your gym! +30 XP earned! 🏋️");
+  };
 
-  // Workouts this week (count of unique days with workouts in the last 7 days)
-  const workoutsThisWeek = useMemo(() => {
-    const now = new Date();
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(now.getDate() - 7);
-    sevenDaysAgo.setHours(0, 0, 0, 0);
+  // Level & XP
+  const level = gamification?.level || 4;
+  const xp = gamification?.xp || 420;
+  const nextLevelXp = gamification?.nextLevelXp || 600;
+  const streakDays = gamification?.streak || 1;
 
-    const workoutDays = new Set<string>();
-
-    completedWorkouts.forEach(w => {
-      const wDate = parseWorkoutDateToObj(w.date, (w as any).created_at);
-      if (wDate >= sevenDaysAgo) {
-        workoutDays.add(wDate.toDateString());
-      }
-    });
-
-    weeklyLogs
-      .filter(l => l.activity_type === 'workout')
-      .forEach(l => {
-        const lDate = new Date(l.created_at);
-        if (lDate >= sevenDaysAgo) {
-          workoutDays.add(lDate.toDateString());
-        }
-      });
-
-    return workoutDays.size;
-  }, [weeklyLogs, completedWorkouts]);
-
-  // Combine activity_logs and completed_workouts for a rich activity feed
-  const combinedActivityFeed = useMemo(() => {
-    const feed: Array<{
-      id: string;
-      activity_type: string;
-      value: number;
-      created_at: string;
-      displayTitle: string;
-      displayDesc: string;
-    }> = [];
-
-    // Add activity logs
-    activityFeed.forEach(log => {
-      let desc = 'Interacted with AI';
-      if (log.activity_type === 'workout') {
-        desc = `${log.value} mins session`;
-      } else if (log.activity_type === 'nutrition') {
-        desc = `${log.value} calories`;
-      }
-      
-      feed.push({
-        id: log.id,
-        activity_type: log.activity_type,
-        value: log.value,
-        created_at: log.created_at,
-        displayTitle: `${log.activity_type.charAt(0).toUpperCase() + log.activity_type.slice(1)} Logged`,
-        displayDesc: desc
-      });
-    });
-
-    // Add completed workouts
-    completedWorkouts.forEach(w => {
-      const wDate = parseWorkoutDateToObj(w.date, (w as any).created_at);
-      feed.push({
-        id: w.id || `workout-${wDate.getTime()}`,
-        activity_type: 'workout',
-        value: parseDurationToMinutes(w.duration),
-        created_at: wDate.toISOString(),
-        displayTitle: 'Workout Completed',
-        displayDesc: `${w.routineName} (${w.duration})`
-      });
-    });
-
-    // Sort by created_at descending and limit to 10
-    return feed
-      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-      .slice(0, 10);
-  }, [activityFeed, completedWorkouts]);
-
-  if (authLoading || isInitialLoading || !gamification.isLoaded) {
+  if (authLoading || loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4">
-        <Loader2 className="h-12 w-12 animate-spin text-primary" />
-        <p className="text-muted-foreground animate-pulse">Synchronizing your dashboard...</p>
+      <div
+        className="min-h-dvh flex items-center justify-center"
+        style={{ backgroundColor: "var(--sf-bg, #F2F7F4)" }}
+      >
+        <Loader2 className="w-8 h-8 animate-spin text-[#1F7A5A] dark:text-[#4CC38A]" />
       </div>
     );
   }
 
-  // Fallback targets if profile hasn't set them
-  const preferences = profile?.preferences as Record<string, unknown> | null;
-  const targets = {
-    calories: (preferences?.daily_calories_target as number) || 2000,
-    protein: (preferences?.protein_target as number) || 150,
-    carbs: (preferences?.carbs_target as number) || 200,
-    fats: (preferences?.fats_target as number) || 65
-  };
-
-  const isNewUser = profile?.created_at ? new Date().getTime() - new Date(profile.created_at).getTime() < 24 * 60 * 60 * 1000 : false;
-
-  const displayName = profile?.username || user?.username || (user?.email ? user.email.split('@')[0] : 'Athlete');
-
   return (
-    <div className="min-h-screen pt-6 pb-28 lg:py-20">
-      <Container className="space-y-8">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div
+      className="min-h-dvh flex flex-col overflow-x-hidden"
+      style={{
+        backgroundColor: "var(--sf-bg, #F2F7F4)",
+        color: "var(--sf-text, #16211C)",
+      }}
+    >
+      <div
+        className="w-full max-w-md mx-auto px-4"
+        style={{
+          paddingTop: "calc(env(safe-area-inset-top, 0px) + 8px)",
+          paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 96px)",
+        }}
+      >
+        {/* ── Top Bar ── */}
+        <header className="flex items-center justify-between h-14 mb-2">
+          <h1 className="text-xl font-bold tracking-tight text-neutral-900 dark:text-neutral-50">
+            Today
+          </h1>
+
+          <button
+            type="button"
+            onClick={() => navigate("/app/profile")}
+            aria-label="Profile Avatar"
+            className="w-9 h-9 rounded-full bg-[#0D3B29] text-[#4CC38A] flex items-center justify-center shadow-2xs active:scale-95 transition-transform"
+          >
+            <User className="w-5 h-5 text-[#4CC38A]" strokeWidth={2.2} />
+          </button>
+        </header>
+
+        {/* ── Greeting & XP Bar ── */}
+        <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-2">
-              {isNewUser ? 'Welcome' : 'Welcome Back'}{displayName ? `, ${displayName}` : ''}!
-            </h1>
-            <p className="text-lg md:text-xl leading-relaxed text-gray-300">
-              Level {gamification.level} {gamification.currentStreak > 0 ? `• ${gamification.currentStreak} Day Streak` : "• Let's crush your goals!"}
-            </p>
-            <p className="text-sm text-muted-foreground mt-2">
-              Total XP: {gamification.xp.toLocaleString()} {profile?.created_at ? `• Member since ${new Date(profile.created_at).toLocaleDateString()}` : ''}
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Button asChild variant="hero" size="lg">
-              <Link to="/workout-session">
-                Start Workout
-              </Link>
-            </Button>
-            <Button variant="ghost" size="lg" onClick={() => navigate("/")}>
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back
-            </Button>
-          </div>
-        </div>
-
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          <Card>
-            <div className="flex items-start justify-between mb-4">
-              <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center">
-                <Dumbbell className="w-6 h-6 text-white" />
-              </div>
-              <span className="text-sm text-accent">Goal: 5/week</span>
-            </div>
-            <div className="space-y-1">
-              <p className="text-3xl font-bold">{workoutsThisWeek}/5</p>
-              <p className="text-sm text-muted-foreground">Workouts This Week</p>
-            </div>
-          </Card>
-
-          <Card>
-            <div className="flex items-start justify-between mb-4">
-              <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center">
-                <Target className="w-6 h-6 text-white" />
-              </div>
-              <span className="text-sm text-accent">Lvl {gamification.level}</span>
-            </div>
-            <div className="space-y-1">
-              <p className="text-3xl font-bold">{Math.round(gamification.xpProgress)}%</p>
-              <p className="text-sm text-muted-foreground">Level Progress</p>
-            </div>
-          </Card>
-
-          <Card>
-            <div className="flex items-start justify-between mb-4">
-              <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center">
-                <Apple className="w-6 h-6 text-white" />
-              </div>
-              <span className="text-sm text-orange-500">Goal: {targets.calories}</span>
-            </div>
-            <div className="space-y-1">
-              <p className="text-3xl font-bold">{nutritionToday.calories.toLocaleString()}</p>
-              <p className="text-sm text-muted-foreground">Calories Today</p>
-            </div>
-          </Card>
-
-          <Card>
-            <div className="flex items-start justify-between mb-4">
-              <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center">
-                <TrendingUp className="w-6 h-6 text-white" />
-              </div>
-              <span className="text-sm text-yellow-500">Best: {gamification.longestStreak}</span>
-            </div>
-            <div className="space-y-1">
-              <p className="text-3xl font-bold">{gamification.currentStreak} days</p>
-              <p className="text-sm text-muted-foreground">Current Streak</p>
-            </div>
-          </Card>
-        </div>
-
-        {/* Quick Access Features */}
-        <div className="space-y-4">
-          <h2 className="text-2xl font-bold flex items-center gap-2 leading-relaxed text-gray-300">
-            <Target className="text-primary h-6 w-6" />
-            Your Fitness Tools
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            <Link to="/ai-workout" className="flex flex-col items-center justify-center p-4 rounded-xl bg-card border border-border hover:border-primary/50 hover:bg-card/80 transition-all text-center gap-3 group">
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-                <Dumbbell className="w-6 h-6 text-primary" />
-              </div>
-              <span className="text-sm font-medium">AI Workout</span>
-            </Link>
-            
-            <Link to="/ai-trainer" className="flex flex-col items-center justify-center p-4 rounded-xl bg-card border border-border hover:border-primary/50 hover:bg-card/80 transition-all text-center gap-3 group">
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-                <Bot className="w-6 h-6 text-primary" />
-              </div>
-              <span className="text-sm font-medium">AI Trainer</span>
-            </Link>
-
-            <Link to="/nutrition" className="flex flex-col items-center justify-center p-4 rounded-xl bg-card border border-border hover:border-orange-500/50 hover:bg-card/80 transition-all text-center gap-3 group">
-              <div className="w-12 h-12 rounded-full bg-orange-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-                <Apple className="w-6 h-6 text-orange-500" />
-              </div>
-              <span className="text-sm font-medium">Nutrition</span>
-            </Link>
-
-            <Link to="/3d-trainer" className="flex flex-col items-center justify-center p-4 rounded-xl bg-card border border-border hover:border-accent/50 hover:bg-card/80 transition-all text-center gap-3 group">
-              <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-                <Video className="w-6 h-6 text-accent" />
-              </div>
-              <span className="text-sm font-medium">3D Trainer</span>
-            </Link>
-
-            <Link to="/progress" className="flex flex-col items-center justify-center p-4 rounded-xl bg-card border border-border hover:border-primary/50 hover:bg-card/80 transition-all text-center gap-3 group">
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-                <LineChart className="w-6 h-6 text-primary" />
-              </div>
-              <span className="text-sm font-medium">Progress</span>
-            </Link>
-
-            <Link to="/gamification" className="flex flex-col items-center justify-center p-4 rounded-xl bg-card border border-border hover:border-yellow-500/50 hover:bg-card/80 transition-all text-center gap-3 group">
-              <div className="w-12 h-12 rounded-full bg-yellow-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-                <Trophy className="w-6 h-6 text-yellow-500" />
-              </div>
-              <span className="text-sm font-medium">Rewards</span>
-            </Link>
-          </div>
-        </div>
-
-        {/* Main Content Grid */}
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Recent/Today's Workout */}
-          <Card className="lg:col-span-2">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold flex items-center gap-2 leading-relaxed text-gray-300">
-                <Dumbbell className="text-primary h-6 w-6" />
-                {savedWorkouts.length > 0 ? 'Your Latest Plan' : "Today's Workout"}
-              </h2>
-              <Button asChild variant="ghost" size="sm">
-                <Link to="/ai-workout">New Plan</Link>
-              </Button>
-            </div>
-
-            {savedWorkouts.length > 0 ? (
-              <div className="space-y-4">
-                <div className="p-6 rounded-xl border border-primary/20 bg-primary/5">
-                  <h3 className="text-xl font-bold mb-2">{savedWorkouts[0].title}</h3>
-                  <p className="text-muted-foreground text-sm mb-4 line-clamp-3 leading-relaxed">
-                    {savedWorkouts[0].content}
-                  </p>
-                  <div className="flex gap-2">
-                    <Button asChild size="sm">
-                      <Link to="/workout-session">Start This Session</Link>
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="text-center py-12 bg-muted/20 rounded-xl border border-dashed">
-                <Dumbbell className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
-                <p className="text-muted-foreground mb-4">No active workout plan found.</p>
-                <Button asChild variant="outline">
-                  <Link to="/ai-workout">Generate AI Workout</Link>
-                </Button>
-              </div>
-            )}
-          </Card>
-
-          {/* Nutrition Overview */}
-          <Card>
-            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 leading-relaxed text-gray-300">
-              <Apple className="text-orange-500 h-6 w-6" />
-              Nutrition Today
+            <h2 className="text-xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
+              {greeting}, {firstName}
             </h2>
+            <p className="text-xs text-neutral-600 dark:text-neutral-400 mt-0.5 font-medium flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-[#1F7A5A] dark:bg-[#4CC38A] shrink-0" />
+              <span>
+                Level {level} • {xp} / {nextLevelXp} XP
+              </span>
+            </p>
+          </div>
 
-            <div className="space-y-6">
-              {[
-                { name: "Protein", current: nutritionToday.protein, target: targets.protein, color: "bg-primary", unit: "g" },
-                { name: "Carbs", current: nutritionToday.carbs, target: targets.carbs, color: "bg-accent", unit: "g" },
-                { name: "Fats", current: nutritionToday.fats, target: targets.fats, color: "bg-yellow-500", unit: "g" },
-              ].map((macro) => (
-                <div key={macro.name}>
-                  <div className="flex justify-between mb-2">
-                    <span className="font-medium leading-relaxed text-gray-300">{macro.name}</span>
-                    <span className="text-sm text-muted-foreground">
-                      {macro.current}/{macro.target}{macro.unit}
-                    </span>
-                  </div>
-                  <div className="h-2 bg-muted rounded-full overflow-hidden">
-                    <div
-                      className={`h-full ${macro.color} transition-all duration-500`}
-                      style={{ width: `${Math.min(100, (macro.current / macro.target) * 100)}%` }}
-                    ></div>
-                  </div>
-                </div>
-              ))}
+          <div
+            onClick={() => navigate("/app/profile")}
+            role="button"
+            tabIndex={0}
+            className="w-11 h-11 rounded-full overflow-hidden shadow-xs ring-2 ring-white/80 dark:ring-neutral-800 cursor-pointer active:scale-95 transition-transform shrink-0"
+          >
+            {profile?.avatar_url ? (
+              <img
+                src={profile.avatar_url}
+                alt={firstName}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <img
+                src="/prem-avatar.jpg"
+                alt={firstName}
+                className="w-full h-full object-cover"
+              />
+            )}
+          </div>
+        </div>
 
-              <div className="pt-4 border-t border-border">
-                <div className="text-center">
-                  <p className="text-3xl font-bold mb-1">{nutritionToday.calories.toLocaleString()}</p>
-                  <p className="text-sm text-muted-foreground">Calories consumed</p>
-                  <p className={`text-xs mt-1 ${targets.calories - nutritionToday.calories < 0 ? 'text-red-500' : 'text-accent'}`}>
-                    {targets.calories - nutritionToday.calories < 0
-                      ? `${Math.abs(targets.calories - nutritionToday.calories)} over limit`
-                      : `${targets.calories - nutritionToday.calories} remaining`}
-                  </p>
-                </div>
+        {/* ── Today's Workout Hero Card ── */}
+        <div className="bg-white dark:bg-[#181D1A] rounded-3xl p-4 sm:p-5 shadow-xs border border-emerald-950/5 dark:border-neutral-800 space-y-3.5 mb-4">
+          {/* Card Top Row */}
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
+              Today's workout
+            </span>
+            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A]">
+              Scheduled
+            </span>
+          </div>
+
+          {/* Workout Title & Meta */}
+          <div>
+            <h3 className="text-lg font-bold text-neutral-900 dark:text-neutral-100 leading-tight">
+              Upper body strength
+            </h3>
+            <div className="flex items-center gap-2 text-xs text-neutral-500 dark:text-neutral-400 font-medium mt-1">
+              <div className="flex items-center gap-1">
+                <Clock className="w-3.5 h-3.5" />
+                <span>45 min</span>
+              </div>
+              <span>•</span>
+              <div className="flex items-center gap-1">
+                <Dumbbell className="w-3.5 h-3.5" />
+                <span>6 exercises</span>
+              </div>
+              <span>•</span>
+              <div className="flex items-center gap-1">
+                <MapPin className="w-3.5 h-3.5" />
+                <span>Gym</span>
               </div>
             </div>
-          </Card>
+          </div>
+
+          {/* Hero Workout Image */}
+          <div className="relative w-full h-36 sm:h-44 rounded-2xl overflow-hidden shadow-2xs">
+            <img
+              src="/today-workout.jpg"
+              alt="Upper body strength"
+              className="w-full h-full object-cover"
+            />
+          </div>
+
+          {/* Start Workout Button */}
+          <button
+            type="button"
+            onClick={() => navigate("/app/workout/session")}
+            className="w-full h-12 rounded-xl bg-[#0D3B29] text-white font-bold text-sm hover:opacity-90 active:scale-[0.99] transition-all flex items-center justify-center cursor-pointer shadow-xs"
+          >
+            Start workout
+          </button>
         </div>
 
-
-
-        {/* Weekly Progress Chart */}
-        <div className="grid lg:grid-cols-3 gap-8">
-          <Card className="lg:col-span-2">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold flex items-center gap-2 leading-relaxed text-gray-300">
-                <Activity className="text-primary h-6 w-6" />
-                Weekly Training Time
-              </h2>
-              <p className="text-sm text-muted-foreground">Daily hours spent training</p>
+        {/* ── 2x2 Stats Grid ── */}
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          {/* Tile 1: Workouts */}
+          <div className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 shadow-xs border border-emerald-950/5 dark:border-neutral-800 flex flex-col justify-between">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
+                Workouts
+              </span>
+              <Dumbbell className="w-4 h-4 text-neutral-600 dark:text-neutral-300" />
             </div>
 
-            <div className="flex items-end justify-between h-48 gap-4 pt-4">
-              {weeklyChartData.map((day) => (
-                <div key={day.fullDate} className="flex-1 flex flex-col items-center gap-2">
-                  <div className="w-full flex items-end justify-center h-40">
-                    <div
-                      className={`w-full rounded-t-lg transition-all duration-300 hover:scale-x-105 ${day.completed ? 'gradient-primary shadow-[0_0_15px_rgba(0,255,156,0.3)]' : 'bg-muted/30'
-                        }`}
-                      style={{ height: `${Math.min(100, Math.max(5, (day.hours / 3) * 100))}%` }} // Max scale 3 hours
-                      title={`${day.day}: ${(day.hours * 60).toFixed(0)} mins`}
-                    ></div>
-                  </div>
-                  <span className="text-sm font-medium leading-relaxed text-gray-300">{day.day}</span>
-                </div>
-              ))}
+            <div className="mt-2.5">
+              <p className="font-bold text-xl text-neutral-900 dark:text-neutral-100">
+                0/5
+              </p>
+              <div className="h-1 w-full bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden mt-3">
+                <div className="h-full bg-[#1F7A5A] dark:bg-[#4CC38A] rounded-full w-[10%]" />
+              </div>
             </div>
-          </Card>
+          </div>
 
-          <Card>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold flex items-center gap-2 leading-relaxed text-gray-300">
-                <Activity className="text-accent h-6 w-6" />
-                Activity Feed
-              </h2>
+          {/* Tile 2: Streak */}
+          <div className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 shadow-xs border border-emerald-950/5 dark:border-neutral-800 flex flex-col justify-between">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
+                Streak
+              </span>
+              <Flame className="w-4 h-4 text-neutral-600 dark:text-neutral-300" />
             </div>
 
-            <div className="space-y-4">
-              {combinedActivityFeed.length > 0 ? (
-                combinedActivityFeed.map((log) => (
-                  <div key={log.id} className="flex items-start gap-4 p-3 rounded-lg bg-muted/20 border border-white/5">
-                    <div className={`mt-1 p-2 rounded-lg ${log.activity_type === 'workout' ? 'bg-primary/20 text-primary' :
-                      log.activity_type === 'nutrition' ? 'bg-orange-500/20 text-orange-500' :
-                        log.activity_type === 'chat' ? 'bg-accent/20 text-accent' :
-                          'bg-gray-500/20 text-gray-400'
-                      }`}>
-                      {log.activity_type === 'workout' ? <Dumbbell className="w-4 h-4" /> :
-                        log.activity_type === 'nutrition' ? <Apple className="w-4 h-4" /> :
-                          log.activity_type === 'chat' ? <Activity className="w-4 h-4" /> :
-                            <Activity className="w-4 h-4" />}
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium capitalize">{log.displayTitle}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {log.displayDesc}
-                      </p>
-                      <p className="text-[10px] text-muted-foreground mt-1">
-                        {new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </p>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center py-8">
-                  <p className="text-sm text-muted-foreground italic">No activity logs yet</p>
-                </div>
-              )}
+            <div className="mt-2.5">
+              <p className="font-bold text-xl text-neutral-900 dark:text-neutral-100">
+                {streakDays} {streakDays === 1 ? "day" : "days"}
+              </p>
+              <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
+                Personal best: 14
+              </p>
             </div>
-          </Card>
+          </div>
+
+          {/* Tile 3: Calories */}
+          <div className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 shadow-xs border border-emerald-950/5 dark:border-neutral-800 flex flex-col justify-between">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
+                Calories
+              </span>
+              <Zap className="w-4 h-4 text-neutral-600 dark:text-neutral-300" />
+            </div>
+
+            <div className="mt-2.5">
+              <p className="font-bold text-xl text-neutral-900 dark:text-neutral-100">
+                0 / 2,000
+              </p>
+              <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
+                kcal today
+              </p>
+            </div>
+          </div>
+
+          {/* Tile 4: Water */}
+          <div className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 shadow-xs border border-emerald-950/5 dark:border-neutral-800 flex flex-col justify-between">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
+                Water
+              </span>
+              <Droplet className="w-4 h-4 text-neutral-600 dark:text-neutral-300" />
+            </div>
+
+            <div className="flex items-end justify-between mt-2.5">
+              <div>
+                <p className="font-bold text-xl text-neutral-900 dark:text-neutral-100">
+                  {waterGlasses} / 8
+                </p>
+                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
+                  glasses logged
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleAddWater}
+                aria-label="Log a glass of water"
+                className="w-8 h-8 rounded-xl bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A] flex items-center justify-center font-bold text-base hover:opacity-85 active:scale-95 transition-transform cursor-pointer"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
         </div>
-      </Container>
 
-      {/* Gym Check-in daily reminder modal */}
-      <Dialog open={showCheckInReminder} onOpenChange={setShowCheckInReminder}>
-        <DialogContent className="bg-gray-950 border border-white/10 text-white rounded-3xl p-6 sm:p-8 w-[calc(100vw-1.5rem)] sm:w-full max-w-md text-center flex flex-col items-center justify-center">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-red-600 to-orange-500 flex items-center justify-center mb-4 shadow-lg shadow-red-500/20">
-            <Trophy className="w-8 h-8 text-white animate-bounce" />
+        {/* ── Check In At Your Gym Card ── */}
+        <div className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 shadow-xs border border-emerald-950/5 dark:border-neutral-800 flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-11 h-11 rounded-xl bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A] flex items-center justify-center shrink-0">
+              <Building2 className="w-5 h-5" strokeWidth={2} />
+            </div>
+            <div className="min-w-0">
+              <h4 className="font-bold text-sm text-neutral-900 dark:text-neutral-100 leading-snug">
+                Check in at your gym
+              </h4>
+              <p className="text-xs font-semibold text-[#1F7A5A] dark:text-[#4CC38A] mt-0.5">
+                +30 XP
+              </p>
+            </div>
           </div>
-          <DialogHeader className="w-full text-center">
-            <DialogTitle className="text-2xl font-black tracking-tight text-white">Daily Gym Check-In</DialogTitle>
-            <DialogDescription className="text-gray-400 mt-2 text-sm leading-relaxed">
-              Don't forget to register your gym session today! Check-in to update your consistency heatmap, keep your daily streak alive, and claim <span className="text-orange-400 font-bold">30 XP</span>!
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex flex-col sm:flex-row gap-3 w-full mt-6">
-            <Button
-              onClick={handleGymCheckIn}
-              disabled={isCheckingIn}
-              className="flex-1 bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-500 hover:to-orange-400 text-white font-black py-6 rounded-2xl border-0 shadow-lg shadow-red-500/20 transition-all duration-300 hover:scale-[1.02]"
-            >
-              {isCheckingIn ? (
-                <>
-                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                  Checking In...
-                </>
-              ) : (
-                "Check-In Now"
-              )}
-            </Button>
-            <Button
-              onClick={() => setShowCheckInReminder(false)}
-              variant="outline"
-              className="flex-1 border-white/10 hover:bg-white/5 text-white font-bold py-6 rounded-2xl"
-            >
-              Maybe Later
-            </Button>
+
+          <button
+            type="button"
+            onClick={handleCheckIn}
+            className={cn(
+              "px-4 h-9 rounded-xl border text-xs font-bold transition-all shrink-0 active:scale-95",
+              isCheckedIn
+                ? "bg-[#EAF5EE] dark:bg-[#1E2D24] border-[#1F7A5A] text-[#1F7A5A] dark:text-[#4CC38A]"
+                : "border-neutral-300 dark:border-neutral-700 text-neutral-800 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-neutral-800"
+            )}
+          >
+            {isCheckedIn ? "Checked in" : "Check in"}
+          </button>
+        </div>
+
+        {/* ── Coach Tip Card ── */}
+        <div className="rounded-2xl p-4 bg-[#EAF5EE] dark:bg-[#17221C] border border-[#D5EEDB] dark:border-[#24352B] mb-6">
+          <div className="flex items-center gap-2">
+            <Bot className="w-4 h-4 text-[#1F7A5A] dark:text-[#4CC38A]" />
+            <span className="text-xs font-bold text-[#1F7A5A] dark:text-[#4CC38A]">
+              Coach tip
+            </span>
           </div>
-        </DialogContent>
-      </Dialog>
+
+          <p className="text-xs leading-relaxed text-neutral-700 dark:text-neutral-300 mt-2">
+            Focus on controlled eccentrics on today's pressing movements to maximize
+            muscle tension and joint health.
+          </p>
+
+          <button
+            type="button"
+            onClick={() => navigate("/ai-trainer")}
+            className="text-xs font-bold text-[#1F7A5A] dark:text-[#4CC38A] flex items-center gap-1 mt-3 hover:underline cursor-pointer"
+          >
+            <span>Ask Coach</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </div>
     </div>
   );
-};
-
-export default Dashboard;
+}

@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Compass, PlusCircle, LineChart, Settings } from "lucide-react";
+import { Calendar, Dumbbell, PlusCircle, LineChart, Bot } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
@@ -8,12 +8,12 @@ const navigationItems = [
   {
     label: "Today",
     href: "/app/today",
-    icon: LayoutDashboard,
+    icon: Calendar,
   },
   {
-    label: "Explore",
-    href: "/app/explore",
-    icon: Compass,
+    label: "Workouts",
+    href: "/home-workouts",
+    icon: Dumbbell,
   },
   {
     label: "Log",
@@ -26,9 +26,9 @@ const navigationItems = [
     icon: LineChart,
   },
   {
-    label: "Settings",
-    href: "/settings",
-    icon: Settings,
+    label: "Coach",
+    href: "/ai-trainer",
+    icon: Bot,
   },
 ];
 
@@ -52,11 +52,9 @@ export function BottomNavigation() {
         {navigationItems.map((item) => {
           const isActive =
             location.pathname === item.href ||
-            (item.href === "/settings" &&
-              (location.pathname === "/settings" ||
-                location.pathname === "/app/settings" ||
-                location.pathname === "/profile" ||
-                location.pathname === "/app/profile"));
+            (item.href === "/app/today" && (location.pathname === "/app/today" || location.pathname === "/dashboard")) ||
+            (item.href === "/home-workouts" && (location.pathname === "/home-workouts" || location.pathname === "/app/explore" || location.pathname === "/features")) ||
+            (item.href === "/ai-trainer" && (location.pathname === "/ai-trainer" || location.pathname === "/ai-workout"));
           const Icon = item.icon;
 
           return (
