@@ -91,10 +91,11 @@ const AppContent = () => {
   const isWorkoutSessionPage = location.pathname === "/workout-session";
   const isOnboardingPage = location.pathname.startsWith("/onboarding");
   const isSettingsPage = location.pathname === "/settings" || location.pathname === "/app/settings";
+  const isProfilePage = location.pathname === "/profile" || location.pathname === "/app/profile";
   const hideLayout = isAuthPage || isWorkoutSessionPage || isOnboardingPage;
-  const hideHeader = hideLayout || isSettingsPage;
-  const hideFooter = hideLayout || isSettingsPage;
-  const hideChatbot = hideLayout || isSettingsPage;
+  const hideHeader = hideLayout || isSettingsPage || isProfilePage;
+  const hideFooter = hideLayout || isSettingsPage || isProfilePage;
+  const hideChatbot = hideLayout || isSettingsPage || isProfilePage;
 
   const isConfigMissing = !import.meta.env.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL === 'https://placeholder.supabase.co';
 

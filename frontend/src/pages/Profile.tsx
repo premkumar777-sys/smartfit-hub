@@ -1,1495 +1,599 @@
-import { useState, useEffect, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { Container } from "@/components/Container";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
-    ArrowLeft,
-    User,
-    Mail,
-    Calendar,
-    Target,
-    Flame,
-    Trophy,
-    Dumbbell,
-    Edit2,
-    Save,
-    X,
-    LogOut,
-    Crown,
-    Loader2,
-    CheckCircle,
-    Check,
-    Camera,
-    MapPin,
-    BookOpen,
-    TrendingUp,
-    Zap,
-    Activity,
-    ChevronRight,
-    Share2,
-    Settings,
-    MoreVertical,
-    Trash2,
-    Sparkles,
-    Download,
-    Plus
+  ArrowLeft,
+  Settings as SettingsIcon,
+  User,
+  Target,
+  Dumbbell,
+  Clock,
+  TrendingUp,
+  Trophy,
+  Flame,
+  Sun,
+  Check,
+  Scale,
+  Ruler,
+  Activity,
+  Edit2,
+  Calendar,
+  Loader2,
+  X,
 } from "lucide-react";
-import { toast } from "sonner";
-import { useSubscription } from "@/hooks/useSubscription";
-import { Tables } from "@/integrations/supabase/types";
-import { useAuth } from "@/hooks/use-auth";
-import { useGamification } from "@/hooks/useGamification";
 import {
-    Sheet,
-    SheetContent,
-    SheetDescription,
-    SheetHeader,
-    SheetTitle,
-    SheetTrigger,
-    SheetFooter,
-} from "@/components/ui/sheet";
-import { Progress } from "@/components/ui/progress";
-import { motion, AnimatePresence } from "framer-motion";
-import { AreaChart, Area, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts";
-import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { WorkoutSummaryCard, WorkoutSummaryData } from "@/components/WorkoutSummaryCard";
-import { WorkoutSummaryLogModal } from "@/components/WorkoutSummaryLogModal";
-import { toPng } from "html-to-image";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { useAuth } from "@/hooks/use-auth";
+import { cn } from "@/lib/utils";
 
-const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-        opacity: 1,
-        transition: {
-            staggerChildren: 0.1
-        }
-    }
-};
+type ProfileTab = "summary" | "biometrics" | "workouts" | "progress";
 
-const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: {
-        y: 0,
-        opacity: 1,
-        transition: {
-            type: "spring" as const,
-            stiffness: 100,
-            damping: 15
-        }
-    }
-};
+interface DaySchedule {
+  day: string;
+  short: string;
+  type: "done" | "rest" | "session";
+  label?: string;
+}
 
-const tabContentVariants = {
-    initial: { opacity: 0, y: 15 },
-    animate: { opacity: 1, y: 0, transition: { duration: 0.2 } },
-    exit: { opacity: 0, y: -15, transition: { duration: 0.2 } }
-};
-
-type ProfileBase = Tables<"profiles">;
-type Profile = ProfileBase & {
-    full_name?: string;
-    bio?: string;
-    location?: string;
-    preferences?: Record<string, unknown>;
-    age?: number;
-    weight?: number;
-    height?: number;
-    streak?: number;
-    xp?: number;
-};
-type Workout = Tables<"workouts">;
-
-// StreakData and STREAK_STORAGE_KEY removed in favor of useGamification
-
-const getStreakBadge = (streak: number) => {
-    if (streak >= 100) return { label: "Fitness Legend", icon: "🏆", color: "bg-yellow-500" };
-    if (streak >= 30) return { label: "Monthly Champion", icon: "💪", color: "bg-purple-500" };
-    if (streak >= 7) return { label: "Week Warrior", icon: "🔥", color: "bg-orange-500" };
-    return null;
-};
-
-const FITNESS_GOALS = [
-    "Fat Loss",
-    "Muscle Gain",
-    "Endurance",
-    "Flexibility",
-    "General Fitness",
-    "Strength Training",
-    "Weight Maintenance"
+const SCHEDULE: DaySchedule[] = [
+  { day: "Monday", short: "Mon", type: "done" },
+  { day: "Tuesday", short: "Tue", type: "done" },
+  { day: "Wednesday", short: "Wed", type: "rest", label: "R" },
+  { day: "Thursday", short: "Thu", type: "done" },
+  { day: "Friday", short: "Fri", type: "session", label: "4" },
+  { day: "Saturday", short: "Sat", type: "rest", label: "R" },
+  { day: "Sunday", short: "Sun", type: "rest", label: "R" },
 ];
 
 export default function Profile() {
-    const navigate = useNavigate();
-    const { hasPremiumAccess } = useSubscription();
-    const gamification = useGamification();
-    const { user: authUser, isLoading: authLoading } = useAuth();
+  const navigate = useNavigate();
+  const { user: authUser, isLoading: authLoading } = useAuth();
 
-    const [user, setUser] = useState<any>(null);
-    const [profile, setProfile] = useState<Profile | null>(null);
-    const [workouts, setWorkouts] = useState<Workout[]>([]);
-    const [allWorkouts, setAllWorkouts] = useState<Workout[]>([]);
-    const [completedWorkouts, setCompletedWorkouts] = useState<WorkoutSummaryData[]>([]);
-    const [selectedWorkoutForCard, setSelectedWorkoutForCard] = useState<WorkoutSummaryData | null>(null);
-    const [selectedWorkoutForView, setSelectedWorkoutForView] = useState<Workout | null>(null);
-    const [isLogModalOpen, setIsLogModalOpen] = useState(false);
-    const [progressLogs, setProgressLogs] = useState<any[]>([]);
-    const [activeTab, setActiveTab] = useState<string>("summary");
-    const [loading, setLoading] = useState(true);
-    const [isEditing, setIsEditing] = useState(false);
-    const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState<ProfileTab>("summary");
 
-    const heatmapScrollRef = useRef<HTMLDivElement>(null);
+  // Edit profile dialog
+  const [editOpen, setEditOpen] = useState(false);
+  const [fullName, setFullName] = useState("");
+  const [bio, setBio] = useState("");
+  const [savingProfile, setSavingProfile] = useState(false);
 
-    useEffect(() => {
-        if (activeTab === "summary" && !loading) {
-            const timer = setTimeout(() => {
-                if (heatmapScrollRef.current) {
-                    const container = heatmapScrollRef.current;
-                    const currentMonth = new Date().getMonth(); // 0 to 11
-                    const maxScroll = container.scrollWidth - container.clientWidth;
-                    if (maxScroll > 0) {
-                        const targetX = (container.scrollWidth * (currentMonth / 12));
-                        const centeredX = targetX - (container.clientWidth / 2) + 20;
-                        container.scrollTo({
-                            left: Math.max(0, Math.min(maxScroll, centeredX)),
-                            behavior: "smooth"
-                        });
-                    }
-                }
-            }, 300);
-            return () => clearTimeout(timer);
+  useEffect(() => {
+    const loadProfile = async (userId: string) => {
+      try {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", userId)
+          .single();
+
+        if (data) {
+          setProfile(data);
+          setFullName(data.full_name || authUser?.user_metadata?.full_name || "");
+          setBio(data.bio || "");
         }
-    }, [activeTab, loading, allWorkouts]);
-
-    // Edit form state
-    const [editUsername, setEditUsername] = useState("");
-    const [editFullName, setEditFullName] = useState("");
-    const [editBio, setEditBio] = useState("");
-    const [editLocation, setEditLocation] = useState("");
-    const [editGoal, setEditGoal] = useState("");
-    const [uploading, setUploading] = useState(false);
-
-    // Map streak from central gamification hook
-    const streak = {
-        currentStreak: gamification.currentStreak,
-        bestStreak: gamification.longestStreak,
-        totalActiveDays: gamification.totalWorkouts || gamification.currentStreak
+      } catch (err) {
+        console.error("Error loading profile:", err);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    // Load user data
-    useEffect(() => {
-        const loadUserData = async (userId: string) => {
-            try {
-                // Load profile
-                const { data: profileData } = await supabase
-                    .from('profiles')
-                    .select('*')
-                    .eq('id', userId)
-                    .single();
-
-                if (profileData) {
-                    setProfile(profileData);
-                    setEditUsername(profileData.username || "");
-                    setEditFullName(profileData.full_name || "");
-                    setEditBio(profileData.bio || "");
-                    setEditLocation(profileData.location || "");
-                    setEditGoal(profileData.fitness_goal || "");
-                }
-
-                // Load workouts
-                const { data: workoutsData } = await supabase
-                    .from('workouts')
-                    .select('*')
-                    .eq('user_id', userId)
-                    .order('created_at', { ascending: false });
-
-                if (workoutsData) {
-                    setAllWorkouts(workoutsData);
-                    setWorkouts(workoutsData.slice(0, 5));
-                }
-
-                // Load completed workouts from localStorage
-                const savedWorkouts = localStorage.getItem("smartfit_completed_workouts_v1");
-                if (savedWorkouts) {
-                    try {
-                        setCompletedWorkouts(JSON.parse(savedWorkouts));
-                    } catch (e) {
-                        console.error(e);
-                    }
-                }
-
-                try {
-                    const { data: completedWorkoutsData, error: completedError } = await supabase
-                        .from('completed_workouts')
-                        .select('*')
-                        .eq('user_id', userId)
-                        .order('date', { ascending: false });
-
-                    if (!completedError && completedWorkoutsData) {
-                        const mapped: WorkoutSummaryData[] = completedWorkoutsData.map((row: any) => ({
-                            id: row.id,
-                            routineName: row.routine_name,
-                            date: row.date,
-                            duration: row.duration,
-                            sets: row.sets,
-                            volume: row.volume,
-                            kcal: row.kcal,
-                            muscleGroups: row.muscle_groups || [],
-                            exercises: row.exercises || [],
-                            personalRecordsCount: row.personal_records_count || 0,
-                            photoUrl: row.photo_url
-                        }));
-                        setCompletedWorkouts(mapped);
-                        localStorage.setItem("smartfit_completed_workouts_v1", JSON.stringify(mapped));
-                    }
-                } catch (err) {
-                    console.error("Failed to load completed workouts from Supabase:", err);
-                }
-
-                // Load progress logs for weight chart
-                let loadedLogs: any[] = [];
-                const { data: logsData, error: logsError } = await supabase
-                    .from('progress_logs')
-                    .select('*')
-                    .eq('user_id', userId)
-                    .order('date', { ascending: true })
-                    .limit(15);
-
-                if (!logsError && logsData) {
-                    loadedLogs = logsData;
-                } else {
-                    const saved = localStorage.getItem("smartfit_progress_v1");
-                    if (saved) {
-                        try {
-                            const parsed = JSON.parse(saved);
-                            loadedLogs = parsed
-                                .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime())
-                                .slice(-15);
-                        } catch (e) {
-                            console.error("Error parsing progress logs from localStorage:", e);
-                        }
-                    }
-                }
-                setProgressLogs(loadedLogs);
-            } catch (error) {
-                console.error("Error loading user data:", error);
-                toast.error("Failed to load profile data");
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        if (!authLoading) {
-            if (!authUser) {
-                navigate("/auth");
-            } else {
-                setUser(authUser);
-                loadUserData(authUser.id);
-            }
-        }
-    }, [authUser, authLoading, navigate]);
-
-    const handleOpenEdit = () => {
-        setEditUsername(profile?.username || "");
-        setEditFullName(profile?.full_name || "");
-        setEditBio(profile?.bio || "");
-        setEditLocation(profile?.location || "");
-        setEditGoal(profile?.fitness_goal || "");
-        setIsEditing(true);
-    };
-
-    const handleSaveProfile = async () => {
-        if (!user) return;
-
-        setSaving(true);
-        try {
-            const updateData = {
-                username: editUsername,
-                full_name: editFullName,
-                bio: editBio,
-                location: editLocation,
-                fitness_goal: editGoal,
-                updated_at: new Date().toISOString()
-            };
-
-            console.log("Saving profile with data:", updateData);
-
-            const { error } = await supabase
-                .from('profiles')
-                .upsert({ id: user.id, ...updateData }, { onConflict: 'id' });
-
-            if (error) {
-                console.error("Supabase error updating profile:", error);
-                toast.error(`Failed to update profile: ${error.message}`);
-                return;
-            }
-
-            setProfile(prev => prev ? {
-                ...prev,
-                username: editUsername,
-                full_name: editFullName,
-                bio: editBio,
-                location: editLocation,
-                fitness_goal: editGoal
-            } : null);
-
-            setIsEditing(false);
-            toast.success("Profile updated successfully!");
-        } catch (error) {
-            console.error("Error updating profile:", error);
-            toast.error("Failed to update profile");
-        } finally {
-            setSaving(false);
-        }
-    };
-
-    const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-        try {
-            setUploading(true);
-            if (!event.target.files || event.target.files.length === 0) {
-                throw new Error("You must select an image to upload.");
-            }
-
-            const file = event.target.files[0];
-            const fileExt = file.name.split(".").pop();
-            const filePath = `${user.id}/${Math.random()}.${fileExt}`;
-
-            const { error: uploadError } = await supabase.storage
-                .from("avatars")
-                .upload(filePath, file);
-
-            if (uploadError) throw uploadError;
-
-            const { data: { publicUrl } } = supabase.storage
-                .from("avatars")
-                .getPublicUrl(filePath);
-
-            const { error: updateError } = await supabase
-                .from("profiles")
-                .update({ avatar_url: publicUrl })
-                .eq("id", user.id);
-
-            if (updateError) throw updateError;
-
-            setProfile(prev => prev ? { ...prev, avatar_url: publicUrl } : null);
-            toast.success("Avatar updated successfully!");
-        } catch (error: any) {
-            toast.error(error.message);
-        } finally {
-            setUploading(false);
-        }
-    };
-
-    const handleLogout = async () => {
-        localStorage.removeItem('smartfit_biometric_active_user');
-        sessionStorage.removeItem("smartfit_checkin_prompted");
-        await supabase.auth.signOut();
-        navigate("/");
-    };
-
-    const handleGymCheckIn = async () => {
-        if (!user) return;
-        
-        try {
-            const checkInWorkout = {
-                user_id: user.id,
-                title: "Gym Check-In",
-                content: `Checked in to gym session at ${new Date().toLocaleTimeString()}`,
-                goal: "Attendance",
-                created_at: new Date().toISOString()
-            };
-            
-            // Insert check-in workout
-            const { data, error } = await supabase
-                .from('workouts')
-                .insert([checkInWorkout])
-                .select()
-                .single();
-                
-            if (error) {
-                console.error("Error logging check-in:", error);
-                toast.error("Failed to check in: " + error.message);
-                return;
-            }
-            
-            // Award XP & Record Activity in gamification hook
-            gamification.recordWorkout(30); // 30 minutes check-in session
-            
-            // Update local state instantly so heatmap and check-in status update
-            setAllWorkouts(prev => [data, ...prev]);
-            setWorkouts(prev => [data, ...prev.slice(0, 4)]);
-            
-            toast.success("Checked in successfully! Streak updated! 💪");
-        } catch (err: any) {
-            console.error("Check-in error:", err);
-            toast.error("Failed to check in");
-        }
-    };
-
-    const deleteWorkout = async (id: string) => {
-        setCompletedWorkouts((prev) => {
-            const updated = prev.filter((w: any) => w.id !== id);
-            localStorage.setItem("smartfit_completed_workouts_v1", JSON.stringify(updated));
-            return updated;
-        });
-
-        toast.success("Workout log deleted");
-
-        if (user) {
-            try {
-                await supabase.from("completed_workouts").delete().eq("id", id);
-            } catch (err) {
-                console.error("Error deleting completed workout:", err);
-            }
-        }
-    };
-
-    const handleSaveWorkout = async (data: WorkoutSummaryData) => {
-        // Generate a new id for the local state if it doesn't exist
-        const workoutWithId = {
-            ...data,
-            id: (data as any).id || `local-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
-        };
-
-        // Add to local state
-        setCompletedWorkouts(prev => [workoutWithId, ...prev]);
-
-
-        // Sync to localStorage
-        const savedWorkouts = localStorage.getItem("smartfit_completed_workouts_v1");
-        let currentList: any[] = [];
-        if (savedWorkouts) {
-            try {
-                currentList = JSON.parse(savedWorkouts);
-            } catch (e) {
-                console.error(e);
-            }
-        }
-        localStorage.setItem("smartfit_completed_workouts_v1", JSON.stringify([workoutWithId, ...currentList]));
-
-        // Sync to Supabase completed_workouts table
-        if (user) {
-            try {
-                const dbRow = {
-                    user_id: user.id,
-                    routine_name: data.routineName,
-                    date: data.date,
-                    duration: data.duration,
-                    sets: data.sets,
-                    volume: data.volume,
-                    kcal: data.kcal,
-                    muscle_groups: data.muscleGroups,
-                    exercises: data.exercises,
-                    personal_records_count: data.personalRecordsCount,
-                    photo_url: data.photoUrl
-                };
-
-                const { data: insertedData, error } = await supabase
-                    .from('completed_workouts')
-                    .insert([dbRow])
-                    .select()
-                    .single();
-
-                if (error) {
-                    console.error("Error logging workout to supabase:", error);
-                    toast.error("Logged locally, but failed to sync to server.");
-                } else if (insertedData) {
-                    // Update local state with the actual database-generated id and fields
-                    const syncedWorkout: WorkoutSummaryData = {
-                        id: insertedData.id,
-                        routineName: insertedData.routine_name,
-                        date: insertedData.date,
-                        duration: insertedData.duration,
-                        sets: insertedData.sets,
-                        volume: insertedData.volume,
-                        kcal: insertedData.kcal,
-                        muscleGroups: insertedData.muscle_groups || [],
-                        exercises: insertedData.exercises || [],
-                        personalRecordsCount: insertedData.personal_records_count || 0,
-                        photoUrl: insertedData.photo_url
-                    };
-                    
-                    // Update localStorage list
-                    const updatedSaved = [syncedWorkout, ...currentList];
-                    localStorage.setItem("smartfit_completed_workouts_v1", JSON.stringify(updatedSaved));
-
-                    setCompletedWorkouts(prev => prev.map(w => w.id === workoutWithId.id ? syncedWorkout : w));
-                    toast.success("Workout logged and synced successfully! 🎉");
-                }
-            } catch (err) {
-                console.error("Error logging workout:", err);
-            }
-        } else {
-            toast.success("Workout logged successfully! 🎉");
-        }
-    };
-
-    const todayStr = new Date().toDateString();
-    const hasCheckedInToday = allWorkouts.some(
-        w => w.title === "Gym Check-In" && new Date(w.created_at).toDateString() === todayStr
-    );
-    const totalCheckIns = allWorkouts.filter(w => w.title === "Gym Check-In").length;
-
-    if (authLoading || loading || !gamification.isLoaded) {
-        return (
-            <div className="min-h-screen flex items-center justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            </div>
-        );
+    if (!authLoading) {
+      if (!authUser) {
+        navigate("/auth");
+      } else {
+        loadProfile(authUser.id);
+      }
     }
+  }, [authUser, authLoading, navigate]);
 
-    const initials = profile?.username
-        ? profile.username.slice(0, 2).toUpperCase()
-        : user?.email?.slice(0, 2).toUpperCase() || "U";
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!authUser) return;
+    setSavingProfile(true);
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          full_name: fullName,
+          bio,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", authUser.id);
 
-    const streakBadge = getStreakBadge(streak.currentStreak);
+      if (error) throw error;
+      setProfile((prev: any) => ({ ...prev, full_name: fullName, bio }));
+      toast.success("Profile updated successfully!");
+      setEditOpen(false);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update profile");
+    } finally {
+      setSavingProfile(false);
+    }
+  };
 
-    const renderHeatmap = () => {
-        // Calculate activities per date string
-        const activitiesByDate: Record<string, any[]> = {};
-        
-        // Add gym check-ins
-        allWorkouts.forEach(w => {
-            if (w.title === "Gym Check-In") {
-                const dateStr = new Date(w.created_at).toDateString();
-                if (!activitiesByDate[dateStr]) {
-                    activitiesByDate[dateStr] = [];
-                }
-                activitiesByDate[dateStr].push(w);
-            }
-        });
+  const displayName =
+    profile?.full_name ||
+    authUser?.user_metadata?.full_name ||
+    profile?.username ||
+    "Prem";
 
+  const memberSince = (() => {
+    if (profile?.created_at) {
+      const date = new Date(profile.created_at);
+      return `Member since ${date.toLocaleString("default", { month: "short" })} ${date.getFullYear()}`;
+    }
+    return "Member since Jan 2026";
+  })();
 
-        const currentYear = new Date().getFullYear();
-        const startDate = new Date(currentYear, 0, 1);
-        const endDate = new Date(currentYear, 11, 31);
-        
-        const days: { date: Date | null; workouts: any[] }[] = [];
-        
-        // Pad the beginning of the year so that the grid starts on Sunday
-        const startDayOfWeek = startDate.getDay();
-        for (let i = 0; i < startDayOfWeek; i++) {
-            days.push({ date: null, workouts: [] });
-        }
-        
-        let current = new Date(startDate);
-        while (current <= endDate) {
-            const dateStr = current.toDateString();
-            const dayWorkouts = activitiesByDate[dateStr] || [];
-            days.push({ date: new Date(current), workouts: dayWorkouts });
-            current.setDate(current.getDate() + 1);
-        }
+  const heightVal = profile?.height_cm || 178;
+  const weightVal = profile?.weight_kg || 74;
+  const bmiVal = ((weightVal / (heightVal * heightVal)) * 10000).toFixed(1);
 
-        // Empty = dark cell, Active = transparent (logo only)
-        const getIntensityClass = (count: number) => {
-            if (count === 0) return "bg-[#18181b] border-white/[0.03]";
-            return "bg-transparent border-transparent";
-        };
-
-        // Render SmartFit logo filling the full cell for active days
-        const renderCellLogo = (workouts: any[]) => {
-            if (workouts.length === 0) return null;
-            return (
-                <img
-                    src="/favicon.png"
-                    alt="SmartFit"
-                    className="w-full h-full object-contain select-none pointer-events-none"
-                />
-            );
-        };
-
-        const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
-        const totalActiveDays = Object.keys(activitiesByDate).length;
-
-        return (
-            <Card className="glass border-white/10 rounded-2xl p-5 overflow-hidden">
-                <CardHeader className="p-0 pb-4 border-b border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <div>
-                        <CardTitle className="text-sm font-bold tracking-tight text-white flex items-center gap-2">
-                            <Calendar className="w-4 h-4 text-emerald-500" />
-                            {allWorkouts.length} activities in {currentYear}
-                        </CardTitle>
-                        <p className="text-[10px] text-muted-foreground mt-0.5">
-                            Active days: {totalActiveDays} days | Max streak: {streak.longestStreak || 0} days
-                        </p>
-                    </div>
-                    {/* Streaks and Info */}
-                    <div className="flex items-center gap-4 text-xs">
-                        <div className="flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-3 py-1 rounded-full font-black text-[10px] tracking-wider uppercase animate-pulse">
-                            <Flame className="w-3.5 h-3.5" />
-                            Streak: {streak.currentStreak} Days
-                        </div>
-                    </div>
-                </CardHeader>
-                <CardContent ref={heatmapScrollRef} className="p-0 pt-5 overflow-x-auto custom-scrollbar">
-                    <TooltipProvider>
-                        <div className="min-w-[700px] flex flex-col gap-4">
-                            <div className="flex gap-2">
-                                {/* Day labels column */}
-                                <div className="grid grid-rows-7 gap-[5px] text-[8px] font-medium text-muted-foreground/60 pr-1 select-none pt-4">
-                                    {weekDays.map((day, idx) => (
-                                        <div key={idx} className="h-[20px] flex items-center justify-end leading-none">
-                                            {idx % 2 === 1 ? day : ""}
-                                        </div>
-                                    ))}
-                                </div>
-                                {/* Grid of days */}
-                                <div className="flex-1 space-y-1">
-                                    {/* Months label bar */}
-                                    <div className="flex text-[8px] font-bold text-muted-foreground/60 select-none pb-1 h-3 relative">
-                                        {months.map((month, idx) => {
-                                            const leftPct = (idx / 12) * 100;
-                                            return (
-                                                <div key={idx} className="absolute text-[8px]" style={{ left: `${leftPct}%` }}>
-                                                    {month}
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                    <div className="grid grid-flow-col grid-rows-7 gap-[5px]">
-                                        {days.map((d, idx) => {
-                                            if (!d.date) {
-                                                return <div key={`pad-${idx}`} className="w-[20px] h-[20px] bg-transparent" />;
-                                            }
-                                            const count = d.workouts.length;
-                                            const dateLabel = d.date.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
-                                            const statusLabel = count > 0 ? `${count} activities` : "No activity";
-                                            return (
-                                                <Tooltip key={idx}>
-                                                    <TooltipTrigger asChild>
-                                                        <div 
-                                                            className={`w-[20px] h-[20px] rounded-[4px] border transition-all flex items-center justify-center cursor-pointer ${getIntensityClass(count)}`} 
-                                                        >
-                                                            {renderCellLogo(d.workouts)}
-                                                        </div>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent className="bg-[#0a0a0a] text-[10px] px-2 py-1 border border-white/10 rounded-md text-white z-50">
-                                                        <span className="font-bold">{dateLabel}</span>: {statusLabel}
-                                                    </TooltipContent>
-                                                </Tooltip>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                            </div>
-                            
-
-                        </div>
-                    </TooltipProvider>
-                </CardContent>
-            </Card>
-        );
-    };
-
+  if (authLoading || loading) {
     return (
-        <div className="min-h-screen pt-24 pb-28 lg:pb-12 overflow-x-hidden">
-            <Container>
-                <motion.div
-                    initial="hidden"
-                    animate="visible"
-                    variants={containerVariants}
-                    className="space-y-6"
-                >
-                    {/* Navigation & Actions Header */}
-                    <motion.div variants={itemVariants} className="flex items-center justify-between mb-2">
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            className="bg-transparent hover:bg-transparent p-0 inline-flex items-center text-sm font-medium text-muted-foreground hover:text-primary transition-colors group"
-                            onClick={() => navigate(-1)}
-                        >
-                            <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
-                            Back
-                        </Button>
-                        <div className="flex items-center gap-2">
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className="rounded-full hover:bg-primary/10 hover:text-primary"
-                                onClick={() => toast.info("Profile sharing coming soon!")}
-                            >
-                                <Share2 className="w-4 h-4" />
-                            </Button>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className="rounded-full hover:bg-destructive/10 hover:text-destructive"
-                                onClick={handleLogout}
-                            >
-                                <LogOut className="w-4 h-4" />
-                            </Button>
-                        </div>
-                    </motion.div>
-
-                    {/* REDESIGNED PROFILE HERO CARD */}
-                    <motion.div variants={itemVariants}>
-                        <Card className="glass border-white/5 overflow-hidden relative rounded-3xl shadow-2xl">
-                            {/* Premium Banner with gym-themed image */}
-                            <div className="h-48 bg-cover bg-center relative" style={{ backgroundImage: "url('/workout-bg.jpg')" }}>
-                                <div className="absolute inset-0 bg-gradient-to-t from-[#0d0d0d] via-black/45 to-transparent" />
-
-                            </div>
-
-                            <CardContent className="p-6 pt-0 relative">
-                                {/* Avatar & Details Section */}
-                                <div className="flex flex-col sm:flex-row items-center sm:items-end gap-5 -mt-16 mb-6 px-4">
-                                    <div className="relative group/avatar">
-                                        <div className="absolute -inset-1 rounded-2xl bg-gradient-to-tr from-red-600 via-purple-600 to-orange-500 opacity-40 group-hover/avatar:opacity-80 blur transition-opacity" />
-                                        <Avatar className="w-32 h-32 rounded-2xl border-4 border-[#0d0d0d] relative z-10 shadow-2xl">
-                                            <AvatarImage src={profile?.avatar_url || undefined} className="object-cover" />
-                                            <AvatarFallback className="bg-primary/10 text-primary text-3xl font-black rounded-2xl">
-                                                {initials}
-                                            </AvatarFallback>
-                                        </Avatar>
-
-                                        <label className="absolute inset-0 z-20 flex items-center justify-center bg-black/55 rounded-2xl cursor-pointer opacity-0 group-hover/avatar:opacity-100 transition-all duration-300 backdrop-blur-sm">
-                                            {uploading ? (
-                                                <Loader2 className="w-6 h-6 animate-spin text-white" />
-                                            ) : (
-                                                <Camera className="w-6 h-6 text-white" />
-                                            )}
-                                            <input
-                                                type="file"
-                                                accept="image/*"
-                                                className="hidden"
-                                                onChange={handleAvatarUpload}
-                                                disabled={uploading}
-                                            />
-                                        </label>
-
-                                        {hasPremiumAccess && (
-                                            <div className="absolute -bottom-1 -right-1 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full p-1.5 z-30 shadow-lg border-2 border-background">
-                                                <Crown className="w-4 h-4 text-black" />
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* Name & Badges */}
-                                    <div className="text-center sm:text-left flex-1 space-y-1 md:pb-2">
-                                        <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5">
-                                            <h1 className="text-3xl font-black tracking-tight text-white uppercase italic">
-                                                {profile?.full_name || profile?.username || "SmartFit Warrior"}
-                                            </h1>
-
-                                        </div>
-
-                                    </div>
-
-                                    {/* Actions */}
-                                    <div className="flex gap-2.5 sm:-mt-12">
-                                        <Button onClick={handleOpenEdit} size="sm" className="rounded-full px-5 bg-red-600 hover:bg-red-700 text-white transition-transform hover:scale-105 active:scale-95 text-xs font-bold animate-shimmer">
-                                            <Edit2 className="w-3.5 h-3.5 mr-1.5" />
-                                            Edit Profile
-                                        </Button>
-                                    </div>
-                                </div>
-
-                                {/* Custom Scrollable Tab Navigation */}
-                                <div className="border-t border-white/10 -mx-6 mt-6 flex overflow-x-auto no-scrollbar scroll-smooth">
-                                    {[
-                                        { id: "summary", label: "Summary" },
-                                        { id: "biometrics", label: "Biometrics" },
-                                        { id: "workouts", label: "Workouts" },
-                                        { id: "progress", label: "Progress" },
-                                        { id: "activity", label: "Activity" }
-                                    ].map((tab) => {
-                                        const isActive = activeTab === tab.id;
-                                        return (
-                                            <button
-                                                key={tab.id}
-                                                onClick={() => setActiveTab(tab.id)}
-                                                className={`px-6 py-4 text-[10px] font-black uppercase tracking-widest border-b-2 transition-all duration-300 relative whitespace-nowrap ${
-                                                    isActive
-                                                        ? "border-red-600 text-white bg-white/5"
-                                                        : "border-transparent text-muted-foreground hover:text-white hover:bg-white/2"
-                                                }`}
-                                            >
-                                                {tab.label}
-                                                {isActive && (
-                                                    <motion.div
-                                                        layoutId="activeTabUnderline"
-                                                        className="absolute bottom-0 left-0 right-0 h-[2px] bg-red-600 shadow-[0_0_10px_#ef4444]"
-                                                    />
-                                                )}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </motion.div>
-
-                    {/* DYNAMIC TAB SECTIONS */}
-                    <AnimatePresence mode="wait">
-                        <motion.div
-                            key={activeTab}
-                            variants={tabContentVariants}
-                            initial="initial"
-                            animate="animate"
-                            exit="exit"
-                            className="space-y-6"
-                        >
-                            {/* SUMMARY TAB */}
-                            {activeTab === "summary" && (
-                                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                                    {/* Left summary cards (Goal & Bio) */}
-                                    <div className="col-span-1 lg:col-span-4 space-y-6">
-                                        {/* Fitness Vision Card */}
-                                        <Card className="glass border-white/10 rounded-2xl p-5">
-                                            <CardHeader className="p-0 pb-3 border-b border-white/5">
-                                                <CardTitle className="text-xs font-bold tracking-wider uppercase text-muted-foreground flex items-center gap-2">
-                                                    <Target className="w-4 h-4 text-red-500" />
-                                                    Fitness Protocol & Vision
-                                                </CardTitle>
-                                            </CardHeader>
-                                            <CardContent className="p-0 pt-4 space-y-3">
-                                                <div>
-                                                    <span className="text-[9px] uppercase font-black tracking-widest text-muted-foreground block">Active Goal</span>
-                                                    <span className="text-lg font-black text-red-500 uppercase tracking-tight">
-                                                        {profile?.fitness_goal || "Not Set"}
-                                                    </span>
-                                                </div>
-                                                {profile?.bio && (
-                                                    <div>
-                                                        <span className="text-[9px] uppercase font-black tracking-widest text-muted-foreground block">Identity status</span>
-                                                        <p className="text-xs text-gray-300 leading-relaxed mt-1 italic">
-                                                            "{profile.bio}"
-                                                        </p>
-                                                    </div>
-                                                )}
-                                            </CardContent>
-                                        </Card>
-                                    </div>
-
-                                    {/* Heatmap Card */}
-                                    <div className="col-span-1 lg:col-span-8">
-                                        {renderHeatmap()}
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* BIOMETRICS TAB */}
-                            {activeTab === "biometrics" && (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <motion.div variants={itemVariants}>
-                                        <Card className="glass border-white/10 rounded-3xl overflow-hidden h-full flex flex-col justify-between">
-                                            <CardHeader className="pb-3 border-b border-white/5">
-                                                <CardTitle className="text-sm font-bold tracking-wider uppercase text-muted-foreground flex items-center gap-2">
-                                                    <User className="w-4 h-4 text-red-500" />
-                                                    Biometric Parameters
-                                                </CardTitle>
-                                            </CardHeader>
-                                            <CardContent className="p-0 flex-1 flex flex-col justify-center">
-                                                <div className="grid grid-cols-2 divide-x divide-y divide-white/5 text-center">
-                                                    {[
-                                                        { label: "Age", value: profile?.age || "--", suffix: " Yrs", color: "text-blue-400" },
-                                                        { label: "Weight", value: profile?.weight || "--", suffix: " Kg", color: "text-green-400" },
-                                                        { label: "Height", value: profile?.height || "--", suffix: " Cm", color: "text-purple-400" },
-                                                        { label: "Fitness Goal", value: (profile?.fitness_goal || "Not Set").split(' ')[0], suffix: "", color: "text-orange-400" }
-                                                    ].map((stat, idx) => (
-                                                        <div key={idx} className="p-6 flex flex-col justify-center items-center">
-                                                            <span className="text-[9px] uppercase font-black tracking-widest text-muted-foreground mb-1.5">{stat.label}</span>
-                                                            <span className={`text-2xl font-black ${stat.color}`}>
-                                                                {stat.value}
-                                                                <span className="text-xs font-normal text-muted-foreground ml-0.5">{stat.suffix}</span>
-                                                            </span>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </CardContent>
-                                        </Card>
-                                    </motion.div>
-
-                                    <motion.div variants={itemVariants}>
-                                        <Card className="glass border-white/10 rounded-3xl overflow-hidden h-full flex flex-col justify-between animate-fade-in">
-                                            <CardHeader className="pb-3 border-b border-white/5">
-                                                <CardTitle className="text-sm font-bold tracking-wider uppercase text-muted-foreground flex items-center gap-2">
-                                                    <CheckCircle className="w-4 h-4 text-red-500" />
-                                                    Gym Attendance
-                                                </CardTitle>
-                                            </CardHeader>
-                                            <CardContent className="p-6 flex-1 flex flex-col justify-between space-y-6">
-                                                <div className="grid grid-cols-2 gap-4 text-center">
-                                                    <div className="bg-white/5 rounded-2xl p-4 border border-white/5 flex flex-col justify-center items-center">
-                                                        <span className="text-[9px] uppercase font-black tracking-widest text-muted-foreground block mb-1">Total Visits</span>
-                                                        <span className="text-2xl font-black text-red-500">{totalCheckIns}</span>
-                                                    </div>
-                                                    <div className="bg-white/5 rounded-2xl p-4 border border-white/5 flex flex-col justify-center items-center">
-                                                        <span className="text-[9px] uppercase font-black tracking-widest text-muted-foreground block mb-1">Active Streak</span>
-                                                        <span className="text-2xl font-black text-orange-500 flex items-center justify-center gap-1">
-                                                            <Flame className="w-5 h-5 text-orange-500 animate-pulse" />
-                                                            {streak.currentStreak}
-                                                        </span>
-                                                    </div>
-                                                </div>
-
-                                                <div className="space-y-3 pt-2">
-                                                    {hasCheckedInToday ? (
-                                                        <Button 
-                                                            disabled 
-                                                            className="w-full py-6 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold text-sm cursor-not-allowed flex items-center justify-center gap-2"
-                                                        >
-                                                            <CheckCircle className="w-4 h-4 text-emerald-400" />
-                                                            Checked In Today 🎉
-                                                        </Button>
-                                                    ) : (
-                                                        <Button 
-                                                            onClick={handleGymCheckIn}
-                                                            className="w-full py-6 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-bold text-sm transition-transform hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(239,68,68,0.4)] animate-shimmer"
-                                                        >
-                                                            <Zap className="w-4 h-4 text-white animate-bounce" />
-                                                            Check In Today
-                                                        </Button>
-                                                    )}
-                                                    <p className="text-[10px] text-center text-muted-foreground/60">
-                                                        {hasCheckedInToday 
-                                                            ? "Awesome job! Come back tomorrow to keep your streak alive." 
-                                                            : "Tap check-in to register today's session and update your consistency heatmap."
-                                                        }
-                                                    </p>
-                                                </div>
-                                            </CardContent>
-                                        </Card>
-                                    </motion.div>
-                                </div>
-                            )}
-
-                            {/* WORKOUTS TAB */}
-                            {activeTab === "workouts" && (
-                                <div className="grid grid-cols-1 gap-8 animate-fade-in">
-                                    {/* Completed Workout Sessions Grid */}
-                                    <motion.div variants={itemVariants}>
-                                        <Card className="glass border-white/10 rounded-3xl overflow-hidden flex flex-col">
-                                            <CardHeader className="flex flex-row items-center justify-between pb-3 border-b border-white/5">
-                                                <CardTitle className="text-sm font-bold tracking-wider uppercase text-muted-foreground flex items-center gap-2">
-                                                    <Trophy className="w-4 h-4 text-red-500" />
-                                                    Completed Workout Sessions
-                                                </CardTitle>
-                                                <Button
-                                                    onClick={() => setIsLogModalOpen(true)}
-                                                    size="sm"
-                                                    className="font-bold text-xs bg-red-600 hover:bg-red-700 text-white rounded-full flex items-center gap-1.5 shadow-[0_0_15px_rgba(239,68,68,0.3)] transition-all hover:scale-[1.03]"
-                                                >
-                                                    <Plus className="w-3.5 h-3.5" />
-                                                    Log Completed Workout
-                                                </Button>
-                                            </CardHeader>
-                                            <CardContent className="p-6">
-                                                {completedWorkouts.length === 0 ? (
-                                                    <div className="py-12 text-center space-y-3">
-                                                        <Flame className="w-10 h-10 text-muted-foreground/45 mx-auto animate-pulse" />
-                                                        <div>
-                                                            <p className="text-sm font-bold text-muted-foreground uppercase tracking-wider">No completed workouts yet</p>
-                                                            <p className="text-xs text-muted-foreground/60 mt-1">Start pose-detection training or log a manual session in the Progress page!</p>
-                                                        </div>
-                                                    </div>
-                                                ) : (
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                                                        {completedWorkouts.map((workout: any) => (
-                                                            <Card
-                                                                key={workout.id}
-                                                                className="bg-black/40 border-white/5 hover:border-red-500/30 transition-all flex flex-col justify-between rounded-2xl overflow-hidden"
-                                                            >
-                                                                <CardHeader className="pb-3 p-4">
-                                                                    <div className="flex justify-between items-start">
-                                                                        <div className="min-w-0 flex-1">
-                                                                            <span className="text-[9px] text-red-500 uppercase font-black tracking-widest block">
-                                                                                {workout.date}
-                                                                            </span>
-                                                                            <CardTitle className="text-base font-black uppercase tracking-tight mt-1 truncate text-white">
-                                                                                {workout.routineName}
-                                                                            </CardTitle>
-                                                                        </div>
-                                                                        <Button
-                                                                            variant="ghost"
-                                                                            size="icon"
-                                                                            onClick={() => deleteWorkout(workout.id)}
-                                                                            className="text-red-400 hover:text-red-300 hover:bg-red-500/10 shrink-0 h-8 w-8 rounded-full"
-                                                                        >
-                                                                            <Trash2 className="w-4 h-4" />
-                                                                        </Button>
-                                                                    </div>
-                                                                </CardHeader>
-                                                                <CardContent className="space-y-4 p-4 pt-0">
-                                                                    {/* Quick Stats Grid */}
-                                                                    <div className="grid grid-cols-2 gap-2 bg-white/5 border border-white/5 rounded-xl p-3 text-center">
-                                                                        <div>
-                                                                            <p className="text-[8px] text-muted-foreground uppercase tracking-widest font-bold">Time</p>
-                                                                            <p className="text-xs font-black text-gray-200 mt-0.5">{workout.duration}</p>
-                                                                        </div>
-                                                                        <div>
-                                                                            <p className="text-[8px] text-muted-foreground uppercase tracking-widest font-bold">Sets</p>
-                                                                            <p className="text-xs font-black text-gray-200 mt-0.5">{workout.sets}</p>
-                                                                        </div>
-                                                                        <div>
-                                                                            <p className="text-[8px] text-muted-foreground uppercase tracking-widest font-bold">Volume</p>
-                                                                            <p className="text-xs font-black text-gray-200 mt-0.5">{workout.volume}</p>
-                                                                        </div>
-                                                                        <div>
-                                                                            <p className="text-[8px] text-muted-foreground uppercase tracking-widest font-bold">Calories</p>
-                                                                            <p className="text-xs font-black text-gray-200 mt-0.5">~{workout.kcal} kcal</p>
-                                                                        </div>
-                                                                    </div>
-
-                                                                    {/* Action Button */}
-                                                                    <Button
-                                                                        onClick={() => setSelectedWorkoutForCard(workout)}
-                                                                        className="w-full font-bold flex items-center justify-center gap-1.5 border-white/10 hover:bg-white/5 text-[10px] h-8 rounded-lg text-white"
-                                                                        variant="outline"
-                                                                    >
-                                                                        <Sparkles className="w-3.5 h-3.5 text-red-500" />
-                                                                        View Share Card
-                                                                    </Button>
-                                                                </CardContent>
-                                                            </Card>
-                                                        ))}
-                                                    </div>
-                                                )}
-                                            </CardContent>
-                                        </Card>
-                                    </motion.div>
-
-                                    {/* Gym Check-Ins & Activity Log */}
-                                    <motion.div variants={itemVariants}>
-                                        <Card className="glass border-white/10 rounded-3xl overflow-hidden flex flex-col">
-                                            <CardHeader className="flex flex-row items-center justify-between pb-3 border-b border-white/5">
-                                                <CardTitle className="text-sm font-bold tracking-wider uppercase text-muted-foreground flex items-center gap-2">
-                                                    <Dumbbell className="w-4 h-4 text-red-500" />
-                                                    Activity Log & History
-                                                </CardTitle>
-                                            </CardHeader>
-                                            <CardContent className="p-6">
-                                                {allWorkouts.length === 0 ? (
-                                                    <div className="py-12 text-center space-y-3">
-                                                        <BookOpen className="w-10 h-10 text-muted-foreground/45 mx-auto" />
-                                                        <div>
-                                                            <p className="text-sm font-bold text-muted-foreground uppercase tracking-wider">No Records</p>
-                                                            <p className="text-xs text-muted-foreground/60 mt-1">Generate a workout or check in to begin tracking your activity history.</p>
-                                                        </div>
-                                                    </div>
-                                                ) : (
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                        {allWorkouts.map((workout) => (
-                                                            <div
-                                                                key={workout.id}
-                                                                onClick={() => setSelectedWorkoutForView(workout)}
-                                                                className="flex items-center justify-between p-4 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/5 group/workout transition-all cursor-pointer"
-                                                            >
-                                                                <div className="flex items-center gap-3">
-                                                                    <div className="w-10 h-10 rounded-xl bg-background flex items-center justify-center border border-white/5 group-hover/workout:scale-105 transition-transform">
-                                                                        {workout.title === "Gym Check-In" ? (
-                                                                            <CheckCircle className="w-5 h-5 text-emerald-400" />
-                                                                        ) : (
-                                                                            <Dumbbell className="w-5 h-5 text-red-500" />
-                                                                        )}
-                                                                    </div>
-                                                                    <div className="min-w-0">
-                                                                        <h4 className="font-bold text-sm truncate uppercase tracking-tight text-gray-200">{workout.title}</h4>
-                                                                        <span className="text-[10px] font-bold text-muted-foreground block mt-0.5">
-                                                                            {new Date(workout.created_at).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                                                                        </span>
-                                                                    </div>
-                                                                </div>
-                                                                <ChevronRight className="w-4 h-4 text-muted-foreground group-hover/workout:translate-x-0.5 transition-transform" />
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                )}
-                                            </CardContent>
-                                        </Card>
-                                    </motion.div>
-                                </div>
-                            )}
-
-                            {/* PROGRESS TAB */}
-                            {activeTab === "progress" && (
-                                <div className="grid grid-cols-1 gap-6">
-                                    <motion.div variants={itemVariants}>
-                                        <Card className="glass border-white/10 rounded-3xl overflow-hidden">
-                                            <CardHeader className="pb-3 border-b border-white/5 flex flex-row items-center justify-between">
-                                                <CardTitle className="text-sm font-bold tracking-wider uppercase text-muted-foreground flex items-center gap-2">
-                                                    <TrendingUp className="w-4 h-4 text-red-500" />
-                                                    Neural Progress Track (Weight Trend)
-                                                </CardTitle>
-                                                <Link to="/progress">
-                                                    <Button variant="ghost" size="xs" className="text-[10px] font-bold rounded-full border border-white/10 px-2.5 h-6">
-                                                        VIEW DETAILED DASHBOARD
-                                                    </Button>
-                                                </Link>
-                                            </CardHeader>
-                                            <CardContent className="p-6">
-                                                {progressLogs.length === 0 ? (
-                                                    <div className="py-12 text-center space-y-3">
-                                                        <Activity className="w-10 h-10 text-muted-foreground/45 mx-auto" />
-                                                        <div>
-                                                            <p className="text-sm font-bold text-muted-foreground uppercase tracking-wider">No Sync Logs Found</p>
-                                                            <p className="text-xs text-muted-foreground/60 mt-1">Log your weight in the dashboard to populate neural data.</p>
-                                                        </div>
-                                                    </div>
-                                                ) : (
-                                                    <div className="space-y-4">
-                                                        <div className="h-64 w-full mt-2">
-                                                            <ResponsiveContainer width="100%" height="100%">
-                                                                <AreaChart data={progressLogs}>
-                                                                    <defs>
-                                                                        <linearGradient id="profileWeightGradient" x1="0" y1="0" x2="0" y2="1">
-                                                                            <stop offset="5%" stopColor="#ef4444" stopOpacity={0.25} />
-                                                                            <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
-                                                                        </linearGradient>
-                                                                    </defs>
-                                                                    <XAxis 
-                                                                        dataKey="date" 
-                                                                        stroke="#666" 
-                                                                        fontSize={10}
-                                                                        tickFormatter={(str) => {
-                                                                            try {
-                                                                                const date = new Date(str);
-                                                                                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                                                                            } catch {
-                                                                                return str;
-                                                                            }
-                                                                        }}
-                                                                    />
-                                                                    <YAxis 
-                                                                        stroke="#666" 
-                                                                        fontSize={10} 
-                                                                        domain={['auto', 'auto']}
-                                                                        tickFormatter={(v) => `${v}kg`}
-                                                                    />
-                                                                    <RechartsTooltip
-                                                                        contentStyle={{
-                                                                            backgroundColor: '#0a0a0a',
-                                                                            border: '1px solid rgba(255,255,255,0.1)',
-                                                                            borderRadius: '12px'
-                                                                        }}
-                                                                        labelStyle={{ color: '#888', fontSize: '10px', fontWeight: 'bold' }}
-                                                                        itemStyle={{ color: '#ef4444', fontSize: '11px', fontWeight: 'bold' }}
-                                                                    />
-                                                                    <Area
-                                                                        type="monotone"
-                                                                        dataKey="weight"
-                                                                        stroke="#ef4444"
-                                                                        strokeWidth={2}
-                                                                        fill="url(#profileWeightGradient)"
-                                                                    />
-                                                                </AreaChart>
-                                                            </ResponsiveContainer>
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </CardContent>
-                                        </Card>
-                                    </motion.div>
-                                </div>
-                            )}
-
-                            {/* ACTIVITY TAB */}
-                            {activeTab === "activity" && (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                    {/* STREAK WIDGET */}
-                                    <motion.div variants={itemVariants}>
-                                        <Card className="glass border-orange-500/20 overflow-hidden relative group rounded-2xl h-full">
-                                            <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                                            <CardContent className="p-6 flex items-center justify-between relative z-10">
-                                                <div className="space-y-1">
-                                                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Daily Streak</p>
-                                                    <h3 className="text-3xl font-black text-white">{streak.currentStreak} Days</h3>
-                                                    <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-semibold mt-1">
-                                                        <span>BEST: {streak.bestStreak}</span>
-                                                        <span>•</span>
-                                                        <span>TOTAL: {streak.totalActiveDays}</span>
-                                                    </div>
-                                                </div>
-                                                <div className="relative">
-                                                    <div className="absolute inset-0 bg-orange-500/25 blur-xl rounded-full" />
-                                                    <Flame className="w-12 h-12 text-orange-500 relative z-10 animate-pulse" />
-                                                </div>
-                                            </CardContent>
-                                        </Card>
-                                    </motion.div>
-
-                                    {/* LEVEL & EXPERIENCE */}
-                                    <motion.div variants={itemVariants}>
-                                        <Card className="glass border-red-500/20 p-6 rounded-2xl flex flex-col justify-between h-full">
-                                            <div className="flex justify-between items-center mb-4">
-                                                <div>
-                                                    <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Neural Level</p>
-                                                    <p className="text-xl font-black text-red-500">Level {(profile as any)?.level || 1}</p>
-                                                </div>
-                                                <div className="p-2 bg-red-500/15 rounded-xl">
-                                                    <Zap className="w-5 h-5 text-red-500" />
-                                                </div>
-                                            </div>
-                                            <div className="space-y-2">
-                                                <div className="flex justify-between text-[10px] font-bold">
-                                                    <span className="text-muted-foreground uppercase">Experience</span>
-                                                    <span className="text-white">{(profile as any)?.xp || 0} XP</span>
-                                                </div>
-                                                <Progress value={((profile as any)?.xp || 0) % 100} className="h-1.5 bg-red-500/10" />
-                                            </div>
-                                        </Card>
-                                    </motion.div>
-                                </div>
-                            )}
-                        </motion.div>
-                    </AnimatePresence>
-                </motion.div>
-            </Container>
-
-            {/* EDIT PROFILE SHEET */}
-            <Sheet open={isEditing} onOpenChange={setIsEditing}>
-                <SheetContent side="right" className="sm:max-w-md border-border glass-strong p-0 flex flex-col">
-                    <div className="p-8 space-y-8 flex-1 overflow-y-auto custom-scrollbar">
-                        <SheetHeader className="text-left">
-                            <SheetTitle className="text-3xl font-black uppercase tracking-tighter italic">Edit Identity</SheetTitle>
-                            <SheetDescription className="text-muted-foreground">
-                                Update your physical and digital parameters. Changes will sync to the neural hub.
-                            </SheetDescription>
-                        </SheetHeader>
-
-                        <div className="flex-1 space-y-6 pt-6">
-                            <div className="space-y-2">
-                                <Label className="text-[10px] font-black uppercase tracking-widest text-primary">Username</Label>
-                                <Input
-                                    value={editUsername}
-                                    onChange={(e) => setEditUsername(e.target.value)}
-                                    className="bg-muted/30 border-primary/10 h-12 rounded-xl"
-                                    placeholder="warrior_tag"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label className="text-[10px] font-black uppercase tracking-widest text-primary">Full Designation</Label>
-                                <Input
-                                    value={editFullName}
-                                    onChange={(e) => setEditFullName(e.target.value)}
-                                    className="bg-muted/30 border-primary/10 h-12 rounded-xl"
-                                    placeholder="John Doe"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label className="text-[10px] font-black uppercase tracking-widest text-primary">Location</Label>
-                                <Input
-                                    value={editLocation}
-                                    onChange={(e) => setEditLocation(e.target.value)}
-                                    className="bg-muted/30 border-primary/10 h-12 rounded-xl"
-                                    placeholder="City, Country"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label className="text-[10px] font-black uppercase tracking-widest text-primary">Fitness Protocol</Label>
-                                <select
-                                    value={editGoal}
-                                    onChange={(e) => setEditGoal(e.target.value)}
-                                    className="w-full bg-muted/30 border border-primary/10 rounded-xl px-4 h-12 font-medium"
-                                >
-                                    <option value="">Select Protocol</option>
-                                    {FITNESS_GOALS.map(goal => (
-                                        <option key={goal} value={goal}>{goal}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div className="space-y-2">
-                                <Label className="text-[10px] font-black uppercase tracking-widest text-primary">Status Intel (Bio)</Label>
-                                <textarea
-                                    value={editBio}
-                                    onChange={(e) => setEditBio(e.target.value)}
-                                    placeholder="Define your trajectory..."
-                                    className="w-full min-h-[120px] bg-muted/30 border border-primary/10 rounded-xl px-4 py-3 resize-none focus:outline-none focus:ring-2 focus:ring-primary/20"
-                                />
-                            </div>
-                        </div>
-
-                        <SheetFooter className="flex flex-row gap-2 pt-6">
-                            <Button variant="outline" className="flex-1 rounded-xl h-12 border-border/50" onClick={() => setIsEditing(false)}>
-                                <X className="w-4 h-4 mr-2" />
-                                Abort
-                            </Button>
-                            <Button className="flex-1 rounded-xl h-12 shadow-glow" onClick={handleSaveProfile} disabled={saving}>
-                                {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
-                                Sync Hub
-                            </Button>
-                        </SheetFooter>
-                    </div>
-                </SheetContent>
-            </Sheet>
-            {/* Share Card Modal (View Only) */}
-            <Dialog
-                open={!!selectedWorkoutForCard}
-                onOpenChange={(open) => !open && setSelectedWorkoutForCard(null)}
-            >
-                <DialogContent className="bg-gray-950 border border-white/10 text-white rounded-3xl p-6 flex flex-col items-center justify-between max-w-sm">
-                    <DialogHeader className="w-full text-center">
-                        <DialogTitle className="text-xl font-black">Your Share Card</DialogTitle>
-                        <DialogDescription className="text-gray-400">
-                            Download or share this card to show off your progress.
-                        </DialogDescription>
-                    </DialogHeader>
-
-                    {selectedWorkoutForCard && (
-                        <div className="my-6">
-                            <div id="workout-summary-card-capture-view">
-                                <WorkoutSummaryCard 
-                                    data={selectedWorkoutForCard} 
-                                    className="w-[320px]" 
-                                    userName={profile?.full_name || profile?.username || "SmartFit Warrior"}
-                                    userAvatarInitials={initials}
-                                    userSubtitle={profile?.fitness_goal || "SmartFit Elite"}
-                                />
-                            </div>
-                        </div>
-                    )}
-
-                    <div className="w-full grid grid-cols-2 gap-3">
-                        <Button
-                            onClick={async () => {
-                                const cardEl = document.getElementById("workout-summary-card-capture-view");
-                                if (!cardEl) return;
-                                try {
-                                    const dataUrl = await toPng(cardEl, {
-                                        useCORS: true,
-                                        quality: 1.0,
-                                        pixelRatio: 2
-                                    });
-                                    const link = document.createElement("a");
-                                    link.download = `smartfitai-workout-${Date.now()}.png`;
-                                    link.href = dataUrl;
-                                    link.click();
-                                    toast.success("Card downloaded!");
-                                } catch (e) {
-                                    toast.error("Failed to export image");
-                                }
-                            }}
-                            variant="outline"
-                            className="font-bold border-white/10 hover:bg-white/5"
-                        >
-                            <Download className="w-4 h-4 mr-2" />
-                            Download
-                        </Button>
-                        <Button
-                            onClick={async () => {
-                                const cardEl = document.getElementById("workout-summary-card-capture-view");
-                                if (!cardEl) return;
-                                try {
-                                    const dataUrl = await toPng(cardEl, {
-                                        useCORS: true,
-                                        quality: 0.95,
-                                        pixelRatio: 2
-                                    });
-                                    const res = await fetch(dataUrl);
-                                    const blob = await res.blob();
-                                    const file = new File([blob], `workout-summary.png`, { type: "image/png" });
-                                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                                        await navigator.share({
-                                            files: [file],
-                                            title: "My SmartFit Workout Card"
-                                        });
-                                    } else {
-                                        const link = document.createElement("a");
-                                        link.download = `smartfitai-workout-${Date.now()}.png`;
-                                        link.href = dataUrl;
-                                        link.click();
-                                    }
-                                } catch (e) {
-                                    toast.error("Failed to share");
-                                }
-                            }}
-                            variant="outline"
-                            className="font-bold border-white/10 hover:bg-white/5"
-                        >
-                            <Share2 className="w-4 h-4 mr-2" />
-                            Share
-                        </Button>
-                    </div>
-                </DialogContent>
-            </Dialog>
-
-            {/* View Workout Plan Modal */}
-            <Dialog
-                open={!!selectedWorkoutForView}
-                onOpenChange={(open) => !open && setSelectedWorkoutForView(null)}
-            >
-                <DialogContent className="bg-gray-950 border border-white/10 text-white rounded-3xl p-6 sm:p-8 w-[calc(100vw-1.5rem)] sm:w-full max-w-2xl max-h-[85vh] overflow-y-auto">
-                    <DialogHeader className="w-full">
-                        <DialogTitle className="text-xl sm:text-2xl font-black flex items-center gap-2 flex-wrap leading-tight break-words">
-                            <Dumbbell className="w-5 h-5 sm:w-6 sm:h-6 text-red-500 shrink-0" />
-                            <span className="flex-1 min-w-0 break-words">{selectedWorkoutForView?.title || "Workout Plan Details"}</span>
-                        </DialogTitle>
-                        <DialogDescription className="text-gray-400">
-                            {selectedWorkoutForView?.created_at && (
-                                <>Generated on {new Date(selectedWorkoutForView.created_at).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</>
-                            )}
-                        </DialogDescription>
-                    </DialogHeader>
-
-                    {selectedWorkoutForView && (
-                        <div className="my-4">
-                            {selectedWorkoutForView.title === "Gym Check-In" ? (
-                                <div className="text-center py-8 space-y-4">
-                                    <CheckCircle className="w-16 h-16 text-emerald-400 mx-auto" />
-                                    <p className="text-gray-200 text-lg font-bold">Gym Check-In Logged!</p>
-                                    <p className="text-muted-foreground text-sm max-w-md mx-auto">
-                                        You checked in to the gym on this day. Keep showing up and pushing your limits to maintain your streak!
-                                    </p>
-                                </div>
-                            ) : (
-                                <div className="prose prose-invert prose-red max-w-none w-full">
-                                    <div className="bg-white/5 rounded-xl p-4 sm:p-5 border border-white/5 shadow-inner leading-relaxed break-words overflow-x-auto w-full max-h-[50vh] overflow-y-auto">
-                                        {selectedWorkoutForView.content ? (
-                                            selectedWorkoutForView.content.split('\n').map((line, i) => {
-                                                if (/^[=\-_*\s]{3,}$/.test(line.trim())) {
-                                                    return <hr key={i} className="border-white/10 my-4" />;
-                                                }
-                                                if (line.startsWith('## ')) {
-                                                    return <h2 key={i} className="text-xl font-bold text-red-500 mt-6 mb-4">{line.replace('## ', '')}</h2>;
-                                                }
-                                                if (line.startsWith('### ')) {
-                                                    return <h3 key={i} className="text-lg font-semibold text-white mt-4 mb-2">{line.replace('### ', '')}</h3>;
-                                                }
-                                                if (line.startsWith('- ')) {
-                                                    return <li key={i} className="text-gray-300 ml-4 py-1 list-disc list-inside break-words">{line.replace('- ', '')}</li>;
-                                                }
-                                                if (line.startsWith('**') && line.endsWith('**')) {
-                                                    return <p key={i} className="font-bold text-white my-2 break-words">{line.replace(/\*\*/g, '')}</p>;
-                                                }
-                                                if (line.trim() === '') return <br key={i} />;
-                                                return <p key={i} className="text-gray-300 my-2 break-words">{line}</p>;
-                                            })
-                                        ) : (
-                                            <p className="text-muted-foreground italic">No workout content logged.</p>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    <div className="w-full flex justify-end">
-                        <Button
-                            onClick={() => setSelectedWorkoutForView(null)}
-                            variant="outline"
-                            className="font-bold border-white/10 hover:bg-white/5 rounded-xl px-6"
-                        >
-                            Close Intel
-                        </Button>
-                    </div>
-                </DialogContent>
-            </Dialog>
-
-            {/* Log Completed Workout Summary Creator Modal */}
-            <WorkoutSummaryLogModal
-                isOpen={isLogModalOpen}
-                onClose={() => setIsLogModalOpen(false)}
-                onSave={handleSaveWorkout}
-            />
-        </div>
+      <div
+        className="min-h-dvh flex items-center justify-center"
+        style={{ backgroundColor: "var(--sf-bg, #F2F7F4)" }}
+      >
+        <Loader2 className="w-8 h-8 animate-spin text-[#1F7A5A] dark:text-[#4CC38A]" />
+      </div>
     );
+  }
+
+  return (
+    <div
+      className="min-h-dvh flex flex-col overflow-x-hidden"
+      style={{
+        backgroundColor: "var(--sf-bg, #F2F7F4)",
+        color: "var(--sf-text, #16211C)",
+      }}
+    >
+      <div
+        className="w-full max-w-md mx-auto px-4"
+        style={{
+          paddingTop: "calc(env(safe-area-inset-top, 0px) + 8px)",
+          paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 96px)",
+        }}
+      >
+        {/* ── Top Bar ── */}
+        <header className="flex items-center justify-between h-14 mb-2">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              aria-label="Back"
+              className="flex items-center justify-center w-10 h-10 -ml-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 active:scale-95 transition-transform"
+            >
+              <ArrowLeft className="w-5 h-5" strokeWidth={2.2} />
+            </button>
+            <h1 className="text-xl font-bold tracking-tight">Profile</h1>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => navigate("/settings")}
+              aria-label="Settings"
+              className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/5 active:scale-95 transition-transform"
+            >
+              <SettingsIcon className="w-5 h-5 text-neutral-700 dark:text-neutral-300" strokeWidth={2} />
+            </button>
+
+            <button
+              type="button"
+              onClick={() => navigate("/app/profile")}
+              aria-label="Profile Avatar"
+              className="w-8 h-8 rounded-full bg-[#0D3B29] text-[#4CC38A] flex items-center justify-center shadow-2xs"
+            >
+              <User className="w-4 h-4 text-[#4CC38A]" strokeWidth={2.2} />
+            </button>
+          </div>
+        </header>
+
+        {/* ── User Avatar & Header ── */}
+        <div className="text-center pt-2 pb-1">
+          <div className="relative w-20 h-20 mx-auto rounded-full overflow-hidden shadow-sm ring-4 ring-white/80 dark:ring-neutral-800">
+            {profile?.avatar_url ? (
+              <img
+                src={profile.avatar_url}
+                alt={displayName}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <img
+                src="/height-athlete.png"
+                alt={displayName}
+                className="w-full h-full object-cover bg-neutral-200 dark:bg-neutral-800"
+              />
+            )}
+          </div>
+
+          <h2 className="text-xl font-bold tracking-tight mt-3 text-neutral-900 dark:text-neutral-100">
+            {displayName}
+          </h2>
+          <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5 font-medium">
+            {memberSince}
+          </p>
+
+          <button
+            type="button"
+            onClick={() => setEditOpen(true)}
+            className="px-6 py-2 rounded-xl bg-white dark:bg-[#181D1A] border border-neutral-200/90 dark:border-neutral-800 text-xs font-semibold text-neutral-800 dark:text-neutral-200 shadow-2xs mt-3 mx-auto block hover:bg-neutral-50 dark:hover:bg-neutral-800/60 active:scale-95 transition-all"
+          >
+            Edit profile
+          </button>
+        </div>
+
+        {/* ── Tabs Navigation ── */}
+        <div className="flex items-center gap-6 border-b border-neutral-200/80 dark:border-neutral-800 mt-5 px-1">
+          {[
+            { id: "summary" as ProfileTab, label: "Summary" },
+            { id: "biometrics" as ProfileTab, label: "Biometrics" },
+            { id: "workouts" as ProfileTab, label: "Workouts" },
+            { id: "progress" as ProfileTab, label: "Progress" },
+          ].map((tab) => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTab(tab.id)}
+                className={cn(
+                  "pb-2.5 text-sm transition-colors relative whitespace-nowrap",
+                  isActive
+                    ? "font-bold text-[#1F7A5A] dark:text-[#4CC38A]"
+                    : "font-medium text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200"
+                )}
+              >
+                {tab.label}
+                {isActive && (
+                  <div className="absolute bottom-0 inset-x-0 h-0.5 bg-[#1F7A5A] dark:bg-[#4CC38A] rounded-full" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* ── TAB CONTENT: Summary ── */}
+        {activeTab === "summary" && (
+          <div className="mt-4 space-y-4">
+            {/* Card 1: My Goal */}
+            <div className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 border border-emerald-950/5 dark:border-neutral-800 shadow-xs">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-full bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A] flex items-center justify-center">
+                    <Target className="w-4 h-4" strokeWidth={2.2} />
+                  </div>
+                  <span className="text-xs font-semibold text-neutral-600 dark:text-neutral-400">
+                    My goal
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => navigate("/settings")}
+                  className="text-xs font-bold text-[#1F7A5A] dark:text-[#4CC38A] hover:underline"
+                >
+                  Change goal
+                </button>
+              </div>
+
+              <h3 className="font-bold text-base text-neutral-900 dark:text-neutral-100 mt-2.5">
+                Build muscle & strength
+              </h3>
+              <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+                4 gym sessions / week • Upper/lower split
+              </p>
+
+              <div className="flex items-center justify-between text-xs mt-3.5">
+                <span className="font-bold text-[#1F7A5A] dark:text-[#4CC38A]">
+                  On track
+                </span>
+                <span className="text-neutral-600 dark:text-neutral-400 font-medium">
+                  Week 6 of 12
+                </span>
+              </div>
+
+              <div className="h-1.5 w-full bg-[#EAF5EE] dark:bg-[#1E2D24] rounded-full overflow-hidden mt-1.5">
+                <div className="h-full bg-[#1F7A5A] dark:bg-[#4CC38A] rounded-full w-[45%]" />
+              </div>
+            </div>
+
+            {/* Card 2: This Week */}
+            <div className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 border border-emerald-950/5 dark:border-neutral-800 shadow-xs">
+              <div className="flex items-center justify-between">
+                <h3 className="font-bold text-base text-neutral-900 dark:text-neutral-100">
+                  This week
+                </h3>
+                <span className="text-xs text-neutral-500 dark:text-neutral-400 font-medium">
+                  Week 24
+                </span>
+              </div>
+
+              {/* 3 Stats Tiles */}
+              <div className="bg-[#F0F7F3] dark:bg-[#17221C] rounded-2xl p-3 grid grid-cols-3 gap-2 mt-3 text-center">
+                <div>
+                  <Dumbbell className="w-4 h-4 mx-auto text-neutral-600 dark:text-neutral-300" />
+                  <p className="font-bold text-sm text-neutral-900 dark:text-neutral-100 mt-1">
+                    3 of 4
+                  </p>
+                  <p className="text-[11px] text-neutral-500 dark:text-neutral-400 font-medium">
+                    Workouts
+                  </p>
+                </div>
+                <div>
+                  <Clock className="w-4 h-4 mx-auto text-neutral-600 dark:text-neutral-300" />
+                  <p className="font-bold text-sm text-neutral-900 dark:text-neutral-100 mt-1">
+                    180 min
+                  </p>
+                  <p className="text-[11px] text-neutral-500 dark:text-neutral-400 font-medium">
+                    Time
+                  </p>
+                </div>
+                <div>
+                  <TrendingUp className="w-4 h-4 mx-auto text-neutral-600 dark:text-neutral-300" />
+                  <p className="font-bold text-sm text-neutral-900 dark:text-neutral-100 mt-1">
+                    9,450 kg
+                  </p>
+                  <p className="text-[11px] text-neutral-500 dark:text-neutral-400 font-medium">
+                    Volume
+                  </p>
+                </div>
+              </div>
+
+              {/* Daily Schedule */}
+              <p className="text-xs text-neutral-500 dark:text-neutral-400 font-medium mt-4 mb-2.5">
+                Daily schedule
+              </p>
+
+              <div className="flex items-center justify-between px-1">
+                {SCHEDULE.map((item) => {
+                  return (
+                    <div key={item.day} className="flex flex-col items-center gap-1.5">
+                      <div
+                        className={cn(
+                          "w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs transition-transform",
+                          item.type === "done" &&
+                            "bg-[#1F7A5A] dark:bg-[#4CC38A] text-white dark:text-[#0D3B29]",
+                          item.type === "rest" &&
+                            "bg-[#EAF5EE] dark:bg-[#1E2D24] text-neutral-600 dark:text-neutral-400",
+                          item.type === "session" &&
+                            "bg-[#D8E9DF] dark:bg-[#25392D] text-[#1F7A5A] dark:text-[#4CC38A]"
+                        )}
+                      >
+                        {item.type === "done" ? (
+                          <Check className="w-4 h-4" strokeWidth={3} />
+                        ) : (
+                          item.label
+                        )}
+                      </div>
+                      <span className="text-[11px] font-medium text-neutral-500 dark:text-neutral-400">
+                        {item.short}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Card 3: Achievements */}
+            <div className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 border border-emerald-950/5 dark:border-neutral-800 shadow-xs">
+              <div className="flex items-center justify-between">
+                <h3 className="font-bold text-base text-neutral-900 dark:text-neutral-100">
+                  Achievements
+                </h3>
+                <span className="text-xs text-neutral-500 dark:text-neutral-400 font-medium">
+                  12 unlocked
+                </span>
+              </div>
+
+              <div className="divide-y divide-neutral-100 dark:divide-neutral-800/80 mt-2">
+                {/* Badge 1 */}
+                <div className="flex items-center gap-3 py-3">
+                  <div className="w-10 h-10 rounded-full bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A] flex items-center justify-center shrink-0">
+                    <Trophy className="w-5 h-5" strokeWidth={2} />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-sm text-neutral-900 dark:text-neutral-100 leading-snug">
+                      100 kg deadlift club
+                    </p>
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+                      Unlocked 2 weeks ago
+                    </p>
+                  </div>
+                </div>
+
+                {/* Badge 2 */}
+                <div className="flex items-center gap-3 py-3">
+                  <div className="w-10 h-10 rounded-full bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A] flex items-center justify-center shrink-0">
+                    <Flame className="w-5 h-5" strokeWidth={2} />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-sm text-neutral-900 dark:text-neutral-100 leading-snug">
+                      30-day consistency streak
+                    </p>
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+                      Active streak on track
+                    </p>
+                  </div>
+                </div>
+
+                {/* Badge 3 */}
+                <div className="flex items-center gap-3 py-3">
+                  <div className="w-10 h-10 rounded-full bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A] flex items-center justify-center shrink-0">
+                    <Sun className="w-5 h-5" strokeWidth={2} />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-sm text-neutral-900 dark:text-neutral-100 leading-snug">
+                      Early riser
+                    </p>
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+                      5 workouts before 8:00 AM
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                className="w-full h-11 rounded-xl bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A] font-semibold text-xs flex items-center justify-center mt-3 hover:opacity-90 active:scale-95 transition-all"
+              >
+                View all badges
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ── TAB CONTENT: Biometrics ── */}
+        {activeTab === "biometrics" && (
+          <div className="mt-4 space-y-4">
+            <div className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 border border-emerald-950/5 dark:border-neutral-800 shadow-xs">
+              <h3 className="font-bold text-base text-neutral-900 dark:text-neutral-100 mb-3">
+                Current Body Metrics
+              </h3>
+              <div className="grid grid-cols-3 gap-2.5 text-center">
+                <div className="p-3 rounded-xl bg-[#F0F7F3] dark:bg-[#17221C]">
+                  <Scale className="w-4 h-4 mx-auto text-[#1F7A5A] dark:text-[#4CC38A]" />
+                  <p className="font-bold text-base mt-1">{weightVal} kg</p>
+                  <p className="text-[11px] text-neutral-500">Weight</p>
+                </div>
+                <div className="p-3 rounded-xl bg-[#F0F7F3] dark:bg-[#17221C]">
+                  <Ruler className="w-4 h-4 mx-auto text-[#1F7A5A] dark:text-[#4CC38A]" />
+                  <p className="font-bold text-base mt-1">{heightVal} cm</p>
+                  <p className="text-[11px] text-neutral-500">Height</p>
+                </div>
+                <div className="p-3 rounded-xl bg-[#F0F7F3] dark:bg-[#17221C]">
+                  <Activity className="w-4 h-4 mx-auto text-[#1F7A5A] dark:text-[#4CC38A]" />
+                  <p className="font-bold text-base mt-1">{bmiVal}</p>
+                  <p className="text-[11px] text-neutral-500">BMI (Normal)</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── TAB CONTENT: Workouts ── */}
+        {activeTab === "workouts" && (
+          <div className="mt-4 space-y-4">
+            <div className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 border border-emerald-950/5 dark:border-neutral-800 shadow-xs">
+              <h3 className="font-bold text-base text-neutral-900 dark:text-neutral-100 mb-2">
+                Recent Training Sessions
+              </h3>
+              <div className="divide-y divide-neutral-100 dark:divide-neutral-800 text-sm">
+                <div className="py-3 flex items-center justify-between">
+                  <div>
+                    <p className="font-semibold">Full Body Hypertrophy</p>
+                    <p className="text-xs text-neutral-500">Yesterday • 52 min • 8 exercises</p>
+                  </div>
+                  <span className="text-xs font-bold text-[#1F7A5A] dark:text-[#4CC38A]">Completed</span>
+                </div>
+                <div className="py-3 flex items-center justify-between">
+                  <div>
+                    <p className="font-semibold">Upper Body Strength A</p>
+                    <p className="text-xs text-neutral-500">3 days ago • 45 min • 6 exercises</p>
+                  </div>
+                  <span className="text-xs font-bold text-[#1F7A5A] dark:text-[#4CC38A]">Completed</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── TAB CONTENT: Progress ── */}
+        {activeTab === "progress" && (
+          <div className="mt-4 space-y-4">
+            <div className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 border border-emerald-950/5 dark:border-neutral-800 shadow-xs">
+              <h3 className="font-bold text-base text-neutral-900 dark:text-neutral-100 mb-1">
+                Monthly Volume Trend
+              </h3>
+              <p className="text-xs text-neutral-500 mb-4">
+                Total load lifted across all completed sets
+              </p>
+              <div className="h-28 flex items-end justify-between gap-2 px-2 pt-2">
+                {[
+                  { w: "W1", h: "45%" },
+                  { w: "W2", h: "60%" },
+                  { w: "W3", h: "75%" },
+                  { w: "W4", h: "90%" },
+                ].map((item) => (
+                  <div key={item.w} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end">
+                    <div
+                      className="w-full bg-[#1F7A5A] dark:bg-[#4CC38A] rounded-t-lg transition-all"
+                      style={{ height: item.h }}
+                    />
+                    <span className="text-[11px] text-neutral-500 font-semibold">{item.w}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── Edit Profile Modal ── */}
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="max-w-sm rounded-3xl p-6">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold flex items-center gap-2">
+              <Edit2 className="w-5 h-5 text-[#1F7A5A]" /> Edit Profile
+            </DialogTitle>
+            <DialogDescription className="text-xs text-neutral-500">
+              Update your athlete information.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSaveProfile} className="space-y-3.5 mt-3">
+            <div>
+              <label className="text-xs font-semibold text-neutral-700 dark:text-neutral-300 block mb-1">
+                Full Name
+              </label>
+              <input
+                type="text"
+                required
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="Your name"
+                className="w-full h-11 px-3.5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#1F7A5A]"
+              />
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-neutral-700 dark:text-neutral-300 block mb-1">
+                Bio / Status
+              </label>
+              <textarea
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                placeholder="Share your fitness journey..."
+                rows={3}
+                className="w-full p-3 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#1F7A5A] resize-none"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={savingProfile}
+              className="w-full h-11 rounded-xl font-semibold text-sm bg-[#0D3B29] text-white hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-2 mt-2"
+            >
+              {savingProfile ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                "Save Changes"
+              )}
+            </button>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
 }
