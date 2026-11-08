@@ -14,6 +14,10 @@ import {
   ArrowRight,
   Loader2,
   Check,
+  Utensils,
+  Video,
+  Sparkles,
+  Trophy,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -363,7 +367,7 @@ export default function Dashboard() {
         </div>
 
         {/* ── Coach Tip Card ── */}
-        <div className="rounded-2xl p-4 bg-[#EAF5EE] dark:bg-[#17221C] border border-[#D5EEDB] dark:border-[#24352B] mb-6">
+        <div className="rounded-2xl p-4 bg-[#EAF5EE] dark:bg-[#17221C] border border-[#D5EEDB] dark:border-[#24352B] mb-5">
           <div className="flex items-center gap-2">
             <Bot className="w-4 h-4 text-[#1F7A5A] dark:text-[#4CC38A]" />
             <span className="text-xs font-bold text-[#1F7A5A] dark:text-[#4CC38A]">
@@ -385,6 +389,164 @@ export default function Dashboard() {
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
+
+        {/* ── SECTION: Smart Tools & AI Features ── */}
+        <section className="mb-6">
+          <div className="flex items-center justify-between mb-3 px-1">
+            <h3 className="text-sm font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
+              Smart AI Tools
+            </h3>
+            <span className="text-[11px] font-semibold text-[#1F7A5A] dark:text-[#4CC38A]">
+              Personalized for you
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {/* Card 1: AI Meal Scanner */}
+            <button
+              type="button"
+              onClick={() => navigate("/nutrition")}
+              className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 shadow-xs border border-emerald-950/5 dark:border-neutral-800 flex items-start gap-3.5 text-left hover:bg-neutral-50/60 dark:hover:bg-neutral-800/40 active:scale-[0.985] transition-all cursor-pointer"
+            >
+              <div className="w-11 h-11 rounded-xl bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A] flex items-center justify-center shrink-0">
+                <Utensils className="w-5 h-5" strokeWidth={2} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between">
+                  <p className="font-bold text-sm text-neutral-900 dark:text-neutral-100 leading-snug">
+                    AI Meal Scanner
+                  </p>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A]">
+                    Vision AI
+                  </span>
+                </div>
+                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 leading-relaxed">
+                  Snap a plate photo to estimate calories & macros in seconds
+                </p>
+              </div>
+            </button>
+
+            {/* Card 2: Camera Form Coach */}
+            <button
+              type="button"
+              onClick={() => navigate("/app/workout/session")}
+              className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 shadow-xs border border-emerald-950/5 dark:border-neutral-800 flex items-start gap-3.5 text-left hover:bg-neutral-50/60 dark:hover:bg-neutral-800/40 active:scale-[0.985] transition-all cursor-pointer"
+            >
+              <div className="w-11 h-11 rounded-xl bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A] flex items-center justify-center shrink-0">
+                <Video className="w-5 h-5" strokeWidth={2} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between">
+                  <p className="font-bold text-sm text-neutral-900 dark:text-neutral-100 leading-snug">
+                    Camera Form Coach
+                  </p>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A]">
+                    Live Reps
+                  </span>
+                </div>
+                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 leading-relaxed">
+                  Real-time posture angle tracking and automatic rep counting
+                </p>
+              </div>
+            </button>
+
+            {/* Card 3: AI Workout Generator */}
+            <button
+              type="button"
+              onClick={() => navigate("/home-workouts")}
+              className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 shadow-xs border border-emerald-950/5 dark:border-neutral-800 flex items-start gap-3.5 text-left hover:bg-neutral-50/60 dark:hover:bg-neutral-800/40 active:scale-[0.985] transition-all cursor-pointer"
+            >
+              <div className="w-11 h-11 rounded-xl bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A] flex items-center justify-center shrink-0">
+                <Sparkles className="w-5 h-5" strokeWidth={2} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between">
+                  <p className="font-bold text-sm text-neutral-900 dark:text-neutral-100 leading-snug">
+                    AI Routine Generator
+                  </p>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A]">
+                    Adaptive
+                  </span>
+                </div>
+                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 leading-relaxed">
+                  Generate splits tailored to your equipment, fatigue, and schedule
+                </p>
+              </div>
+            </button>
+
+            {/* Card 4: Leaderboard & XP */}
+            <button
+              type="button"
+              onClick={() => navigate("/gamification")}
+              className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 shadow-xs border border-emerald-950/5 dark:border-neutral-800 flex items-start gap-3.5 text-left hover:bg-neutral-50/60 dark:hover:bg-neutral-800/40 active:scale-[0.985] transition-all cursor-pointer"
+            >
+              <div className="w-11 h-11 rounded-xl bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A] flex items-center justify-center shrink-0">
+                <Trophy className="w-5 h-5" strokeWidth={2} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between">
+                  <p className="font-bold text-sm text-neutral-900 dark:text-neutral-100 leading-snug">
+                    Leaderboard & Badges
+                  </p>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A]">
+                    Tier Rank
+                  </span>
+                </div>
+                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 leading-relaxed">
+                  Earn workout XP, maintain streaks, and climb community leaderboards
+                </p>
+              </div>
+            </button>
+
+            {/* Card 5: Partner Gyms Map */}
+            <button
+              type="button"
+              onClick={() => navigate("/gyms")}
+              className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 shadow-xs border border-emerald-950/5 dark:border-neutral-800 flex items-start gap-3.5 text-left hover:bg-neutral-50/60 dark:hover:bg-neutral-800/40 active:scale-[0.985] transition-all cursor-pointer"
+            >
+              <div className="w-11 h-11 rounded-xl bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A] flex items-center justify-center shrink-0">
+                <MapPin className="w-5 h-5" strokeWidth={2} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between">
+                  <p className="font-bold text-sm text-neutral-900 dark:text-neutral-100 leading-snug">
+                    Find Partner Gyms
+                  </p>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A]">
+                    GPS Pass
+                  </span>
+                </div>
+                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 leading-relaxed">
+                  Interactive map to locate partner facilities and claim guest access
+                </p>
+              </div>
+            </button>
+
+            {/* Card 6: AI Voice Coach */}
+            <button
+              type="button"
+              onClick={() => navigate("/ai-trainer")}
+              className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 shadow-xs border border-emerald-950/5 dark:border-neutral-800 flex items-start gap-3.5 text-left hover:bg-neutral-50/60 dark:hover:bg-neutral-800/40 active:scale-[0.985] transition-all cursor-pointer"
+            >
+              <div className="w-11 h-11 rounded-xl bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A] flex items-center justify-center shrink-0">
+                <Bot className="w-5 h-5" strokeWidth={2} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between">
+                  <p className="font-bold text-sm text-neutral-900 dark:text-neutral-100 leading-snug">
+                    AI Voice Coach
+                  </p>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A]">
+                    24/7 Chat
+                  </span>
+                </div>
+                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 leading-relaxed">
+                  Real-time conversational advice on form, recovery, and nutrition
+                </p>
+              </div>
+            </button>
+          </div>
+        </section>
       </div>
     </div>
   );
