@@ -1,7 +1,7 @@
 // SmartFit AI - Home Page
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Users, Clock, Shield, Star } from "lucide-react";
+import { ArrowRight, Clock, Shield, Star } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
@@ -64,7 +64,7 @@ const Home = () => {
   return (
     <div className="min-h-screen">
       {/* Full-Screen Hero Section (Everfit-Style Viewport Height) */}
-      <section className="relative overflow-hidden min-h-screen w-full flex items-center justify-center pt-28 pb-20">
+      <section className="relative overflow-hidden min-h-screen min-h-dvh w-full flex flex-col justify-between pt-28 pb-8 sm:pb-12">
         {/* Animated Background Image Slideshow (3-Second Interval, 100% Fullscreen) */}
         {HERO_BACKGROUNDS.map((bg, idx) => (
           <motion.div
@@ -78,128 +78,66 @@ const Home = () => {
         ))}
 
         {/* Everfit-style ambient dark vignette overlay for sharp image visibility & high contrast text */}
-        <div className="absolute inset-0 z-0 bg-gradient-to-b from-black/60 via-black/35 to-black/75 pointer-events-none" />
+        <div className="absolute inset-0 z-0 bg-gradient-to-b from-black/60 via-black/25 to-black/80 pointer-events-none" />
         <div className="absolute inset-0 z-0 bg-black/20 pointer-events-none" />
 
-        <div className="relative z-10 w-full max-w-4xl mx-auto px-6">
+        {/* Top greeting for logged-in user */}
+        <div className="relative z-10 w-full max-w-4xl mx-auto px-6 text-center pt-2">
+          {isAuthenticated && user && (
+            <motion.p
+              className="text-lg md:text-xl text-primary font-medium"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              {isNewUser ? 'Welcome' : 'Welcome back'}, {user.username || user.email?.split('@')[0]}! 👋
+            </motion.p>
+          )}
+        </div>
+
+        {/* Bottom Hero Action Buttons */}
+        <div className="relative z-10 w-full max-w-md mx-auto px-6 pb-4 sm:pb-8">
           <motion.div
-            className="text-center space-y-8"
+            className="flex flex-col gap-3.5 justify-center"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
+            transition={{ duration: 0.8, delay: 0.3 }}
           >
-            {isAuthenticated && user && (
-              <motion.p
-                className="text-lg md:text-xl text-primary font-medium"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-              >
-                {isNewUser ? 'Welcome' : 'Welcome back'}, {user.username || user.email?.split('@')[0]}! 👋
-              </motion.p>
-            )}
-
-
-            <motion.div
-              className="flex flex-col sm:flex-row gap-4 justify-center pt-4"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.6 }}
-            >
-              {isAuthenticated ? (
-                <>
-                  <Button asChild variant="hero" size="xl" className="hover:scale-[1.03] hover:shadow-[0_0_20px_rgba(0,255,156,0.35)] transition-all duration-200 ease-out">
-                    <Link to="/dashboard" aria-label="Go to Dashboard">
-                      Go to Dashboard <ArrowRight className="ml-2" />
-                    </Link>
-                  </Button>
-                  <Button asChild variant="glass" size="xl">
-                    <Link to="/profile" aria-label="View Profile">
-                      View Profile
-                    </Link>
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button asChild variant="hero" size="xl" className="hover:scale-[1.03] hover:shadow-[0_0_20px_rgba(0,255,156,0.35)] transition-all duration-200 ease-out">
-                    <Link to="/onboarding/basics" aria-label="Start Transformation">
-                      Start Transformation <ArrowRight className="ml-2" />
-                    </Link>
-                  </Button>
-                  <Button
-                    variant="glass"
-                    size="xl"
-                    onClick={() => {
-                      document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' });
-                    }}
-                    aria-label="Scroll to how it works section"
-                  >
-                    How It Works
-                  </Button>
-                </>
-              )}
-            </motion.div>
-
-            {/* Trust bar - only show for non-authenticated users */}
-            {!isAuthenticated && (
-              <motion.div
-                className="flex flex-wrap justify-center gap-3 pt-10"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.8 }}
-              >
-                {[
-                  {
-                    icon: Users,
-                    value: "11,000+",
-                    label: "Active Users",
-                    iconColor: "text-primary",
-                    delay: 1.0,
-                  },
-                  {
-                    icon: Clock,
-                    value: "24/7",
-                    label: "AI Support",
-                    iconColor: "text-blue-400",
-                    delay: 1.1,
-                  },
-                  {
-                    icon: Star,
-                    value: "4.9 / 5",
-                    label: "User Rating",
-                    iconColor: "text-yellow-400",
-                    delay: 1.2,
-                  },
-                  {
-                    icon: Shield,
-                    value: "SSL Secured",
-                    label: "Data Protected",
-                    iconColor: "text-green-400",
-                    delay: 1.3,
-                  },
-                ].map((pill) => (
-                  <motion.div
-                    key={pill.value}
-                    className="flex items-center gap-2.5 px-5 py-3 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm hover:border-primary/30 hover:bg-white/8 transition-all duration-200"
-                    initial={{ opacity: 0, scale: 0.85 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.4, delay: pill.delay }}
-                  >
-                    <div className={`p-1.5 rounded-lg bg-white/5 ${pill.iconColor}`}>
-                      <pill.icon className="w-4 h-4" />
-                    </div>
-                    <div className="flex flex-col items-start leading-tight">
-                      <span className="text-sm font-bold text-white">{pill.value}</span>
-                      <span className="text-xs text-gray-400">{pill.label}</span>
-                    </div>
-                  </motion.div>
-                ))}
-              </motion.div>
+            {isAuthenticated ? (
+              <>
+                <Button asChild variant="hero" size="xl" className="w-full hover:scale-[1.02] hover:shadow-[0_0_20px_rgba(0,255,156,0.35)] transition-all duration-200 ease-out">
+                  <Link to="/dashboard" aria-label="Go to Dashboard">
+                    Go to Dashboard <ArrowRight className="ml-2" />
+                  </Link>
+                </Button>
+                <Button asChild variant="glass" size="xl" className="w-full">
+                  <Link to="/profile" aria-label="View Profile">
+                    View Profile
+                  </Link>
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button asChild variant="hero" size="xl" className="w-full hover:scale-[1.02] hover:shadow-[0_0_20px_rgba(0,255,156,0.35)] transition-all duration-200 ease-out">
+                  <Link to="/onboarding/basics" aria-label="Start Transformation">
+                    Start Transformation <ArrowRight className="ml-2" />
+                  </Link>
+                </Button>
+                <Button
+                  variant="glass"
+                  size="xl"
+                  className="w-full"
+                  onClick={() => {
+                    document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  aria-label="Scroll to how it works section"
+                >
+                  See How It Works
+                </Button>
+              </>
             )}
           </motion.div>
         </div>
-
-
       </section>
 
       {/* Everfit-Style Partner Trust Bar */}

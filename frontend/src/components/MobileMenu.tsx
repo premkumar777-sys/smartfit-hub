@@ -4,7 +4,6 @@ import {
   ChevronUp,
   ChevronDown,
   ChevronRight,
-  TrendingUp,
   User,
   Sparkles,
   Dumbbell,
@@ -132,8 +131,12 @@ export function MobileMenu({ className, onMenuToggle }: MobileMenuProps) {
                   onClick={() => handleLinkClick("/")}
                   className="flex items-center gap-3 cursor-pointer"
                 >
-                  <div className="w-10 h-10 rounded-2xl bg-[#0B3B24] flex items-center justify-center text-[#4CC38A] shadow-xs">
-                    <TrendingUp className="w-5 h-5 text-[#4CC38A]" strokeWidth={2.6} />
+                  <div className="w-10 h-10 rounded-2xl bg-[#0B3B24] flex items-center justify-center p-1.5 shadow-xs overflow-hidden">
+                    <img
+                      src="/favicon.png"
+                      alt="SmartFit AI Logo"
+                      className="w-full h-full object-contain"
+                    />
                   </div>
                   <span className="font-bold text-lg text-neutral-900 tracking-tight">
                     SmartFit AI
