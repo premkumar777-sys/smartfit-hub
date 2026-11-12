@@ -178,26 +178,9 @@ export const FloatingChatbot = () => {
   const isOnboardingPage = location.pathname.startsWith("/onboarding");
   const hasBottomNav = isAuthenticated && !isAuthPage && !isWorkoutSessionPage && !isOnboardingPage && !isHomePage;
 
-  const [isScrolled, setIsScrolled] = useState(false);
-
-  useEffect(() => {
-    if (!isHomePage) return;
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 80);
-    };
-    handleScroll();
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [isHomePage]);
-
-  // On the home screen hero, lift the chatbot cleanly above the mobile CTA block
-  // (two buttons + trust row ≈ 17rem) so it never overlaps "See How It Works".
-  // When scrolled down into the page, let it rest in the standard bottom corner.
-  const mobileBottomPosition = isHomePage
-    ? (isScrolled
-        ? "bottom-[calc(1.25rem+env(safe-area-inset-bottom,0px))]"
-        : "bottom-[calc(17rem+env(safe-area-inset-bottom,0px))]")
-    : hasBottomNav
+  // Keep the chatbot cleanly anchored in the bottom-right corner on the home page
+  // (CTAs are in the upper-middle hero, so there is zero collision).
+  const mobileBottomPosition = hasBottomNav
     ? "bottom-[calc(5rem+env(safe-area-inset-bottom,0px))]"
     : "bottom-[calc(1.25rem+env(safe-area-inset-bottom,0px))]";
 
