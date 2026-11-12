@@ -714,8 +714,8 @@ export default function AITrainer() {
             <div className="absolute inset-0 bg-gradient-to-b from-[#22CC66]/5 via-transparent to-transparent pointer-events-none" />
 
             <Container className="relative z-10 max-w-6xl mx-auto px-4">
-                {/* Navigation Back & Header Row */}
-                <div className="flex items-center justify-between gap-3 mb-3">
+                {/* Navigation Back */}
+                <div className="mb-3">
                     <Link
                         to="/dashboard"
                         className="inline-flex items-center text-xs sm:text-sm text-gray-400 hover:text-white transition-colors py-1 px-2 rounded-lg hover:bg-white/5"
