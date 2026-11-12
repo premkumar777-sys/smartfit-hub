@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Calendar, Dumbbell, PlusCircle, LineChart, Bot } from "lucide-react";
+import { Calendar, Dumbbell, Utensils, LineChart, Bot } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
@@ -16,9 +16,9 @@ const navigationItems = [
     icon: Dumbbell,
   },
   {
-    label: "Log",
-    href: "/app/workout/session",
-    icon: PlusCircle,
+    label: "Meal Analyser",
+    href: "/app/nutrition",
+    icon: Utensils,
   },
   {
     label: "Progress",
@@ -50,6 +50,7 @@ export function BottomNavigation() {
             location.pathname === item.href ||
             (item.href === "/app/today" && (location.pathname === "/app/today" || location.pathname === "/dashboard")) ||
             (item.href === "/home-workouts" && (location.pathname === "/home-workouts" || location.pathname === "/app/explore" || location.pathname === "/features")) ||
+            (item.href === "/app/nutrition" && (location.pathname === "/app/nutrition" || location.pathname === "/nutrition")) ||
             (item.href === "/ai-trainer" && (location.pathname === "/ai-trainer" || location.pathname === "/ai-workout"));
           const Icon = item.icon;
 
@@ -67,7 +68,7 @@ export function BottomNavigation() {
                 )}
               >
                 <Icon className="w-5 h-5 transition-transform shrink-0" />
-                <span className="text-[10px] tracking-tight truncate max-w-full block leading-none">{item.label}</span>
+                <span className="text-[9.5px] sm:text-[10px] tracking-tight truncate max-w-full block text-center leading-none">{item.label}</span>
               </div>
 
               {isActive && (

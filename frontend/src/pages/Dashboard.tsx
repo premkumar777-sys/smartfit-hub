@@ -285,8 +285,14 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Tile 3: Calories */}
-      <div className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 shadow-xs border border-emerald-950/5 dark:border-neutral-800 flex flex-col justify-between">
+      {/* Tile 3: Calories (Links to Meal Analyser) */}
+      <div
+        onClick={() => navigate("/app/nutrition")}
+        role="button"
+        tabIndex={0}
+        aria-label="Open Meal Analyser"
+        className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 shadow-xs border border-emerald-950/5 dark:border-neutral-800 flex flex-col justify-between cursor-pointer hover:border-emerald-600/30 active:scale-[0.98] transition-all"
+      >
         <div className="flex items-center justify-between">
           <span className="text-xs font-semibold text-neutral-500 dark:text-neutral-400">
             Daily Calories
