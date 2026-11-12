@@ -58,7 +58,8 @@ export default function Auth() {
   const location = useLocation();
   const { toast } = useToast();
 
-  const returnUrl = (location.state as { returnUrl?: string })?.returnUrl || "/dashboard";
+  const rawReturnUrl = (location.state as { returnUrl?: string })?.returnUrl;
+  const returnUrl = (!rawReturnUrl || rawReturnUrl === "/" || rawReturnUrl === "/auth") ? "/dashboard" : rawReturnUrl;
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -220,7 +221,7 @@ export default function Auth() {
         
         setShowPhonePeBiometricModal(false);
         isModalActiveRef.current = false;
-        navigate(returnUrl === "/auth" ? "/dashboard" : returnUrl, { replace: true });
+        navigate(returnUrl === "/auth" || returnUrl === "/" ? "/dashboard" : returnUrl, { replace: true });
       }
     } catch (error: any) {
       toast({

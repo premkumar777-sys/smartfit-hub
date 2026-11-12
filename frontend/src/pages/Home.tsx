@@ -1,13 +1,38 @@
 // SmartFit AI - Home Page
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Clock, Shield, Star } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
 import { HowItWorksCarousel } from "@/components/HowItWorksCarousel";
 
 const Home = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
+
+  // If the athlete is authenticated, automatically route them straight to their Dashboard
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  // If auth state is still resolving and a cached user/session exists in local storage,
+  // show a minimal branded loader so there is zero flash of the marketing hero
+  const hasLocalSession =
+    typeof window !== "undefined" &&
+    (Boolean(localStorage.getItem("smartfit_auth_session")) ||
+      Boolean(localStorage.getItem("smartfit_biometric_active_user")) ||
+      Object.keys(localStorage).some((k) => k.startsWith("sb-") && k.endsWith("-auth-token")));
+
+  if (isLoading && hasLocalSession) {
+    return (
+      <div className="min-h-screen min-h-dvh bg-[#060809] flex flex-col items-center justify-center">
+        <div className="w-9 h-9 border-2 border-[#00FF9C] border-t-transparent rounded-full animate-spin mb-3" />
+        <span className="text-xs font-semibold tracking-wider uppercase text-zinc-400">
+          Loading your dashboard...
+        </span>
+      </div>
+    );
+  }
+
   const isNewUser = user?.created_at
     ? new Date().getTime() - new Date(user.created_at).getTime() < 24 * 60 * 60 * 1000
     : false;

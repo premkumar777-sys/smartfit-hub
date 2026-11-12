@@ -128,7 +128,7 @@ export function MobileMenu({ className, onMenuToggle }: MobileMenuProps) {
               {/* ── Top Bar inside Drawer ── */}
               <div className="flex items-center justify-between px-5 py-4 border-b border-emerald-950/10 shrink-0">
                 <div
-                  onClick={() => handleLinkClick("/")}
+                  onClick={() => handleLinkClick(isAuthenticated ? "/dashboard" : "/")}
                   className="flex items-center gap-3 cursor-pointer"
                 >
                   <div className="w-10 h-10 rounded-2xl bg-[#0B3B24] flex items-center justify-center p-1.5 shadow-xs overflow-hidden">

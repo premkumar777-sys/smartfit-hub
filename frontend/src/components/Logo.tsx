@@ -1,11 +1,13 @@
 import { Link } from "react-router-dom";
+import { useAuth } from "@/hooks/use-auth";
 
 export function Logo() {
+  const { isAuthenticated } = useAuth();
   return (
     <Link
-      to="/"
+      to={isAuthenticated ? "/dashboard" : "/"}
       className="flex items-center space-x-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4CC9F0] rounded-lg p-1"
-      aria-label="SmartFit AI Home"
+      aria-label={isAuthenticated ? "SmartFit AI Dashboard" : "SmartFit AI Home"}
     >
       <img
         src="/favicon.png"
