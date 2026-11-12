@@ -12,30 +12,38 @@ export default defineConfig(({ mode }) => {
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.png', 'robots.txt', 'apple-touch-icon.png'],
+      includeAssets: ['favicon.png', 'robots.txt', 'apple-touch-icon.png', 'playstore-icon-512x512.png', 'pwa-192x192.png', 'pwa-512x512.png', 'pwa-maskable-512x512.png'],
       manifest: {
         name: 'SmartFit AI - Training Hub',
         short_name: 'SmartFit AI',
         description: 'AI-Powered Personal Training & Smart Fitness Hub',
-        theme_color: '#0a0a0a',
-        background_color: '#0a0a0a',
+        theme_color: '#060809',
+        background_color: '#060809',
         display: 'standalone',
         icons: [
           {
-            src: 'favicon.png',
+            src: '/pwa-192x192.png',
             sizes: '192x192',
-            type: 'image/png'
+            type: 'image/png',
+            purpose: 'any'
           },
           {
-            src: 'favicon.png',
-            sizes: '512x512',
-            type: 'image/png'
-          },
-          {
-            src: 'favicon.png',
+            src: '/pwa-512x512.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'any maskable'
+            purpose: 'any'
+          },
+          {
+            src: '/pwa-maskable-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable'
+          },
+          {
+            src: '/apple-touch-icon.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any'
           }
         ]
       },
