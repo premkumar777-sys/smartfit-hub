@@ -716,42 +716,12 @@ export default function AITrainer() {
             <Container className="relative z-10 max-w-6xl mx-auto px-4">
                 {/* Navigation Back */}
                 <Link
-                    to="/"
+                    to="/dashboard"
                     className="inline-flex items-center text-xs sm:text-sm text-gray-400 hover:text-white mb-2 sm:mb-4 transition-colors py-1"
                 >
                     <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5" />
-                    Back to Home
+                    Back
                 </Link>
-
-                {/* Header Banner */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 bg-[#121318] border border-white/10 p-5 rounded-2xl shadow-xl">
-                    <div className="flex items-center gap-4">
-                        <div className="relative">
-                            <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/15 flex items-center justify-center p-2 shadow-inner">
-                                <img src="/favicon.png" alt="SmartFit AI Studio" className="w-full h-full object-contain" />
-                            </div>
-                            <span className="absolute -bottom-1 -right-1 w-4 h-4 bg-[#22CC66] rounded-full border-2 border-[#121318] animate-pulse" />
-                        </div>
-                        <div>
-                            <div className="flex items-center gap-2">
-                                <h1 className="text-2xl font-bold tracking-tight">SmartFit AI Trainer Studio</h1>
-                                <span className="text-[10px] bg-[#22CC66]/10 text-[#22CC66] border border-[#22CC66]/30 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
-                                    MoveNet AI Engine
-                                </span>
-                            </div>
-                            <p className="text-xs text-gray-400">MoveNet AI posture tracking, workout set logging & macro calculations</p>
-                        </div>
-                    </div>
-
-                    {/* XP & Level Badge */}
-                    <div className="flex items-center gap-3 bg-white/5 border border-white/10 px-4 py-2 rounded-xl">
-                        <Award className="w-5 h-5 text-[#22CC66]" />
-                        <div>
-                            <p className="text-[10px] text-gray-400 uppercase font-semibold">Active Streak</p>
-                            <p className="text-xs font-bold text-white">Earn XP & Level Up</p>
-                        </div>
-                    </div>
-                </div>
 
                 {/* Studio Mode Selector Tabs */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-6">
