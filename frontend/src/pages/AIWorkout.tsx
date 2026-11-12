@@ -173,10 +173,7 @@ const AIWorkout = () => {
   };
 
   return (
-    <div
-      className="min-h-screen pb-28 lg:py-10 relative overflow-hidden bg-black"
-      style={{ paddingTop: "calc(var(--header-height, 68px) + 0.5rem)" }}
-    >
+    <div className="min-h-screen pb-28 pt-20 sm:pt-24 lg:pt-32 relative overflow-hidden bg-black">
       {/* Background Image Container */}
       <div 
         className="absolute inset-0 z-0 bg-cover bg-center bg-fixed bg-no-repeat transition-opacity duration-1000"
@@ -189,7 +186,7 @@ const AIWorkout = () => {
       <div className="absolute inset-0 z-0 bg-[radial-gradient(circle_at_50%_0%,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent opacity-60" />
 
       <Container className="relative z-10">
-        <div className="flex justify-between items-center mb-2 sm:mb-4">
+        <div className="flex justify-between items-center mb-3 sm:mb-6">
           <button
             onClick={() => navigate(-1)}
             className="inline-flex items-center text-xs sm:text-sm font-medium text-gray-400 hover:text-white transition-colors cursor-pointer py-1"
@@ -200,12 +197,12 @@ const AIWorkout = () => {
           </button>
         </div>
 
-        <div className="text-center mb-4 sm:mb-8 relative">
+        <div className="text-center mb-6 sm:mb-8 relative">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-primary/10 rounded-full blur-[80px] -z-10" />
-          <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight mb-2 sm:mb-3 tracking-tight">
+          <h1 className="text-4xl md:text-5xl lg:text-7xl font-bold leading-tight mb-3 sm:mb-4 tracking-tight">
             AI Workout <span className="text-gradient">Generator</span>
           </h1>
-          <p className="text-xs sm:text-sm md:text-base leading-relaxed text-gray-400 max-w-xl mx-auto font-normal sm:font-medium px-2">
+          <p className="text-sm sm:text-base md:text-xl leading-relaxed text-gray-400 max-w-prose mx-auto font-medium px-2">
             Professional, AI-crafted training programs tailored to your unique biology and performance goals.
           </p>
         </div>
