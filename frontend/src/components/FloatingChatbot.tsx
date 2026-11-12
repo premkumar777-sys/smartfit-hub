@@ -283,7 +283,8 @@ export const FloatingChatbot = () => {
       <motion.button
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "fixed right-4 lg:bottom-6 lg:right-6 z-[80] w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center cursor-pointer transition-all duration-300",
+          "fixed right-4 lg:bottom-6 lg:right-6 z-[80] w-14 h-14 sm:w-16 sm:h-16 rounded-2xl items-center justify-center cursor-pointer transition-all duration-300",
+          hasBottomNav ? "hidden lg:flex" : "flex",
           mobileBottomPosition,
           "bg-[#0B3B24] border-2 border-[#4CC38A]/70 backdrop-blur-md shadow-[0_0_25px_rgba(76,195,138,0.45)] hover:shadow-[0_0_35px_rgba(76,195,138,0.7)]",
           isOpen && "scale-0 opacity-0 rotate-180 pointer-events-none"

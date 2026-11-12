@@ -415,16 +415,16 @@ export default function Dashboard() {
             0 of {plan.trainingDays.length} done
           </span>
         </div>
-        <div className="flex items-center justify-between gap-1">
+        <div className="grid grid-cols-7 gap-1 w-full">
           {plan.weekPlan.map((d) => {
             const isToday = d.id === currentDayShort;
             const isWorkout = d.type === "workout";
 
             return (
-              <div key={d.id} className="flex flex-col items-center gap-1.5">
+              <div key={d.id} className="flex flex-col items-center justify-center min-w-0">
                 <div
                   className={cn(
-                    "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all",
+                    "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all mx-auto",
                     isToday && isWorkout &&
                       "bg-[#EAF5EE] dark:bg-[#1F7A5A]/30 text-[#1F7A5A] dark:text-[#4CC38A] ring-2 ring-[#1F7A5A]",
                     isToday && !isWorkout &&
@@ -443,7 +443,7 @@ export default function Dashboard() {
                 </div>
                 <span
                   className={cn(
-                    "text-[10px] font-medium",
+                    "text-[10px] font-semibold text-center block w-full mt-1",
                     isToday ? "text-[#1F7A5A] dark:text-[#4CC38A] font-bold" : "text-neutral-500"
                   )}
                 >
@@ -694,9 +694,9 @@ export default function Dashboard() {
           </div>
         </header>
 
-        {/* ── Content Container: Mobile max-w-md, Desktop max-w-7xl ── */}
+        {/* ── Content Container: Responsive Mobile & Desktop Grid ── */}
         <div
-          className="w-full max-w-md lg:max-w-7xl mx-auto px-4 lg:px-8 py-2 lg:py-8"
+          className="w-full max-w-lg lg:max-w-7xl mx-auto px-3.5 sm:px-4 lg:px-8 py-2 lg:py-8"
           style={{
             paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 96px)",
           }}

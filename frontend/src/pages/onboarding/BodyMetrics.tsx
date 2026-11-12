@@ -150,14 +150,8 @@ export default function BodyMetrics() {
           {/* Top Progress Track */}
           <OnboardingProgressBar fromPercent={40} valuePercent={60} />
 
-          <button
-            type="button"
-            onClick={() => navigate("/dashboard")}
-            className="text-sm font-semibold min-h-[44px] min-w-[44px] flex items-center justify-center px-2 cursor-pointer"
-            style={{ color: "var(--sf-primary)" }}
-          >
-            Skip
-          </button>
+          {/* Balanced spacer — metrics are mandatory for calibration */}
+          <div className="w-10 min-w-[44px]" aria-hidden="true" />
         </header>
 
         {/* Main Content: Overview with Age, Height, Weight */}
@@ -170,10 +164,10 @@ export default function BodyMetrics() {
             className="text-2xl sm:text-3xl font-extrabold mb-1.5 tracking-tight"
             style={{ color: "var(--sf-text)" }}
           >
-            A little about you (optional)
+            A little about you
           </h1>
           <p className="text-xs sm:text-sm mb-5 leading-relaxed" style={{ color: "var(--sf-text-2)" }}>
-            Used only to calibrate calorie targets and set realistic goals. Tap any field to adjust.
+            Required to accurately calibrate your daily calorie targets, macros, and workout volume. Tap any field to adjust.
           </p>
 
           {/* Unit System Toggle (Metric vs Imperial) */}

@@ -83,7 +83,10 @@ export default function HomeWorkouts() {
     };
 
     return (
-        <div className="min-h-screen pt-4 pb-28 lg:py-16 relative overflow-hidden">
+        <div
+            className="min-h-screen pb-28 lg:py-16 relative overflow-hidden"
+            style={{ paddingTop: "calc(var(--header-height, 80px) + 1.5rem)" }}
+        >
             <div className="absolute inset-0 gradient-hero opacity-15" />
             <Container className="relative z-10">
                 <button

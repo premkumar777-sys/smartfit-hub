@@ -173,7 +173,10 @@ const AIWorkout = () => {
   };
 
   return (
-    <div className="min-h-screen pt-6 pb-28 lg:py-10 relative overflow-hidden bg-black">
+    <div
+      className="min-h-screen pb-28 lg:py-10 relative overflow-hidden bg-black"
+      style={{ paddingTop: "calc(var(--header-height, 80px) + 1.5rem)" }}
+    >
       {/* Background Image Container */}
       <div 
         className="absolute inset-0 z-0 bg-cover bg-center bg-fixed bg-no-repeat transition-opacity duration-1000"

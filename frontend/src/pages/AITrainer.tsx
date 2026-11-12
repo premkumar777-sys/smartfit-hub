@@ -710,7 +710,10 @@ export default function AITrainer() {
     const carbs = Math.round((calories - (protein * 4 + fats * 9)) / 4);
 
     return (
-        <div className="min-h-screen pt-4 pb-28 lg:py-12 bg-[#0a0b0e] relative text-white">
+        <div
+            className="min-h-screen pb-28 lg:py-12 bg-[#0a0b0e] relative text-white"
+            style={{ paddingTop: "calc(var(--header-height, 80px) + 1.5rem)" }}
+        >
             <div className="absolute inset-0 bg-gradient-to-b from-[#22CC66]/5 via-transparent to-transparent pointer-events-none" />
 
             <Container className="relative z-10 max-w-6xl mx-auto px-4">
