@@ -714,49 +714,45 @@ export default function AITrainer() {
             <div className="absolute inset-0 bg-gradient-to-b from-[#22CC66]/5 via-transparent to-transparent pointer-events-none" />
 
             <Container className="relative z-10 max-w-6xl mx-auto px-4">
-                {/* Navigation Back */}
-                <Link
-                    to="/dashboard"
-                    className="inline-flex items-center text-xs sm:text-sm text-gray-400 hover:text-white mb-2 sm:mb-4 transition-colors py-1"
-                >
-                    <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5" />
-                    Back
-                </Link>
+                {/* Navigation Back & Header Row */}
+                <div className="flex items-center justify-between gap-3 mb-3">
+                    <Link
+                        to="/dashboard"
+                        className="inline-flex items-center text-xs sm:text-sm text-gray-400 hover:text-white transition-colors py-1 px-2 rounded-lg hover:bg-white/5"
+                    >
+                        <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5" />
+                        Back
+                    </Link>
+                </div>
 
-                {/* Studio Mode Selector Tabs */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-6">
+                {/* Studio Mode Segmented Pill Bar (Compact & Clean) */}
+                <div className="flex items-center gap-1.5 p-1 bg-[#121318]/90 border border-white/10 rounded-2xl overflow-x-auto no-scrollbar mb-4 backdrop-blur-md">
                     {[
-                        { id: "chat", label: "AI Coach Chat", icon: Bot, desc: "24/7 Fitness Q&A" },
-                        { id: "form", label: "AI Pose & Form Check", icon: Camera, desc: "MoveNet Skeletal" },
-                        { id: "workout", label: "Workout Studio", icon: Dumbbell, desc: "Active Set Tracker" },
-                        { id: "macros", label: "Macro Calculator", icon: Calculator, desc: "Custom Nutrition" },
+                        { id: "chat", label: "Coach Chat", icon: Bot },
+                        { id: "form", label: "Pose & Form", icon: Camera },
+                        { id: "workout", label: "Workout", icon: Dumbbell },
+                        { id: "macros", label: "Macros", icon: Calculator },
                     ].map((tab) => {
                         const Icon = tab.icon;
                         const isActive = activeTab === tab.id;
                         return (
                             <button
                                 key={tab.id}
+                                type="button"
                                 onClick={() => {
                                     setActiveTab(tab.id as any);
                                     if (tab.id !== "form" && isCameraActive) {
                                         stopCamera();
                                     }
                                 }}
-                                className={`p-3.5 rounded-xl border text-left transition-all duration-200 flex items-center gap-3 ${
+                                className={`flex-1 min-w-[85px] sm:min-w-[100px] py-2 px-2.5 rounded-xl text-xs font-semibold transition-all duration-200 flex items-center justify-center gap-1.5 whitespace-nowrap ${
                                     isActive
-                                        ? "bg-[#22CC66]/10 border-[#22CC66]/60 text-white shadow-[0_0_20px_rgba(34,204,102,0.15)]"
-                                        : "bg-[#121318] border-white/10 text-gray-400 hover:text-white hover:bg-white/5"
+                                        ? "bg-[#00FF9C] text-black font-bold shadow-[0_0_16px_rgba(0,255,156,0.35)]"
+                                        : "text-gray-400 hover:text-white hover:bg-white/5 active:scale-95"
                                 }`}
                             >
-                                <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
-                                    isActive ? "bg-[#22CC66] text-black" : "bg-white/5 text-gray-400"
-                                }`}>
-                                    <Icon className="w-4 h-4" />
-                                </div>
-                                <div>
-                                    <p className="text-xs font-bold leading-tight">{tab.label}</p>
-                                    <p className="text-[10px] opacity-60 leading-tight mt-0.5">{tab.desc}</p>
-                                </div>
+                                <Icon className={`w-3.5 h-3.5 shrink-0 ${isActive ? "text-black" : "text-gray-400"}`} />
+                                <span className="truncate">{tab.label}</span>
                             </button>
                         );
                     })}
@@ -771,7 +767,7 @@ export default function AITrainer() {
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -10 }}
-                            className="flex flex-col h-[520px] bg-[#121318] border border-white/10 rounded-2xl overflow-hidden shadow-2xl"
+                            className="flex flex-col h-[calc(100dvh-var(--header-height,80px)-160px)] min-h-[480px] max-h-[720px] bg-[#121318] border border-white/10 rounded-2xl overflow-hidden shadow-2xl"
                         >
                             {/* Quick Action Chips */}
                             <div className="flex items-center gap-2 p-3 bg-white/[0.02] border-b border-white/10 overflow-x-auto scrollbar-none">
