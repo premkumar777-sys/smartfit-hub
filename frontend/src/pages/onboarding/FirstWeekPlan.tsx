@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ChevronLeft,
@@ -6,126 +6,129 @@ import {
   Moon,
   ArrowUpRight,
   RefreshCw,
+  Sparkles,
+  Zap,
+  Flame,
+  CheckCircle2,
+  Clock,
+  ShieldCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
-import { updateOnboardingDraft } from "@/lib/onboarding";
+import { updateOnboardingDraft, getPersonalizedPlan, PersonalizedPlan } from "@/lib/onboarding";
 import { OnboardingProgressBar } from "@/components/onboarding/OnboardingProgressBar";
 
-/* ─── Types ──────────────────────────────────────────────────────────────── */
-type DayType = "workout" | "rest";
-
-interface DayPlan {
-  id: string;
-  dayShort: string;
-  dayFull: string;
-  type: DayType;
-  title: string;
-  subtitle: string;
-  duration?: string;
-  focus: string;
-}
-
-/* ─── Data ───────────────────────────────────────────────────────────────── */
-const WEEK_PLAN: DayPlan[] = [
-  {
-    id: "mon",
-    dayShort: "Mon",
-    dayFull: "Monday",
-    type: "workout",
-    title: "Monday: Full body A",
-    subtitle: "Full body",
-    duration: "45 min",
-    focus:
-      "Focus on compound movements: Goblet squats, dumbbell bench press, and supported rows with guided rest intervals.",
-  },
-  {
-    id: "tue",
-    dayShort: "Tue",
-    dayFull: "Tuesday",
-    type: "rest",
-    title: "Tuesday: Rest & recovery",
-    subtitle: "Rest",
-    duration: "Recovery",
-    focus:
-      "Active recovery or full rest. Light stretching and hydration keep muscles relaxed and restore glycogen stores.",
-  },
-  {
-    id: "wed",
-    dayShort: "Wed",
-    dayFull: "Wednesday",
-    type: "workout",
-    title: "Wednesday: Full body B",
-    subtitle: "Full body",
-    duration: "45 min",
-    focus:
-      "Posterior chain and core emphasis: Romanian deadlifts, overhead presses, and lunges with controlled tempos.",
-  },
-  {
-    id: "thu",
-    dayShort: "Thu",
-    dayFull: "Thursday",
-    type: "rest",
-    title: "Thursday: Rest & recovery",
-    subtitle: "Rest",
-    duration: "Recovery",
-    focus:
-      "Preserve joint integrity. Prioritize 7-8 hours of sleep and adequate protein intake to support muscle repair.",
-  },
-  {
-    id: "fri",
-    dayShort: "Fri",
-    dayFull: "Friday",
-    type: "workout",
-    title: "Friday: Full body C",
-    subtitle: "Full body",
-    duration: "45 min",
-    focus:
-      "Strength capacity & density: Lat pulldowns, incline dumbbell presses, and split squats to cap off the training week.",
-  },
-  {
-    id: "sat",
-    dayShort: "Sat",
-    dayFull: "Saturday",
-    type: "rest",
-    title: "Saturday: Weekend rest",
-    subtitle: "Rest",
-    duration: "Recovery",
-    focus:
-      "Total body reset. Outdoor leisure walking or recreational mobility work to stay active without fatigue.",
-  },
-  {
-    id: "sun",
-    dayShort: "Sun",
-    dayFull: "Sunday",
-    type: "rest",
-    title: "Sunday: Weekly reset",
-    subtitle: "Rest",
-    duration: "Recovery",
-    focus:
-      "Weekly reset and preparation. Review upcoming sessions and set recovery priorities for the week ahead.",
-  },
-];
-
-
-/* ─── FirstWeekPlan Page ─────────────────────────────────────────────────── */
 export default function FirstWeekPlan() {
   const navigate = useNavigate();
   const reducedMotion = useReducedMotion();
-  const [selectedDayId, setSelectedDayId] = useState<string>("mon");
 
-  const activeDay = WEEK_PLAN.find((d) => d.id === selectedDayId) || WEEK_PLAN[0];
+  // Load calculated plan dynamically from user's draft choices
+  const [plan, setPlan] = useState<PersonalizedPlan>(() => getPersonalizedPlan());
+  const [selectedDayId, setSelectedDayId] = useState<string>(() => {
+    const firstWorkout = plan.weekPlan.find((d) => d.type === "workout");
+    return firstWorkout ? firstWorkout.id : "mon";
+  });
+
+  // 1.8s "AI Calibrating" transition for user satisfaction
+  const [isCalibrating, setIsCalibrating] = useState<boolean>(() => {
+    return !localStorage.getItem("smartfit_calibration_seen");
+  });
+  const [calibrationStep, setCalibrationStep] = useState(0);
+
+  useEffect(() => {
+    const freshPlan = getPersonalizedPlan();
+    setPlan(freshPlan);
+    const firstWorkout = freshPlan.weekPlan.find((d) => d.type === "workout");
+    if (firstWorkout) {
+      setSelectedDayId(firstWorkout.id);
+    }
+
+    if (!localStorage.getItem("smartfit_calibration_seen")) {
+      const t1 = setTimeout(() => setCalibrationStep(1), 600);
+      const t2 = setTimeout(() => setCalibrationStep(2), 1200);
+      const t3 = setTimeout(() => {
+        setIsCalibrating(false);
+        localStorage.setItem("smartfit_calibration_seen", "true");
+      }, 1800);
+      return () => {
+        clearTimeout(t1);
+        clearTimeout(t2);
+        clearTimeout(t3);
+      };
+    }
+  }, []);
+
+  const activeDay = plan.weekPlan.find((d) => d.id === selectedDayId) || plan.weekPlan[0];
 
   const handleSavePlan = () => {
-    updateOnboardingDraft({ planId: "first_week_balanced_v1" });
+    updateOnboardingDraft({ planId: `personalized_${plan.primaryGoalId}` });
+    localStorage.setItem("smartfit_guest_plan_active", "true");
     navigate("/auth?from=onboarding", { state: { returnUrl: "/app/today" } });
   };
 
   const handleContinueWithoutAccount = () => {
-    updateOnboardingDraft({ planId: "first_week_balanced_v1" });
+    updateOnboardingDraft({ planId: `personalized_${plan.primaryGoalId}` });
     localStorage.setItem("smartfit_guest_plan_active", "true");
     navigate("/app/today");
   };
+
+  if (isCalibrating && !reducedMotion) {
+    return (
+      <div
+        className="min-h-dvh flex flex-col items-center justify-center p-6 text-center select-none"
+        style={{ backgroundColor: "var(--sf-bg)", color: "var(--sf-text)" }}
+      >
+        <div className="w-16 h-16 rounded-2xl bg-[#00FF9C]/15 border border-[#00FF9C]/30 flex items-center justify-center mb-6 animate-pulse">
+          <Sparkles className="w-8 h-8 text-[#00FF9C]" />
+        </div>
+
+        <h2 className="text-xl font-bold tracking-tight mb-2">
+          Generating Your Custom Plan
+        </h2>
+        <p className="text-sm text-neutral-400 max-w-xs mb-8">
+          Analyzing metrics, weekly volume, and recovery curves...
+        </p>
+
+        <div className="w-full max-w-xs space-y-3 text-left">
+          <div className="flex items-center gap-3 text-xs">
+            <span
+              className={cn(
+                "w-2 h-2 rounded-full",
+                calibrationStep >= 0 ? "bg-[#00FF9C] animate-pulse" : "bg-neutral-600"
+              )}
+            />
+            <span className={calibrationStep >= 0 ? "text-white font-medium" : "text-neutral-500"}>
+              Calculated BMR &amp; TDEE for {plan.dailyCalories} kcal target
+            </span>
+          </div>
+
+          <div className="flex items-center gap-3 text-xs">
+            <span
+              className={cn(
+                "w-2 h-2 rounded-full",
+                calibrationStep >= 1 ? "bg-[#00FF9C] animate-pulse" : "bg-neutral-600"
+              )}
+            />
+            <span className={calibrationStep >= 1 ? "text-white font-medium" : "text-neutral-500"}>
+              Tailored {plan.trainingDays.length}-day split: {plan.primaryGoalTitle}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-3 text-xs">
+            <span
+              className={cn(
+                "w-2 h-2 rounded-full",
+                calibrationStep >= 2 ? "bg-[#00FF9C] animate-pulse" : "bg-neutral-600"
+              )}
+            />
+            <span className={calibrationStep >= 2 ? "text-white font-medium" : "text-neutral-500"}>
+              High-protein macro distribution: {plan.macros.protein}g protein
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -160,19 +163,47 @@ export default function FirstWeekPlan() {
       {/* ── Scrollable content ── */}
       <main
         className="flex-1 overflow-y-auto px-4 pt-4 space-y-4"
-        style={{ paddingBottom: "calc(140px + env(safe-area-inset-bottom))" }}
+        style={{ paddingBottom: "calc(150px + env(safe-area-inset-bottom))" }}
       >
         {/* Title & subtitle */}
         <div>
           <h1
-            className="text-2xl font-semibold mb-1 leading-tight"
+            className="text-2xl font-bold mb-1 leading-tight"
             style={{ color: "var(--sf-text)" }}
           >
-            Your first week is ready
+            Your personalized first week is ready
           </h1>
-          <p className="text-sm" style={{ color: "var(--sf-text-2)" }}>
-            Based on your goal, level, and schedule.
+          <p className="text-xs sm:text-sm" style={{ color: "var(--sf-text-2)" }}>
+            Engineered around your {plan.trainingDays.length}-day schedule and body composition.
           </p>
+        </div>
+
+        {/* ── Section: Personalized Target Summary Banner ── */}
+        <div className="grid grid-cols-3 gap-2 p-3 rounded-2xl bg-white/[0.03] border border-white/8">
+          <div className="flex flex-col items-center justify-center py-2 px-1 text-center">
+            <span className="text-base sm:text-lg font-black text-white leading-none">
+              {plan.dailyCalories}
+            </span>
+            <span className="text-[10px] text-white/50 mt-1 uppercase font-semibold">
+              Daily kcal
+            </span>
+          </div>
+          <div className="flex flex-col items-center justify-center py-2 px-1 text-center border-x border-white/8">
+            <span className="text-base sm:text-lg font-black text-[#00FF9C] leading-none">
+              {plan.macros.protein}g
+            </span>
+            <span className="text-[10px] text-white/50 mt-1 uppercase font-semibold">
+              Protein
+            </span>
+          </div>
+          <div className="flex flex-col items-center justify-center py-2 px-1 text-center">
+            <span className="text-base sm:text-lg font-black text-white leading-none">
+              {plan.trainingDays.length} Days
+            </span>
+            <span className="text-[10px] text-white/50 mt-1 uppercase font-semibold">
+              Per Week
+            </span>
+          </div>
         </div>
 
         {/* ── Section: Weekly schedule ── */}
@@ -192,7 +223,7 @@ export default function FirstWeekPlan() {
             role="tablist"
             aria-label="Days of the week"
           >
-            {WEEK_PLAN.map((item) => {
+            {plan.weekPlan.map((item) => {
               const isSelected = item.id === selectedDayId;
               const isWorkout = item.type === "workout";
 
@@ -204,8 +235,8 @@ export default function FirstWeekPlan() {
                   aria-selected={isSelected}
                   onClick={() => setSelectedDayId(item.id)}
                   className={cn(
-                    "flex flex-col justify-between p-3 rounded-2xl border text-left shrink-0 w-[100px] h-[88px]",
-                    "transition-colors duration-150",
+                    "flex flex-col justify-between p-3 rounded-2xl border text-left shrink-0 w-[104px] h-[92px]",
+                    "transition-colors duration-150 cursor-pointer",
                     !reducedMotion && "active:scale-[0.97]"
                   )}
                   style={{
@@ -216,7 +247,7 @@ export default function FirstWeekPlan() {
                   {/* Top row: Day label + icon */}
                   <div className="flex items-center justify-between w-full">
                     <span
-                      className="text-xs font-semibold"
+                      className="text-xs font-bold"
                       style={{
                         color: isSelected ? "var(--sf-primary)" : "var(--sf-text-2)",
                       }}
@@ -224,13 +255,9 @@ export default function FirstWeekPlan() {
                       {item.dayShort}
                     </span>
                     {isWorkout ? (
-                      <ArrowUpRight
-                        className="w-3.5 h-3.5"
-                        style={{
-                          color: isSelected ? "var(--sf-primary)" : "var(--sf-text-2)",
-                        }}
-                        aria-hidden="true"
-                      />
+                      <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#00FF9C]/15">
+                        <Dumbbell className="w-3 h-3 text-[#00FF9C]" aria-hidden="true" />
+                      </span>
                     ) : (
                       <Moon
                         className="w-3.5 h-3.5"
@@ -265,13 +292,13 @@ export default function FirstWeekPlan() {
 
         {/* ── Inspected Day Detail Card ── */}
         <div
-          className="rounded-2xl border p-4"
+          className="rounded-2xl border p-4 space-y-3"
           style={{
             backgroundColor: "var(--sf-surface)",
             borderColor: "var(--sf-border)",
           }}
         >
-          <div className="flex items-start gap-3.5 mb-2.5">
+          <div className="flex items-start gap-3.5">
             <span
               className="flex items-center justify-center w-10 h-10 rounded-xl shrink-0"
               style={{ backgroundColor: "var(--sf-tint)" }}
@@ -311,15 +338,35 @@ export default function FirstWeekPlan() {
                   {activeDay.duration}
                 </span>
               </div>
+              <p
+                className="text-xs leading-relaxed mt-1"
+                style={{ color: "var(--sf-text-2)" }}
+              >
+                {activeDay.focus}
+              </p>
             </div>
           </div>
 
-          <p
-            className="text-xs leading-relaxed"
-            style={{ color: "var(--sf-text-2)" }}
-          >
-            {activeDay.focus}
-          </p>
+          {/* If workout day, show exercise breakdown */}
+          {activeDay.type === "workout" && activeDay.exercises?.length > 0 && (
+            <div className="space-y-1.5 pt-2 border-t border-white/5">
+              <p className="text-[11px] uppercase tracking-wider font-semibold text-neutral-400">
+                Key Movements
+              </p>
+              {activeDay.exercises.map((ex, i) => (
+                <div
+                  key={i}
+                  className="flex items-center justify-between py-1 px-2.5 rounded-lg bg-black/20 text-xs"
+                >
+                  <span className="font-medium text-white">{ex.name}</span>
+                  <div className="flex items-center gap-2 text-[11px] text-neutral-400">
+                    <span>{ex.sets}</span>
+                    <span className="text-[#00FF9C] font-medium">{ex.rpe}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* ── Smart calibration feature card ── */}
@@ -331,18 +378,9 @@ export default function FirstWeekPlan() {
           }}
         >
           <div
-            className="w-16 h-16 rounded-xl overflow-hidden shrink-0 border"
-            style={{
-              backgroundColor: "var(--sf-tint)",
-              borderColor: "var(--sf-border)",
-            }}
+            className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 border bg-[#00FF9C]/10 border-[#00FF9C]/25"
           >
-            <img
-              src="/auth-hero.png"
-              alt=""
-              aria-hidden="true"
-              className="w-full h-full object-cover"
-            />
+            <Zap className="w-6 h-6 text-[#00FF9C]" />
           </div>
 
           <div className="flex-1 min-w-0">
@@ -350,95 +388,18 @@ export default function FirstWeekPlan() {
               className="block text-[11px] font-semibold uppercase tracking-wider mb-0.5"
               style={{ color: "var(--sf-primary)" }}
             >
-              Smart calibration
+              Adaptive Progression
             </span>
             <p
               className="text-sm font-semibold leading-snug"
               style={{ color: "var(--sf-text)" }}
             >
-              Personalized baseline
+              Weights calibrate after every set
             </p>
             <p
-              className="text-xs mt-0.5 leading-relaxed truncate"
-              style={{ color: "var(--sf-text-2)" }}
+              className="text-xs mt-0.5 leading-relaxed text-neutral-400"
             >
-              Your set weights start conservative so you can build...
-            </p>
-          </div>
-        </div>
-
-        {/* ── What to expect card ── */}
-        <div
-          className="rounded-2xl border p-4 space-y-3"
-          style={{
-            backgroundColor: "var(--sf-surface)",
-            borderColor: "var(--sf-border)",
-          }}
-        >
-          {/* Card Header */}
-          <div className="flex items-center justify-between">
-            <h3
-              className="text-sm font-semibold"
-              style={{ color: "var(--sf-text)" }}
-            >
-              What to expect
-            </h3>
-            <span
-              className="text-[11px] font-semibold px-2 py-0.5 rounded-md"
-              style={{
-                backgroundColor: "var(--sf-tint)",
-                color: "var(--sf-primary)",
-              }}
-            >
-              Estimate
-            </span>
-          </div>
-
-          {/* Highlight banner */}
-          <div
-            className="p-3 rounded-xl"
-            style={{ backgroundColor: "var(--sf-tint)" }}
-          >
-            <p
-              className="text-xs font-medium leading-relaxed"
-              style={{ color: "var(--sf-text)" }}
-            >
-              3 structured gym sessions • ~135 minutes total training • Built for
-              steady progression without burnout
-            </p>
-          </div>
-
-          {/* Bullet 1 */}
-          <div className="flex items-start gap-3">
-            <RefreshCw
-              className="w-4 h-4 mt-0.5 shrink-0"
-              strokeWidth={1.75}
-              style={{ color: "var(--sf-primary)" }}
-              aria-hidden="true"
-            />
-            <p
-              className="text-xs leading-relaxed"
-              style={{ color: "var(--sf-text-2)" }}
-            >
-              Weights and sets calibrate after every workout based on your logged
-              RPE and movement pace.
-            </p>
-          </div>
-
-          {/* Bullet 2 */}
-          <div className="flex items-start gap-3">
-            <Moon
-              className="w-4 h-4 mt-0.5 shrink-0"
-              strokeWidth={1.75}
-              style={{ color: "var(--sf-primary)" }}
-              aria-hidden="true"
-            />
-            <p
-              className="text-xs leading-relaxed"
-              style={{ color: "var(--sf-text-2)" }}
-            >
-              Four rest days preserve joint health and ensure your nervous
-              system recovers completely.
+              Your initial reps calibrate your baseline so you progress safely each week.
             </p>
           </div>
         </div>
@@ -458,25 +419,26 @@ export default function FirstWeekPlan() {
         <button
           type="button"
           onClick={handleSavePlan}
-          className="w-full h-[52px] rounded-xl text-sm font-semibold mb-1"
+          className="w-full h-[52px] rounded-xl text-sm font-bold mb-1.5 flex items-center justify-center gap-2 cursor-pointer shadow-md"
           style={{
             backgroundColor: "var(--sf-primary)",
             color: "var(--sf-on-primary)",
           }}
         >
-          Save my plan
+          <span>Save My Plan &amp; Create Account</span>
         </button>
 
         {/* Continue without an account */}
         <button
           type="button"
           onClick={handleContinueWithoutAccount}
-          className="w-full h-11 flex items-center justify-center text-xs font-medium"
+          className="w-full h-10 flex items-center justify-center text-xs font-semibold cursor-pointer hover:underline"
           style={{ color: "var(--sf-text-2)" }}
         >
-          Continue without an account
+          Preview Plan as Guest &rarr;
         </button>
       </footer>
     </div>
   );
 }
+

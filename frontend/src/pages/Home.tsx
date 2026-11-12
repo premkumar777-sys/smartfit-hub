@@ -126,29 +126,6 @@ const Home = () => {
         </div>
         {/* End main content */}
 
-        {/* ── Bottom Trust Bar ─────────────────────────────────────── */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.25 }}
-          className="relative z-10 w-full max-w-4xl mx-auto px-5 pr-20 sm:px-8 pb-6 sm:pb-8 flex flex-wrap items-center justify-center gap-3.5 sm:gap-5"
-        >
-          <span className="flex items-center gap-1.5 text-xs sm:text-sm text-white/50">
-            <Shield className="w-3.5 h-3.5 text-[#00FF9C]" />
-            Private &amp; Encrypted
-          </span>
-          <span className="w-px h-3 bg-white/15" />
-          <span className="flex items-center gap-1.5 text-xs sm:text-sm text-white/50">
-            <Clock className="w-3.5 h-3.5 text-sky-400" />
-            24/7 AI Support
-          </span>
-          <span className="w-px h-3 bg-white/15" />
-          <span className="flex items-center gap-1.5 text-xs sm:text-sm text-white/50">
-            <Star className="w-3.5 h-3.5 text-amber-400" />
-            4.9 / 5 Rated
-          </span>
-        </motion.div>
-
       </section>
       {/* ═══════════════════════════════ END HERO ═══════════════════════════ */}
 

@@ -21,6 +21,8 @@ import {
   Calendar,
   Box,
   Users,
+  Moon,
+  ShieldCheck,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -28,6 +30,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useGamification } from "@/hooks/useGamification";
 import { cn } from "@/lib/utils";
 import { DesktopSidebar } from "@/components/DesktopSidebar";
+import { getPersonalizedPlan, PersonalizedPlan } from "@/lib/onboarding";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -36,6 +39,7 @@ export default function Dashboard() {
 
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<any>(null);
+  const [plan, setPlan] = useState<PersonalizedPlan>(() => getPersonalizedPlan());
 
   // Water tracking state (persisted locally)
   const [waterGlasses, setWaterGlasses] = useState<number>(() => {
@@ -48,16 +52,19 @@ export default function Dashboard() {
   const [isCheckedIn, setIsCheckedIn] = useState(false);
 
   useEffect(() => {
+    const isGuest = localStorage.getItem("smartfit_guest_plan_active") === "true";
+
     const loadUserData = async (userId: string) => {
       try {
         const { data } = await supabase
           .from("profiles")
-          .select("full_name, username, avatar_url, preferences, daily_calories_target")
+          .select("full_name, username, avatar_url, preferences, daily_calories_target, fitness_goal, gender, age, height, weight")
           .eq("id", userId)
           .single();
 
         if (data) {
           setProfile(data);
+          setPlan(getPersonalizedPlan(data));
         }
       } catch (err) {
         console.error("Error loading dashboard profile:", err);
@@ -68,7 +75,13 @@ export default function Dashboard() {
 
     if (!authLoading) {
       if (!authUser) {
-        navigate("/auth");
+        if (!isGuest) {
+          navigate("/auth");
+        } else {
+          // Guest mode: load plan from onboarding draft in localStorage
+          setPlan(getPersonalizedPlan());
+          setLoading(false);
+        }
       } else {
         loadUserData(authUser.id);
       }
@@ -87,8 +100,8 @@ export default function Dashboard() {
     profile?.full_name ||
     authUser?.user_metadata?.full_name ||
     profile?.username ||
-    "Prem";
-  const firstName = rawName.split(" ")[0] || "Prem";
+    (authUser ? "Athlete" : "Guest Athlete");
+  const firstName = rawName.split(" ")[0] || "Athlete";
 
   // Formatted date string for desktop header
   const todayDateString = new Intl.DateTimeFormat("en-US", {
@@ -120,9 +133,9 @@ export default function Dashboard() {
   };
 
   // Level & XP
-  const level = gamification?.level || 4;
-  const xp = gamification?.xp || 420;
-  const nextLevelXp = gamification?.nextLevelXp || 600;
+  const level = gamification?.level || 1;
+  const xp = gamification?.xp || 150;
+  const nextLevelXp = gamification?.nextLevelXp || 300;
   const streakDays = gamification?.streak || 1;
 
   if (authLoading || loading) {
@@ -139,62 +152,92 @@ export default function Dashboard() {
   // ─────────────────────────────────────────────────────────────
   // Reusable Component: Hero Workout Card
   // ─────────────────────────────────────────────────────────────
-  const WorkoutHeroCard = () => (
-    <div className="bg-white dark:bg-[#181D1A] rounded-3xl p-4 sm:p-6 shadow-xs border border-emerald-950/5 dark:border-neutral-800 space-y-3.5">
-      {/* Card Top Row */}
-      <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold text-neutral-500 dark:text-neutral-400">
-          Today's workout
-        </span>
-        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A]">
-          Scheduled
-        </span>
-      </div>
+  const WorkoutHeroCard = () => {
+    const isRest = plan.todayWorkout.isRestDay;
 
-      {/* Workout Title & Meta */}
-      <div>
-        <h3 className="text-xl lg:text-2xl font-bold text-neutral-900 dark:text-neutral-100 leading-tight">
-          Upper body strength
-        </h3>
-        <div className="flex items-center gap-2 text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 font-medium mt-1">
-          <div className="flex items-center gap-1">
-            <Clock className="w-3.5 h-3.5" />
-            <span>45 min</span>
+    return (
+      <div className="bg-white dark:bg-[#181D1A] rounded-3xl p-4 sm:p-6 shadow-xs border border-emerald-950/5 dark:border-neutral-800 space-y-3.5">
+        {/* Card Top Row */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-neutral-500 dark:text-neutral-400">
+              {isRest ? "Today: Active Recovery" : "Today's workout"}
+            </span>
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#00FF9C]/15 text-[#0D3B29] dark:text-[#00FF9C]">
+              {plan.primaryGoalTitle}
+            </span>
           </div>
-          <span>•</span>
-          <div className="flex items-center gap-1">
-            <Dumbbell className="w-3.5 h-3.5" />
-            <span>6 exercises</span>
-          </div>
-          <span>•</span>
-          <div className="flex items-center gap-1">
-            <MapPin className="w-3.5 h-3.5" />
-            <span>Gym</span>
+
+          <span
+            className={cn(
+              "px-2.5 py-0.5 rounded-full text-[11px] font-semibold",
+              isRest
+                ? "bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300"
+                : "bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A]"
+            )}
+          >
+            {isRest ? "Rest & Mobility" : "Scheduled"}
+          </span>
+        </div>
+
+        {/* Workout Title & Meta */}
+        <div>
+          <h3 className="text-xl lg:text-2xl font-bold text-neutral-900 dark:text-neutral-100 leading-tight">
+            {plan.todayWorkout.title}
+          </h3>
+          <div className="flex items-center gap-2 text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 font-medium mt-1">
+            <div className="flex items-center gap-1">
+              <Clock className="w-3.5 h-3.5" />
+              <span>{plan.todayWorkout.duration}</span>
+            </div>
+            <span>•</span>
+            <div className="flex items-center gap-1">
+              <Dumbbell className="w-3.5 h-3.5" />
+              <span>{plan.todayWorkout.exerciseCount} exercises</span>
+            </div>
+            <span>•</span>
+            <div className="flex items-center gap-1">
+              <MapPin className="w-3.5 h-3.5" />
+              <span>{isRest ? "Mobility Zone" : "Gym / Free Weights"}</span>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Hero Workout Image */}
-      <div className="relative w-full h-40 sm:h-52 lg:h-64 rounded-2xl overflow-hidden shadow-2xs group">
-        <img
-          src="/today-workout.jpg"
-          alt="Upper body strength"
-          className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-500"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60" />
-      </div>
+        {/* Workout Description & Target */}
+        <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-300 leading-relaxed">
+          {plan.todayWorkout.focus}
+        </p>
 
-      {/* Start Workout Button */}
-      <button
-        type="button"
-        onClick={() => navigate("/app/workout/session")}
-        className="w-full h-12 lg:h-13 rounded-xl bg-[#0D3B29] hover:bg-[#134e37] text-white font-bold text-sm lg:text-base active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-emerald-950/10"
-      >
-        <Dumbbell className="w-4 h-4 text-[#4CC38A]" />
-        <span>Start workout</span>
-      </button>
-    </div>
-  );
+        {/* Hero Workout Image */}
+        <div className="relative w-full h-40 sm:h-52 lg:h-64 rounded-2xl overflow-hidden shadow-2xs group">
+          <img
+            src="/today-workout.jpg"
+            alt={plan.todayWorkout.title}
+            className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-500"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-70" />
+          <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-white text-xs font-semibold">
+            <span className="px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur-md">
+              AI Tailored Split
+            </span>
+            <span className="px-2.5 py-1 rounded-lg bg-[#00FF9C]/20 border border-[#00FF9C]/40 text-[#00FF9C] backdrop-blur-md">
+              Adaptive Baseline
+            </span>
+          </div>
+        </div>
+
+        {/* Start Workout Button */}
+        <button
+          type="button"
+          onClick={() => navigate("/app/workout/session")}
+          className="w-full h-12 lg:h-13 rounded-xl bg-[#0D3B29] hover:bg-[#134e37] text-white font-bold text-sm lg:text-base active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-emerald-950/10"
+        >
+          <Dumbbell className="w-4 h-4 text-[#4CC38A]" />
+          <span>{isRest ? "Start Recovery Mobility Session" : "Start Today's Workout"}</span>
+        </button>
+      </div>
+    );
+  };
 
   // ─────────────────────────────────────────────────────────────
   // Reusable Component: 2x2 Stats Grid
@@ -212,10 +255,13 @@ export default function Dashboard() {
 
         <div className="mt-2.5">
           <p className="font-bold text-xl text-neutral-900 dark:text-neutral-100">
-            0/5
+            0/{plan.trainingDays.length}
           </p>
-          <div className="h-1.5 w-full bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden mt-3">
-            <div className="h-full bg-[#1F7A5A] dark:bg-[#4CC38A] rounded-full w-[10%]" />
+          <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-1">
+            {plan.trainingDays.length} sessions scheduled
+          </p>
+          <div className="h-1.5 w-full bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden mt-2">
+            <div className="h-full bg-[#1F7A5A] dark:bg-[#4CC38A] rounded-full w-[8%]" />
           </div>
         </div>
       </div>
@@ -234,7 +280,7 @@ export default function Dashboard() {
             {streakDays} {streakDays === 1 ? "day" : "days"}
           </p>
           <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
-            Personal best: 14
+            Day 1 of transformation
           </p>
         </div>
       </div>
@@ -243,17 +289,17 @@ export default function Dashboard() {
       <div className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 shadow-xs border border-emerald-950/5 dark:border-neutral-800 flex flex-col justify-between">
         <div className="flex items-center justify-between">
           <span className="text-xs font-semibold text-neutral-500 dark:text-neutral-400">
-            Calories
+            Daily Calories
           </span>
           <Zap className="w-4 h-4 text-neutral-600 dark:text-neutral-300" />
         </div>
 
         <div className="mt-2.5">
           <p className="font-bold text-xl text-neutral-900 dark:text-neutral-100">
-            0 / 2,000
+            0 / {plan.dailyCalories.toLocaleString()}
           </p>
-          <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
-            kcal today
+          <p className="text-[11px] text-[#1F7A5A] dark:text-[#4CC38A] font-semibold mt-1">
+            Target: {plan.macros.protein}g protein
           </p>
         </div>
       </div>
@@ -332,13 +378,12 @@ export default function Dashboard() {
       <div className="flex items-center gap-2">
         <Bot className="w-4 h-4 text-[#1F7A5A] dark:text-[#4CC38A]" />
         <span className="text-xs font-bold text-[#1F7A5A] dark:text-[#4CC38A]">
-          Coach tip
+          AI Coach Tip · {plan.primaryGoalTitle}
         </span>
       </div>
 
       <p className="text-xs leading-relaxed text-neutral-700 dark:text-neutral-300 mt-2">
-        Focus on controlled eccentrics on today's pressing movements to maximize
-        muscle tension and joint health.
+        {plan.goalSummary}
       </p>
 
       <button
@@ -346,7 +391,7 @@ export default function Dashboard() {
         onClick={() => navigate("/ai-trainer")}
         className="text-xs font-bold text-[#1F7A5A] dark:text-[#4CC38A] flex items-center gap-1 mt-3 hover:underline cursor-pointer"
       >
-        <span>Ask Coach</span>
+        <span>Ask SmartFit AI Coach</span>
         <ArrowRight className="w-3.5 h-3.5" />
       </button>
     </div>
@@ -356,54 +401,57 @@ export default function Dashboard() {
   // Reusable Component: Weekly Schedule Strip
   // ─────────────────────────────────────────────────────────────
   const WeeklyScheduleCard = () => {
-    const days = [
-      { name: "Mon", status: "done" },
-      { name: "Tue", status: "done" },
-      { name: "Wed", status: "rest" },
-      { name: "Thu", status: "done" },
-      { name: "Fri", status: "today" },
-      { name: "Sat", status: "rest" },
-      { name: "Sun", status: "rest" },
-    ];
+    const dayNamesShort = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+    const currentDayShort = dayNamesShort[new Date().getDay()];
 
     return (
       <div className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 shadow-xs border border-emerald-950/5 dark:border-neutral-800">
         <div className="flex items-center justify-between mb-3">
           <span className="text-xs font-bold text-neutral-700 dark:text-neutral-300 flex items-center gap-1.5">
             <Calendar className="w-3.5 h-3.5 text-[#1F7A5A] dark:text-[#4CC38A]" />
-            Weekly Schedule
+            Your {plan.trainingDays.length}-Day Schedule
           </span>
           <span className="text-[11px] font-semibold text-neutral-400">
-            3 of 4 done
+            0 of {plan.trainingDays.length} done
           </span>
         </div>
         <div className="flex items-center justify-between gap-1">
-          {days.map((d) => (
-            <div key={d.name} className="flex flex-col items-center gap-1.5">
-              <div
-                className={cn(
-                  "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all",
-                  d.status === "done" &&
-                    "bg-[#0D3B29] dark:bg-[#1E2D24] text-[#4CC38A]",
-                  d.status === "today" &&
-                    "bg-[#EAF5EE] dark:bg-[#1F7A5A]/30 text-[#1F7A5A] dark:text-[#4CC38A] ring-2 ring-[#1F7A5A]",
-                  d.status === "rest" &&
-                    "bg-neutral-100 dark:bg-neutral-800/60 text-neutral-400"
-                )}
-              >
-                {d.status === "done" ? (
-                  <Check className="w-3.5 h-3.5 stroke-[3]" />
-                ) : d.status === "rest" ? (
-                  "R"
-                ) : (
-                  "4"
-                )}
+          {plan.weekPlan.map((d) => {
+            const isToday = d.id === currentDayShort;
+            const isWorkout = d.type === "workout";
+
+            return (
+              <div key={d.id} className="flex flex-col items-center gap-1.5">
+                <div
+                  className={cn(
+                    "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all",
+                    isToday && isWorkout &&
+                      "bg-[#EAF5EE] dark:bg-[#1F7A5A]/30 text-[#1F7A5A] dark:text-[#4CC38A] ring-2 ring-[#1F7A5A]",
+                    isToday && !isWorkout &&
+                      "bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-300 ring-2 ring-sky-500",
+                    !isToday && isWorkout &&
+                      "bg-[#0D3B29] dark:bg-[#1E2D24] text-[#4CC38A]",
+                    !isToday && !isWorkout &&
+                      "bg-neutral-100 dark:bg-neutral-800/60 text-neutral-400"
+                  )}
+                >
+                  {isWorkout ? (
+                    <Dumbbell className="w-3.5 h-3.5" />
+                  ) : (
+                    "R"
+                  )}
+                </div>
+                <span
+                  className={cn(
+                    "text-[10px] font-medium",
+                    isToday ? "text-[#1F7A5A] dark:text-[#4CC38A] font-bold" : "text-neutral-500"
+                  )}
+                >
+                  {d.dayShort}
+                </span>
               </div>
-              <span className="text-[10px] font-medium text-neutral-500">
-                {d.name}
-              </span>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     );
@@ -419,7 +467,7 @@ export default function Dashboard() {
           Smart AI Tools
         </h3>
         <span className="text-[11px] font-semibold text-[#1F7A5A] dark:text-[#4CC38A]">
-          Personalized for you
+          Personalized for {plan.primaryGoalTitle}
         </span>
       </div>
 
@@ -428,7 +476,7 @@ export default function Dashboard() {
         <button
           type="button"
           onClick={() => navigate("/nutrition")}
-          className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 shadow-xs border border-emerald-950/5 dark:border-neutral-800 flex items-start gap-3.5 text-left hover:bg-neutral-50/80 dark:hover:bg-neutral-800/40 hover:border-emerald-600/20 active:scale-[0.985] transition-all cursor-pointer group"
+          className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 shadow-xs border border-emerald-950/5 dark:border-neutral-800 flex items-start gap-3.5 text-left hover:border-emerald-500/30 transition-colors group cursor-pointer"
         >
           <div className="w-11 h-11 rounded-xl bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
             <Utensils className="w-5 h-5" strokeWidth={2} />
@@ -439,20 +487,20 @@ export default function Dashboard() {
                 AI Meal Scanner
               </p>
               <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A]">
-                Vision AI
+                Instant
               </span>
             </div>
             <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 leading-relaxed">
-              Snap a plate photo to estimate calories & macros in seconds
+              Track against your {plan.dailyCalories} kcal &amp; {plan.macros.protein}g protein targets
             </p>
           </div>
         </button>
 
-        {/* Card 2: Camera Form Coach */}
+        {/* Card 2: AI Form Coach */}
         <button
           type="button"
           onClick={() => navigate("/app/workout/session")}
-          className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 shadow-xs border border-emerald-950/5 dark:border-neutral-800 flex items-start gap-3.5 text-left hover:bg-neutral-50/80 dark:hover:bg-neutral-800/40 hover:border-emerald-600/20 active:scale-[0.985] transition-all cursor-pointer group"
+          className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 shadow-xs border border-emerald-950/5 dark:border-neutral-800 flex items-start gap-3.5 text-left hover:border-emerald-500/30 transition-colors group cursor-pointer"
         >
           <div className="w-11 h-11 rounded-xl bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
             <Video className="w-5 h-5" strokeWidth={2} />
@@ -460,47 +508,47 @@ export default function Dashboard() {
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between">
               <p className="font-bold text-sm text-neutral-900 dark:text-neutral-100 leading-snug">
-                Camera Form Coach
+                Live Rep Counter
               </p>
               <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A]">
-                Live Reps
+                Camera
               </span>
             </div>
             <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 leading-relaxed">
-              Real-time posture angle tracking and automatic rep counting
+              Real-time rep counting and posture guidance for your lifts
             </p>
           </div>
         </button>
 
-        {/* Card 3: AI Workout Generator */}
+        {/* Card 3: Home & Travel Mode */}
         <button
           type="button"
           onClick={() => navigate("/home-workouts")}
-          className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 shadow-xs border border-emerald-950/5 dark:border-neutral-800 flex items-start gap-3.5 text-left hover:bg-neutral-50/80 dark:hover:bg-neutral-800/40 hover:border-emerald-600/20 active:scale-[0.985] transition-all cursor-pointer group"
+          className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 shadow-xs border border-emerald-950/5 dark:border-neutral-800 flex items-start gap-3.5 text-left hover:border-emerald-500/30 transition-colors group cursor-pointer"
         >
           <div className="w-11 h-11 rounded-xl bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-            <Sparkles className="w-5 h-5" strokeWidth={2} />
+            <Box className="w-5 h-5" strokeWidth={2} />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between">
               <p className="font-bold text-sm text-neutral-900 dark:text-neutral-100 leading-snug">
-                AI Routine Generator
+                Home &amp; Travel Mode
               </p>
               <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A]">
-                Adaptive
+                Zero Gear
               </span>
             </div>
             <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 leading-relaxed">
-              Generate splits tailored to your equipment, fatigue, and schedule
+              Hotel and bodyweight adaptations that fit into your day
             </p>
           </div>
         </button>
 
-        {/* Card 4: Leaderboard & XP */}
+        {/* Card 4: Community & Leaderboards */}
         <button
           type="button"
           onClick={() => navigate("/gamification")}
-          className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 shadow-xs border border-emerald-950/5 dark:border-neutral-800 flex items-start gap-3.5 text-left hover:bg-neutral-50/80 dark:hover:bg-neutral-800/40 hover:border-emerald-600/20 active:scale-[0.985] transition-all cursor-pointer group"
+          className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 shadow-xs border border-emerald-950/5 dark:border-neutral-800 flex items-start gap-3.5 text-left hover:border-emerald-500/30 transition-colors group cursor-pointer"
         >
           <div className="w-11 h-11 rounded-xl bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
             <Trophy className="w-5 h-5" strokeWidth={2} />
@@ -508,10 +556,10 @@ export default function Dashboard() {
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between">
               <p className="font-bold text-sm text-neutral-900 dark:text-neutral-100 leading-snug">
-                Leaderboard & Badges
+                Gym Challenges
               </p>
               <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A]">
-                Tier Rank
+                XP &amp; Badges
               </span>
             </div>
             <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 leading-relaxed">
@@ -520,35 +568,11 @@ export default function Dashboard() {
           </div>
         </button>
 
-        {/* Card 5: Partner Gyms Map */}
-        <button
-          type="button"
-          onClick={() => navigate("/gyms")}
-          className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 shadow-xs border border-emerald-950/5 dark:border-neutral-800 flex items-start gap-3.5 text-left hover:bg-neutral-50/80 dark:hover:bg-neutral-800/40 hover:border-emerald-600/20 active:scale-[0.985] transition-all cursor-pointer group"
-        >
-          <div className="w-11 h-11 rounded-xl bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-            <MapPin className="w-5 h-5" strokeWidth={2} />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between">
-              <p className="font-bold text-sm text-neutral-900 dark:text-neutral-100 leading-snug">
-                Find Partner Gyms
-              </p>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A]">
-                GPS Pass
-              </span>
-            </div>
-            <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 leading-relaxed">
-              Interactive map to locate partner facilities and claim guest access
-            </p>
-          </div>
-        </button>
-
-        {/* Card 6: AI Voice Coach */}
+        {/* Card 5: SmartFit Chatbot */}
         <button
           type="button"
           onClick={() => navigate("/ai-trainer")}
-          className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 shadow-xs border border-emerald-950/5 dark:border-neutral-800 flex items-start gap-3.5 text-left hover:bg-neutral-50/80 dark:hover:bg-neutral-800/40 hover:border-emerald-600/20 active:scale-[0.985] transition-all cursor-pointer group"
+          className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 shadow-xs border border-emerald-950/5 dark:border-neutral-800 flex items-start gap-3.5 text-left hover:border-emerald-500/30 transition-colors group cursor-pointer"
         >
           <div className="w-11 h-11 rounded-xl bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
             <Bot className="w-5 h-5" strokeWidth={2} />
@@ -556,47 +580,23 @@ export default function Dashboard() {
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between">
               <p className="font-bold text-sm text-neutral-900 dark:text-neutral-100 leading-snug">
-                AI Voice Coach
+                SmartFit AI Advisor
               </p>
               <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A]">
-                24/7 Chat
+                24/7 AI
               </span>
             </div>
             <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 leading-relaxed">
-              Real-time conversational advice on form, recovery, and nutrition
+              Personalized guidance on progressive overload, recovery, and meal timing
             </p>
           </div>
         </button>
 
-        {/* Card 7: 3D Avatar Trainer */}
+        {/* Card 6: 1-on-1 Coaching */}
         <button
           type="button"
-          onClick={() => navigate("/3d-trainer")}
-          className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 shadow-xs border border-emerald-950/5 dark:border-neutral-800 flex items-start gap-3.5 text-left hover:bg-neutral-50/80 dark:hover:bg-neutral-800/40 hover:border-emerald-600/20 active:scale-[0.985] transition-all cursor-pointer group"
-        >
-          <div className="w-11 h-11 rounded-xl bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-            <Box className="w-5 h-5" strokeWidth={2} />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between">
-              <p className="font-bold text-sm text-neutral-900 dark:text-neutral-100 leading-snug">
-                3D Avatar Trainer
-              </p>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A]">
-                3D Visual
-              </span>
-            </div>
-            <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 leading-relaxed">
-              Interactive 3D animated coach with real-time audio guidance (no camera needed)
-            </p>
-          </div>
-        </button>
-
-        {/* Card 8: 1-on-1 Online Coaching */}
-        <button
-          type="button"
-          onClick={() => navigate("/online-coaching")}
-          className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 shadow-xs border border-emerald-950/5 dark:border-neutral-800 flex items-start gap-3.5 text-left hover:bg-neutral-50/80 dark:hover:bg-neutral-800/40 hover:border-emerald-600/20 active:scale-[0.985] transition-all cursor-pointer group"
+          onClick={() => navigate("/pro-coaching")}
+          className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 shadow-xs border border-emerald-950/5 dark:border-neutral-800 flex items-start gap-3.5 text-left hover:border-emerald-500/30 transition-colors group cursor-pointer"
         >
           <div className="w-11 h-11 rounded-xl bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
             <Users className="w-5 h-5" strokeWidth={2} />
@@ -638,13 +638,16 @@ export default function Dashboard() {
         {/* ── Desktop Top Header Bar (lg:flex, hidden on mobile) ── */}
         <header className="hidden lg:flex items-center justify-between px-8 py-5 border-b border-emerald-950/5 dark:border-neutral-800 bg-white/60 dark:bg-[#111413]/60 backdrop-blur-md sticky top-0 z-20">
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2.5">
               <h1 className="text-2xl xl:text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-neutral-50">
                 {greeting}, {firstName}
               </h1>
               <span className="text-2xl">👋</span>
+              <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#00FF9C]/15 border border-[#00FF9C]/30 text-[#0D3B29] dark:text-[#00FF9C]">
+                {plan.primaryGoalTitle}
+              </span>
             </div>
-            <div className="flex items-center gap-3 mt-1 text-xs text-neutral-500 dark:text-neutral-400 font-medium">
+            <div className="flex items-center gap-3 mt-1.5 text-xs text-neutral-500 dark:text-neutral-400 font-medium">
               <span className="px-2.5 py-0.5 rounded-full font-bold bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A]">
                 Level {level}
               </span>
@@ -654,6 +657,10 @@ export default function Dashboard() {
               </span>
               <span>•</span>
               <span>{todayDateString}</span>
+              <span>•</span>
+              <span className="text-[#1F7A5A] dark:text-[#4CC38A] font-semibold">
+                Daily Target: {plan.dailyCalories} kcal ({plan.macros.protein}g protein)
+              </span>
             </div>
           </div>
 
@@ -694,12 +701,36 @@ export default function Dashboard() {
             paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 96px)",
           }}
         >
+          {/* ── Guest Mode Banner (if previewing plan without login) ── */}
+          {!authUser && (
+            <div className="mb-4 p-3.5 rounded-2xl bg-[#00FF9C]/10 border border-[#00FF9C]/30 flex items-center justify-between gap-3 shadow-xs">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <Sparkles className="w-4 h-4 text-[#00FF9C] shrink-0" />
+                <p className="text-xs text-neutral-900 dark:text-neutral-100 font-medium truncate">
+                  Viewing your custom <strong>{plan.primaryGoalTitle}</strong> plan
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => navigate("/auth?from=dashboard")}
+                className="px-3 py-1.5 rounded-xl bg-[#00FF9C] hover:bg-[#00e88c] text-black text-xs font-bold shrink-0 transition-transform active:scale-95 cursor-pointer shadow-sm"
+              >
+                Save Progress
+              </button>
+            </div>
+          )}
+
           {/* ── Mobile Top Bar & Greeting (Hidden on desktop) ── */}
           <div className="lg:hidden">
             <header className="flex items-center justify-between h-14 mb-2">
-              <h1 className="text-xl font-bold tracking-tight text-neutral-900 dark:text-neutral-50">
-                Today
-              </h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl font-bold tracking-tight text-neutral-900 dark:text-neutral-50">
+                  Today
+                </h1>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#00FF9C]/15 border border-[#00FF9C]/25 text-[#0D3B29] dark:text-[#00FF9C]">
+                  {plan.primaryGoalTitle}
+                </span>
+              </div>
 
               <button
                 type="button"
@@ -719,7 +750,7 @@ export default function Dashboard() {
                 <p className="text-xs text-neutral-600 dark:text-neutral-400 mt-0.5 font-medium flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-[#1F7A5A] dark:bg-[#4CC38A] shrink-0" />
                   <span>
-                    Level {level} • {xp} / {nextLevelXp} XP
+                    Level {level} • {xp} / {nextLevelXp} XP • {plan.dailyCalories} kcal target
                   </span>
                 </p>
               </div>
@@ -743,6 +774,7 @@ export default function Dashboard() {
           <div className="lg:hidden space-y-4">
             <WorkoutHeroCard />
             <StatsGrid />
+            <WeeklyScheduleCard />
             <GymCheckInCard />
             <CoachTipCard />
             <SmartToolsSection />

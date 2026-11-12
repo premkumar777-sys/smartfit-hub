@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { openCookiePreferencesModal } from "@/lib/cookieConsent";
 import { Container } from "@/components/Container";
 import { Mail, Phone, Instagram, Linkedin, MessageCircle, Youtube, Facebook } from "lucide-react";
 
@@ -95,6 +96,15 @@ export function Footer() {
                             <h3 className="font-semibold mb-4 text-sm uppercase tracking-wider text-primary">Legal</h3>
                             <ul className="space-y-2 text-sm">
                                 <li><Link to="/privacy" className="text-muted-foreground hover:text-foreground transition-colors">Privacy Policy</Link></li>
+                                <li>
+                                    <button
+                                        type="button"
+                                        onClick={openCookiePreferencesModal}
+                                        className="text-muted-foreground hover:text-foreground transition-colors text-left cursor-pointer"
+                                    >
+                                        Cookie Preferences
+                                    </button>
+                                </li>
                                 <li><Link to="/terms" className="text-muted-foreground hover:text-foreground transition-colors">Terms of Service</Link></li>
                                 <li><Link to="/shipping" className="text-muted-foreground hover:text-foreground transition-colors">Shipping Policy</Link></li>
                                 <li><Link to="/refund" className="text-muted-foreground hover:text-foreground transition-colors">Refund Policy</Link></li>

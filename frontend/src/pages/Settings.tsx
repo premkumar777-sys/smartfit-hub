@@ -14,7 +14,10 @@ import {
   Loader2,
   X,
   Lock,
+  Cookie,
+  ShieldCheck,
 } from "lucide-react";
+import { openCookiePreferencesModal } from "@/lib/cookieConsent";
 import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
@@ -517,6 +520,44 @@ export default function Settings() {
                 <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
                   Last updated 3 months ago
                 </p>
+              </div>
+              <ChevronRight className="w-4 h-4 text-neutral-400 shrink-0 ml-2" />
+            </button>
+          </div>
+        </section>
+
+        {/* ── SECTION: Privacy & Cookies ── */}
+        <section className="mb-5">
+          <div className="flex items-center justify-between mb-2 px-1">
+            <h2 className="text-sm font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
+              Privacy &amp; Cookies
+            </h2>
+            <span className="text-[11px] font-semibold text-emerald-600 dark:text-[#00FF9C] flex items-center gap-1">
+              <ShieldCheck className="w-3.5 h-3.5" /> Backend Synced
+            </span>
+          </div>
+          <div className="bg-white dark:bg-[#181D1A] rounded-2xl border border-emerald-950/5 dark:border-neutral-800 shadow-xs divide-y divide-neutral-100 dark:divide-neutral-800/70 overflow-hidden">
+            {/* Cookie Preferences Trigger */}
+            <button
+              type="button"
+              onClick={openCookiePreferencesModal}
+              className="w-full flex items-center justify-between p-4 min-h-[64px] text-left hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30 active:bg-neutral-100/60 transition-colors cursor-pointer"
+            >
+              <div className="flex items-center gap-3 min-w-0 pr-2">
+                <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/50 flex items-center justify-center shrink-0">
+                  <Cookie className="w-4.5 h-4.5 text-emerald-600 dark:text-[#00FF9C]" />
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="font-semibold text-sm leading-snug">Cookie &amp; Tracking Settings</p>
+                    <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400">
+                      Live
+                    </span>
+                  </div>
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5 leading-tight">
+                    Manage AI personalization, analytics telemetry &amp; real storage keys
+                  </p>
+                </div>
               </div>
               <ChevronRight className="w-4 h-4 text-neutral-400 shrink-0 ml-2" />
             </button>
