@@ -159,24 +159,8 @@ export default function Dashboard() {
       <div className="bg-white dark:bg-[#181D1A] rounded-3xl p-4 sm:p-6 shadow-xs border border-emerald-950/5 dark:border-neutral-800 space-y-3.5">
         {/* Card Top Row */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-neutral-500 dark:text-neutral-400">
-              {isRest ? "Today: Active Recovery" : "Today's workout"}
-            </span>
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#00FF9C]/15 text-[#0D3B29] dark:text-[#00FF9C]">
-              {plan.primaryGoalTitle}
-            </span>
-          </div>
-
-          <span
-            className={cn(
-              "px-2.5 py-0.5 rounded-full text-[11px] font-semibold",
-              isRest
-                ? "bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300"
-                : "bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A]"
-            )}
-          >
-            {isRest ? "Rest & Mobility" : "Scheduled"}
+          <span className="text-xs font-semibold text-neutral-500 dark:text-neutral-400">
+            {isRest ? "Today: Active Recovery" : "Today's workout"}
           </span>
         </div>
 
@@ -376,32 +360,6 @@ export default function Dashboard() {
     </div>
   );
 
-  // ─────────────────────────────────────────────────────────────
-  // Reusable Component: Coach Tip Card
-  // ─────────────────────────────────────────────────────────────
-  const CoachTipCard = () => (
-    <div className="rounded-2xl p-4.5 bg-[#EAF5EE] dark:bg-[#17221C] border border-[#D5EEDB] dark:border-[#24352B]">
-      <div className="flex items-center gap-2">
-        <Bot className="w-4 h-4 text-[#1F7A5A] dark:text-[#4CC38A]" />
-        <span className="text-xs font-bold text-[#1F7A5A] dark:text-[#4CC38A]">
-          AI Coach Tip · {plan.primaryGoalTitle}
-        </span>
-      </div>
-
-      <p className="text-xs leading-relaxed text-neutral-700 dark:text-neutral-300 mt-2">
-        {plan.goalSummary}
-      </p>
-
-      <button
-        type="button"
-        onClick={() => navigate("/ai-trainer")}
-        className="text-xs font-bold text-[#1F7A5A] dark:text-[#4CC38A] flex items-center gap-1 mt-3 hover:underline cursor-pointer"
-      >
-        <span>Ask SmartFit AI Coach</span>
-        <ArrowRight className="w-3.5 h-3.5" />
-      </button>
-    </div>
-  );
 
   // ─────────────────────────────────────────────────────────────
   // Reusable Component: Weekly Schedule Strip
@@ -649,9 +607,6 @@ export default function Dashboard() {
                 {greeting}, {firstName}
               </h1>
               <span className="text-2xl">👋</span>
-              <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#00FF9C]/15 border border-[#00FF9C]/30 text-[#0D3B29] dark:text-[#00FF9C]">
-                {plan.primaryGoalTitle}
-              </span>
             </div>
             <div className="flex items-center gap-3 mt-1.5 text-xs text-neutral-500 dark:text-neutral-400 font-medium">
               <span className="px-2.5 py-0.5 rounded-full font-bold bg-[#EAF5EE] dark:bg-[#1E2D24] text-[#1F7A5A] dark:text-[#4CC38A]">
@@ -733,9 +688,6 @@ export default function Dashboard() {
                 <h1 className="text-xl font-bold tracking-tight text-neutral-900 dark:text-neutral-50">
                   Today
                 </h1>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#00FF9C]/15 border border-[#00FF9C]/25 text-[#0D3B29] dark:text-[#00FF9C]">
-                  {plan.primaryGoalTitle}
-                </span>
               </div>
 
               <button
@@ -782,7 +734,6 @@ export default function Dashboard() {
             <StatsGrid />
             <WeeklyScheduleCard />
             <GymCheckInCard />
-            <CoachTipCard />
             <SmartToolsSection />
           </div>
 
@@ -799,7 +750,6 @@ export default function Dashboard() {
               <StatsGrid />
               <WeeklyScheduleCard />
               <GymCheckInCard />
-              <CoachTipCard />
             </div>
           </div>
         </div>
