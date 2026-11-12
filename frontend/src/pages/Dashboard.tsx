@@ -187,10 +187,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Workout Description & Target */}
-        <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-300 leading-relaxed">
-          {plan.todayWorkout.focus}
-        </p>
 
         {/* Hero Workout Image */}
         <div className="relative w-full h-40 sm:h-52 lg:h-64 rounded-2xl overflow-hidden shadow-2xs group">
