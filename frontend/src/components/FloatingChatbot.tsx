@@ -190,12 +190,13 @@ export const FloatingChatbot = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [isHomePage]);
 
-  // On the home screen hero, lift the chatbot cleanly above "Start Transformation" (14rem clearance)
-  // When scrolled down into the page, let it rest in the standard bottom corner
+  // On the home screen hero, lift the chatbot cleanly above the mobile CTA block
+  // (two buttons + trust row ≈ 17rem) so it never overlaps "See How It Works".
+  // When scrolled down into the page, let it rest in the standard bottom corner.
   const mobileBottomPosition = isHomePage
     ? (isScrolled
         ? "bottom-[calc(1.25rem+env(safe-area-inset-bottom,0px))]"
-        : "bottom-[calc(14rem+env(safe-area-inset-bottom,0px))]")
+        : "bottom-[calc(17rem+env(safe-area-inset-bottom,0px))]")
     : hasBottomNav
     ? "bottom-[calc(5rem+env(safe-area-inset-bottom,0px))]"
     : "bottom-[calc(1.25rem+env(safe-area-inset-bottom,0px))]";

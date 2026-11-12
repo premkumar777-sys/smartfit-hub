@@ -57,6 +57,31 @@ serve(async (req) => {
 
     messages.push({ role: "user", content: message || "Hello" });
 
+    // Query Groq models dynamically so we always use an active model for this key
+    let selectedModel = Deno.env.get("GROQ_MODEL") || "llama-3.3-70b-versatile";
+    try {
+      const modelsRes = await fetch("https://api.groq.com/openai/v1/models", {
+        headers: { Authorization: `Bearer ${GROQ_API_KEY}` },
+      });
+      if (modelsRes.ok) {
+        const modelsJson = await modelsRes.json();
+        const availableModels: string[] = (modelsJson.data || []).map((m: { id: string }) => m.id);
+        if (availableModels.length > 0 && !availableModels.includes(selectedModel)) {
+          const preferred =
+            availableModels.find((id) => id.includes("llama-3.3") || id.includes("llama3") || id.includes("70b")) ||
+            availableModels.find((id) => (id.includes("llama") || id.includes("mixtral") || id.includes("qwen") || id.includes("gpt")) && !id.includes("guard") && !id.includes("whisper")) ||
+            availableModels.find((id) => !id.includes("whisper") && !id.includes("guard")) ||
+            availableModels[0];
+          if (preferred) {
+            console.log(`Auto-selected model from ${selectedModel} to ${preferred}`);
+            selectedModel = preferred;
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("Could not query Groq models list:", e);
+    }
+
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -64,7 +89,7 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
+        model: selectedModel,
         messages,
         stream: true,
         max_tokens: 500,
