@@ -712,7 +712,7 @@ export default function AITrainer() {
     return (
         <div
             className="min-h-screen pb-28 lg:py-12 bg-[#0a0b0e] relative text-white"
-            style={{ paddingTop: "calc(var(--header-height, 80px) + 1.5rem)" }}
+            style={{ paddingTop: "calc(var(--header-height, 68px) + 0.5rem)" }}
         >
             <div className="absolute inset-0 bg-gradient-to-b from-[#22CC66]/5 via-transparent to-transparent pointer-events-none" />
 
@@ -720,9 +720,9 @@ export default function AITrainer() {
                 {/* Navigation Back */}
                 <Link
                     to="/"
-                    className="inline-flex items-center text-sm text-gray-400 hover:text-white mb-4 transition-colors"
+                    className="inline-flex items-center text-xs sm:text-sm text-gray-400 hover:text-white mb-2 sm:mb-4 transition-colors py-1"
                 >
-                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5" />
                     Back to Home
                 </Link>
 
