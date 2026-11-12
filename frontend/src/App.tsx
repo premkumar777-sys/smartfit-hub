@@ -96,7 +96,7 @@ const AppContent = () => {
   const isAITrainerPage = location.pathname === "/ai-trainer";
   const hideLayout = isAuthPage || isWorkoutSessionPage || isOnboardingPage;
   const hideHeader = hideLayout || isSettingsPage || isProfilePage || isTodayPage;
-  const hideFooter = hideLayout || isSettingsPage || isProfilePage || isTodayPage;
+  const hideFooter = hideLayout || isSettingsPage || isProfilePage || isTodayPage || isAITrainerPage;
   const hideChatbot = hideLayout || isSettingsPage || isAITrainerPage;
 
   const isConfigMissing = !import.meta.env.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL === 'https://placeholder.supabase.co';

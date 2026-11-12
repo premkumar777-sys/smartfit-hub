@@ -31,6 +31,7 @@ import {
 import { streamChat } from "@/lib/streamChat";
 import { toast } from "sonner";
 import { useGamification } from "@/hooks/useGamification";
+import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import * as poseDetection from "@tensorflow-models/pose-detection";
@@ -142,6 +143,7 @@ const formatMessageContent = (text: string) => {
 
 export default function AITrainer() {
     const navigate = useNavigate();
+    const { isAuthenticated } = useAuth();
     const [activeTab, setActiveTab] = useState<"chat" | "form" | "workout" | "macros">("chat");
 
     // Chat state
@@ -710,23 +712,28 @@ export default function AITrainer() {
     const carbs = Math.round((calories - (protein * 4 + fats * 9)) / 4);
 
     return (
-        <div className="min-h-screen pb-28 pt-20 sm:pt-24 lg:pt-32 bg-[#0a0b0e] relative text-white">
+        <div
+            className="h-[100dvh] flex flex-col bg-[#0a0b0e] relative text-white overflow-hidden"
+            style={{ paddingTop: "calc(var(--header-height, 80px) + 0.5rem)" }}
+        >
             <div className="absolute inset-0 bg-gradient-to-b from-[#22CC66]/5 via-transparent to-transparent pointer-events-none" />
 
-            <Container className="relative z-10 max-w-6xl mx-auto px-4">
+            <Container className={`relative z-10 flex-1 min-h-0 flex flex-col w-full max-w-5xl mx-auto px-3 sm:px-4 ${
+                isAuthenticated ? "pb-[70px] lg:pb-3" : "pb-3"
+            }`}>
                 {/* Navigation Back */}
-                <div className="mb-3">
+                <div className="mb-2 shrink-0">
                     <Link
                         to="/dashboard"
-                        className="inline-flex items-center text-xs sm:text-sm text-gray-400 hover:text-white transition-colors py-1 px-2 rounded-lg hover:bg-white/5"
+                        className="inline-flex items-center text-xs text-gray-400 hover:text-white transition-colors py-1 px-2 rounded-lg hover:bg-white/5"
                     >
-                        <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5" />
+                        <ArrowLeft className="w-3.5 h-3.5 mr-1.5" />
                         Back
                     </Link>
                 </div>
 
                 {/* Studio Mode Segmented Pill Bar (Compact & Clean) */}
-                <div className="flex items-center gap-1.5 p-1 bg-[#121318]/90 border border-white/10 rounded-2xl overflow-x-auto no-scrollbar mb-4 backdrop-blur-md">
+                <div className="flex items-center gap-1.5 p-1 bg-[#121318]/90 border border-white/10 rounded-xl overflow-x-auto no-scrollbar mb-2.5 backdrop-blur-md shrink-0">
                     {[
                         { id: "chat", label: "Coach Chat", icon: Bot },
                         { id: "form", label: "Pose & Form", icon: Camera },
@@ -758,19 +765,20 @@ export default function AITrainer() {
                     })}
                 </div>
 
-                {/* Studio Content Area */}
-                <AnimatePresence mode="wait">
-                    {/* TAB 1: AI Coach Chat */}
-                    {activeTab === "chat" && (
-                        <motion.div
-                            key="chat"
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
-                            className="flex flex-col h-[calc(100dvh-var(--header-height,80px)-160px)] min-h-[480px] max-h-[720px] bg-[#121318] border border-white/10 rounded-2xl overflow-hidden shadow-2xl"
-                        >
-                            {/* Quick Action Chips */}
-                            <div className="flex items-center gap-2 p-3 bg-white/[0.02] border-b border-white/10 overflow-x-auto scrollbar-none">
+                {/* Studio Content Area - Fills Full Remaining Height */}
+                <div className="flex-1 min-h-0 flex flex-col">
+                    <AnimatePresence mode="wait">
+                        {/* TAB 1: AI Coach Chat */}
+                        {activeTab === "chat" && (
+                            <motion.div
+                                key="chat"
+                                initial={{ opacity: 0, y: 6 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -6 }}
+                                className="flex-1 min-h-0 flex flex-col bg-[#121318] border border-white/10 rounded-2xl overflow-hidden shadow-2xl"
+                            >
+                                {/* Quick Action Chips */}
+                                <div className="flex items-center gap-2 p-2.5 bg-white/[0.02] border-b border-white/10 overflow-x-auto scrollbar-none shrink-0">
                                 <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider shrink-0 mr-1 flex items-center gap-1">
                                     <Zap className="w-3 h-3 text-[#22CC66]" /> Topics:
                                 </span>
@@ -874,10 +882,10 @@ export default function AITrainer() {
                     {activeTab === "form" && (
                         <motion.div
                             key="form"
-                            initial={{ opacity: 0, y: 10 }}
+                            initial={{ opacity: 0, y: 6 }}
                             animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
-                            className="bg-[#121318] border border-white/10 rounded-2xl p-6 shadow-2xl space-y-6"
+                            exit={{ opacity: 0, y: -6 }}
+                            className="flex-1 min-h-0 overflow-y-auto custom-scrollbar bg-[#121318] border border-white/10 rounded-2xl p-4 sm:p-6 shadow-2xl space-y-6"
                         >
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
                                 <div>
@@ -1024,10 +1032,10 @@ export default function AITrainer() {
                     {activeTab === "workout" && (
                         <motion.div
                             key="workout"
-                            initial={{ opacity: 0, y: 10 }}
+                            initial={{ opacity: 0, y: 6 }}
                             animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
-                            className="bg-[#121318] border border-white/10 rounded-2xl p-6 shadow-2xl space-y-6"
+                            exit={{ opacity: 0, y: -6 }}
+                            className="flex-1 min-h-0 overflow-y-auto custom-scrollbar bg-[#121318] border border-white/10 rounded-2xl p-4 sm:p-6 shadow-2xl space-y-6"
                         >
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
                                 <div>
@@ -1117,10 +1125,10 @@ export default function AITrainer() {
                     {activeTab === "macros" && (
                         <motion.div
                             key="macros"
-                            initial={{ opacity: 0, y: 10 }}
+                            initial={{ opacity: 0, y: 6 }}
                             animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
-                            className="bg-[#121318] border border-white/10 rounded-2xl p-6 shadow-2xl space-y-6"
+                            exit={{ opacity: 0, y: -6 }}
+                            className="flex-1 min-h-0 overflow-y-auto custom-scrollbar bg-[#121318] border border-white/10 rounded-2xl p-4 sm:p-6 shadow-2xl space-y-6"
                         >
                             <div className="border-b border-white/10 pb-4">
                                 <h3 className="text-lg font-bold text-white flex items-center gap-2">
@@ -1222,7 +1230,8 @@ export default function AITrainer() {
                             </div>
                         </motion.div>
                     )}
-                </AnimatePresence>
+                    </AnimatePresence>
+                </div>
             </Container>
         </div>
     );
