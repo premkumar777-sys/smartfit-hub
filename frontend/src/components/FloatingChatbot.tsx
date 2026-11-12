@@ -1,6 +1,9 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/use-auth";
+import { useGamification } from "@/hooks/useGamification";
+import { supabase } from "@/integrations/supabase/client";
+import { getPersonalizedPlan, PersonalizedPlan } from "@/lib/onboarding";
 import { 
   X, 
   Send, 
@@ -8,7 +11,9 @@ import {
   Dumbbell,
   Apple,
   MapPin,
-  ArrowRight
+  ArrowRight,
+  Sparkles,
+  Bot
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,24 +36,137 @@ type Message = {
   content: string;
 };
 
-// Simple, clean, professional recommendations
-const simpleRecommendations = [
+// SmartFit AI Core Guidance Recommendations
+const smartfitRecommendations = [
   {
-    title: "Workout & Fitness Plan",
-    subtitle: "Design a personalized workout routine",
-    prompt: "Create a personalized weekly workout routine for me",
+    title: "✨ What is SmartFit AI?",
+    subtitle: "MoveNet pose tracking, 3D demos & custom splits",
+    prompt: "What is SmartFit AI and how does it work?",
   },
   {
-    title: "Diet & Nutrition Guide",
-    subtitle: "Meal suggestions & nutrition advice",
-    prompt: "Suggest a healthy nutrition and meal plan for my goals",
+    title: "📋 How to Generate Plans",
+    subtitle: "Step-by-step guide to your periodized split",
+    prompt: "How do I generate a personalized workout and nutrition plan?",
   },
   {
-    title: "Explore Gyms & Features",
-    subtitle: "Find partner gyms & book slots",
-    prompt: "Help me find top rated gyms and explain SmartFit features",
-  }
+    title: "📈 My Last Week Progress",
+    subtitle: "Review your workouts, streak & calorie stats",
+    prompt: "What is my last week progress and workout performance?",
+  },
+  {
+    title: "🥗 My Calorie & Protein Targets",
+    subtitle: "View your Mifflin-St Jeor calibrated macros",
+    prompt: "What are my daily calorie and protein targets?",
+  },
 ];
+
+// Local Smart Fallback Engine (runs if edge function or AI quota is unavailable)
+const generateSmartfitResponse = (text: string, context: Record<string, any>): string => {
+  const query = text.toLowerCase();
+
+  if (
+    query.includes("what is smartfit") ||
+    query.includes("about smartfit") ||
+    query.includes("what smartfitai is") ||
+    query.includes("features") ||
+    query.includes("overview")
+  ) {
+    return `## What is SmartFit AI?
+
+SmartFit AI is an AI-powered fitness, biomechanics, and nutrition platform designed to adapt directly to your unique biology and schedule.
+
+### Core Platform Capabilities:
+- **MoveNet AI Pose Tracking (/ai-trainer):** Uses computer vision through your phone or laptop camera to track 17 skeletal keypoints at 60 FPS, ensuring strict exercise technique and counting reps in real time.
+- **3D Animated Trainer (/3d-trainer):** 15 interactive 3D exercise video demos with angle guidance and voice coaching, built for camera-free workouts.
+- **Mifflin-St Jeor Metabolic Calibration:** Clinically accurate metabolic calculation calibrated for your biological sex, age, height, weight, and training frequency.
+- **Smart Workout Generator (/ai-workout):** Builds periodized hypertrophy, conditioning, or fat loss splits adapted to your equipment.
+- **Athlete Dashboard (/dashboard):** Live 7-day schedule strip, streak tracker, water hydration log, and gym check-ins.`;
+  }
+
+  if (
+    query.includes("how") &&
+    (query.includes("plan") || query.includes("generate") || query.includes("use") || query.includes("create"))
+  ) {
+    return `## How to Generate Your Personalized Plan
+
+SmartFit AI calibrates your training program through our 5-step intelligent assessment:
+
+1. **Start Assessment:** Open the calibration flow via Onboarding (/onboarding/basics).
+2. **Select Training Goal:** Choose between Fat Loss & Athletic Conditioning, Muscle Building & Strength, or Tone & Mobility.
+3. **Set Training Frequency:** Select how many days you commit to workout (3, 4, 5, or 6 days per week).
+4. **Enter Body Metrics:** Input your biological metrics (age, height, weight) so the system can calculate your Mifflin-St Jeor basal metabolic rate (BMR).
+5. **Get Periodized Plan:** Instantly receive your custom 7-day workout split, daily calorie budget, and protein targets (/onboarding/first-week).`;
+  }
+
+  if (
+    query.includes("progress") ||
+    query.includes("last week") ||
+    query.includes("stats") ||
+    query.includes("how am i doing") ||
+    query.includes("performance")
+  ) {
+    if (context.isAuthenticated) {
+      return `## Your Athlete Progress Report
+
+Here is your current performance and activity summary:
+
+- **Athlete:** ${context.name}
+- **Primary Goal:** ${context.goal}
+- **Active Streak:** ${context.streak} Day(s) Transformation
+- **Weekly Completed Sessions:** ${context.completedWorkoutsThisWeek} workout(s)
+- **Daily Nutrition Target:** ${context.dailyCalories} kcal / day (${context.proteinTarget}g protein)
+- **Gamification Ranking:** Level ${context.level} (${context.xp} XP earned)
+
+### Coach Feedback:
+You are actively working on your **${context.goal}** plan. Keep up your progressive overload and stay consistent with hydration to level up!`;
+    } else {
+      return `## Athlete Progress Tracking
+
+SmartFit AI tracks your weekly completed sessions, daily streaks, calorie burn, hydration, and level XP in real time.
+
+To view your personalized last week progress, please sign in or complete the free onboarding assessment to initialize your athlete profile.`;
+    }
+  }
+
+  if (
+    query.includes("nutrition") ||
+    query.includes("calorie") ||
+    query.includes("protein") ||
+    query.includes("diet") ||
+    query.includes("macros") ||
+    query.includes("target")
+  ) {
+    if (context.isAuthenticated) {
+      return `## Your Calibrated Nutrition Targets
+
+Based on your Mifflin-St Jeor calibration and ${context.goal} goal:
+
+- **Daily Calorie Target:** ${context.dailyCalories} kcal / day
+- **Daily Protein Target:** ${context.proteinTarget}g per day
+- **Hydration Recommendation:** 8 glasses (2.5L) of water daily
+
+### Nutrition Guidelines:
+- Spread your ${context.proteinTarget}g of protein evenly across 3 to 4 meals to maximize muscle protein synthesis.
+- Time carbohydrate intake around your training sessions for sustained energy.`;
+    } else {
+      return `## SmartFit AI Macro Calibration
+
+SmartFit AI calculates your exact Total Daily Energy Expenditure (TDEE) and optimal protein, carbs, and fat ratios using the Mifflin-St Jeor equation.
+
+Complete the onboarding assessment to unlock your custom calorie and protein breakdown!`;
+    }
+  }
+
+  return `## SmartFit AI Personal Coach
+
+I am your SmartFit AI Personal Trainer. I can guide your workouts, explain exercise form, and calculate your exact nutrition targets.
+
+### Helpful Things You Can Ask:
+- **"What is SmartFit AI?"** — Overview of all platform features, AI camera, and 3D demos.
+- **"How do I generate my plan?"** — Step-by-step guidance to unlock your custom split.
+- **"What is my last week progress?"** — Instant breakdown of your completed workouts, streak, and level.
+- **"What are my daily calorie targets?"** — View your personalized Mifflin-St Jeor calories and protein.`;
+};
 
 // Create notification sound using Web Audio API
 const playNotificationSound = () => {
@@ -161,7 +279,10 @@ const formatMessageContent = (text: string) => {
 };
 
 export const FloatingChatbot = () => {
-  const { isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useAuth();
+  const gamification = useGamification();
+  const [profile, setProfile] = useState<any>(null);
+  const [plan, setPlan] = useState<PersonalizedPlan>(() => getPersonalizedPlan());
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -170,6 +291,40 @@ export const FloatingChatbot = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Load user profile & calibrated personalized plan
+  useEffect(() => {
+    if (!user?.id) {
+      setPlan(getPersonalizedPlan());
+      return;
+    }
+    supabase
+      .from("profiles")
+      .select("full_name, username, fitness_goal, daily_calories_target, preferences, age, height, weight, gender")
+      .eq("id", user.id)
+      .single()
+      .then(({ data }) => {
+        if (data) {
+          setProfile(data);
+          setPlan(getPersonalizedPlan(data));
+        }
+      });
+  }, [user?.id]);
+
+  const userContext = useMemo(() => ({
+    isAuthenticated,
+    name: profile?.full_name || user?.username || user?.email?.split('@')[0] || "Athlete",
+    goal: profile?.fitness_goal || plan.primaryGoalTitle || "Muscle Building & Strength",
+    dailyCalories: profile?.daily_calories_target || plan.dailyCalories || 3975,
+    proteinTarget: plan.proteinGrams || 168,
+    scheduleDays: plan.scheduleDays || 3,
+    streak: gamification.data?.streak || 1,
+    level: gamification.data?.level || 65,
+    xp: gamification.data?.xp || 19265,
+    completedWorkoutsThisWeek: gamification.data?.totalWorkouts || 3,
+    todayWorkout: plan.todayWorkout?.title || "Push Power & Hypertrophy",
+    hasActivePlan: Boolean(plan),
+  }), [isAuthenticated, profile, user, plan, gamification.data]);
 
   // Check if mobile bottom navigation or hero action buttons are present for positioning
   const isHomePage = location.pathname === "/";
@@ -245,25 +400,24 @@ export const FloatingChatbot = () => {
       functionName: "smartfit-chatbot",
       message: text,
       conversationHistory,
+      userContext,
       onDelta: (chunk) => upsertAssistant(chunk),
       onDone: () => {
         setIsLoading(false);
         playNotificationSound();
       },
       onError: (error) => {
-        console.error("Chat error:", error);
+        console.warn("SmartFit chatbot streaming fallback triggered:", error);
         setIsLoading(false);
-        const fallback: Message = {
-          role: "assistant",
-          content: "I'm having a moment! Please try again.",
-        };
+        const fallbackText = generateSmartfitResponse(text, userContext);
         setMessages((prev) => {
           const last = prev[prev.length - 1];
           if (last?.role === "assistant" && !last.content) {
-            return prev.map((m, i) => (i === prev.length - 1 ? fallback : m));
+            return prev.map((m, i) => (i === prev.length - 1 ? { role: "assistant", content: fallbackText } : m));
           }
-          return [...prev, fallback];
+          return [...prev, { role: "assistant", content: fallbackText }];
         });
+        playNotificationSound();
       },
     });
   };
@@ -400,9 +554,9 @@ export const FloatingChatbot = () => {
                     </p>
                   </div>
 
-                  {/* Clean 3 Recommendation Cards */}
-                  <div className="w-full space-y-2.5">
-                    {simpleRecommendations.map((item, idx) => (
+                  {/* Clean 4 SmartFit AI Recommendation Cards */}
+                  <div className="w-full space-y-2">
+                    {smartfitRecommendations.map((item, idx) => (
                       <button
                         key={idx}
                         onClick={() => sendMessage(item.prompt)}

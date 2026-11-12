@@ -4,6 +4,7 @@ type StreamChatOptions = {
   functionName: string;
   message: string;
   conversationHistory: { role: string; content: string }[];
+  userContext?: Record<string, any>;
   onDelta: (text: string) => void;
   onDone: () => void;
   onError: (error: Error) => void;
@@ -13,6 +14,7 @@ export async function streamChat({
   functionName,
   message,
   conversationHistory,
+  userContext,
   onDelta,
   onDone,
   onError,
@@ -30,7 +32,7 @@ export async function streamChat({
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ message, conversationHistory }),
+      body: JSON.stringify({ message, conversationHistory, userContext }),
     });
 
     if (!resp.ok) {
