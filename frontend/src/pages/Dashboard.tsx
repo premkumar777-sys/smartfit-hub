@@ -233,6 +233,58 @@ export default function Dashboard() {
   };
 
   // ─────────────────────────────────────────────────────────────
+  // Reusable Component: 3D Trainer Hero Card (Plan B)
+  // ─────────────────────────────────────────────────────────────
+  const Virtual3DTrainerCard = () => (
+    <div className="relative rounded-2xl p-4 sm:p-5 bg-gradient-to-br from-[#121614] to-[#18221c] border border-[#00FF9C]/25 shadow-lg shadow-emerald-950/20 overflow-hidden group">
+      {/* Background glow */}
+      <div className="absolute -right-12 -top-12 w-44 h-44 rounded-full bg-[#00FF9C]/10 blur-3xl pointer-events-none group-hover:bg-[#00FF9C]/20 transition-all duration-700" />
+
+      <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="space-y-1.5 flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-[#00FF9C]/20 text-[#00FF9C] border border-[#00FF9C]/30 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#00FF9C] animate-pulse" />
+              Interactive 3D Coach
+            </span>
+            <span className="text-[11px] font-bold text-white/50">15 Video Demos</span>
+          </div>
+
+          <h3 className="text-base sm:text-lg font-extrabold text-white tracking-tight flex items-center gap-2">
+            <span>3D Trainer &amp; Form Vault</span>
+            <Sparkles className="w-4 h-4 text-[#00FF9C]" />
+          </h3>
+
+          <p className="text-xs text-white/70 leading-relaxed max-w-xl">
+            Camera-free workout mode with animated 3D demonstrations, rep tempo intervals, joint angle guidance, and real-time voice coaching.
+          </p>
+
+          {/* Quick Exercise Chips */}
+          <div className="flex flex-wrap items-center gap-1.5 pt-1.5">
+            {["Squats", "Push-ups", "Bicep Curls", "Lat Pulls", "Shoulder Press", "+10 more"].map((pill) => (
+              <span
+                key={pill}
+                className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-white/5 border border-white/10 text-white/80"
+              >
+                {pill}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => navigate("/3d-trainer")}
+          className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#00FF9C] hover:bg-[#00e58a] text-black font-extrabold text-xs sm:text-sm active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-[0_0_20px_rgba(0,255,156,0.25)] shrink-0"
+        >
+          <span>Launch 3D Trainer</span>
+          <ArrowRight className="w-4 h-4 text-black" />
+        </button>
+      </div>
+    </div>
+  );
+
+  // ─────────────────────────────────────────────────────────────
   // Reusable Component: 2x2 Stats Grid
   // ─────────────────────────────────────────────────────────────
   const StatsGrid = () => (
@@ -711,6 +763,7 @@ export default function Dashboard() {
           <div className="lg:hidden space-y-4">
             <NotificationOptInCard userId={authUser?.id} userName={firstName} />
             <WorkoutHeroCard />
+            <Virtual3DTrainerCard />
             <StatsGrid />
             <WeeklyScheduleCard />
             <GymCheckInCard />
@@ -719,10 +772,11 @@ export default function Dashboard() {
 
           {/* ── Desktop Layout (2-Column Grid) ── */}
           <div className="hidden lg:grid lg:grid-cols-12 lg:gap-8 items-start">
-            {/* Left Column (Main Focus: Workout Hero + Smart AI Tools) */}
-            <div className="lg:col-span-7 xl:col-span-8 space-y-8">
+            {/* Left Column (Main Focus: Workout Hero + 3D Virtual Coach + Smart AI Tools) */}
+            <div className="lg:col-span-7 xl:col-span-8 space-y-6">
               <NotificationOptInCard userId={authUser?.id} userName={firstName} />
               <WorkoutHeroCard />
+              <Virtual3DTrainerCard />
               <SmartToolsSection />
             </div>
 

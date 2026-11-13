@@ -21,6 +21,9 @@ import {
     Waves,
     Footprints,
     Sparkles,
+    Video,
+    Volume2,
+    VolumeX,
 } from "lucide-react";
 import { WorkoutSummaryLogModal } from "@/components/WorkoutSummaryLogModal";
 import { WorkoutSummaryData } from "@/components/WorkoutSummaryCard";
@@ -183,6 +186,19 @@ const EXERCISES: ExerciseConfig[] = [
     },
 ];
 
+// ─── 3D Demonstration Videos Mapping (Plan A) ───────────
+const EXERCISE_3D_VIDEOS: Record<string, { videoFile: string; name: string }> = {
+    squat: { videoFile: "/squat.mp4", name: "Squats" },
+    pushup: { videoFile: "/pushup.mp4", name: "Push-ups" },
+    bicepCurl: { videoFile: "/bicep.mp4", name: "Bicep Curls" },
+    lunge: { videoFile: "/Leg Press.mp4", name: "Lunges & Leg Drive" },
+    shoulderPress: { videoFile: "/shoulderpress.mp4", name: "Shoulder Press" },
+    tricepExtension: { videoFile: "/overheadtriceps.mp4", name: "Overhead Tricep Extension" },
+    lateralRaise: { videoFile: "/TotalShoulder.mp4", name: "Lateral Raise & Delts" },
+    romanianDeadlift: { videoFile: "/Back Relaxing.mp4", name: "Hinge & Back Alignment" },
+    jumpingJack: { videoFile: "/UpperBody.mp4", name: "Full Body Dynamic Motion" },
+};
+
 // ─── Angle Utility ─────────────────────────────────────
 function calculateAngle(
     a: { x: number; y: number },
@@ -222,6 +238,8 @@ const WorkoutSession = () => {
     const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
     const [isLogModalOpen, setIsLogModalOpen] = useState(false);
     const [prefilledData, setPrefilledData] = useState<Partial<WorkoutSummaryData>>({});
+    const [show3dPiP, setShow3dPiP] = useState(false);
+    const [is3dMuted, setIs3dMuted] = useState(true);
 
     // Refs
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -940,6 +958,20 @@ const WorkoutSession = () => {
                                 >
                                     <Camera className="w-4 h-4 mr-2" /> Start AI Form Check
                                 </Button>
+
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => setShow3dPiP((prev) => !prev)}
+                                    className={`font-bold text-xs rounded-xl px-4 py-3 border transition-all cursor-pointer flex items-center gap-2 ${
+                                        show3dPiP
+                                            ? "bg-[#00FF9C]/20 border-[#00FF9C] text-[#00FF9C] shadow-[0_0_15px_rgba(0,255,156,0.3)]"
+                                            : "border-border bg-card/60 hover:bg-card text-foreground"
+                                    }`}
+                                >
+                                    <Video className="w-4 h-4 text-[#00FF9C]" />
+                                    <span>{show3dPiP ? "Hide 3D Demo" : "3D Form Demo"}</span>
+                                </Button>
                             </div>
                         </div>
                     </motion.div>
@@ -947,7 +979,7 @@ const WorkoutSession = () => {
 
                 {/* Main Content */}
                 <div className="grid lg:grid-cols-3 gap-6">
-                    {/* Camera Feed */}
+                    {/* Camera Feed / 3D Trainer Viewport */}
                     <div ref={cameraRef} className="lg:col-span-2">
                         <div className="relative rounded-2xl overflow-hidden bg-black/90 border border-border aspect-video">
                             {/* Video (hidden, used as source) */}
@@ -964,44 +996,118 @@ const WorkoutSession = () => {
                                 className={`w-full h-full object-contain ${isCameraOn ? "block" : "hidden"}`}
                             />
 
-                            {/* Placeholder when camera is off */}
+                            {/* 3D Animated Trainer View when camera is off */}
                             {!isCameraOn && (
-                                <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
+                                <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#090D0B] overflow-hidden">
                                     {isModelLoading ? (
-                                        <>
-                                            <div className="w-16 h-16 rounded-full border-4 border-primary border-t-transparent animate-spin" />
-                                            <p className="text-muted-foreground">Loading AI model...</p>
-                                        </>
+                                        <div className="flex flex-col items-center gap-3">
+                                            <div className="w-12 h-12 rounded-full border-3 border-[#00FF9C] border-t-transparent animate-spin" />
+                                            <p className="text-xs text-muted-foreground font-semibold">Loading AI Pose Model...</p>
+                                        </div>
                                     ) : cameraError ? (
-                                        <>
-                                            <AlertTriangle className="w-12 h-12 text-yellow-500" />
-                                            <p className="text-muted-foreground text-center max-w-sm px-4">
-                                                {cameraError}
-                                            </p>
-                                            <Button onClick={startCamera} variant="outline">
-                                                Try Again
+                                        <div className="flex flex-col items-center gap-3 p-6 text-center">
+                                            <AlertTriangle className="w-10 h-10 text-yellow-500" />
+                                            <p className="text-xs text-muted-foreground max-w-sm">{cameraError}</p>
+                                            <Button onClick={startCamera} variant="outline" className="text-xs">
+                                                Try Camera Again
                                             </Button>
-                                        </>
+                                        </div>
                                     ) : (
-                                        <>
-                                            <div className="p-6 rounded-full bg-primary/10">
-                                                <Camera className="w-12 h-12 text-primary" />
+                                        <div className="relative w-full h-full flex flex-col items-center justify-center group">
+                                            {/* 3D Animated Video Loop */}
+                                            <video
+                                                key={selectedExercise || "squat"}
+                                                src={EXERCISE_3D_VIDEOS[selectedExercise || "squat"]?.videoFile || "/squat.mp4"}
+                                                autoPlay
+                                                loop
+                                                muted={is3dMuted}
+                                                playsInline
+                                                className="w-full h-full object-contain"
+                                            />
+
+                                            {/* Top Banner on 3D Demo */}
+                                            <div className="absolute top-3 inset-x-3 flex items-center justify-between pointer-events-none">
+                                                <span className="px-2.5 py-1 rounded-lg bg-black/80 backdrop-blur-md border border-[#00FF9C]/30 text-[11px] font-bold text-[#00FF9C] flex items-center gap-1.5 shadow-md">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-[#00FF9C] animate-pulse" />
+                                                    3D Trainer: {EXERCISE_3D_VIDEOS[selectedExercise || "squat"]?.name || "Squats"}
+                                                </span>
+
+                                                <div className="flex items-center gap-2 pointer-events-auto">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setIs3dMuted(!is3dMuted)}
+                                                        className="p-2 rounded-lg bg-black/70 hover:bg-black border border-white/10 text-white text-xs transition-colors cursor-pointer"
+                                                        title={is3dMuted ? "Unmute video" : "Mute video"}
+                                                    >
+                                                        {is3dMuted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5 text-[#00FF9C]" />}
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => navigate("/3d-trainer")}
+                                                        className="px-2.5 py-1 rounded-lg bg-black/70 hover:bg-black border border-white/10 text-white/90 text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                                                    >
+                                                        <span>Full 3D Mode</span>
+                                                        <ChevronRight className="w-3.5 h-3.5" />
+                                                    </button>
+                                                </div>
                                             </div>
-                                            <div className="text-center">
-                                                <p className="text-lg font-medium text-white mb-1">
-                                                    {selectedExercise
-                                                        ? "Ready to start"
-                                                        : "Select an exercise first"}
-                                                </p>
-                                                <p className="text-sm text-muted-foreground">
-                                                    {selectedExercise
-                                                        ? "Click the button below to activate your camera"
-                                                        : "Choose an exercise from above to get started"}
-                                                </p>
+
+                                            {/* Bottom Prompt to activate AI camera */}
+                                            <div className="absolute bottom-3 inset-x-3 p-3 rounded-xl bg-black/80 backdrop-blur-md border border-white/10 flex flex-col sm:flex-row items-center justify-between gap-2.5">
+                                                <div className="text-left">
+                                                    <p className="text-xs font-bold text-white">Observing 3D Pro Form</p>
+                                                    <p className="text-[11px] text-white/60">Study the movement above, then activate camera for real-time rep counting.</p>
+                                                </div>
+                                                <Button
+                                                    onClick={startCamera}
+                                                    size="sm"
+                                                    className="bg-[#00FF9C] hover:bg-[#00e58a] text-black font-extrabold text-xs rounded-lg px-4 h-8 shrink-0 shadow-sm cursor-pointer"
+                                                >
+                                                    <Camera className="w-3.5 h-3.5 mr-1.5 text-black" />
+                                                    Start Camera Reps
+                                                </Button>
                                             </div>
-                                        </>
+                                        </div>
                                     )}
                                 </div>
+                            )}
+
+                            {/* Floating Picture-in-Picture (PiP) Window when Camera is ON */}
+                            {isCameraOn && show3dPiP && (
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                                    exit={{ opacity: 0, scale: 0.9, y: 10 }}
+                                    className="absolute bottom-4 right-4 z-20 w-44 sm:w-52 md:w-60 rounded-xl overflow-hidden border border-[#00FF9C]/40 bg-black/90 shadow-2xl backdrop-blur-md"
+                                >
+                                    <div className="px-2.5 py-1.5 bg-[#121614] border-b border-white/10 flex items-center justify-between">
+                                        <span className="text-[10px] font-bold text-[#00FF9C] flex items-center gap-1">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-[#00FF9C] animate-pulse" />
+                                            3D Form Guide
+                                        </span>
+                                        <button
+                                            type="button"
+                                            onClick={() => setShow3dPiP(false)}
+                                            className="text-white/60 hover:text-white text-xs cursor-pointer p-0.5"
+                                        >
+                                            ✕
+                                        </button>
+                                    </div>
+                                    <div className="relative aspect-video bg-black">
+                                        <video
+                                            key={selectedExercise || "squat"}
+                                            src={EXERCISE_3D_VIDEOS[selectedExercise || "squat"]?.videoFile || "/squat.mp4"}
+                                            autoPlay
+                                            loop
+                                            muted
+                                            playsInline
+                                            className="w-full h-full object-cover"
+                                        />
+                                    </div>
+                                    <div className="px-2 py-1 bg-black/80 text-[10px] text-white/70 text-center font-medium">
+                                        {EXERCISE_3D_VIDEOS[selectedExercise || "squat"]?.name || "Squats"}
+                                    </div>
+                                </motion.div>
                             )}
 
                             {/* Rep counter overlay */}
