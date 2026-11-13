@@ -117,28 +117,25 @@ export function MobileMenu({ className, onMenuToggle }: MobileMenuProps) {
             <div
               ref={menuRef}
               className={cn(
-                "fixed inset-y-0 right-0 z-[10001] w-full sm:max-w-[390px] bg-[#F0F8F4] text-neutral-900 overflow-y-auto flex flex-col shadow-2xl select-none",
+                "fixed inset-y-0 right-0 z-[10001] w-full sm:max-w-[390px] bg-[#080A0C] text-white border-l border-white/10 overflow-y-auto flex flex-col shadow-[0_0_50px_rgba(0,0,0,0.95)] select-none",
                 "animate-in slide-in-from-right duration-300 ease-out",
                 className
               )}
-              style={{
-                backgroundColor: "#F0F8F4",
-              }}
             >
               {/* ── Top Bar inside Drawer ── */}
-              <div className="flex items-center justify-between px-5 py-4 border-b border-emerald-950/10 shrink-0">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 shrink-0">
                 <div
                   onClick={() => handleLinkClick(isAuthenticated ? "/dashboard" : "/")}
                   className="flex items-center gap-3 cursor-pointer"
                 >
-                  <div className="w-10 h-10 rounded-2xl bg-[#0B3B24] flex items-center justify-center p-1.5 shadow-xs overflow-hidden">
+                  <div className="w-10 h-10 rounded-2xl bg-[#00FF9C]/10 border border-[#00FF9C]/25 flex items-center justify-center p-1.5 shadow-xs overflow-hidden">
                     <img
                       src="/favicon.png"
                       alt="SmartFit AI Logo"
                       className="w-full h-full object-contain"
                     />
                   </div>
-                  <span className="font-bold text-lg text-neutral-900 tracking-tight">
+                  <span className="font-bold text-lg text-white tracking-tight">
                     SmartFit AI
                   </span>
                 </div>
@@ -146,7 +143,7 @@ export function MobileMenu({ className, onMenuToggle }: MobileMenuProps) {
                 <button
                   type="button"
                   onClick={() => setIsOpen(false)}
-                  className="w-10 h-10 flex items-center justify-center text-neutral-800 hover:text-neutral-950 hover:bg-black/5 rounded-full transition-colors active:scale-95 cursor-pointer"
+                  className="w-10 h-10 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 rounded-full transition-colors active:scale-95 cursor-pointer"
                   aria-label="Close menu"
                 >
                   <X className="w-6 h-6" strokeWidth={1.9} />
@@ -162,13 +159,13 @@ export function MobileMenu({ className, onMenuToggle }: MobileMenuProps) {
                     onClick={() => setFeaturesOpen(!featuresOpen)}
                     className="w-full flex items-center justify-between py-1 text-left cursor-pointer group"
                   >
-                    <span className="text-lg font-bold text-neutral-900">
+                    <span className="text-lg font-bold text-white group-hover:text-[#00FF9C] transition-colors">
                       Features
                     </span>
                     {featuresOpen ? (
-                      <ChevronUp className="w-5 h-5 text-neutral-800" strokeWidth={2.2} />
+                      <ChevronUp className="w-5 h-5 text-white/70" strokeWidth={2.2} />
                     ) : (
-                      <ChevronDown className="w-5 h-5 text-neutral-800" strokeWidth={2.2} />
+                      <ChevronDown className="w-5 h-5 text-white/70" strokeWidth={2.2} />
                     )}
                   </button>
 
@@ -181,10 +178,10 @@ export function MobileMenu({ className, onMenuToggle }: MobileMenuProps) {
                         className="w-full flex items-center gap-4 text-left group cursor-pointer"
                       >
                         <div className="relative w-5 h-5 flex items-center justify-center shrink-0">
-                          <User className="w-4.5 h-4.5 text-[#0B3B24]" strokeWidth={2} />
-                          <Sparkles className="w-2.5 h-2.5 text-[#0B3B24] absolute -top-1 -right-1" />
+                          <User className="w-4.5 h-4.5 text-[#00FF9C]" strokeWidth={2} />
+                          <Sparkles className="w-2.5 h-2.5 text-[#00FF9C] absolute -top-1 -right-1" />
                         </div>
-                        <span className="font-medium text-[15px] text-neutral-900 group-hover:text-[#0B3B24] transition-colors">
+                        <span className="font-medium text-[15px] text-white/90 group-hover:text-[#00FF9C] transition-colors">
                           AI Personal Trainer
                         </span>
                       </button>
@@ -195,8 +192,8 @@ export function MobileMenu({ className, onMenuToggle }: MobileMenuProps) {
                         onClick={() => handleLinkClick("/home-workouts")}
                         className="w-full flex items-center gap-4 text-left group cursor-pointer"
                       >
-                        <Dumbbell className="w-5 h-5 text-[#0B3B24] shrink-0 rotate-[-45deg]" strokeWidth={2} />
-                        <span className="font-medium text-[15px] text-neutral-900 group-hover:text-[#0B3B24] transition-colors">
+                        <Dumbbell className="w-5 h-5 text-[#00FF9C] shrink-0 rotate-[-45deg]" strokeWidth={2} />
+                        <span className="font-medium text-[15px] text-white/90 group-hover:text-[#00FF9C] transition-colors">
                           AI Workout Generator
                         </span>
                       </button>
@@ -207,8 +204,8 @@ export function MobileMenu({ className, onMenuToggle }: MobileMenuProps) {
                         onClick={() => handleLinkClick("/3d-trainer")}
                         className="w-full flex items-center gap-4 text-left group cursor-pointer"
                       >
-                        <Box className="w-5 h-5 text-[#0B3B24] shrink-0" strokeWidth={2} />
-                        <span className="font-medium text-[15px] text-neutral-900 group-hover:text-[#0B3B24] transition-colors">
+                        <Box className="w-5 h-5 text-[#00FF9C] shrink-0" strokeWidth={2} />
+                        <span className="font-medium text-[15px] text-white/90 group-hover:text-[#00FF9C] transition-colors">
                           3D Trainer Mode
                         </span>
                       </button>
@@ -219,8 +216,8 @@ export function MobileMenu({ className, onMenuToggle }: MobileMenuProps) {
                         onClick={() => handleLinkClick("/nutrition")}
                         className="w-full flex items-center gap-4 text-left group cursor-pointer"
                       >
-                        <Clock className="w-5 h-5 text-[#0B3B24] shrink-0" strokeWidth={2} />
-                        <span className="font-medium text-[15px] text-neutral-900 group-hover:text-[#0B3B24] transition-colors">
+                        <Clock className="w-5 h-5 text-[#00FF9C] shrink-0" strokeWidth={2} />
+                        <span className="font-medium text-[15px] text-white/90 group-hover:text-[#00FF9C] transition-colors">
                           Nutrition & Macro AI
                         </span>
                       </button>
@@ -231,8 +228,8 @@ export function MobileMenu({ className, onMenuToggle }: MobileMenuProps) {
                         onClick={() => handleLinkClick("/online-coaching")}
                         className="w-full flex items-center gap-4 text-left group cursor-pointer"
                       >
-                        <MessageCircle className="w-5 h-5 text-[#0B3B24] shrink-0" strokeWidth={2} />
-                        <span className="font-medium text-[15px] text-neutral-900 group-hover:text-[#0B3B24] transition-colors">
+                        <MessageCircle className="w-5 h-5 text-[#00FF9C] shrink-0" strokeWidth={2} />
+                        <span className="font-medium text-[15px] text-white/90 group-hover:text-[#00FF9C] transition-colors">
                           Online Coaching
                         </span>
                       </button>
@@ -243,8 +240,8 @@ export function MobileMenu({ className, onMenuToggle }: MobileMenuProps) {
                         onClick={() => handleLinkClick("/workout-session")}
                         className="w-full flex items-center gap-4 text-left group cursor-pointer"
                       >
-                        <Scan className="w-5 h-5 text-[#0B3B24] shrink-0" strokeWidth={2} />
-                        <span className="font-medium text-[15px] text-neutral-900 group-hover:text-[#0B3B24] transition-colors">
+                        <Scan className="w-5 h-5 text-[#00FF9C] shrink-0" strokeWidth={2} />
+                        <span className="font-medium text-[15px] text-white/90 group-hover:text-[#00FF9C] transition-colors">
                           Real-time Form AI
                         </span>
                       </button>
@@ -252,7 +249,7 @@ export function MobileMenu({ className, onMenuToggle }: MobileMenuProps) {
                   )}
                 </div>
 
-                <div className="border-t border-emerald-950/10 pt-3" />
+                <div className="border-t border-white/10 pt-3" />
 
                 {/* 2. Find gyms Accordion */}
                 <div>
@@ -261,13 +258,13 @@ export function MobileMenu({ className, onMenuToggle }: MobileMenuProps) {
                     onClick={() => setGymsOpen(!gymsOpen)}
                     className="w-full flex items-center justify-between py-1 text-left cursor-pointer group"
                   >
-                    <span className="text-lg font-bold text-neutral-900">
+                    <span className="text-lg font-bold text-white group-hover:text-[#00FF9C] transition-colors">
                       Find gyms
                     </span>
                     {gymsOpen ? (
-                      <ChevronUp className="w-5 h-5 text-neutral-800" strokeWidth={2.2} />
+                      <ChevronUp className="w-5 h-5 text-white/70" strokeWidth={2.2} />
                     ) : (
-                      <ChevronDown className="w-5 h-5 text-neutral-800" strokeWidth={2.2} />
+                      <ChevronDown className="w-5 h-5 text-white/70" strokeWidth={2.2} />
                     )}
                   </button>
 
@@ -276,32 +273,32 @@ export function MobileMenu({ className, onMenuToggle }: MobileMenuProps) {
                       <button
                         type="button"
                         onClick={() => handleLinkClick("/gyms")}
-                        className="w-full flex items-center gap-3 text-left text-sm font-medium text-neutral-800 hover:text-[#0B3B24]"
+                        className="w-full flex items-center gap-3 text-left text-sm font-medium text-white/80 hover:text-[#00FF9C]"
                       >
-                        <MapPin className="w-4 h-4 text-[#0B3B24]" />
+                        <MapPin className="w-4 h-4 text-[#00FF9C]" />
                         <span>Nearby Partner Gyms</span>
                       </button>
                       <button
                         type="button"
                         onClick={() => handleLinkClick("/gyms/map")}
-                        className="w-full flex items-center gap-3 text-left text-sm font-medium text-neutral-800 hover:text-[#0B3B24]"
+                        className="w-full flex items-center gap-3 text-left text-sm font-medium text-white/80 hover:text-[#00FF9C]"
                       >
-                        <Map className="w-4 h-4 text-[#0B3B24]" />
+                        <Map className="w-4 h-4 text-[#00FF9C]" />
                         <span>Interactive Gym Map</span>
                       </button>
                       <button
                         type="button"
                         onClick={() => handleLinkClick("/gyms/list")}
-                        className="w-full flex items-center gap-3 text-left text-sm font-medium text-neutral-800 hover:text-[#0B3B24]"
+                        className="w-full flex items-center gap-3 text-left text-sm font-medium text-white/80 hover:text-[#00FF9C]"
                       >
-                        <List className="w-4 h-4 text-[#0B3B24]" />
+                        <List className="w-4 h-4 text-[#00FF9C]" />
                         <span>All Gym Memberships</span>
                       </button>
                     </div>
                   )}
                 </div>
 
-                <div className="border-t border-emerald-950/10 pt-3" />
+                <div className="border-t border-white/10 pt-3" />
 
                 {/* 3. Events & competitions */}
                 <div>
@@ -310,14 +307,14 @@ export function MobileMenu({ className, onMenuToggle }: MobileMenuProps) {
                     onClick={() => handleLinkClick("/events")}
                     className="w-full flex items-center justify-between py-1 text-left cursor-pointer group"
                   >
-                    <span className="text-lg font-bold text-neutral-900 group-hover:text-[#0B3B24] transition-colors">
+                    <span className="text-lg font-bold text-white group-hover:text-[#00FF9C] transition-colors">
                       Events & competitions
                     </span>
-                    <ChevronRight className="w-5 h-5 text-neutral-600 group-hover:text-neutral-900" strokeWidth={2} />
+                    <ChevronRight className="w-5 h-5 text-white/40 group-hover:text-white" strokeWidth={2} />
                   </button>
                 </div>
 
-                <div className="border-t border-emerald-950/10 pt-3" />
+                <div className="border-t border-white/10 pt-3" />
 
                 {/* 4. Pricing */}
                 <div>
@@ -326,14 +323,14 @@ export function MobileMenu({ className, onMenuToggle }: MobileMenuProps) {
                     onClick={() => handleLinkClick("/pricing")}
                     className="w-full flex items-center justify-between py-1 text-left cursor-pointer group"
                   >
-                    <span className="text-lg font-bold text-neutral-900 group-hover:text-[#0B3B24] transition-colors">
+                    <span className="text-lg font-bold text-white group-hover:text-[#00FF9C] transition-colors">
                       Pricing
                     </span>
-                    <ChevronRight className="w-5 h-5 text-neutral-600 group-hover:text-neutral-900" strokeWidth={2} />
+                    <ChevronRight className="w-5 h-5 text-white/40 group-hover:text-white" strokeWidth={2} />
                   </button>
                 </div>
 
-                <div className="border-t border-emerald-950/10 pt-3" />
+                <div className="border-t border-white/10 pt-3" />
 
                 {/* 5. For coaches */}
                 <div>
@@ -342,10 +339,10 @@ export function MobileMenu({ className, onMenuToggle }: MobileMenuProps) {
                     onClick={() => handleLinkClick("/become-a-coach")}
                     className="w-full flex items-center justify-between py-1 text-left cursor-pointer group"
                   >
-                    <span className="text-lg font-bold text-neutral-900 group-hover:text-[#0B3B24] transition-colors">
+                    <span className="text-lg font-bold text-white group-hover:text-[#00FF9C] transition-colors">
                       For coaches
                     </span>
-                    <ChevronRight className="w-5 h-5 text-neutral-600 group-hover:text-neutral-900" strokeWidth={2} />
+                    <ChevronRight className="w-5 h-5 text-white/40 group-hover:text-white" strokeWidth={2} />
                   </button>
                 </div>
 
@@ -355,7 +352,7 @@ export function MobileMenu({ className, onMenuToggle }: MobileMenuProps) {
                   <button
                     type="button"
                     onClick={() => handleLinkClick("/onboarding/basics")}
-                    className="w-full h-12 rounded-2xl bg-[#0B3B24] hover:bg-[#0E472C] text-white font-bold text-sm sm:text-base flex items-center justify-center transition-all active:scale-[0.98] cursor-pointer shadow-sm"
+                    className="w-full h-12 rounded-2xl bg-[#00FF9C] hover:bg-[#00e58a] text-black font-bold text-sm sm:text-base flex items-center justify-center transition-all active:scale-[0.98] cursor-pointer shadow-[0_0_20px_rgba(0,255,156,0.25)]"
                   >
                     Get my plan
                   </button>
@@ -365,7 +362,7 @@ export function MobileMenu({ className, onMenuToggle }: MobileMenuProps) {
                     href="https://play.google.com/store/apps"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full h-12 rounded-2xl bg-white border border-neutral-300 text-neutral-900 font-bold text-sm sm:text-base flex items-center justify-center gap-2.5 hover:bg-neutral-50 shadow-2xs transition-all active:scale-[0.98] cursor-pointer"
+                    className="w-full h-12 rounded-2xl bg-[#121614] border border-white/10 text-white font-bold text-sm sm:text-base flex items-center justify-center gap-2.5 hover:bg-white/5 shadow-2xs transition-all active:scale-[0.98] cursor-pointer"
                   >
                     <img
                       src="/google-play.png"
@@ -377,11 +374,11 @@ export function MobileMenu({ className, onMenuToggle }: MobileMenuProps) {
                 </div>
 
                 {/* ── Footer: Privacy · Terms ── */}
-                <div className="text-center text-xs text-neutral-500 font-medium pt-3 pb-2 flex items-center justify-center gap-2">
+                <div className="text-center text-xs text-white/40 font-medium pt-3 pb-2 flex items-center justify-center gap-2">
                   <Link
                     to="/privacy"
                     onClick={() => setIsOpen(false)}
-                    className="hover:underline"
+                    className="hover:underline hover:text-white"
                   >
                     Privacy
                   </Link>
@@ -389,7 +386,7 @@ export function MobileMenu({ className, onMenuToggle }: MobileMenuProps) {
                   <Link
                     to="/terms"
                     onClick={() => setIsOpen(false)}
-                    className="hover:underline"
+                    className="hover:underline hover:text-white"
                   >
                     Terms
                   </Link>
