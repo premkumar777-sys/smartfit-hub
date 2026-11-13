@@ -46,14 +46,14 @@ const Home = () => {
       <section className="relative w-full min-h-screen min-h-dvh overflow-hidden flex flex-col justify-center bg-[#060809]">
 
         {/* ── Layer 1: High-Definition Cyber-Athlete Looping Video Background ──────── */}
-        <div className="absolute inset-0 z-0 pointer-events-none select-none overflow-hidden">
+        <div className="absolute inset-0 z-0 pointer-events-none select-none overflow-hidden flex items-center justify-center">
           <video
             autoPlay
             loop
             muted
             playsInline
-            poster="/hero-cyber-athlete.jpg"
-            className="w-full h-full object-cover object-center opacity-85 scale-105 transition-opacity duration-1000"
+            poster="/cyber-athlete-poster.jpg"
+            className="w-full h-full max-w-[400px] sm:max-w-[540px] lg:max-w-[680px] max-h-[80vh] object-contain object-center opacity-90 transition-opacity duration-1000 drop-shadow-[0_0_40px_rgba(0,255,156,0.25)]"
           >
             <source src="/cyber-athlete-run.mp4" type="video/mp4" />
           </video>
