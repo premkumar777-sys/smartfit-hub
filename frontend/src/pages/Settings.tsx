@@ -6,7 +6,6 @@ import {
   User,
   Minus,
   Plus,
-  Fingerprint,
   Calendar,
   ArrowUpRight,
   LogOut,
@@ -16,6 +15,9 @@ import {
   Lock,
   Cookie,
   ShieldCheck,
+  Smartphone,
+  KeyRound,
+  Mail,
 } from "lucide-react";
 import { openCookiePreferencesModal } from "@/lib/cookieConsent";
 import { Switch } from "@/components/ui/switch";
@@ -30,12 +32,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 import { useSubscription } from "@/hooks/useSubscription";
-import {
-  isBiometricsAvailable,
-  isBiometricRegistered,
-  registerBiometric,
-  removeBiometric,
-} from "@/lib/biometrics";
 import { cn } from "@/lib/utils";
 import { DesktopSidebar } from "@/components/DesktopSidebar";
 
@@ -91,11 +87,6 @@ export default function Settings() {
   const [profile, setProfile] = useState<any>(null);
   const [preferences, setPreferences] = useState<UserPreferences>(DEFAULT_PREFERENCES);
 
-  // Biometrics
-  const [isFingerprintEnabled, setIsFingerprintEnabled] = useState(false);
-  const [isBiometricSupported, setIsBiometricSupported] = useState(false);
-  const [fingerprintLoading, setFingerprintLoading] = useState(false);
-
   // Dialog states
   const [goalModalOpen, setGoalModalOpen] = useState(false);
   const [activityModalOpen, setActivityModalOpen] = useState(false);
@@ -108,19 +99,6 @@ export default function Settings() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [changingPw, setChangingPw] = useState(false);
-
-  // Load preferences & profile from Supabase
-  useEffect(() => {
-    isBiometricsAvailable().then((supported) => {
-      setIsBiometricSupported(supported);
-    });
-  }, []);
-
-  useEffect(() => {
-    if (authUser?.email) {
-      setIsFingerprintEnabled(isBiometricRegistered(authUser.email));
-    }
-  }, [authUser]);
 
   useEffect(() => {
     const loadData = async (userId: string) => {
@@ -188,28 +166,6 @@ export default function Settings() {
     const current = preferences.weeklyTarget ?? 4;
     if (current < 7) {
       savePreference({ weeklyTarget: current + 1 });
-    }
-  };
-
-  // Biometrics toggle
-  const handleToggleFingerprint = async (checked: boolean) => {
-    if (!authUser?.email) return;
-    setFingerprintLoading(true);
-    try {
-      if (checked) {
-        await registerBiometric(authUser.email);
-        setIsFingerprintEnabled(true);
-        toast.success("Fingerprint authentication enabled! 🔑");
-      } else {
-        removeBiometric(authUser.email);
-        setIsFingerprintEnabled(false);
-        toast.info("Fingerprint login disabled on this device.");
-      }
-    } catch (error: any) {
-      toast.error(error.message || "Failed to update biometric login");
-      setIsFingerprintEnabled(isBiometricRegistered(authUser.email));
-    } finally {
-      setFingerprintLoading(false);
     }
   };
 
@@ -487,40 +443,64 @@ export default function Settings() {
         {/* ── SECTION: Security ── */}
         <section className="mb-5">
           <h2 className="text-sm font-bold tracking-tight mb-2 px-1 text-neutral-900 dark:text-neutral-100">
-            Security
+            Security &amp; Sessions
           </h2>
           <div className="bg-white dark:bg-[#181D1A] rounded-2xl border border-emerald-950/5 dark:border-neutral-800 shadow-xs divide-y divide-neutral-100 dark:divide-neutral-800/70 overflow-hidden">
-            {/* Fingerprint Login */}
+            {/* Active Device Session */}
             <div className="flex items-center justify-between p-4 min-h-[64px]">
               <div className="flex items-center gap-3 pr-2 min-w-0">
-                <Fingerprint className="w-5 h-5 text-neutral-600 dark:text-neutral-400 shrink-0" />
+                <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
+                  <Smartphone className="w-4.5 h-4.5 text-emerald-500 dark:text-[#00FF9C]" />
+                </div>
                 <div className="min-w-0">
-                  <p className="font-semibold text-sm leading-snug">Fingerprint login</p>
+                  <div className="flex items-center gap-2">
+                    <p className="font-semibold text-sm leading-snug">Active session</p>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-600 dark:text-[#00FF9C] border border-emerald-500/20 flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      Active now
+                    </span>
+                  </div>
                   <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
-                    Quick biometric authentication
+                    This device • Authenticated via Supabase
                   </p>
                 </div>
               </div>
-              <Switch
-                checked={isFingerprintEnabled}
-                onCheckedChange={handleToggleFingerprint}
-                disabled={fingerprintLoading}
-                className="shrink-0 data-[state=checked]:!bg-[#0D3B29] dark:data-[state=checked]:!bg-[#1F7A5A]"
-                aria-label="Toggle fingerprint login"
-              />
+            </div>
+
+            {/* Primary Email */}
+            <div className="flex items-center justify-between p-4 min-h-[64px]">
+              <div className="flex items-center gap-3 pr-2 min-w-0">
+                <div className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
+                  <Mail className="w-4.5 h-4.5 text-neutral-400" />
+                </div>
+                <div className="min-w-0">
+                  <p className="font-semibold text-sm leading-snug">Primary account</p>
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5 truncate">
+                    {authUser?.email || "Connected account"}
+                  </p>
+                </div>
+              </div>
+              <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 shrink-0">
+                Verified
+              </span>
             </div>
 
             {/* Change Password */}
             <button
               type="button"
               onClick={() => setPasswordModalOpen(true)}
-              className="w-full flex items-center justify-between p-4 min-h-[64px] text-left hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30 active:bg-neutral-100/60 transition-colors"
+              className="w-full flex items-center justify-between p-4 min-h-[64px] text-left hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30 active:bg-neutral-100/60 transition-colors cursor-pointer"
             >
-              <div>
-                <p className="font-semibold text-sm leading-snug">Change password</p>
-                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
-                  Last updated 3 months ago
-                </p>
+              <div className="flex items-center gap-3 min-w-0 pr-2">
+                <div className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
+                  <KeyRound className="w-4.5 h-4.5 text-neutral-400" />
+                </div>
+                <div className="min-w-0">
+                  <p className="font-semibold text-sm leading-snug">Change password</p>
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+                    Update your account login password
+                  </p>
+                </div>
               </div>
               <ChevronRight className="w-4 h-4 text-neutral-400 shrink-0 ml-2" />
             </button>
@@ -886,7 +866,7 @@ export default function Settings() {
               <LogOut className="w-5 h-5 text-red-400" /> Sign out of SmartFit AI?
             </DialogTitle>
             <DialogDescription className="text-xs text-white/60 pt-1.5 leading-relaxed">
-              You will need to sign back in with your email or fingerprint to view your custom workouts and nutrition history.
+              You will need to sign back in with your email or Google account to view your custom workouts and nutrition history.
             </DialogDescription>
           </DialogHeader>
           <div className="flex items-center gap-3 mt-4">

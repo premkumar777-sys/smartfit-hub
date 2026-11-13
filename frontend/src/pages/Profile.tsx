@@ -905,7 +905,7 @@ export default function Profile() {
               <LogOut className="w-5 h-5 text-red-400" /> Sign out of SmartFit AI?
             </DialogTitle>
             <DialogDescription className="text-xs text-white/60 pt-1.5 leading-relaxed">
-              You will need to sign back in with your email or fingerprint to view your custom workouts and nutrition history.
+              You will need to sign back in with your email or Google account to view your custom workouts and nutrition history.
             </DialogDescription>
           </DialogHeader>
           <div className="flex items-center gap-3 mt-4">

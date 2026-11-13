@@ -6,10 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
-import { Loader2, Mail, Lock, User, Key, KeyRound, ShieldAlert, Eye, EyeOff, ArrowRight, Flame, TrendingUp, Utensils, Fingerprint } from "lucide-react";
+import { Loader2, Mail, Lock, User, Key, KeyRound, ShieldAlert, Eye, EyeOff, ArrowRight, Flame, TrendingUp, Utensils } from "lucide-react";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { motion } from "framer-motion";
-import { isBiometricsAvailable, isBiometricRegistered, registerBiometric, authenticateBiometric } from "@/lib/biometrics";
 import { syncOnboardingToProfile, checkUserOnboardingStatus } from "@/lib/onboarding";
 
 const authSchema = z.object({
@@ -84,15 +83,6 @@ export default function Auth() {
 
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
 
-  // Biometrics States
-  const isModalActiveRef = useRef(false);
-  const [isBiometricSupported, setIsBiometricSupported] = useState(false);
-  const [isBiometricLoading, setIsBiometricLoading] = useState(false);
-  const [hasAutoPrompted, setHasAutoPrompted] = useState(false);
-  const [showPhonePeBiometricModal, setShowPhonePeBiometricModal] = useState(false);
-  const [showPostSignupFingerprintModal, setShowPostSignupFingerprintModal] = useState(false);
-  const [postSignupEmail, setPostSignupEmail] = useState("");
-
   const routeUserAfterAuth = async (userId: string, targetPath?: string) => {
     try {
       const { targetUrl } = await checkUserOnboardingStatus(userId, targetPath || returnUrl);
@@ -101,62 +91,6 @@ export default function Auth() {
       navigate(returnUrl, { replace: true });
     }
   };
-
-  const handleEnablePostSignupFingerprint = async () => {
-    isModalActiveRef.current = false;
-    if (!postSignupEmail) {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        await routeUserAfterAuth(session.user.id);
-      } else {
-        navigate(returnUrl, { replace: true });
-      }
-      return;
-    }
-    setIsBiometricLoading(true);
-    try {
-      await registerBiometric(postSignupEmail);
-      toast({
-        title: "Fingerprint Enabled! 🔑",
-        description: "Your account is now secured with fingerprint login.",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Fingerprint Setup Skipped",
-        description: error.message || "You can enable fingerprint login anytime in Settings.",
-      });
-    } finally {
-      setIsBiometricLoading(false);
-      setShowPostSignupFingerprintModal(false);
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        await routeUserAfterAuth(session.user.id);
-      } else {
-        navigate(returnUrl, { replace: true });
-      }
-    }
-  };
-
-  useEffect(() => {
-    isBiometricsAvailable().then((supported) => {
-      setIsBiometricSupported(supported);
-    });
-  }, []);
-
-  // PhonePe-Style Immediate Biometric Auto-Prompt on Page Load
-  useEffect(() => {
-    if (isBiometricSupported && !hasAutoPrompted) {
-      const lastUser = localStorage.getItem('smartfit_last_biometric_user');
-      if (lastUser && isBiometricRegistered(lastUser)) {
-        setHasAutoPrompted(true);
-        setShowPhonePeBiometricModal(true);
-        const timer = setTimeout(() => {
-          handleBiometricLogin();
-        }, 400);
-        return () => clearTimeout(timer);
-      }
-    }
-  }, [isBiometricSupported, hasAutoPrompted]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -171,7 +105,7 @@ export default function Auth() {
     };
 
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session && !isModalActiveRef.current && !showPostSignupFingerprintModal) {
+      if (session) {
         handleSessionRedirect(session.user.id);
       }
     });
@@ -180,81 +114,13 @@ export default function Auth() {
       if (event === "SIGNED_OUT" || event === "SIGNED_IN") {
         sessionStorage.removeItem("smartfit_checkin_prompted");
       }
-      if (session && !isModalActiveRef.current && !showPostSignupFingerprintModal) {
+      if (session) {
         handleSessionRedirect(session.user.id);
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate, showPostSignupFingerprintModal, returnUrl]);
-
-  // Fingerprint Authentication Handler
-  const handleBiometricLogin = async () => {
-    setIsBiometricLoading(true);
-    setShowPhonePeBiometricModal(true);
-    try {
-      const verified = await authenticateBiometric();
-      if (verified) {
-        let { data: { session } } = await supabase.auth.getSession();
-        const lastUser = localStorage.getItem('smartfit_last_biometric_user') || 'user@smartfit.ai';
-
-        // If session expired or not active, restore from saved biometric session
-        if (!session) {
-          const savedSessionStr = localStorage.getItem(`smartfit_biometric_session_${lastUser}`);
-          if (savedSessionStr) {
-            try {
-              const savedSession = JSON.parse(savedSessionStr);
-              const { data, error } = await supabase.auth.setSession({
-                access_token: savedSession.access_token,
-                refresh_token: savedSession.refresh_token,
-              });
-              if (!error && data?.session) {
-                session = data.session;
-                localStorage.setItem(`smartfit_biometric_session_${lastUser}`, JSON.stringify({
-                  access_token: data.session.access_token,
-                  refresh_token: data.session.refresh_token,
-                }));
-              }
-            } catch (e) {
-              console.error("Failed to restore biometric session:", e);
-            }
-          }
-        }
-
-        // Retrieve stored user profile info if available
-        const storedInfoStr = localStorage.getItem(`smartfit_biometric_user_info_${lastUser}`);
-        const storedInfo = storedInfoStr ? JSON.parse(storedInfoStr) : null;
-
-        const effectiveUserId = session?.user?.id || storedInfo?.id;
-        const effectiveUserEmail = session?.user?.email || storedInfo?.email || lastUser;
-
-        // Set active user fallback with real Supabase UUID so queries & check-ins work cleanly
-        localStorage.setItem('smartfit_biometric_active_user', JSON.stringify({
-          id: effectiveUserId || `bio_${Date.now()}`,
-          email: effectiveUserEmail,
-          username: session?.user?.user_metadata?.username || storedInfo?.username || effectiveUserEmail.split('@')[0],
-        }));
-
-        toast({
-          title: "Fingerprint Verified! ⚡",
-          description: "Instant biometric authentication successful.",
-        });
-        
-        setShowPhonePeBiometricModal(false);
-        isModalActiveRef.current = false;
-        await routeUserAfterAuth(effectiveUserId);
-      }
-    } catch (error: any) {
-      toast({
-        title: "Biometric Sign-In",
-        description: error.message || "Fingerprint verification canceled or failed.",
-        variant: "destructive",
-      });
-      setShowPhonePeBiometricModal(false);
-    } finally {
-      setIsBiometricLoading(false);
-    }
-  };
+  }, [navigate, returnUrl]);
 
   // Standard Email/Password Login
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -285,35 +151,8 @@ export default function Auth() {
         return;
       }
 
-      // Save active session token & user profile for one-tap biometric login
       if (signInData?.session) {
-        const cleanEmail = validated.email.toLowerCase().trim();
-        localStorage.setItem(`smartfit_biometric_session_${cleanEmail}`, JSON.stringify({
-          access_token: signInData.session.access_token,
-          refresh_token: signInData.session.refresh_token,
-        }));
-        localStorage.setItem(`smartfit_biometric_user_info_${cleanEmail}`, JSON.stringify({
-          id: signInData.session.user.id,
-          email: signInData.session.user.email!,
-          username: (signInData.session.user as any).username || signInData.session.user.email!.split('@')[0],
-        }));
-        localStorage.setItem('smartfit_last_biometric_user', cleanEmail);
         syncOnboardingToProfile(signInData.session.user.id).catch(console.error);
-      }
-
-      // Prompt to register fingerprint for future one-tap logins if supported & not registered
-      if (isBiometricSupported && !isBiometricRegistered(validated.email)) {
-        setTimeout(async () => {
-          try {
-            await registerBiometric(validated.email);
-            toast({
-              title: "Fingerprint Registered! 🔑",
-              description: "You can now use your thumb scanner to log in instantly next time.",
-            });
-          } catch (err: any) {
-            console.log("Biometric registration skipped:", err.message);
-          }
-        }, 1000);
       }
 
       toast({
@@ -446,35 +285,23 @@ export default function Auth() {
         description: "Completing sign in...",
       });
 
-      if (isBiometricSupported) {
-        isModalActiveRef.current = true;
-        setPostSignupEmail(pendingSignupData.email);
-        setShowPostSignupFingerprintModal(true);
-      }
-
       // Auto login user with credentials
       const { data: verifiedSignInData, error: signInError } = await supabase.auth.signInWithPassword({
         email: pendingSignupData.email,
         password: pendingSignupData.password,
       });
 
-      if (signInError) {
-        isModalActiveRef.current = false;
-        setShowPostSignupFingerprintModal(false);
-        throw signInError;
-      }
+      if (signInError) throw signInError;
 
       if (verifiedSignInData?.session?.user) {
         syncOnboardingToProfile(verifiedSignInData.session.user.id).catch(console.error);
       }
 
-      if (!isBiometricSupported) {
-        toast({
-          title: "Welcome to SmartFit AI!",
-          description: "Your account is active.",
-        });
-        await routeUserAfterAuth(verifiedSignInData.session.user.id);
-      }
+      toast({
+        title: "Welcome to SmartFit AI!",
+        description: "Your account is active.",
+      });
+      await routeUserAfterAuth(verifiedSignInData.session.user.id);
     } catch (error: any) {
       toast({
         title: "Verification failed",
@@ -1240,126 +1067,6 @@ export default function Auth() {
 
         </motion.div>
       </div>
-
-      {/* PhonePe-Style Fullscreen Biometric Unlock Modal */}
-      {showPhonePeBiometricModal && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.95 }}
-          className="fixed inset-0 z-50 bg-[#050505]/95 backdrop-blur-xl flex flex-col items-center justify-center p-6 text-center select-none"
-        >
-          <div className="w-full max-w-sm flex flex-col items-center space-y-6">
-            {/* PhonePe Style Pulsing Sensor Ring */}
-            <div className="relative flex items-center justify-center">
-              <motion.div
-                animate={{ scale: [1, 1.25, 1], opacity: [0.3, 0.7, 0.3] }}
-                transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-                className="absolute w-28 h-28 rounded-full bg-[#22FF66]/20 border border-[#22FF66]/40 blur-md"
-              />
-              <button
-                type="button"
-                onClick={handleBiometricLogin}
-                className="relative z-10 w-24 h-24 rounded-full bg-gradient-to-b from-[#111111] to-[#050505] border-2 border-[#22FF66]/80 flex items-center justify-center shadow-[0_0_40px_rgba(34,255,102,0.3)] hover:scale-105 transition-transform cursor-pointer group"
-              >
-                <Fingerprint className="w-12 h-12 text-[#22FF66] animate-pulse group-hover:scale-110 transition-transform" />
-              </button>
-            </div>
-
-            <div className="space-y-2">
-              <h2 className="text-2xl font-bold text-white tracking-tight">
-                SmartFit App Lock
-              </h2>
-              <p className="text-xs text-gray-400 font-medium max-w-xs">
-                Touch your fingerprint sensor to verify identity
-              </p>
-              {localStorage.getItem('smartfit_last_biometric_user') && (
-                <div className="inline-block mt-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[11px] text-[#22FF66] font-mono">
-                  {localStorage.getItem('smartfit_last_biometric_user')}
-                </div>
-              )}
-            </div>
-
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setShowPhonePeBiometricModal(false)}
-              className="mt-6 border-white/15 hover:bg-white/10 text-gray-300 text-xs font-bold rounded-xl h-11 px-6"
-            >
-              Use Password Instead
-            </Button>
-          </div>
-        </motion.div>
-      )}
-
-      {/* Post-Registration Fingerprint Setup Modal */}
-      {showPostSignupFingerprintModal && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.95 }}
-          className="fixed inset-0 z-50 bg-[#050505]/95 backdrop-blur-xl flex flex-col items-center justify-center p-6 text-center select-none"
-        >
-          <div className="w-full max-w-sm flex flex-col items-center space-y-6">
-            {/* Glowing Green Fingerprint Ring */}
-            <div className="relative flex items-center justify-center">
-              <motion.div
-                animate={{ scale: [1, 1.2, 1], opacity: [0.4, 0.8, 0.4] }}
-                transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-                className="absolute w-28 h-28 rounded-full bg-[#22FF66]/20 border border-[#22FF66]/40 blur-md"
-              />
-              <div className="relative z-10 w-24 h-24 rounded-full bg-gradient-to-b from-[#111111] to-[#050505] border-2 border-[#22FF66] flex items-center justify-center shadow-[0_0_40px_rgba(34,255,102,0.3)]">
-                <Fingerprint className="w-12 h-12 text-[#22FF66] animate-pulse" />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <span className="px-3 py-1 bg-[#22FF66]/10 border border-[#22FF66]/30 text-[#22FF66] text-[10px] font-bold uppercase tracking-widest rounded-full">
-                Account Created Successfully 🎉
-              </span>
-              <h2 className="text-2xl font-bold text-white tracking-tight pt-2">
-                Enable Fingerprint Login?
-              </h2>
-              <p className="text-xs text-gray-400 font-medium max-w-xs leading-relaxed">
-                Log in faster next time using your thumb or finger scanner on this device.
-              </p>
-            </div>
-
-            <div className="w-full space-y-3 pt-2">
-              <Button
-                type="button"
-                onClick={handleEnablePostSignupFingerprint}
-                disabled={isBiometricLoading}
-                className="w-full bg-[#22FF66] hover:bg-[#1ee059] text-black font-bold h-12 rounded-xl transition-all duration-300 shadow-[0_0_20px_rgba(34,255,102,0.3)] flex items-center justify-center gap-2 text-xs uppercase tracking-wider"
-              >
-                {isBiometricLoading ? (
-                  <Loader2 className="w-4 h-4 animate-spin text-black" />
-                ) : (
-                  <Fingerprint className="w-4 h-4 text-black" />
-                )}
-                Enable Fingerprint Login
-              </Button>
-
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={async () => {
-                  setShowPostSignupFingerprintModal(false);
-                  const { data: { session } } = await supabase.auth.getSession();
-                  if (session?.user) {
-                    await routeUserAfterAuth(session.user.id);
-                  } else {
-                    navigate(returnUrl, { replace: true });
-                  }
-                }}
-                className="w-full text-xs text-gray-400 hover:text-white font-semibold rounded-xl h-10"
-              >
-                Skip for Now
-              </Button>
-            </div>
-          </div>
-        </motion.div>
-      )}
     </div>
   </motion.div>
   );
