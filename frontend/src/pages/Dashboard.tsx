@@ -108,11 +108,22 @@ export default function Dashboard() {
   })();
 
   const rawName =
-    profile?.full_name ||
-    authUser?.user_metadata?.full_name ||
-    profile?.username ||
+    profile?.full_name?.trim() ||
+    localStorage.getItem("smartfit_profile_name")?.trim() ||
+    authUser?.user_metadata?.full_name?.trim() ||
+    authUser?.user_metadata?.name?.trim() ||
+    profile?.username?.trim() ||
+    (authUser?.email ? authUser.email.split("@")[0].replace(/[0-9_.-]+$/, "") : "") ||
     (authUser ? "Athlete" : "Guest Athlete");
-  const firstName = rawName.split(" ")[0] || "Athlete";
+
+  const cleanFirstName = (() => {
+    let first = rawName.split(" ")[0]?.trim() || "Athlete";
+    if (first && first.length > 0) {
+      first = first.charAt(0).toUpperCase() + first.slice(1);
+    }
+    return first;
+  })();
+  const firstName = cleanFirstName;
 
   // Formatted date string for desktop header
   const todayDateString = new Intl.DateTimeFormat("en-US", {
@@ -718,7 +729,7 @@ export default function Dashboard() {
 
         {/* ── Content Container: Responsive Mobile & Desktop Grid ── */}
         <div
-          className="w-full max-w-lg lg:max-w-7xl mx-auto px-3.5 sm:px-4 lg:px-8 pt-20 sm:pt-24 lg:pt-8 py-2 lg:py-8"
+          className="w-full max-w-lg lg:max-w-7xl mx-auto px-3.5 sm:px-4 lg:px-8 pt-[max(env(safe-area-inset-top,0px),12px)] lg:pt-8 py-2 lg:py-8"
           style={{
             paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 96px)",
           }}
@@ -742,19 +753,58 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* ── Mobile Greeting (Hidden on desktop) ── */}
+          {/* ── Mobile Native Top Bar (Hidden on desktop) ── */}
           <div className="lg:hidden mb-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
-                  {greeting}, {firstName}
-                </h2>
-                <p className="text-xs text-neutral-600 dark:text-neutral-400 mt-0.5 font-medium flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-[#00FF9C] shrink-0 animate-pulse" />
-                  <span>
-                    Level {level} • {xp} / {nextLevelXp} XP • {plan.dailyCalories} kcal target
+            <div className="flex items-center justify-between pb-3 border-b border-white/[0.06]">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#00FF9C]/20 to-[#00995E]/10 border border-[#00FF9C]/30 flex items-center justify-center shadow-[0_0_12px_rgba(0,255,156,0.2)]">
+                  <Dumbbell className="w-4 h-4 text-[#00FF9C]" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-sm font-extrabold tracking-tight text-white leading-none">
+                    SmartFit <span className="text-[#00FF9C]">AI</span>
                   </span>
-                </p>
+                  <span className="text-[10px] text-white/50 font-medium tracking-tight mt-0.5">
+                    {todayDateString}
+                  </span>
+                </div>
+              </div>
+
+              {/* Tap Avatar to open Athlete Profile */}
+              <button
+                type="button"
+                onClick={() => navigate("/app/profile")}
+                aria-label="Profile"
+                className="flex items-center gap-2 pl-2.5 pr-1 py-1 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 active:scale-95 transition-all cursor-pointer"
+              >
+                <div className="flex flex-col items-end leading-none">
+                  <span className="text-[11px] font-bold text-white max-w-[85px] truncate">{firstName}</span>
+                  <span className="text-[9px] font-bold text-[#00FF9C]">Lvl {level}</span>
+                </div>
+                <div className="w-7 h-7 rounded-full overflow-hidden border border-[#00FF9C]/40 ring-1 ring-[#00FF9C]/20 shadow-xs">
+                  <img
+                    src={profile?.avatar_url || localStorage.getItem("smartfit_user_avatar") || "/prem-avatar.jpg"}
+                    alt={firstName}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              </button>
+            </div>
+
+            {/* Mobile Greeting & Telemetry Header */}
+            <div className="pt-2.5 space-y-1">
+              <h2 className="text-2xl font-black tracking-tight text-white leading-tight">
+                {greeting}, <span className="text-[#00FF9C]">{firstName}</span>
+              </h2>
+              <div className="flex items-center gap-2 text-xs text-white/60 font-medium flex-wrap">
+                <span className="flex items-center gap-1 text-[#00FF9C] font-bold">
+                  <span className="w-2 h-2 rounded-full bg-[#00FF9C] shrink-0 animate-pulse" />
+                  Level {level}
+                </span>
+                <span>•</span>
+                <span>{xp} / {nextLevelXp} XP</span>
+                <span>•</span>
+                <span className="text-white/80">{plan.dailyCalories} kcal target</span>
               </div>
             </div>
           </div>

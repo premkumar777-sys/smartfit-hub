@@ -103,13 +103,22 @@ export default function Profile() {
 
         if (data) {
           setProfile(data);
-          setFullName(data.full_name || authUser?.user_metadata?.full_name || "");
+          const loadedName = data.full_name || authUser?.user_metadata?.full_name || "";
+          const loadedAvatar = data.avatar_url || authUser?.user_metadata?.avatar_url || "/prem-avatar.jpg";
+          setFullName(loadedName);
           setBio(data.bio || "");
           setHeight(Number(data.height) || Number(data.height_cm) || 178);
           setWeight(Number(data.weight) || Number(data.weight_kg) || 74);
           setAge(Number(data.age) || 26);
           setFitnessGoal(data.fitness_goal || "Build muscle & strength");
-          setAvatarUrl(data.avatar_url || authUser?.user_metadata?.avatar_url || "/prem-avatar.jpg");
+          setAvatarUrl(loadedAvatar);
+
+          if (loadedName) {
+            localStorage.setItem("smartfit_profile_name", loadedName);
+          }
+          if (loadedAvatar) {
+            localStorage.setItem("smartfit_user_avatar", loadedAvatar);
+          }
         }
 
         // 2. Load completed workouts telemetry from Supabase
@@ -183,6 +192,12 @@ export default function Profile() {
       }));
 
       // Synchronize with local onboarding state so workout calculations across the app remain synced
+      if (fullName.trim()) {
+        localStorage.setItem("smartfit_profile_name", fullName.trim());
+      }
+      if (avatarUrl) {
+        localStorage.setItem("smartfit_user_avatar", avatarUrl);
+      }
       updateOnboardingDraft({
         goals: [fitnessGoal],
         metrics: {

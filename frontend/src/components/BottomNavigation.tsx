@@ -237,7 +237,7 @@ export function BottomNavigation() {
                 </div>
                 <span 
                   className={cn(
-                    "text-[10px] tracking-tight truncate max-w-full block text-center leading-tight transition-colors duration-200",
+                    "text-[9px] sm:text-[10px] tracking-tight whitespace-nowrap block text-center leading-tight transition-colors duration-200",
                     isActive 
                       ? "text-[#00FF9C] font-bold drop-shadow-[0_0_8px_rgba(0,255,156,0.4)]" 
                       : "text-[#7B889B] font-medium group-hover:text-white"

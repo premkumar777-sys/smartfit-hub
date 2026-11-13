@@ -88,16 +88,18 @@ const AppContent = () => {
   }, [location]);
 
   const isAuthPage = location.pathname === "/auth";
-  const isWorkoutSessionPage = location.pathname === "/workout-session";
+  const isWorkoutSessionPage = location.pathname === "/workout-session" || location.pathname.startsWith("/app/workout");
   const isOnboardingPage = location.pathname.startsWith("/onboarding");
   const isSettingsPage = location.pathname === "/settings" || location.pathname === "/app/settings";
   const isProfilePage = location.pathname === "/profile" || location.pathname === "/app/profile";
   const isTodayPage = location.pathname === "/app/today" || location.pathname === "/dashboard";
   const isAITrainerPage = location.pathname === "/ai-trainer";
+  const isAppWorkspace = location.pathname.startsWith("/app") || isTodayPage || isSettingsPage || isProfilePage || isWorkoutSessionPage || location.pathname === "/3d-trainer";
+
   const hideLayout = isAuthPage || isWorkoutSessionPage || isOnboardingPage;
-  const hideHeader = hideLayout || isSettingsPage || isProfilePage;
-  const hideFooter = hideLayout || isSettingsPage || isProfilePage || isTodayPage || isAITrainerPage;
-  const hideChatbot = hideLayout || isSettingsPage || isAITrainerPage;
+  const hideHeader = hideLayout || isAppWorkspace;
+  const hideFooter = hideLayout || isAppWorkspace || isAITrainerPage;
+  const hideChatbot = hideLayout || isSettingsPage || isAITrainerPage || isWorkoutSessionPage;
 
   const isConfigMissing = !import.meta.env.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL === 'https://placeholder.supabase.co';
 
