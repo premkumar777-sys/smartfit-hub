@@ -980,7 +980,7 @@ END:VCALENDAR`;
                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                className="relative w-full max-w-4xl bg-[#0e1017] border border-white/15 rounded-3xl p-6 sm:p-8 shadow-2xl z-10 space-y-6"
+                className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-[#0e1017] border border-white/15 rounded-3xl p-6 sm:p-8 shadow-2xl z-10 space-y-6"
               >
                 <button
                   onClick={() => setShowStatsModal(false)}
