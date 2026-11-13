@@ -30,6 +30,7 @@ import { useGamification } from "@/hooks/useGamification";
 import { cn } from "@/lib/utils";
 import { DesktopSidebar } from "@/components/DesktopSidebar";
 import { getPersonalizedPlan, PersonalizedPlan } from "@/lib/onboarding";
+import { getPersonalizedWorkoutHero } from "@/lib/workoutImages";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -153,6 +154,13 @@ export default function Dashboard() {
   // ─────────────────────────────────────────────────────────────
   const WorkoutHeroCard = () => {
     const isRest = plan.todayWorkout.isRestDay;
+    const userGender = profile?.gender || profile?.preferences?.gender || "male";
+    const heroConfig = getPersonalizedWorkoutHero(
+      plan.todayWorkout.title,
+      plan.todayWorkout.focus,
+      userGender,
+      isRest
+    );
 
     return (
       <div className="bg-white dark:bg-[#181D1A] rounded-3xl p-4 sm:p-6 shadow-xs border border-emerald-950/5 dark:border-neutral-800 space-y-3.5">
@@ -185,14 +193,18 @@ export default function Dashboard() {
         {/* Hero Workout Image */}
         <div className="relative w-full h-40 sm:h-52 lg:h-64 rounded-2xl overflow-hidden shadow-2xs group">
           <img
-            src="/today-workout.jpg"
+            src={heroConfig.src}
             alt={plan.todayWorkout.title}
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = heroConfig.fallback;
+            }}
             className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-500"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-70" />
           <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-white text-xs font-semibold">
             <span className="px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur-md">
-              AI Tailored Split
+              {heroConfig.tag}
             </span>
             <span className="px-2.5 py-1 rounded-lg bg-[#00FF9C]/20 border border-[#00FF9C]/40 text-[#00FF9C] backdrop-blur-md">
               Adaptive Baseline
