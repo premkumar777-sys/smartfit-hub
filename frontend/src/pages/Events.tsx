@@ -157,6 +157,7 @@ export default function Events() {
   // Modal states
   const [rsvpEvent, setRsvpEvent] = useState<EventItem | null>(null);
   const [isHostModalOpen, setIsHostModalOpen] = useState(false);
+  const [showStatsModal, setShowStatsModal] = useState(false);
 
   // RSVP Form State
   const [rsvpForm, setRsvpForm] = useState({ name: "", email: "", phone: "", reminder: "calendar" });
@@ -933,12 +934,20 @@ END:VCALENDAR`;
                   </div>
                 </div>
 
-                <button
-                  onClick={() => { window.location.href = "/events/ob-fitness"; }}
-                  className="inline-flex items-center gap-2 text-xs font-bold text-[#4ade80] hover:text-white transition-colors"
-                >
-                  View Full Results & Leaderboard <ArrowRight className="w-3.5 h-3.5" />
-                </button>
+                <div className="flex space-x-4">
+                  <Button
+                    onClick={() => setShowStatsModal(true)}
+                    className="bg-[#4ade80] hover:bg-[#3ce074] text-black font-bold px-4 py-2 rounded-xl text-xs"
+                  >
+                    View Event Statistics
+                  </Button>
+                  <Button
+                    onClick={() => { window.location.href = "/events/ob-fitness"; }}
+                    className="bg-white/10 hover:bg-[#4ade80] hover:text-black text-white font-bold px-4 py-2 rounded-xl text-xs"
+                  >
+                    View Full Results &amp; Leaderboard <ArrowRight className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
@@ -1078,6 +1087,88 @@ END:VCALENDAR`;
         )}
       </AnimatePresence>
 
+        {/* --- STATISTICS MODAL (OB Fitness) --- */}
+        <AnimatePresence>
+          {showStatsModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setShowStatsModal(false)}
+                className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+              />
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                className="relative w-full max-w-4xl bg-[#0e1017] border border-white/15 rounded-3xl p-6 sm:p-8 shadow-2xl z-10 space-y-6"
+              >
+                <button
+                  onClick={() => setShowStatsModal(false)}
+                  className="absolute top-5 right-5 text-gray-400 hover:text-white p-1"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+                <h2 className="text-2xl font-extrabold text-white mb-4">
+                  OB Fitness Showdown – Event Statistics
+                </h2>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                  {[{ type: "pullups", title: "Max Pull-Ups (Reps) 💪", unit: "reps", bg: "from-amber-950/20 to-zinc-950/50 border-amber-500/20" },
+                    { type: "deadlifts", title: "Max Deadlift (Weight) 🏋️", unit: "kg", bg: "from-red-950/20 to-zinc-950/50 border-red-500/20" },
+                    { type: "benchpress", title: "Max Bench Press (Weight) 🏋️", unit: "kg", bg: "from-emerald-950/20 to-zinc-950/50 border-emerald-500/20" }].map((category) => {
+                      const categoryStandings = leaderboardData
+                        .filter((r) => r.challenge_type === category.type)
+                        .sort((a, b) => {
+                          if (a.is_winner && b.is_winner) return (a.winner_rank || 4) - (b.winner_rank || 4);
+                          if (a.is_winner) return -1;
+                          if (b.is_winner) return 1;
+                          return b.score - a.score;
+                        });
+                      return (
+                        <div key={category.type} className={`bg-gradient-to-b ${category.bg} border rounded-3xl p-6 shadow-xl space-y-4`}>
+                          <h3 className="font-extrabold text-lg text-white border-b border-white/5 pb-3">{category.title}</h3>
+                          {categoryStandings.length === 0 ? (
+                            <div className="py-8 text-center text-zinc-600 text-xs italic">No scores recorded yet.</div>
+                          ) : (
+                            <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1">
+                              {categoryStandings.map((competitor, idx) => {
+                                const rank = competitor.is_winner && competitor.winner_rank;
+                                return (
+                                  <div key={competitor.id} className={`flex items-center justify-between p-3 rounded-2xl border transition-all ${rank === 1 ? "bg-amber-500/10 border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.15)]" : rank === 2 ? "bg-slate-300/10 border-slate-300/30" : rank === 3 ? "bg-amber-700/10 border-amber-700/30" : "bg-white/[0.02] border-white/5"}`}>
+                                    <div className="flex items-center gap-3">
+                                      <span className={`w-6 text-center text-xs font-black ${rank === 1 ? "text-amber-400" : rank === 2 ? "text-slate-300" : rank === 3 ? "text-amber-600" : "text-zinc-500"}`}>{rank ? (rank === 1 ? "🥇" : rank === 2 ? "🥈" : "🥉") : idx + 1}</span>
+                                      <div>
+                                        <div className="font-bold text-white text-sm flex items-center gap-1.5">
+                                          {competitor.full_name}
+                                          {rank && (
+                                            <span className="text-[10px] uppercase font-black tracking-wider px-1.5 py-0.5 rounded bg-white/5 text-primary border border-white/10">
+                                              Winner
+                                            </span>
+                                          )}
+                                        </div>
+                                        {competitor.department && (
+                                          <div className="text-[10px] text-zinc-500">{competitor.department}</div>
+                                        )}
+                                      </div>
+                                    </div>
+                                    <div className="text-right">
+                                      <div className="font-black text-white text-base">{competitor.score}</div>
+                                      <div className="text-[9px] uppercase tracking-wider text-zinc-500 font-bold">{category.unit}</div>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
       {/* --- 8. HOST AN EVENT MODAL --- */}
       <AnimatePresence>
         {isHostModalOpen && (
