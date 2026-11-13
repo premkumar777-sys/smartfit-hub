@@ -653,7 +653,7 @@ export default function Dashboard() {
 
         {/* ── Content Container: Responsive Mobile & Desktop Grid ── */}
         <div
-          className="w-full max-w-lg lg:max-w-7xl mx-auto px-3.5 sm:px-4 lg:px-8 py-2 lg:py-8"
+          className="w-full max-w-lg lg:max-w-7xl mx-auto px-3.5 sm:px-4 lg:px-8 pt-20 sm:pt-24 lg:pt-8 py-2 lg:py-8"
           style={{
             paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 96px)",
           }}
@@ -677,49 +677,19 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* ── Mobile Top Bar & Greeting (Hidden on desktop) ── */}
-          <div className="lg:hidden">
-            <header className="flex items-center justify-between h-14 mb-2">
-              <div className="flex items-center gap-2">
-                <h1 className="text-xl font-bold tracking-tight text-neutral-900 dark:text-neutral-50">
-                  Today
-                </h1>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => navigate("/app/profile")}
-                aria-label="Profile Avatar"
-                className="w-9 h-9 rounded-full bg-[#0D3B29] text-[#4CC38A] flex items-center justify-center shadow-2xs active:scale-95 transition-transform"
-              >
-                <User className="w-5 h-5 text-[#4CC38A]" strokeWidth={2.2} />
-              </button>
-            </header>
-
-            <div className="flex items-center justify-between mb-4">
+          {/* ── Mobile Greeting (Hidden on desktop) ── */}
+          <div className="lg:hidden mb-4">
+            <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
                   {greeting}, {firstName}
                 </h2>
                 <p className="text-xs text-neutral-600 dark:text-neutral-400 mt-0.5 font-medium flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-[#1F7A5A] dark:bg-[#4CC38A] shrink-0" />
+                  <span className="w-2 h-2 rounded-full bg-[#00FF9C] shrink-0 animate-pulse" />
                   <span>
                     Level {level} • {xp} / {nextLevelXp} XP • {plan.dailyCalories} kcal target
                   </span>
                 </p>
-              </div>
-
-              <div
-                onClick={() => navigate("/app/profile")}
-                role="button"
-                tabIndex={0}
-                className="w-11 h-11 rounded-full overflow-hidden shadow-xs ring-2 ring-white/80 dark:ring-neutral-800 cursor-pointer active:scale-95 transition-transform shrink-0"
-              >
-                <img
-                  src={profile?.avatar_url || "/prem-avatar.jpg"}
-                  alt={firstName}
-                  className="w-full h-full object-cover"
-                />
               </div>
             </div>
           </div>

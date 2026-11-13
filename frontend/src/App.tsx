@@ -95,7 +95,7 @@ const AppContent = () => {
   const isTodayPage = location.pathname === "/app/today" || location.pathname === "/dashboard";
   const isAITrainerPage = location.pathname === "/ai-trainer";
   const hideLayout = isAuthPage || isWorkoutSessionPage || isOnboardingPage;
-  const hideHeader = hideLayout || isSettingsPage || isProfilePage || isTodayPage;
+  const hideHeader = hideLayout || isSettingsPage || isProfilePage;
   const hideFooter = hideLayout || isSettingsPage || isProfilePage || isTodayPage || isAITrainerPage;
   const hideChatbot = hideLayout || isSettingsPage || isAITrainerPage;
 

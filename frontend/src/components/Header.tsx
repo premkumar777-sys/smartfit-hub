@@ -187,10 +187,12 @@ export function Header() {
     return location.pathname === href;
   };
 
+  const isTodayPage = location.pathname === "/app/today" || location.pathname === "/dashboard";
+
   return (
     <>
-      <div ref={headerRef} className="fixed top-0 inset-x-0 z-50 flex flex-col pointer-events-none w-full">
-        {showBanners && (
+      <div ref={headerRef} className={cn("fixed top-0 inset-x-0 z-50 flex flex-col pointer-events-none w-full", isTodayPage && "lg:hidden")}>
+        {showBanners && !isTodayPage && (
           <div className="pointer-events-auto w-full">
             <GiveawayBanner />
           </div>
@@ -199,6 +201,7 @@ export function Header() {
           <header
             className={cn(
               "header-liquid-transition px-4 sm:px-8 w-full",
+              isTodayPage && "lg:hidden",
               isScrolled
                 ? "py-3.5 bg-[#0a0b0e]/95 backdrop-blur-xl border-b border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.5)]"
                 : "py-5 bg-transparent border-b border-transparent shadow-none"
