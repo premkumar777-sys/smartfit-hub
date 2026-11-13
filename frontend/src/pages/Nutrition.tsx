@@ -876,12 +876,16 @@ export default function Nutrition() {
       <Container className="relative z-10 max-w-5xl px-4 sm:px-6">
         <header className="mb-8 flex flex-col gap-5 rounded-3xl border border-white/10 bg-[#101412] p-5 sm:flex-row sm:items-center sm:justify-between sm:p-7">
           <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-[#00e58a]/30 bg-[#00e58a]/10 text-[#00e58a]">
-              <Sparkles className="h-6 w-6" />
+            <div className="relative flex h-14 w-14 shrink-0 overflow-hidden rounded-2xl border border-[#00e58a]/30 shadow-[0_0_20px_rgba(0,229,138,0.2)]">
+              <img
+                src="/nutrition-fuel.jpg"
+                alt="Athlete Nutrition Fuel"
+                className="h-full w-full object-cover"
+                loading="eager"
+              />
             </div>
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#00e58a]">SmartFit AI</p>
-              <h1 className="mt-1 text-2xl font-bold sm:text-3xl">Nutrition</h1>
+              <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">Nutrition</h1>
               <p className="mt-1 text-sm text-white/50">A clearer picture of what fuels your day.</p>
             </div>
           </div>
