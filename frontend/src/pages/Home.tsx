@@ -45,17 +45,18 @@ const Home = () => {
       ═══════════════════════════════════════════════════════════════ */}
       <section className="relative w-full min-h-screen min-h-dvh overflow-hidden flex flex-col justify-center bg-[#060809]">
 
-        {/* ── Layer 1: High-Definition Cyber-Athlete Background ──────── */}
+        {/* ── Layer 1: High-Definition Cyber-Athlete Looping Video Background ──────── */}
         <div className="absolute inset-0 z-0 pointer-events-none select-none overflow-hidden">
-          <motion.img
-            src="/hero-cyber-athlete.jpg"
-            alt="SmartFit Cyber Athlete"
-            initial={{ scale: 1.05, opacity: 0 }}
-            animate={{ scale: 1, opacity: 0.85 }}
-            transition={{ duration: 1.2, ease: "easeOut" }}
-            className="w-full h-full object-cover object-center scale-105"
-            loading="eager"
-          />
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            poster="/hero-cyber-athlete.jpg"
+            className="w-full h-full object-cover object-center opacity-85 scale-105 transition-opacity duration-1000"
+          >
+            <source src="/cyber-athlete-run.mp4" type="video/mp4" />
+          </video>
 
           {/* ── Layer 2: Volumetric Pulsing Emerald Rim Aura ─────────── */}
           <motion.div
