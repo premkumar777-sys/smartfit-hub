@@ -437,33 +437,32 @@ export const FloatingChatbot = () => {
       <motion.button
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "fixed right-4 lg:bottom-6 lg:right-6 z-[80] w-14 h-14 sm:w-16 sm:h-16 rounded-2xl items-center justify-center cursor-pointer transition-all duration-300",
+          "fixed right-4 lg:bottom-6 lg:right-6 z-[80] w-14 h-14 sm:w-15 sm:h-15 rounded-2xl items-center justify-center cursor-pointer transition-all duration-300",
           hasBottomNav ? "hidden lg:flex" : "flex",
           mobileBottomPosition,
-          "bg-[#0B3B24] border-2 border-[#4CC38A]/70 backdrop-blur-md shadow-[0_0_25px_rgba(76,195,138,0.45)] hover:shadow-[0_0_35px_rgba(76,195,138,0.7)]",
+          "bg-[#080A0C]/90 border border-white/15 hover:border-[#00FF9C]/60 backdrop-blur-xl shadow-[0_8px_30px_rgba(0,0,0,0.7),0_0_20px_rgba(0,255,156,0.2)] hover:shadow-[0_8px_35px_rgba(0,0,0,0.8),0_0_30px_rgba(0,255,156,0.4)] group overflow-hidden",
           isOpen && "scale-0 opacity-0 rotate-180 pointer-events-none"
         )}
         whileHover={{
-          scale: 1.08,
-          borderColor: "rgba(76, 195, 138, 0.9)",
+          scale: 1.06,
         }}
-        whileTap={{ scale: 0.92 }}
+        whileTap={{ scale: 0.94 }}
         aria-label="Open AI Fitness Chat"
       >
-        <div className="absolute -inset-[3px] rounded-2xl bg-gradient-to-tr from-[#22CC66] via-[#38BDF8] to-[#818CF8] opacity-70 blur-[4px] animate-pulse pointer-events-none" />
-        <div className="absolute inset-[1px] rounded-[14px] bg-[#0B3B24] z-0" />
-        
-        <div className="relative z-10 w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center p-1 sm:p-1.5 overflow-hidden shadow-inner group">
-          <img 
-            src="/favicon.png" 
-            alt="SmartFitAI Chatbot Launcher" 
-            className="w-full h-full object-contain filter drop-shadow-[0_0_10px_rgba(76,195,138,0.8)] transform group-hover:scale-110 transition-transform duration-300"
-          />
-        </div>
+        {/* Subtle Ambient Specular Top Line */}
+        <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/25 to-transparent pointer-events-none" />
 
-        <span className="absolute -top-1 -right-1 flex h-4 w-4 z-20">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-          <span className="relative inline-flex rounded-full h-4 w-4 bg-green-500 border-2 border-[#0a0a0a]" />
+        {/* Center Athlete Logo */}
+        <img 
+          src="/favicon.png" 
+          alt="SmartFit AI Assistant" 
+          className="w-9 h-9 sm:w-10 sm:h-10 object-contain drop-shadow-[0_0_10px_rgba(0,255,156,0.4)] group-hover:scale-108 transition-transform duration-300 pointer-events-none"
+        />
+
+        {/* Clean Apple/Cyber Status Indicator LED */}
+        <span className="absolute top-1.5 right-1.5 flex h-2.5 w-2.5 pointer-events-none">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00FF9C] opacity-75" />
+          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#00FF9C] ring-2 ring-[#080A0C]" />
         </span>
       </motion.button>
 
