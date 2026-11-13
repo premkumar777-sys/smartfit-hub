@@ -50,6 +50,7 @@ export default defineConfig(({ mode }) => {
       workbox: {
         maximumFileSizeToCacheInBytes: 3000000, // Limit to 3MB per file
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'], // Exclude MP4 files from startup pre-cache
+        importScripts: ['/sw-push-handler.js'],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/images\.unsplash\.com\/.*/i,

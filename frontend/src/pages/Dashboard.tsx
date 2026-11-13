@@ -31,6 +31,7 @@ import { cn } from "@/lib/utils";
 import { DesktopSidebar } from "@/components/DesktopSidebar";
 import { getPersonalizedPlan, PersonalizedPlan } from "@/lib/onboarding";
 import { getPersonalizedWorkoutHero } from "@/lib/workoutImages";
+import { NotificationOptInCard } from "@/components/NotificationOptInCard";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -698,6 +699,7 @@ export default function Dashboard() {
 
           {/* ── Mobile Layout (Single Column) ── */}
           <div className="lg:hidden space-y-4">
+            <NotificationOptInCard userId={authUser?.id} userName={firstName} />
             <WorkoutHeroCard />
             <StatsGrid />
             <WeeklyScheduleCard />
@@ -709,6 +711,7 @@ export default function Dashboard() {
           <div className="hidden lg:grid lg:grid-cols-12 lg:gap-8 items-start">
             {/* Left Column (Main Focus: Workout Hero + Smart AI Tools) */}
             <div className="lg:col-span-7 xl:col-span-8 space-y-8">
+              <NotificationOptInCard userId={authUser?.id} userName={firstName} />
               <WorkoutHeroCard />
               <SmartToolsSection />
             </div>
