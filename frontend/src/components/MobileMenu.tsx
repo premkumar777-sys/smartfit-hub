@@ -360,18 +360,7 @@ export function MobileMenu({ className, onMenuToggle }: MobileMenuProps) {
                     Get my plan
                   </button>
 
-                  {/* Button 2: Log in / Dashboard */}
-                  <button
-                    type="button"
-                    onClick={() =>
-                      handleLinkClick(isAuthenticated ? "/app/today" : "/auth")
-                    }
-                    className="w-full h-12 rounded-2xl bg-white border border-neutral-300 text-neutral-900 font-bold text-sm sm:text-base flex items-center justify-center hover:bg-neutral-50 shadow-2xs transition-all active:scale-[0.98] cursor-pointer"
-                  >
-                    {isAuthenticated ? "Go to Dashboard" : "Log in"}
-                  </button>
-
-                  {/* Button 3: Get it on Google Play */}
+                  {/* Button 2: Get it on Google Play */}
                   <a
                     href="https://play.google.com/store/apps"
                     target="_blank"

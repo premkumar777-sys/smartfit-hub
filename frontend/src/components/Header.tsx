@@ -262,7 +262,17 @@ export function Header() {
 
             {/* Mobile Navigation Right Side: Auth Menu & Mobile Hamburger Menu */}
             <div className="flex lg:hidden items-center space-x-2 -mr-1">
-              <AuthMenu />
+              {isAuthenticated ? (
+                <AuthMenu />
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => navigate("/auth")}
+                  className="text-base font-semibold text-neutral-900 dark:text-white px-2 py-1 hover:text-[#00FF9C] transition-colors cursor-pointer"
+                >
+                  Log in
+                </button>
+              )}
               <MobileMenu />
             </div>
           </div>
