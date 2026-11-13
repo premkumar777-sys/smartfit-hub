@@ -30,11 +30,10 @@ export default function FirstWeekPlan() {
     return firstWorkout ? firstWorkout.id : "mon";
   });
 
-  // 1.8s "AI Calibrating" transition for user satisfaction
-  const [isCalibrating, setIsCalibrating] = useState<boolean>(() => {
-    return !localStorage.getItem("smartfit_calibration_seen");
-  });
+  // 6.0s "AI Calibrating" transition for user satisfaction
+  const [isCalibrating, setIsCalibrating] = useState<boolean>(true);
   const [calibrationStep, setCalibrationStep] = useState(0);
+  const [progressPercent, setProgressPercent] = useState(10);
 
   useEffect(() => {
     const freshPlan = getPersonalizedPlan();
@@ -44,19 +43,31 @@ export default function FirstWeekPlan() {
       setSelectedDayId(firstWorkout.id);
     }
 
-    if (!localStorage.getItem("smartfit_calibration_seen")) {
-      const t1 = setTimeout(() => setCalibrationStep(1), 600);
-      const t2 = setTimeout(() => setCalibrationStep(2), 1200);
-      const t3 = setTimeout(() => {
+    // Smooth progress counter reaching 100% across 6.0 seconds
+    const interval = setInterval(() => {
+      setProgressPercent((prev) => {
+        if (prev >= 98) return 98;
+        return prev + 2;
+      });
+    }, 120);
+
+    const t1 = setTimeout(() => setCalibrationStep(1), 1500);
+    const t2 = setTimeout(() => setCalibrationStep(2), 3000);
+    const t3 = setTimeout(() => setCalibrationStep(3), 4500);
+    const t4 = setTimeout(() => {
+      setProgressPercent(100);
+      setTimeout(() => {
         setIsCalibrating(false);
-        localStorage.setItem("smartfit_calibration_seen", "true");
-      }, 1800);
-      return () => {
-        clearTimeout(t1);
-        clearTimeout(t2);
-        clearTimeout(t3);
-      };
-    }
+      }, 350);
+    }, 6000);
+
+    return () => {
+      clearInterval(interval);
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+      clearTimeout(t4);
+    };
   }, []);
 
   const activeDay = plan.weekPlan.find((d) => d.id === selectedDayId) || plan.weekPlan[0];
@@ -89,23 +100,44 @@ export default function FirstWeekPlan() {
         className="min-h-dvh flex flex-col items-center justify-center p-6 text-center select-none"
         style={{ backgroundColor: "var(--sf-bg)", color: "var(--sf-text)" }}
       >
-        <div className="w-16 h-16 rounded-2xl bg-[#00FF9C]/15 border border-[#00FF9C]/30 flex items-center justify-center mb-6 animate-pulse">
-          <Sparkles className="w-8 h-8 text-[#00FF9C]" />
+        <div className="relative w-20 h-20 rounded-3xl bg-[#00FF9C]/15 border border-[#00FF9C]/30 flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(0,255,156,0.2)]">
+          <Sparkles className="w-10 h-10 text-[#00FF9C] animate-pulse" />
+          <div className="absolute inset-0 rounded-3xl border border-[#00FF9C]/40 animate-ping opacity-25" />
         </div>
 
-        <h2 className="text-xl font-bold tracking-tight mb-2">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#00FF9C]/10 border border-[#00FF9C]/25 text-[11px] font-bold text-[#00FF9C] uppercase tracking-wider mb-3">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#00FF9C] animate-pulse" />
+          Neural Calibration Engine
+        </div>
+
+        <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight mb-2 text-white">
           Generating Your Custom Plan
         </h2>
-        <p className="text-sm text-neutral-400 max-w-xs mb-8">
-          Analyzing metrics, weekly volume, and recovery curves...
+        <p className="text-xs sm:text-sm text-neutral-400 max-w-sm mb-6 leading-relaxed">
+          Calibrating metabolic rates, weekly volume, progressive overload curves, and muscle recovery windows...
         </p>
 
-        <div className="w-full max-w-xs space-y-3 text-left">
+        {/* 6-Second Smooth Progress Bar & Counter */}
+        <div className="w-full max-w-xs mb-8">
+          <div className="flex items-center justify-between text-xs font-semibold mb-2">
+            <span className="text-neutral-400">Personalization Progress</span>
+            <span className="text-[#00FF9C] font-mono">{Math.min(progressPercent, 100)}%</span>
+          </div>
+          <div className="w-full h-2 rounded-full bg-white/10 overflow-hidden p-0.5">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-[#00FF9C] to-[#38BDF8] transition-all duration-150 ease-out shadow-[0_0_12px_#00FF9C]"
+              style={{ width: `${Math.min(progressPercent, 100)}%` }}
+            />
+          </div>
+        </div>
+
+        {/* Calibration Milestones */}
+        <div className="w-full max-w-xs space-y-3.5 text-left">
           <div className="flex items-center gap-3 text-xs">
             <span
               className={cn(
-                "w-2 h-2 rounded-full",
-                calibrationStep >= 0 ? "bg-[#00FF9C] animate-pulse" : "bg-neutral-600"
+                "w-2 h-2 rounded-full shrink-0 transition-all",
+                calibrationStep >= 0 ? "bg-[#00FF9C] shadow-[0_0_8px_#00FF9C]" : "bg-neutral-600"
               )}
             />
             <span className={calibrationStep >= 0 ? "text-white font-medium" : "text-neutral-500"}>
@@ -116,8 +148,8 @@ export default function FirstWeekPlan() {
           <div className="flex items-center gap-3 text-xs">
             <span
               className={cn(
-                "w-2 h-2 rounded-full",
-                calibrationStep >= 1 ? "bg-[#00FF9C] animate-pulse" : "bg-neutral-600"
+                "w-2 h-2 rounded-full shrink-0 transition-all",
+                calibrationStep >= 1 ? "bg-[#00FF9C] shadow-[0_0_8px_#00FF9C]" : "bg-neutral-600"
               )}
             />
             <span className={calibrationStep >= 1 ? "text-white font-medium" : "text-neutral-500"}>
@@ -128,12 +160,24 @@ export default function FirstWeekPlan() {
           <div className="flex items-center gap-3 text-xs">
             <span
               className={cn(
-                "w-2 h-2 rounded-full",
-                calibrationStep >= 2 ? "bg-[#00FF9C] animate-pulse" : "bg-neutral-600"
+                "w-2 h-2 rounded-full shrink-0 transition-all",
+                calibrationStep >= 2 ? "bg-[#00FF9C] shadow-[0_0_8px_#00FF9C]" : "bg-neutral-600"
               )}
             />
             <span className={calibrationStep >= 2 ? "text-white font-medium" : "text-neutral-500"}>
               High-protein macro distribution: {plan.macros.protein}g protein
+            </span>
+          </div>
+
+          <div className="flex items-center gap-3 text-xs">
+            <span
+              className={cn(
+                "w-2 h-2 rounded-full shrink-0 transition-all",
+                calibrationStep >= 3 ? "bg-[#00FF9C] shadow-[0_0_8px_#00FF9C]" : "bg-neutral-600"
+              )}
+            />
+            <span className={calibrationStep >= 3 ? "text-white font-medium" : "text-neutral-500"}>
+              Synthesizing exercise tempos, rest intervals &amp; RPE caps
             </span>
           </div>
         </div>
