@@ -4,7 +4,6 @@ import {
   User,
   Clock,
   Dumbbell,
-  MapPin,
   Flame,
   Zap,
   Droplet,
@@ -179,11 +178,6 @@ export default function Dashboard() {
               <Dumbbell className="w-3.5 h-3.5" />
               <span>{plan.todayWorkout.exerciseCount} exercises</span>
             </div>
-            <span>•</span>
-            <div className="flex items-center gap-1">
-              <MapPin className="w-3.5 h-3.5" />
-              <span>{isRest ? "Mobility Zone" : "Gym / Free Weights"}</span>
-            </div>
           </div>
         </div>
 
@@ -212,7 +206,6 @@ export default function Dashboard() {
           onClick={() => navigate("/app/workout/session")}
           className="w-full h-12 lg:h-13 rounded-xl bg-[#0D3B29] hover:bg-[#134e37] text-white font-bold text-sm lg:text-base active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-emerald-950/10"
         >
-          <Dumbbell className="w-4 h-4 text-[#4CC38A]" />
           <span>{isRest ? "Start Recovery Mobility Session" : "Start Today's Workout"}</span>
         </button>
       </div>
