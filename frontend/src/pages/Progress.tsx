@@ -509,22 +509,23 @@ export default function Progress() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f1faf5] pt-20 pb-32 text-[#15372a] lg:py-24 relative overflow-hidden">
+    <div className="min-h-screen bg-[#080A0C] pt-20 pb-32 text-white lg:py-24 relative overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-b from-[#00FF9C]/5 via-transparent to-transparent pointer-events-none" />
       <Container className="relative z-10">
         <div className="mb-7 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <Button
               variant="ghost"
               size="sm"
-              className="mb-2 -ml-3 text-[#547064] hover:bg-emerald-50 hover:text-[#15372a]"
+              className="mb-2 -ml-3 text-gray-400 hover:bg-white/5 hover:text-white"
               onClick={() => navigate(-1)}
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back
             </Button>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-800">SmartFit AI</p>
-            <h1 className="mt-1 text-3xl font-bold tracking-tight text-[#15372a] md:text-4xl">Smart Progress</h1>
-            <p className="mt-1 text-sm text-[#547064]">Your fitness journey, measured over time.</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#00FF9C]">SmartFit AI</p>
+            <h1 className="mt-1 text-3xl font-bold tracking-tight text-white md:text-4xl">Smart Progress</h1>
+            <p className="mt-1 text-sm text-[#8E9BAE]">Your fitness journey, measured over time.</p>
           </div>
         </div>
 
@@ -543,13 +544,13 @@ export default function Progress() {
 
         {/* Main Tabs */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="flex h-auto w-full justify-start gap-1 overflow-x-auto bg-white p-1 shadow-sm sm:w-fit">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="weight">Weight</TabsTrigger>
-            <TabsTrigger value="measurements">Measurements</TabsTrigger>
-            <TabsTrigger value="goals">Goals</TabsTrigger>
-            <TabsTrigger value="workouts">Workouts</TabsTrigger>
-            <TabsTrigger value="history">History</TabsTrigger>
+          <TabsList className="flex h-auto w-full justify-start gap-1 overflow-x-auto bg-[#111418] border border-white/10 p-1 shadow-sm sm:w-fit rounded-xl">
+            <TabsTrigger value="overview" className="data-[state=active]:bg-[#00FF9C] data-[state=active]:text-[#060809] data-[state=active]:font-bold text-[#8E9BAE]">Overview</TabsTrigger>
+            <TabsTrigger value="weight" className="data-[state=active]:bg-[#00FF9C] data-[state=active]:text-[#060809] data-[state=active]:font-bold text-[#8E9BAE]">Weight</TabsTrigger>
+            <TabsTrigger value="measurements" className="data-[state=active]:bg-[#00FF9C] data-[state=active]:text-[#060809] data-[state=active]:font-bold text-[#8E9BAE]">Measurements</TabsTrigger>
+            <TabsTrigger value="goals" className="data-[state=active]:bg-[#00FF9C] data-[state=active]:text-[#060809] data-[state=active]:font-bold text-[#8E9BAE]">Goals</TabsTrigger>
+            <TabsTrigger value="workouts" className="data-[state=active]:bg-[#00FF9C] data-[state=active]:text-[#060809] data-[state=active]:font-bold text-[#8E9BAE]">Workouts</TabsTrigger>
+            <TabsTrigger value="history" className="data-[state=active]:bg-[#00FF9C] data-[state=active]:text-[#060809] data-[state=active]:font-bold text-[#8E9BAE]">History</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview">
@@ -1149,17 +1150,17 @@ function ProgressOverview({
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-semibold text-[#15372a]">Your activity</h2>
-          <p className="text-sm text-[#668075]">A clear view of your recent training and progress.</p>
+          <h2 className="text-xl font-semibold text-white">Your activity</h2>
+          <p className="text-sm text-[#8E9BAE]">A clear view of your recent training and progress.</p>
         </div>
-        <div className="inline-flex rounded-xl border border-[#d7e8de] bg-white p-1 shadow-sm" role="group" aria-label="Dashboard time range">
+        <div className="inline-flex rounded-xl border border-white/10 bg-[#111418] p-1 shadow-sm" role="group" aria-label="Dashboard time range">
           {(Object.keys(periodLabels) as DashboardPeriod[]).map((range) => (
             <button
               type="button"
               key={range}
               onClick={() => onPeriodChange(range)}
               aria-pressed={period === range}
-              className={`rounded-lg px-3 py-2 text-sm transition-colors ${period === range ? "bg-[#075b3e] text-white shadow-sm" : "text-[#547064] hover:bg-emerald-50"}`}
+              className={`rounded-lg px-3 py-2 text-sm transition-colors ${period === range ? "bg-[#00FF9C] text-[#060809] font-bold shadow-sm" : "text-[#8E9BAE] hover:bg-white/5 hover:text-white"}`}
             >
               {periodLabels[range]}
             </button>
@@ -1168,32 +1169,32 @@ function ProgressOverview({
       </div>
 
       <div className="grid gap-5 lg:grid-cols-2">
-        <Card className="rounded-2xl border-[#d7e8de] bg-white shadow-sm">
+        <Card className="rounded-2xl border-white/10 bg-[#111418] text-white shadow-xl">
           <CardHeader className="pb-2">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <CardTitle className="text-lg text-[#15372a]">Workout activity</CardTitle>
-                <CardDescription className="text-[#668075]">{data.periodWorkouts} {data.periodWorkouts === 1 ? "workout" : "workouts"} in this period</CardDescription>
+                <CardTitle className="text-lg text-white">Workout activity</CardTitle>
+                <CardDescription className="text-[#8E9BAE]">{data.periodWorkouts} {data.periodWorkouts === 1 ? "workout" : "workouts"} in this period</CardDescription>
               </div>
-              <span className="rounded-full bg-[#e6f5ec] px-3 py-1 text-xs font-medium text-[#075b3e]">{workoutDeltaLabel}</span>
+              <span className="rounded-full bg-[#00FF9C]/15 border border-[#00FF9C]/30 px-3 py-1 text-xs font-semibold text-[#00FF9C]">{workoutDeltaLabel}</span>
             </div>
           </CardHeader>
           <CardContent>
             {data.periodWorkouts === 0 ? (
-              <div className="flex h-52 flex-col items-center justify-center text-center text-[#668075]">
-                <Activity className="mb-2 h-8 w-8 text-[#8bb7a0]" />
-                <p className="font-medium text-[#15372a]">No workouts in this period yet</p>
+              <div className="flex h-52 flex-col items-center justify-center text-center text-[#8E9BAE]">
+                <Activity className="mb-2 h-8 w-8 text-[#00FF9C]/60" />
+                <p className="font-medium text-white">No workouts in this period yet</p>
                 <p className="mt-1 text-sm">Completed sessions will build your activity chart.</p>
               </div>
             ) : (
               <div className="h-52">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={data.activityChart} margin={{ top: 10, right: 4, left: -20, bottom: 0 }}>
-                    <CartesianGrid vertical={false} stroke="#e8f0eb" />
-                    <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fill: "#668075", fontSize: 11 }} />
-                    <YAxis allowDecimals={false} axisLine={false} tickLine={false} tick={{ fill: "#668075", fontSize: 11 }} />
-                    <Tooltip cursor={{ fill: "#f1faf5" }} contentStyle={{ border: "1px solid #d7e8de", borderRadius: 12 }} />
-                    <Bar dataKey="workouts" name="Workouts" fill="#08734d" radius={[6, 6, 0, 0]} maxBarSize={34} />
+                    <CartesianGrid vertical={false} stroke="rgba(255,255,255,0.08)" />
+                    <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fill: "#8E9BAE", fontSize: 11 }} />
+                    <YAxis allowDecimals={false} axisLine={false} tickLine={false} tick={{ fill: "#8E9BAE", fontSize: 11 }} />
+                    <Tooltip cursor={{ fill: "rgba(255,255,255,0.04)" }} contentStyle={{ backgroundColor: "#111418", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 12, color: "#fff" }} />
+                    <Bar dataKey="workouts" name="Workouts" fill="#00FF9C" radius={[6, 6, 0, 0]} maxBarSize={34} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -1201,35 +1202,35 @@ function ProgressOverview({
           </CardContent>
         </Card>
 
-        <Card className="rounded-2xl border-[#d7e8de] bg-white shadow-sm">
+        <Card className="rounded-2xl border-white/10 bg-[#111418] text-white shadow-xl">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <CardTitle className="text-lg text-[#15372a]">Body weight</CardTitle>
-                <CardDescription className="flex items-center gap-1 text-[#668075]"><LockKeyhole className="h-3 w-3" /> Only you can see this data</CardDescription>
+                <CardTitle className="text-lg text-white">Body weight</CardTitle>
+                <CardDescription className="flex items-center gap-1 text-[#8E9BAE]"><LockKeyhole className="h-3 w-3" /> Only you can see this data</CardDescription>
               </div>
               <div className="text-right">
-                <p className="text-2xl font-semibold text-[#15372a]">{data.latestWeight === null ? "—" : `${data.latestWeight} kg`}</p>
-                <p className="text-xs text-[#668075]">{data.weightChange === null ? "Log another entry to compare" : `${data.weightChange > 0 ? "+" : ""}${data.weightChange} kg in period`}</p>
+                <p className="text-2xl font-semibold text-white">{data.latestWeight === null ? "—" : `${data.latestWeight} kg`}</p>
+                <p className="text-xs text-[#8E9BAE]">{data.weightChange === null ? "Log another entry to compare" : `${data.weightChange > 0 ? "+" : ""}${data.weightChange} kg in period`}</p>
               </div>
             </div>
           </CardHeader>
           <CardContent>
             {data.weightTrend.length < 2 ? (
-              <div className="flex h-52 flex-col items-center justify-center text-center text-[#668075]">
-                <Scale className="mb-2 h-8 w-8 text-[#8bb7a0]" />
-                <p className="font-medium text-[#15372a]">{data.weightTrend.length ? "One weight entry recorded" : "Start tracking your weight"}</p>
+              <div className="flex h-52 flex-col items-center justify-center text-center text-[#8E9BAE]">
+                <Scale className="mb-2 h-8 w-8 text-[#00FF9C]/60" />
+                <p className="font-medium text-white">{data.weightTrend.length ? "One weight entry recorded" : "Start tracking your weight"}</p>
                 <p className="mt-1 text-sm">Your history stays private to your account.</p>
               </div>
             ) : (
               <div className="h-52">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={data.weightTrend} margin={{ top: 12, right: 8, left: -18, bottom: 0 }}>
-                    <CartesianGrid vertical={false} stroke="#e8f0eb" />
-                    <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: "#668075", fontSize: 11 }} />
-                    <YAxis domain={["auto", "auto"]} axisLine={false} tickLine={false} tick={{ fill: "#668075", fontSize: 11 }} />
-                    <Tooltip contentStyle={{ border: "1px solid #d7e8de", borderRadius: 12 }} formatter={(value: number) => [`${value} kg`, "Weight"]} />
-                    <Line type="monotone" dataKey="weight" stroke="#08734d" strokeWidth={2.5} dot={{ r: 3, fill: "#08734d" }} activeDot={{ r: 5 }} />
+                    <CartesianGrid vertical={false} stroke="rgba(255,255,255,0.08)" />
+                    <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: "#8E9BAE", fontSize: 11 }} />
+                    <YAxis domain={["auto", "auto"]} axisLine={false} tickLine={false} tick={{ fill: "#8E9BAE", fontSize: 11 }} />
+                    <Tooltip contentStyle={{ backgroundColor: "#111418", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 12, color: "#fff" }} formatter={(value: number) => [`${value} kg`, "Weight"]} />
+                    <Line type="monotone" dataKey="weight" stroke="#00FF9C" strokeWidth={2.5} dot={{ r: 3, fill: "#00FF9C" }} activeDot={{ r: 5, fill: "#FFFFFF" }} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -1239,25 +1240,25 @@ function ProgressOverview({
       </div>
 
       <div className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
-        <Card className="rounded-2xl border-[#d7e8de] bg-white shadow-sm">
+        <Card className="rounded-2xl border-white/10 bg-[#111418] text-white shadow-xl">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <CardTitle className="text-lg text-[#15372a]">Consistency</CardTitle>
-                <CardDescription className="text-[#668075]">{data.activeDays} active days in {monthLabel}</CardDescription>
+                <CardTitle className="text-lg text-white">Consistency</CardTitle>
+                <CardDescription className="text-[#8E9BAE]">{data.activeDays} active days in {monthLabel}</CardDescription>
               </div>
               <div className="flex items-center gap-1">
-                <Button variant="ghost" size="icon" aria-label="Previous month" onClick={() => onCalendarMonthChange(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1, 1))}>
+                <Button variant="ghost" size="icon" aria-label="Previous month" className="text-gray-400 hover:text-white hover:bg-white/10" onClick={() => onCalendarMonthChange(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1, 1))}>
                   <ArrowLeft className="h-4 w-4" />
                 </Button>
-                <Button variant="ghost" size="icon" aria-label="Next month" disabled={calendarMonth.getFullYear() === new Date().getFullYear() && calendarMonth.getMonth() >= new Date().getMonth()} onClick={() => onCalendarMonthChange(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 1))}>
+                <Button variant="ghost" size="icon" aria-label="Next month" className="text-gray-400 hover:text-white hover:bg-white/10" disabled={calendarMonth.getFullYear() === new Date().getFullYear() && calendarMonth.getMonth() >= new Date().getMonth()} onClick={() => onCalendarMonthChange(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 1))}>
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="mb-2 grid grid-cols-7 gap-1.5 text-center text-[11px] font-medium text-[#668075]">
+            <div className="mb-2 grid grid-cols-7 gap-1.5 text-center text-[11px] font-medium text-[#8E9BAE]">
               {["M", "T", "W", "T", "F", "S", "S"].map((day, index) => <span key={`${day}-${index}`}>{day}</span>)}
             </div>
             <div className="grid grid-cols-7 gap-1.5">
@@ -1268,37 +1269,37 @@ function ProgressOverview({
                   className={`flex aspect-square items-center justify-center rounded-lg border text-xs ${!cell.day
                     ? "border-transparent"
                     : cell.workouts === 0
-                      ? "border-[#e8f0eb] bg-[#f7faf8] text-[#668075]"
+                      ? "border-white/5 bg-white/[0.03] text-[#8E9BAE]"
                       : cell.workouts === 1
-                        ? "border-emerald-200 bg-emerald-100 text-[#075b3e]"
+                        ? "border-[#00FF9C]/30 bg-[#00FF9C]/15 text-[#00FF9C]"
                         : cell.workouts === 2
-                          ? "border-emerald-600 bg-emerald-600 text-white"
-                          : "border-[#075b3e] bg-[#075b3e] font-semibold text-white"} ${cell.today ? "ring-2 ring-emerald-300 ring-offset-1" : ""}`}
+                          ? "border-[#00FF9C]/60 bg-[#00FF9C]/30 text-white font-semibold"
+                          : "border-[#00FF9C] bg-[#00FF9C] font-bold text-[#060809]"} ${cell.today ? "ring-2 ring-[#00FF9C] ring-offset-1 ring-offset-[#111418]" : ""}`}
                 >
                   {cell.day}
                 </div>
               ))}
             </div>
-            <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-[#668075]">
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-[#8E9BAE]">
               <span>{data.workoutStreak}-day current streak</span>
               <span>Active-day frequency: {data.monthDays ? Math.round((data.activeDays / data.monthDays) * 100) : 0}% of calendar days</span>
             </div>
-            <p className="mt-2 text-xs text-[#879b91]">Frequency uses calendar days, not planned training days; no schedule is stored for this account.</p>
+            <p className="mt-2 text-xs text-[#8E9BAE]/70">Frequency uses calendar days, not planned training days; no schedule is stored for this account.</p>
           </CardContent>
         </Card>
 
-        <Card className="rounded-2xl border-[#d7e8de] bg-white shadow-sm">
+        <Card className="rounded-2xl border-white/10 bg-[#111418] text-white shadow-xl">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <CardTitle className="text-lg text-[#15372a]">Strength progression</CardTitle>
-                <CardDescription className="text-[#668075]">Recorded loads only · kg</CardDescription>
+                <CardTitle className="text-lg text-white">Strength progression</CardTitle>
+                <CardDescription className="text-[#8E9BAE]">Recorded loads only · kg</CardDescription>
               </div>
               <select
                 aria-label="Select exercise"
                 value={data.selectedExercise}
                 onChange={(event) => onExerciseChange(event.target.value)}
-                className="max-w-[150px] rounded-lg border border-[#d7e8de] bg-white px-2 py-2 text-sm text-[#15372a]"
+                className="max-w-[150px] rounded-lg border border-white/10 bg-[#181D24] px-2 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-[#00FF9C]"
               >
                 {data.strengthExercises.map((exercise) => <option key={exercise} value={exercise}>{exercise}</option>)}
               </select>
@@ -1306,25 +1307,25 @@ function ProgressOverview({
           </CardHeader>
           <CardContent>
             {data.strengthProgression.length < 2 ? (
-              <div className="flex h-52 flex-col items-center justify-center text-center text-[#668075]">
-                <TrendingUp className="mb-2 h-8 w-8 text-[#8bb7a0]" />
-                <p className="font-medium text-[#15372a]">{data.strengthExercises.length ? "More recorded sessions needed" : "No structured strength data yet"}</p>
+              <div className="flex h-52 flex-col items-center justify-center text-center text-[#8E9BAE]">
+                <TrendingUp className="mb-2 h-8 w-8 text-[#00FF9C]/60" />
+                <p className="font-medium text-white">{data.strengthExercises.length ? "More recorded sessions needed" : "No structured strength data yet"}</p>
                 <p className="mt-1 max-w-xs text-sm">Add numeric loads with kg units to exercise records. Reps are not stored consistently, so estimated 1RM is unavailable.</p>
               </div>
             ) : (
               <>
-                <p className="mb-1 text-sm text-[#668075]">
-                  Latest <strong className="text-[#15372a]">{data.strengthProgression[data.strengthProgression.length - 1].weight} kg</strong>
+                <p className="mb-1 text-sm text-[#8E9BAE]">
+                  Latest <strong className="text-white">{data.strengthProgression[data.strengthProgression.length - 1].weight} kg</strong>
                   {" · "}change {formatChange(data.strengthProgression[0].weight, data.strengthProgression[data.strengthProgression.length - 1].weight)} kg
                 </p>
                 <div className="h-44">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={data.strengthProgression} margin={{ top: 10, right: 8, left: -18, bottom: 0 }}>
-                      <CartesianGrid vertical={false} stroke="#e8f0eb" />
-                      <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: "#668075", fontSize: 10 }} />
-                      <YAxis domain={["auto", "auto"]} axisLine={false} tickLine={false} tick={{ fill: "#668075", fontSize: 10 }} />
-                      <Tooltip contentStyle={{ border: "1px solid #d7e8de", borderRadius: 12 }} formatter={(value: number) => [`${value} kg`, "Recorded load"]} />
-                      <Line type="monotone" dataKey="weight" stroke="#08734d" strokeWidth={2.5} dot={{ r: 3, fill: "#08734d" }} />
+                      <CartesianGrid vertical={false} stroke="rgba(255,255,255,0.08)" />
+                      <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: "#8E9BAE", fontSize: 10 }} />
+                      <YAxis domain={["auto", "auto"]} axisLine={false} tickLine={false} tick={{ fill: "#8E9BAE", fontSize: 10 }} />
+                      <Tooltip contentStyle={{ backgroundColor: "#111418", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 12, color: "#fff" }} formatter={(value: number) => [`${value} kg`, "Recorded load"]} />
+                      <Line type="monotone" dataKey="weight" stroke="#00FF9C" strokeWidth={2.5} dot={{ r: 3, fill: "#00FF9C" }} />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
@@ -1334,35 +1335,35 @@ function ProgressOverview({
         </Card>
       </div>
 
-      <Card className="rounded-2xl border-[#d7e8de] bg-white shadow-sm">
+      <Card className="rounded-2xl border-white/10 bg-[#111418] text-white shadow-xl">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg text-[#15372a]"><Award className="h-5 w-5 text-emerald-700" />Milestones</CardTitle>
-          <CardDescription className="text-[#668075]">Achievements already unlocked in your SmartFit account.</CardDescription>
+          <CardTitle className="flex items-center gap-2 text-lg text-white"><Award className="h-5 w-5 text-[#00FF9C]" />Milestones</CardTitle>
+          <CardDescription className="text-[#8E9BAE]">Achievements already unlocked in your SmartFit account.</CardDescription>
         </CardHeader>
         <CardContent>
           {data.earnedMilestones.length ? (
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {data.earnedMilestones.map((milestone) => (
-                <div key={milestone.id} className="flex gap-3 rounded-xl border border-[#d7e8de] bg-[#f8fcf9] p-4">
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#e6f5ec] text-[#075b3e]"><Trophy className="h-5 w-5" /></span>
-                  <div><p className="font-semibold text-[#15372a]">{milestone.name}</p><p className="mt-1 text-sm text-[#668075]">{milestone.description}</p></div>
+                <div key={milestone.id} className="flex gap-3 rounded-xl border border-white/10 bg-[#161A20] p-4">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#00FF9C]/15 text-[#00FF9C]"><Trophy className="h-5 w-5" /></span>
+                  <div><p className="font-semibold text-white">{milestone.name}</p><p className="mt-1 text-sm text-[#8E9BAE]">{milestone.description}</p></div>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="rounded-xl bg-[#f8fcf9] p-5 text-sm text-[#668075]">No unlocked milestones are recorded yet. Keep logging completed workouts to earn achievements.</p>
+            <p className="rounded-xl bg-white/[0.03] border border-white/5 p-5 text-sm text-[#8E9BAE]">No unlocked milestones are recorded yet. Keep logging completed workouts to earn achievements.</p>
           )}
         </CardContent>
       </Card>
 
-      <Card className="rounded-2xl border-[#c9e2d4] bg-[#eaf7ef] shadow-sm">
+      <Card className="rounded-2xl border-[#00FF9C]/25 bg-gradient-to-br from-[#0B2317] to-[#111418] text-white shadow-xl">
         <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
           <div>
-            <h3 className="font-semibold text-[#15372a]">Monthly fitness review</h3>
-            <p className="mt-1 text-sm text-[#547064]">{data.reportMonthLabel}: {data.reportMonthWorkouts} workouts · {data.activeDays} active days · {data.earnedMilestones.length} unlocked overall</p>
-            <p className="mt-1 text-sm text-[#668075]">Export a private report for this month using activity recorded in your account.</p>
+            <h3 className="font-semibold text-white">Monthly fitness review</h3>
+            <p className="mt-1 text-sm text-[#8E9BAE]">{data.reportMonthLabel}: {data.reportMonthWorkouts} workouts · {data.activeDays} active days · {data.earnedMilestones.length} unlocked overall</p>
+            <p className="mt-1 text-sm text-[#8E9BAE]/70">Export a private report for this month using activity recorded in your account.</p>
           </div>
-          <Button onClick={onExport} className="shrink-0 bg-[#075b3e] text-white hover:bg-[#064a33]">
+          <Button onClick={onExport} className="shrink-0 bg-[#00FF9C] text-[#060809] font-bold hover:bg-[#00E08A] transition-colors">
             <Download className="mr-2 h-4 w-4" />Export summary report
           </Button>
         </CardContent>
@@ -1582,15 +1583,15 @@ function escapeHtml(value: string): string {
 // Stat Card Component
 function StatCard({ icon: Icon, label, value, accent }: { icon: React.ElementType; label: string; value: string; accent?: boolean }) {
   return (
-    <Card className={`rounded-2xl shadow-sm ${accent ? "border-emerald-300 bg-[#e8f7ee]" : "border-[#d7e8de] bg-white"}`}>
+    <Card className={`rounded-2xl shadow-md ${accent ? "border-[#00FF9C]/30 bg-[#111418]" : "border-white/10 bg-[#111418]"}`}>
       <CardContent className="p-3 sm:p-4">
         <div className="flex items-center gap-3">
-          <div className={`rounded-lg p-2 ${accent ? "bg-emerald-100" : "bg-[#f1faf5]"}`}>
-            <Icon className={`h-4 w-4 ${accent ? "text-[#075b3e]" : "text-[#668075]"}`} />
+          <div className={`rounded-lg p-2 ${accent ? "bg-[#00FF9C]/15" : "bg-white/5"}`}>
+            <Icon className={`h-4 w-4 ${accent ? "text-[#00FF9C]" : "text-[#8E9BAE]"}`} />
           </div>
           <div className="min-w-0">
-            <p className="text-xs text-[#668075]">{label}</p>
-            <p className="truncate text-base font-semibold text-[#15372a] sm:text-lg">{value}</p>
+            <p className="text-xs text-[#8E9BAE]">{label}</p>
+            <p className="truncate text-base font-semibold text-white sm:text-lg">{value}</p>
           </div>
         </div>
       </CardContent>

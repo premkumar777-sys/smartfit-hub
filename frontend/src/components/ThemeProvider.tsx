@@ -12,12 +12,10 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const [theme, setThemeState] = useState<Theme>(() => {
-        // Check localStorage first, default to dark
+        // Enforce unified Cyber Dark OLED theme
         if (typeof window !== "undefined") {
             const stored = localStorage.getItem("smartfit-theme") as Theme;
-            if (stored === "light" || stored === "dark") {
-                return stored;
-            }
+            if (stored === "dark") return "dark";
         }
         return "dark"; // Default to dark mode
     });
@@ -27,8 +25,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
         if (theme === "dark") {
             root.classList.add("dark");
+            root.classList.remove("light");
         } else {
             root.classList.remove("dark");
+            root.classList.add("light");
         }
 
         localStorage.setItem("smartfit-theme", theme);
