@@ -165,7 +165,7 @@ export default function Profile() {
 
       <main className="flex-1 min-w-0 w-full">
         <div
-          className="w-full max-w-md lg:max-w-4xl mx-auto px-4 lg:px-8 py-2 lg:py-6"
+          className="w-full max-w-full sm:max-w-xl lg:max-w-4xl mx-auto px-2 sm:px-4 lg:px-8 py-2 lg:py-6"
           style={{
             paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 96px)",
           }}
@@ -177,7 +177,7 @@ export default function Profile() {
               type="button"
               onClick={() => navigate(-1)}
               aria-label="Back"
-              className="flex items-center justify-center w-10 h-10 -ml-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 active:scale-95 transition-transform"
+              className="flex items-center justify-center w-10 h-10 -ml-1 sm:-ml-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 active:scale-95 transition-transform"
             >
               <ArrowLeft className="w-5 h-5" strokeWidth={2.2} />
             </button>

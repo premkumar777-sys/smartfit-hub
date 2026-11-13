@@ -77,149 +77,9 @@ const EVENTS_DATA: EventItem[] = [
     description: "Compete in physical strength challenges (pull-ups, deadlifts, and bench press) to win premium OB Fitness gear and cash prizes. Track weights and reps live on the leaderboard!",
     tags: ["OB Fitness Showdown", "Leaderboard", "Strength Challenge"],
   },
-  {
-    id: "icn-evolution-2026",
-    title: "Road to ICN Elite: Athlete Evolution Championship",
-    subtitle: "Symmetry, Conditioning & X-Frame Judicial Assessment",
-    category: "Competitions",
-    mode: "Hybrid",
-    status: "Past",
-    date: "August 28, 2026",
-    time: "06:00 PM IST",
-    isoDate: "2026-08-28T18:00:00+05:30",
-    location: "SmartFit Arena & Live Stream",
-    host: {
-      name: "ICN Pro Committee",
-      role: "Official Federation Judges",
-      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80",
-    },
-    attendeesCount: 480,
-    maxCapacity: 600,
-    prizes: "₹2,50,000 + Pro Cards",
-    image: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=800&q=80",
-    featured: false,
-    targetLink: "/road-to-icn",
-    description: "The ultimate natural bodybuilding evaluation. Get your pose scanned by SmartFit AI Judicial Vision and compete for national recognition.",
-    tags: ["ICN Natural", "X-Frame AI", "Live Stream"],
-  },
-  {
-    id: "40-pushup-giveaway",
-    title: "SmartFit 40 Pushups Power Challenge",
-    subtitle: "Drop & Give Us 40 — Win Premium Fitness Gear",
-    category: "Community Challenges",
-    mode: "Virtual",
-    status: "Past",
-    date: "Ended August 25, 2026",
-    time: "24/7 Submission",
-    isoDate: "2026-08-25T23:59:00+05:30",
-    location: "Instagram @smartfitaii & Web Portal",
-    host: {
-      name: "SmartFit Team",
-      role: "Community Lead",
-      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80",
-    },
-    attendeesCount: 342,
-    prizes: "T-Shirt + Shaker + 1-Yr Premium",
-    image: "https://images.unsplash.com/photo-1599058945522-28d584b6f0ff?auto=format&fit=crop&w=800&q=80",
-    featured: false,
-    targetLink: "/giveaway",
-    description: "Record your clean 40 pushups video, upload your submission on SmartFit, and get entered into our official prizes raffle!",
-    tags: ["Viral Challenge", "Prizes", "Pushup AI"],
-  },
-  {
-    id: "ai-form-masterclass",
-    title: "Real-Time AI Form Detection & Injury Prevention Masterclass",
-    subtitle: "Biomechanical accuracy for squats, deadlifts & bench press",
-    category: "Masterclasses",
-    mode: "Virtual",
-    status: "Past",
-    date: "August 18, 2026",
-    time: "07:00 PM IST",
-    isoDate: "2026-08-18T19:00:00+05:30",
-    location: "Zoom Interactive Webinar",
-    host: {
-      name: "Dr. Alex Vance",
-      role: "Head of AI Biomechanics",
-      avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80",
-    },
-    attendeesCount: 215,
-    maxCapacity: 300,
-    image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=800&q=80",
-    description: "Learn how SmartFit computer vision analyzes bar path velocity and joint angles to correct lift mechanics instantly.",
-    tags: ["Form AI", "Live Q&A", "Injury Free"],
-  },
-  {
-    id: "metro-gym-showdown",
-    title: "Hyderabad Gym Partner Strength Showdown",
-    subtitle: "Heavy bench & deadlift battle at Sanjay Fitness Center",
-    category: "Local Gym Meets",
-    mode: "In-Person",
-    status: "Upcoming",
-    date: "September 05, 2026",
-    time: "10:00 AM IST",
-    isoDate: "2026-09-05T10:00:00+05:30",
-    location: "Sanjay Fitness Center, Hyderabad",
-    host: {
-      name: "Sanjay Coach Crew",
-      role: "Head Strength Coach",
-      avatar: "https://images.unsplash.com/photo-1568602471122-7832951cc4c5?auto=format&fit=crop&w=150&q=80",
-    },
-    attendeesCount: 120,
-    maxCapacity: 150,
-    prizes: "₹50,000 Cash + Gym Memberships",
-    image: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=800&q=80",
-    description: "Join us in person for an adrenaline-filled local gym showdown. Test your max lifts and claim local bragging rights!",
-    tags: ["Local Meet", "Powerlifting", "Cash Prize"],
-  },
-  {
-    id: "nutrition-macro-hacking",
-    title: "Smart Macro Hacking & Metabolic Adaptation",
-    subtitle: "Optimizing diet for lean muscle gain & rapid fat loss",
-    category: "Live Webinars",
-    mode: "Virtual",
-    status: "Upcoming",
-    date: "August 24, 2026",
-    time: "08:00 PM IST",
-    isoDate: "2026-08-24T20:00:00+05:30",
-    location: "SmartFit Live Channel",
-    host: {
-      name: "Elena Rostova",
-      role: "Lead Sports Nutritionist",
-      avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=150&q=80",
-    },
-    attendeesCount: 390,
-    image: "https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=800&q=80",
-    description: "Break through weight loss plateaus with scientific carb-cycling protocols, micro-nutrient density tricks, and AI meal timing.",
-    tags: ["Nutrition", "Macros", "Fat Loss"],
-  },
 ];
 
-const PAST_EVENTS = [
-  {
-    id: "past-1",
-    title: "National AI Physique Contest 2026",
-    date: "July 15, 2026",
-    attendees: "640 Athletes",
-    winner: "Vikram R. (Gold Medalist)",
-    image: "https://images.unsplash.com/photo-1526506118085-60ce8714f8c5?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    id: "past-2",
-    title: "SmartFit Gym Owners Leadership Summit",
-    date: "June 28, 2026",
-    attendees: "180 Gym Partners",
-    winner: "Keynote on AI Analytics",
-    image: "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    id: "past-3",
-    title: "10,000 Reps Community Endurance Raid",
-    date: "June 10, 2026",
-    attendees: "1,450 Global Members",
-    winner: "Target Reached in 4 Hours",
-    image: "https://images.unsplash.com/photo-1434596922112-19c563067271?auto=format&fit=crop&w=600&q=80",
-  },
-];
+// (Past events are rendered as a dedicated section below — no array needed)
 
 // Helper: Realtime Countdown hook calculation
 function useCountdown(targetIsoDate: string) {
@@ -317,9 +177,12 @@ export default function Events() {
   const featuredEvent = useMemo(() => EVENTS_DATA.find((e) => e.featured) || EVENTS_DATA[0], []);
   const countdown = useCountdown(featuredEvent.isoDate);
 
-  // Filter Logic
+  // Filter Logic — only show Live Now or Upcoming events in the grid (Past events go to the Past Highlights section)
   const filteredEvents = useMemo(() => {
     return EVENTS_DATA.filter((event) => {
+      // Exclude past events from the live/upcoming grid
+      if (event.status === "Past") return false;
+
       const matchesSearch =
         event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         event.subtitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -463,9 +326,9 @@ END:VCALENDAR`;
             className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-6 max-w-3xl mx-auto"
           >
             {[
-              { label: "Active Events", val: "12+", icon: Calendar, color: "text-[#4ade80]" },
-              { label: "Athletes Registered", val: "2,840+", icon: Users, color: "text-blue-400" },
-              { label: "Prizes Pool", val: "₹5,00,000+", icon: Trophy, color: "text-amber-400" },
+              { label: "Events Hosted", val: "1", icon: Calendar, color: "text-[#4ade80]" },
+              { label: "Athletes Competed", val: "280+", icon: Users, color: "text-blue-400" },
+              { label: "Prizes Pool", val: "Premium Gear", icon: Trophy, color: "text-amber-400" },
               { label: "Community Rating", val: "4.9 ★", icon: Star, color: "text-purple-400" },
             ].map((stat, i) => (
               <div
@@ -483,7 +346,7 @@ END:VCALENDAR`;
         </div>
 
         {/* --- 2. FEATURED SPOTLIGHT CARD --- */}
-        {featuredEvent && (
+        {featuredEvent && featuredEvent.status !== "Past" && (
           <motion.div
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -702,7 +565,7 @@ END:VCALENDAR`;
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
               <Calendar className="w-5 h-5 text-[#4ade80]" />
-              Upcoming & Live Events ({filteredEvents.length})
+              Live & Upcoming Events ({filteredEvents.length})
             </h3>
             {(selectedCategory !== "All" || selectedMode !== "All" || searchQuery) && (
               <button
@@ -721,21 +584,16 @@ END:VCALENDAR`;
 
           {filteredEvents.length === 0 ? (
             <div className="bg-white/5 border border-white/10 rounded-3xl p-12 text-center space-y-4">
-              <Calendar className="w-12 h-12 text-gray-500 mx-auto" />
-              <h4 className="text-lg font-bold text-white">No matching events found</h4>
+              <div className="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mx-auto">
+                <Calendar className="w-8 h-8 text-gray-500" />
+              </div>
+              <h4 className="text-lg font-bold text-white">No Live or Upcoming Events Right Now</h4>
               <p className="text-gray-400 text-sm max-w-sm mx-auto">
-                Try adjusting your search query or selecting a different category filter.
+                There are currently no active or upcoming events scheduled. Check back soon — new events are on the way!
               </p>
-              <Button
-                onClick={() => {
-                  setSelectedCategory("All");
-                  setSelectedMode("All");
-                  setSearchQuery("");
-                }}
-                className="bg-[#4ade80] text-black font-bold text-xs rounded-xl"
-              >
-                Clear Filters
-              </Button>
+              <p className="text-xs text-gray-500">
+                Want to host an event? Click <span className="text-[#4ade80] font-semibold">Host an Event</span> above to submit a proposal.
+              </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -1003,36 +861,86 @@ END:VCALENDAR`;
               PAST EVENT <span className="text-gradient">HIGHLIGHTS</span>
             </h3>
             <p className="text-gray-400 text-sm">
-              Take a look back at our community tournaments, keynotes, and viral athlete competitions.
+              Relive the action from our latest community strength competition.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {PAST_EVENTS.map((past) => (
-              <div
-                key={past.id}
-                className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden group hover:border-white/20 transition-all"
-              >
-                <div className="relative aspect-[16/10] overflow-hidden bg-zinc-900">
-                  <img
-                    src={past.image}
-                    alt={past.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-80"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
-                  <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-xs font-bold text-white">
-                    <span className="bg-black/60 px-2.5 py-1 rounded-lg backdrop-blur-md">{past.date}</span>
-                    <span className="text-[#4ade80]">{past.attendees}</span>
-                  </div>
+          {/* OB Fitness Showdown 2026 — Featured Past Event Card */}
+          <div className="bg-gradient-to-br from-amber-950/20 via-zinc-900/60 to-emerald-950/20 border border-white/10 rounded-3xl overflow-hidden hover:border-white/20 transition-all shadow-xl max-w-4xl mx-auto">
+            <div className="grid md:grid-cols-2 gap-0">
+              {/* Image Side */}
+              <div className="relative aspect-[16/10] md:aspect-auto overflow-hidden bg-zinc-900">
+                <img
+                  src="https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=800&q=80"
+                  alt="OB Fitness Showdown 2026"
+                  className="w-full h-full object-cover opacity-80 hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
+                <div className="absolute top-4 left-4">
+                  <span className="px-3 py-1 rounded-full bg-black/70 border border-white/20 text-white text-[11px] font-bold backdrop-blur-md">
+                    ✅ Completed
+                  </span>
                 </div>
-                <div className="p-5 space-y-2">
-                  <h4 className="text-base font-bold text-white">{past.title}</h4>
-                  <div className="text-xs text-amber-400 font-semibold flex items-center gap-1.5">
-                    <Trophy className="w-3.5 h-3.5" /> Highlight: {past.winner}
-                  </div>
+                <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between text-xs font-bold text-white">
+                  <span className="bg-black/60 px-2.5 py-1 rounded-lg backdrop-blur-md">August 15, 2026</span>
+                  <span className="text-[#4ade80]">280 Athletes</span>
                 </div>
               </div>
-            ))}
+
+              {/* Details Side */}
+              <div className="p-6 sm:p-8 flex flex-col justify-between space-y-5">
+                <div className="space-y-3">
+                  <div className="text-xs font-bold text-[#4ade80] uppercase tracking-wider flex items-center gap-2">
+                    <Trophy className="w-4 h-4 text-amber-400" />
+                    OB Fitness Showdown 2026
+                  </div>
+                  <h4 className="text-xl font-extrabold text-white leading-snug">
+                    Strength Showdown — Pull-Ups, Deadlifts & Bench Press
+                  </h4>
+                  <p className="text-sm text-gray-400 leading-relaxed">
+                    Athletes from OB Fitness, RTC Colony competed head-to-head in three max-effort strength categories. Live leaderboard tracked every rep and kg in real time.
+                  </p>
+                </div>
+
+                {/* Stats Row */}
+                <div className="grid grid-cols-3 gap-3 text-center">
+                  {[
+                    { label: "Pull-Ups", icon: "💪", desc: "Max Reps" },
+                    { label: "Deadlifts", icon: "🏋️", desc: "Max Weight" },
+                    { label: "Bench Press", icon: "🏋️", desc: "Max Weight" },
+                  ].map((item, i) => (
+                    <div key={i} className="bg-white/5 border border-white/10 rounded-2xl p-3 space-y-1">
+                      <div className="text-lg">{item.icon}</div>
+                      <div className="text-xs font-bold text-white">{item.label}</div>
+                      <div className="text-[10px] text-gray-500">{item.desc}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Info Row */}
+                <div className="space-y-2 text-xs text-gray-300 border-t border-white/5 pt-4">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                    <span>OB Fitness, RTC Colony, Medchal</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Users className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+                    <span>280 Athletes Participated</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Trophy className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                    <span>Premium Gear & Cash Prizes Awarded</span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => { window.location.href = "/events/ob-fitness"; }}
+                  className="inline-flex items-center gap-2 text-xs font-bold text-[#4ade80] hover:text-white transition-colors"
+                >
+                  View Full Results & Leaderboard <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
