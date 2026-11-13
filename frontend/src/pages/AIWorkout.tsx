@@ -173,7 +173,7 @@ const AIWorkout = () => {
   };
 
   return (
-    <div className="min-h-screen pb-28 pt-20 sm:pt-24 lg:pt-32 relative overflow-hidden bg-black">
+    <div className="min-h-screen pb-36 sm:pb-40 pt-20 sm:pt-24 lg:pt-32 relative overflow-hidden bg-black">
       {/* Background Image Container */}
       <div 
         className="absolute inset-0 z-0 bg-cover bg-center bg-fixed bg-no-repeat transition-opacity duration-1000"

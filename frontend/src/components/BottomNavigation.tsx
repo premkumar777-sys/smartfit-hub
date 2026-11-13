@@ -197,7 +197,7 @@ export function BottomNavigation() {
 
   return (
     <nav 
-      className="fixed bottom-0 left-0 right-0 w-full z-50 lg:hidden bg-[#080A0C]/96 backdrop-blur-2xl border-t border-white/[0.08] shadow-[0_-8px_32px_rgba(0,0,0,0.85)]"
+      className="fixed bottom-0 left-0 right-0 w-full z-50 lg:hidden bg-[#080A0C] border-t border-white/[0.08] shadow-[0_-8px_32px_rgba(0,0,0,0.95)]"
       style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
     >
       {/* Specular ambient line across the top rim */}

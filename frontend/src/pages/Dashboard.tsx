@@ -202,12 +202,9 @@ export default function Dashboard() {
             className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-500"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-70" />
-          <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-white text-xs font-semibold">
-            <span className="px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur-md">
+          <div className="absolute bottom-3 left-3 text-white text-xs font-semibold">
+            <span className="px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur-md border border-white/10">
               {heroConfig.tag}
-            </span>
-            <span className="px-2.5 py-1 rounded-lg bg-[#00FF9C]/20 border border-[#00FF9C]/40 text-[#00FF9C] backdrop-blur-md">
-              Adaptive Baseline
             </span>
           </div>
         </div>
