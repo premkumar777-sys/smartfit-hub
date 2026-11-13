@@ -29,7 +29,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useGamification } from "@/hooks/useGamification";
 import { cn } from "@/lib/utils";
 import { DesktopSidebar } from "@/components/DesktopSidebar";
-import { getPersonalizedPlan, PersonalizedPlan } from "@/lib/onboarding";
+import { getPersonalizedPlan, PersonalizedPlan, hasLocalOnboardingDraft } from "@/lib/onboarding";
 import { getPersonalizedWorkoutHero } from "@/lib/workoutImages";
 import { NotificationOptInCard } from "@/components/NotificationOptInCard";
 
@@ -64,6 +64,16 @@ export default function Dashboard() {
           .single();
 
         if (data) {
+          const prefs = (data.preferences as Record<string, any>) || {};
+          const hasCompletedFlag = prefs.onboardingCompleted === true;
+          const hasMetrics = Boolean(data.fitness_goal && (data.gender || data.weight));
+
+          // If athlete has no metrics, no onboarding completion, and no local draft, redirect to calibration
+          if (!hasCompletedFlag && !hasMetrics && !hasLocalOnboardingDraft()) {
+            navigate("/onboarding/basics", { replace: true });
+            return;
+          }
+
           setProfile(data);
           setPlan(getPersonalizedPlan(data));
         }

@@ -86,6 +86,25 @@ export function getOnboardingDraft(): OnboardingDraft {
 }
 
 /**
+ * Check if the user has actively filled an onboarding draft in this browser
+ */
+export function hasLocalOnboardingDraft(): boolean {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return false;
+    const parsed = JSON.parse(raw);
+    return Boolean(
+      parsed.gender ||
+      (Array.isArray(parsed.goals) && parsed.goals.length > 0) ||
+      parsed.metrics?.weight ||
+      parsed.planId
+    );
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Update partial draft in localStorage
  */
 export function updateOnboardingDraft(partial: Partial<OnboardingDraft>): OnboardingDraft {
@@ -395,6 +414,10 @@ export function getPersonalizedPlan(profileData?: any): PersonalizedPlan {
  */
 export async function syncOnboardingToProfile(userId: string): Promise<boolean> {
   try {
+    if (!hasLocalOnboardingDraft()) {
+      return false;
+    }
+
     const draft = getOnboardingDraft();
     if (!draft || (!draft.goals.length && draft.metrics.age === null)) {
       return false;
@@ -460,6 +483,62 @@ export async function syncOnboardingToProfile(userId: string): Promise<boolean> 
   } catch (err) {
     console.error("Error during syncOnboardingToProfile:", err);
     return false;
+  }
+}
+
+/**
+ * Smart Air Traffic Controller: Checks if a user has completed onboarding
+ * or needs to be redirected to the calibration flow.
+ */
+export async function checkUserOnboardingStatus(
+  userId: string,
+  preferredReturnUrl?: string
+): Promise<{ completed: boolean; targetUrl: string }> {
+  try {
+    // 1. If user already filled their draft on this device, sync it and unlock dashboard
+    if (hasLocalOnboardingDraft()) {
+      await syncOnboardingToProfile(userId);
+      const dest =
+        !preferredReturnUrl || preferredReturnUrl === "/" || preferredReturnUrl === "/auth"
+          ? "/app/today"
+          : preferredReturnUrl;
+      return { completed: true, targetUrl: dest };
+    }
+
+    // 2. Fetch existing profile from Supabase
+    const { data: profile, error } = await supabase
+      .from("profiles")
+      .select("fitness_goal, gender, weight, height, preferences")
+      .eq("id", userId)
+      .maybeSingle();
+
+    if (error) {
+      console.warn("Could not query user profile for onboarding gate:", error.message);
+      const dest =
+        !preferredReturnUrl || preferredReturnUrl === "/" || preferredReturnUrl === "/auth"
+          ? "/app/today"
+          : preferredReturnUrl;
+      return { completed: true, targetUrl: dest };
+    }
+
+    // 3. Check for completion flag or essential profile metrics
+    const prefs = (profile?.preferences as Record<string, any>) || {};
+    const hasCompletedFlag = prefs.onboardingCompleted === true;
+    const hasCoreMetrics = Boolean(profile?.fitness_goal && (profile?.gender || profile?.weight));
+
+    if (hasCompletedFlag || hasCoreMetrics) {
+      const dest =
+        !preferredReturnUrl || preferredReturnUrl === "/" || preferredReturnUrl === "/auth"
+          ? "/app/today"
+          : preferredReturnUrl;
+      return { completed: true, targetUrl: dest };
+    }
+
+    // 4. Brand new user who bypassed onboarding -> redirect to /onboarding/basics
+    return { completed: false, targetUrl: "/onboarding/basics" };
+  } catch (err) {
+    console.error("Error in checkUserOnboardingStatus:", err);
+    return { completed: true, targetUrl: preferredReturnUrl || "/app/today" };
   }
 }
 

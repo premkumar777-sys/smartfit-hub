@@ -10,7 +10,7 @@ import { Loader2, Mail, Lock, User, Key, KeyRound, ShieldAlert, Eye, EyeOff, Arr
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { motion } from "framer-motion";
 import { isBiometricsAvailable, isBiometricRegistered, registerBiometric, authenticateBiometric } from "@/lib/biometrics";
-import { syncOnboardingToProfile } from "@/lib/onboarding";
+import { syncOnboardingToProfile, checkUserOnboardingStatus } from "@/lib/onboarding";
 
 const authSchema = z.object({
   email: z.string().trim().email({ message: "Invalid email address" }).max(255),
@@ -93,10 +93,24 @@ export default function Auth() {
   const [showPostSignupFingerprintModal, setShowPostSignupFingerprintModal] = useState(false);
   const [postSignupEmail, setPostSignupEmail] = useState("");
 
+  const routeUserAfterAuth = async (userId: string, targetPath?: string) => {
+    try {
+      const { targetUrl } = await checkUserOnboardingStatus(userId, targetPath || returnUrl);
+      navigate(targetUrl, { replace: true });
+    } catch {
+      navigate(returnUrl, { replace: true });
+    }
+  };
+
   const handleEnablePostSignupFingerprint = async () => {
     isModalActiveRef.current = false;
     if (!postSignupEmail) {
-      navigate(returnUrl, { replace: true });
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        await routeUserAfterAuth(session.user.id);
+      } else {
+        navigate(returnUrl, { replace: true });
+      }
       return;
     }
     setIsBiometricLoading(true);
@@ -114,7 +128,12 @@ export default function Auth() {
     } finally {
       setIsBiometricLoading(false);
       setShowPostSignupFingerprintModal(false);
-      navigate(returnUrl, { replace: true });
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        await routeUserAfterAuth(session.user.id);
+      } else {
+        navigate(returnUrl, { replace: true });
+      }
     }
   };
 
@@ -147,10 +166,13 @@ export default function Auth() {
   }, []);
 
   useEffect(() => {
+    const handleSessionRedirect = async (userId: string) => {
+      await routeUserAfterAuth(userId);
+    };
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session && !isModalActiveRef.current && !showPostSignupFingerprintModal) {
-        syncOnboardingToProfile(session.user.id).catch(console.error);
-        navigate(returnUrl, { replace: true });
+        handleSessionRedirect(session.user.id);
       }
     });
 
@@ -159,13 +181,12 @@ export default function Auth() {
         sessionStorage.removeItem("smartfit_checkin_prompted");
       }
       if (session && !isModalActiveRef.current && !showPostSignupFingerprintModal) {
-        syncOnboardingToProfile(session.user.id).catch(console.error);
-        navigate(returnUrl, { replace: true });
+        handleSessionRedirect(session.user.id);
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate, showPostSignupFingerprintModal]);
+  }, [navigate, showPostSignupFingerprintModal, returnUrl]);
 
   // Fingerprint Authentication Handler
   const handleBiometricLogin = async () => {
@@ -221,7 +242,7 @@ export default function Auth() {
         
         setShowPhonePeBiometricModal(false);
         isModalActiveRef.current = false;
-        navigate(returnUrl === "/auth" || returnUrl === "/" ? "/dashboard" : returnUrl, { replace: true });
+        await routeUserAfterAuth(effectiveUserId);
       }
     } catch (error: any) {
       toast({
@@ -299,7 +320,7 @@ export default function Auth() {
         title: "Welcome back!",
         description: "You've successfully logged in.",
       });
-      navigate(returnUrl, { replace: true });
+      await routeUserAfterAuth(signInData.session.user.id);
     } catch (error: any) {
       if (error instanceof z.ZodError) {
         toast({
@@ -452,7 +473,7 @@ export default function Auth() {
           title: "Welcome to SmartFit AI!",
           description: "Your account is active.",
         });
-        navigate(returnUrl, { replace: true });
+        await routeUserAfterAuth(verifiedSignInData.session.user.id);
       }
     } catch (error: any) {
       toast({
@@ -1322,9 +1343,14 @@ export default function Auth() {
               <Button
                 type="button"
                 variant="ghost"
-                onClick={() => {
+                onClick={async () => {
                   setShowPostSignupFingerprintModal(false);
-                  navigate(returnUrl, { replace: true });
+                  const { data: { session } } = await supabase.auth.getSession();
+                  if (session?.user) {
+                    await routeUserAfterAuth(session.user.id);
+                  } else {
+                    navigate(returnUrl, { replace: true });
+                  }
                 }}
                 className="w-full text-xs text-gray-400 hover:text-white font-semibold rounded-xl h-10"
               >

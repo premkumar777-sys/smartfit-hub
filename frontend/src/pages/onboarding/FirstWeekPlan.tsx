@@ -15,7 +15,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
-import { updateOnboardingDraft, getPersonalizedPlan, PersonalizedPlan } from "@/lib/onboarding";
+import { updateOnboardingDraft, getPersonalizedPlan, PersonalizedPlan, syncOnboardingToProfile } from "@/lib/onboarding";
+import { supabase } from "@/integrations/supabase/client";
 import { OnboardingProgressBar } from "@/components/onboarding/OnboardingProgressBar";
 
 export default function FirstWeekPlan() {
@@ -60,8 +61,18 @@ export default function FirstWeekPlan() {
 
   const activeDay = plan.weekPlan.find((d) => d.id === selectedDayId) || plan.weekPlan[0];
 
-  const handleSavePlan = () => {
+  const handleSavePlan = async () => {
     updateOnboardingDraft({ planId: `personalized_${plan.primaryGoalId}` });
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        await syncOnboardingToProfile(session.user.id);
+        navigate("/app/today");
+        return;
+      }
+    } catch (err) {
+      console.warn("Could not check active session on save plan:", err);
+    }
     localStorage.setItem("smartfit_guest_plan_active", "true");
     navigate("/auth?from=onboarding", { state: { returnUrl: "/app/today" } });
   };
