@@ -286,30 +286,30 @@ export default function Settings() {
 
       <main className="flex-1 min-w-0 w-full">
         <div
-          className="w-full max-w-md lg:max-w-3xl mx-auto px-4 lg:px-8 py-2 lg:py-6"
+          className="w-full max-w-full sm:max-w-xl lg:max-w-3xl mx-auto px-3.5 sm:px-4 lg:px-8 pt-2 sm:pt-4 lg:pt-6"
           style={{
-            paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 96px)",
+            paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 130px)",
           }}
         >
         {/* ── Top Bar ── */}
-        <header className="flex items-center justify-between h-14 mb-3">
-          <div className="flex items-center gap-3">
+        <header className="flex items-center justify-between h-14 mb-3 pt-[max(env(safe-area-inset-top,0px),0px)] shrink-0">
+          <div className="flex items-center gap-2.5">
             <button
               type="button"
               onClick={() => navigate(-1)}
               aria-label="Back"
-              className="flex items-center justify-center w-10 h-10 -ml-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 active:scale-95 transition-transform"
+              className="flex items-center justify-center w-10 h-10 -ml-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/5 active:scale-95 transition-transform cursor-pointer"
             >
-              <ArrowLeft className="w-5 h-5" strokeWidth={2.2} />
+              <ArrowLeft className="w-5 h-5 text-neutral-800 dark:text-neutral-200" strokeWidth={2.2} />
             </button>
-            <h1 className="text-xl font-bold tracking-tight">Settings</h1>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-neutral-900 dark:text-neutral-50">Settings</h1>
           </div>
 
           <button
             type="button"
             onClick={() => navigate("/app/profile")}
             aria-label="View Profile"
-            className="w-9 h-9 rounded-full bg-[#0D3B29] text-[#4CC38A] flex items-center justify-center hover:opacity-90 active:scale-95 transition-transform shadow-xs"
+            className="w-9 h-9 rounded-full bg-[#0D3B29] text-[#4CC38A] flex items-center justify-center hover:opacity-90 active:scale-95 transition-transform shadow-xs overflow-hidden cursor-pointer"
           >
             {profile?.avatar_url ? (
               <img
