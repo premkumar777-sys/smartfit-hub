@@ -523,8 +523,7 @@ export default function Progress() {
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back
             </Button>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#00FF9C]">SmartFit AI</p>
-            <h1 className="mt-1 text-3xl font-bold tracking-tight text-white md:text-4xl">Smart Progress</h1>
+            <h1 className="text-3xl font-bold tracking-tight text-white md:text-4xl">Smart Progress</h1>
             <p className="mt-1 text-sm text-[#8E9BAE]">Your fitness journey, measured over time.</p>
           </div>
         </div>
