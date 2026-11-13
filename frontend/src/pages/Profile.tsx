@@ -19,6 +19,7 @@ import {
   Calendar,
   Loader2,
   X,
+  LogOut,
 } from "lucide-react";
 import {
   Dialog,
@@ -65,6 +66,19 @@ export default function Profile() {
   const [fullName, setFullName] = useState("");
   const [bio, setBio] = useState("");
   const [savingProfile, setSavingProfile] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+
+  const handleLogout = async () => {
+    try {
+      localStorage.removeItem("smartfit_biometric_active_user");
+      sessionStorage.removeItem("smartfit_checkin_prompted");
+      await supabase.auth.signOut();
+      toast.success("Signed out successfully");
+      navigate("/auth");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to sign out");
+    }
+  };
 
   useEffect(() => {
     const loadProfile = async (userId: string) => {
@@ -230,13 +244,25 @@ export default function Profile() {
             {memberSince}
           </p>
 
-          <button
-            type="button"
-            onClick={() => setEditOpen(true)}
-            className="px-6 py-2 rounded-xl bg-white dark:bg-[#181D1A] border border-neutral-200/90 dark:border-neutral-800 text-xs font-semibold text-neutral-800 dark:text-neutral-200 shadow-2xs mt-3 mx-auto block hover:bg-neutral-50 dark:hover:bg-neutral-800/60 active:scale-95 transition-all"
-          >
-            Edit profile
-          </button>
+          <div className="flex items-center justify-center gap-2.5 mt-3">
+            <button
+              type="button"
+              onClick={() => setEditOpen(true)}
+              className="px-5 py-2 rounded-xl bg-white dark:bg-[#181D1A] border border-neutral-200/90 dark:border-neutral-800 text-xs font-semibold text-neutral-800 dark:text-neutral-200 shadow-2xs hover:bg-neutral-50 dark:hover:bg-neutral-800/60 active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              <Edit2 className="w-3.5 h-3.5 text-neutral-600 dark:text-neutral-400" />
+              <span>Edit profile</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setShowLogoutConfirm(true)}
+              className="px-4 py-2 rounded-xl bg-white dark:bg-[#181D1A] border border-red-500/20 text-xs font-semibold text-red-600 dark:text-red-400 shadow-2xs hover:bg-red-500/10 active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              <LogOut className="w-3.5 h-3.5 text-red-500" />
+              <span>Sign out</span>
+            </button>
+          </div>
         </div>
 
         {/* ── Tabs Navigation ── */}
@@ -603,6 +629,39 @@ export default function Profile() {
               )}
             </button>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Dialog: Sign Out Confirmation ── */}
+      <Dialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>
+        <DialogContent className="max-w-sm rounded-3xl p-6 bg-[#121614] border border-white/10 text-white">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold flex items-center gap-2 text-white">
+              <LogOut className="w-5 h-5 text-red-400" /> Sign out of SmartFit AI?
+            </DialogTitle>
+            <DialogDescription className="text-xs text-white/60 pt-1.5 leading-relaxed">
+              You will need to sign back in with your email or fingerprint to view your custom workouts and nutrition history.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex items-center gap-3 mt-4">
+            <button
+              type="button"
+              onClick={() => setShowLogoutConfirm(false)}
+              className="flex-1 h-11 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-semibold transition-colors cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setShowLogoutConfirm(false);
+                handleLogout();
+              }}
+              className="flex-1 h-11 rounded-xl bg-red-500/90 hover:bg-red-500 text-white text-xs font-bold transition-colors cursor-pointer shadow-[0_0_15px_rgba(239,68,68,0.3)]"
+            >
+              Sign out
+            </button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

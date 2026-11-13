@@ -102,6 +102,7 @@ export default function Settings() {
   const [unitsModalOpen, setUnitsModalOpen] = useState(false);
   const [toneModalOpen, setToneModalOpen] = useState(false);
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   // Password fields
   const [newPassword, setNewPassword] = useState("");
@@ -649,10 +650,10 @@ export default function Settings() {
         {/* ── Sign out Button ── */}
         <button
           type="button"
-          onClick={handleLogout}
-          className="w-full h-[52px] bg-white dark:bg-[#181D1A] rounded-2xl border border-emerald-950/5 dark:border-neutral-800 shadow-xs flex items-center justify-center gap-2.5 font-semibold text-sm text-neutral-900 dark:text-neutral-100 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 active:scale-[0.99] transition-all cursor-pointer"
+          onClick={() => setShowLogoutConfirm(true)}
+          className="w-full h-[52px] bg-white dark:bg-[#181D1A] rounded-2xl border border-red-500/20 hover:border-red-500/40 shadow-xs flex items-center justify-center gap-2.5 font-semibold text-sm text-red-600 dark:text-red-400 hover:bg-red-500/5 active:scale-[0.99] transition-all cursor-pointer"
         >
-          <LogOut className="w-4 h-4 text-neutral-700 dark:text-neutral-300" />
+          <LogOut className="w-4 h-4 text-red-500" />
           <span>Sign out</span>
         </button>
 
@@ -874,6 +875,39 @@ export default function Settings() {
               )}
             </button>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Dialog: Sign Out Confirmation ── */}
+      <Dialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>
+        <DialogContent className="max-w-sm rounded-3xl p-6 bg-[#121614] border border-white/10 text-white">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold flex items-center gap-2 text-white">
+              <LogOut className="w-5 h-5 text-red-400" /> Sign out of SmartFit AI?
+            </DialogTitle>
+            <DialogDescription className="text-xs text-white/60 pt-1.5 leading-relaxed">
+              You will need to sign back in with your email or fingerprint to view your custom workouts and nutrition history.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex items-center gap-3 mt-4">
+            <button
+              type="button"
+              onClick={() => setShowLogoutConfirm(false)}
+              className="flex-1 h-11 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-semibold transition-colors cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setShowLogoutConfirm(false);
+                handleLogout();
+              }}
+              className="flex-1 h-11 rounded-xl bg-red-500/90 hover:bg-red-500 text-white text-xs font-bold transition-colors cursor-pointer shadow-[0_0_15px_rgba(239,68,68,0.3)]"
+            >
+              Sign out
+            </button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
