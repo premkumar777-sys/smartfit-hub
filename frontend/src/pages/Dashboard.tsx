@@ -32,6 +32,7 @@ import { DesktopSidebar } from "@/components/DesktopSidebar";
 import { getPersonalizedPlan, PersonalizedPlan, hasLocalOnboardingDraft } from "@/lib/onboarding";
 import { getPersonalizedWorkoutHero } from "@/lib/workoutImages";
 import { NotificationOptInCard } from "@/components/NotificationOptInCard";
+import { AppWalkthroughTour } from "@/components/AppWalkthroughTour";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -247,7 +248,10 @@ export default function Dashboard() {
   // Reusable Component: 3D Trainer Hero Card (Plan B)
   // ─────────────────────────────────────────────────────────────
   const Virtual3DTrainerCard = () => (
-    <div className="relative rounded-2xl p-4 sm:p-5 bg-gradient-to-br from-[#121614] to-[#18221c] border border-[#00FF9C]/25 shadow-lg shadow-emerald-950/20 overflow-hidden group">
+    <div 
+      id="tour-virtual-trainer"
+      className="relative rounded-2xl p-4 sm:p-5 bg-gradient-to-br from-[#121614] to-[#18221c] border border-[#00FF9C]/25 shadow-lg shadow-emerald-950/20 overflow-hidden group"
+    >
       {/* Background glow */}
       <div className="absolute -right-12 -top-12 w-44 h-44 rounded-full bg-[#00FF9C]/10 blur-3xl pointer-events-none group-hover:bg-[#00FF9C]/20 transition-all duration-700" />
 
@@ -510,6 +514,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-3">
         {/* Card 1: AI Meal Scanner */}
         <button
+          id="tour-meal-scanner"
           type="button"
           onClick={() => navigate("/nutrition")}
           className="bg-white dark:bg-[#181D1A] rounded-2xl p-4 shadow-xs border border-emerald-950/5 dark:border-neutral-800 flex items-start gap-3.5 text-left hover:border-emerald-500/30 transition-colors group cursor-pointer"
@@ -838,6 +843,9 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
+
+        {/* ── First-Time User Interactive Spotlight Tour ── */}
+        <AppWalkthroughTour />
       </main>
     </div>
   );

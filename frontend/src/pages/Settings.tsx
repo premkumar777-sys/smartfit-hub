@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { openCookiePreferencesModal } from "@/lib/cookieConsent";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
+import { resetAppTour } from "@/components/AppWalkthroughTour";
 import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
@@ -826,6 +827,23 @@ export default function Settings() {
                 Version 2.4.1 (Build 820)
               </span>
             </div>
+
+            {/* Replay Feature Tour */}
+            <button
+              type="button"
+              onClick={() => {
+                resetAppTour();
+                toast.success("Feature tour reset! Returning to Dashboard...");
+                setTimeout(() => navigate("/dashboard"), 400);
+              }}
+              className="w-full flex items-center justify-between p-4 min-h-[52px] text-left hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30 transition-colors cursor-pointer"
+            >
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-[#1F7A5A] dark:text-[#4CC38A]" />
+                <span className="font-semibold text-sm">Replay Feature Tour</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-neutral-400 shrink-0" />
+            </button>
 
             {/* Privacy policy */}
             <Link
