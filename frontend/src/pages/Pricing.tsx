@@ -132,7 +132,7 @@ export default function Pricing() {
                 </div>
 
                 {/* FAQ / Trust Section */}
-                <div className="mt-20 border-t border-zinc-900 pt-16">
+                <div className="mt-8 border-t border-zinc-900 pt-8">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         <div className="p-6 rounded-2xl bg-[#0c0d10] border border-zinc-900 text-center space-y-3">
                             <Shield className="w-6 h-6 mx-auto text-[#00FF9C]" />
