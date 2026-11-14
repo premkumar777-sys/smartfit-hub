@@ -21,6 +21,8 @@ import {
   Bell,
   Clock,
   Sparkles,
+  Trash2,
+  AlertTriangle,
 } from "lucide-react";
 import { openCookiePreferencesModal } from "@/lib/cookieConsent";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
@@ -112,6 +114,10 @@ export default function Settings() {
   const [toneModalOpen, setToneModalOpen] = useState(false);
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleteConfirmationPhrase, setDeleteConfirmationPhrase] = useState("");
+  const [deletePassword, setDeletePassword] = useState("");
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
 
   // Password fields
   const [newPassword, setNewPassword] = useState("");
@@ -220,6 +226,41 @@ export default function Settings() {
     sessionStorage.removeItem("smartfit_checkin_prompted");
     await supabase.auth.signOut();
     navigate("/");
+  };
+
+  // Permanent Self-Serve Account Deletion (Google Play Compliance)
+  const handleDeleteAccount = async () => {
+    const isPhraseValid = deleteConfirmationPhrase.trim().toUpperCase() === "DELETE";
+    if (!isPhraseValid && !deletePassword) {
+      toast.error('Please type "DELETE" or enter your account password to confirm.');
+      return;
+    }
+
+    setIsDeletingAccount(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("delete-user-account", {
+        body: {
+          confirmationPhrase: isPhraseValid ? "DELETE" : undefined,
+          password: deletePassword || undefined,
+        },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      localStorage.removeItem("smartfit_biometric_active_user");
+      sessionStorage.removeItem("smartfit_checkin_prompted");
+      await supabase.auth.signOut();
+      localStorage.clear();
+      toast.success("Your SmartFit AI account has been permanently deleted.");
+      setDeleteModalOpen(false);
+      navigate("/");
+    } catch (err: any) {
+      console.error("Account deletion failed:", err);
+      toast.error(err.message || "Failed to delete account. Please try again or contact support.");
+    } finally {
+      setIsDeletingAccount(false);
+    }
   };
 
   const displayName =
@@ -774,7 +815,11 @@ export default function Settings() {
         <div className="text-center mt-6">
           <button
             type="button"
-            onClick={() => navigate("/delete-account")}
+            onClick={() => {
+              setDeleteConfirmationPhrase("");
+              setDeletePassword("");
+              setDeleteModalOpen(true);
+            }}
             className="text-sm font-semibold text-red-600 hover:text-red-700 active:scale-95 transition-transform cursor-pointer"
           >
             Delete account
@@ -1019,6 +1064,88 @@ export default function Settings() {
               className="flex-1 h-11 rounded-xl bg-red-500/90 hover:bg-red-500 text-white text-xs font-bold transition-colors cursor-pointer shadow-[0_0_15px_rgba(239,68,68,0.3)]"
             >
               Sign out
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
+      {/* ── Dialog: Delete Account Confirmation (Google Play Compliance) ── */}
+      <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
+        <DialogContent className="max-w-md rounded-3xl p-6 bg-[#121614] border border-red-500/30 text-white shadow-2xl">
+          <DialogHeader>
+            <div className="w-12 h-12 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500 mb-2">
+              <Trash2 className="w-6 h-6 animate-pulse" />
+            </div>
+            <DialogTitle className="text-xl font-bold text-white flex items-center gap-2">
+              Delete SmartFit AI Account?
+            </DialogTitle>
+            <DialogDescription className="text-xs text-white/70 pt-2 leading-relaxed">
+              This action is <strong className="text-red-400">permanent and immediate</strong>. All your AI workout splits, biometric history, nutrition photos, goals, streak shields, and active subscriptions will be permanently purged from our servers.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 my-4">
+            <div className="p-3.5 rounded-2xl bg-red-500/10 border border-red-500/20 text-xs text-red-300 flex items-start gap-2.5 leading-relaxed">
+              <AlertTriangle className="w-4 h-4 shrink-0 text-red-400 mt-0.5" />
+              <span>
+                To confirm permanent deletion, please type <strong className="text-white font-mono bg-red-950/60 px-1.5 py-0.5 rounded border border-red-500/30">DELETE</strong> below or enter your account password.
+              </span>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-white/80">
+                Confirmation Phrase
+              </label>
+              <input
+                type="text"
+                placeholder='Type "DELETE"'
+                value={deleteConfirmationPhrase}
+                onChange={(e) => setDeleteConfirmationPhrase(e.target.value)}
+                disabled={isDeletingAccount}
+                className="w-full h-11 px-3.5 rounded-xl bg-black/40 border border-white/10 text-white text-sm focus:border-red-500 focus:outline-none transition-colors"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-white/80">
+                Or Confirm with Account Password
+              </label>
+              <input
+                type="password"
+                placeholder="Enter account password (optional if phrase entered)"
+                value={deletePassword}
+                onChange={(e) => setDeletePassword(e.target.value)}
+                disabled={isDeletingAccount}
+                className="w-full h-11 px-3.5 rounded-xl bg-black/40 border border-white/10 text-white text-sm focus:border-red-500 focus:outline-none transition-colors"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 pt-2">
+            <button
+              type="button"
+              disabled={isDeletingAccount}
+              onClick={() => setDeleteModalOpen(false)}
+              className="flex-1 h-11 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-semibold transition-colors cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              disabled={isDeletingAccount}
+              onClick={handleDeleteAccount}
+              className="flex-1 h-11 rounded-xl bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(239,68,68,0.4)]"
+            >
+              {isDeletingAccount ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Deleting...</span>
+                </>
+              ) : (
+                <>
+                  <Trash2 className="w-4 h-4" />
+                  <span>Permanently Delete</span>
+                </>
+              )}
             </button>
           </div>
         </DialogContent>
