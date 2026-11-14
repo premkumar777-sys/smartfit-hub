@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
+import { compressFoodImage } from "@/lib/imageCompressor";
 
 const IMAGE_BUCKET = "nutrition-images";
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
@@ -213,6 +214,7 @@ export default function Nutrition() {
   const [newFoodWeight, setNewFoodWeight] = useState("");
   const [estimatingItem, setEstimatingItem] = useState(false);
   const [editImagePath, setEditImagePath] = useState<string | null>(null);
+  const [isCompressingPhoto, setIsCompressingPhoto] = useState(false);
 
   const todayTotals = useMemo(
     () =>
@@ -407,22 +409,52 @@ export default function Nutrition() {
     setNewFoodWeight("");
   }, [analysis?.imagePath, clearTemporaryImage, estimatingItem, isAnalyzing, isSaving, stopCamera]);
 
-  const selectPhoto = (file: File | undefined, source: "camera" | "upload") => {
+  const selectPhoto = async (file: File | undefined, source: "camera" | "upload") => {
     if (!file) return;
-    if (!IMAGE_TYPES.includes(file.type)) {
+    if (!IMAGE_TYPES.includes(file.type) && !file.type.startsWith("image/")) {
       setImageError("Choose a JPEG, PNG, or WebP image. Some camera apps save photos in an unsupported format.");
       return;
     }
-    if (file.size > MAX_IMAGE_BYTES) {
-      setImageError("Image must be 8 MB or smaller. Choose or capture a smaller image.");
-      return;
-    }
+
     if (analysis?.imagePath) void clearTemporaryImage(analysis.imagePath);
     stopCamera();
     setImageError("");
-    setPhoto(file);
-    setPhotoSource(source);
-    setAnalysis(null);
+    setIsCompressingPhoto(true);
+
+    try {
+      // Native client-side compression: downscale massive 12MP-108MP phone camera photos to ~1600px JPEG (~250KB-600KB)
+      const { compressedFile, originalSize, compressedSize, savedPercent } = await compressFoodImage(file, {
+        maxDimension: 1600,
+        quality: 0.85,
+        targetMaxBytes: 2 * 1024 * 1024,
+      });
+
+      if (compressedFile.size > MAX_IMAGE_BYTES) {
+        setImageError("Image is too large even after compression. Please choose or capture a smaller image.");
+        return;
+      }
+
+      setPhoto(compressedFile);
+      setPhotoSource(source);
+      setAnalysis(null);
+
+      if (savedPercent > 20) {
+        const mb = (originalSize / (1024 * 1024)).toFixed(1);
+        const kb = (compressedSize / 1024).toFixed(0);
+        toast.success(`Photo optimized for AI: ${mb}MB → ${kb}KB (-${savedPercent}%)`);
+      }
+    } catch (err: any) {
+      console.warn("Image compression fallback:", err);
+      if (file.size > MAX_IMAGE_BYTES) {
+        setImageError("Image must be 8 MB or smaller. Choose or capture a smaller image.");
+        return;
+      }
+      setPhoto(file);
+      setPhotoSource(source);
+      setAnalysis(null);
+    } finally {
+      setIsCompressingPhoto(false);
+    }
   };
 
   const startCamera = async (
@@ -1199,6 +1231,12 @@ export default function Nutrition() {
                           </Button>
                         </div>
                       </div>
+                    </div>
+                  )}
+                  {isCompressingPhoto && (
+                    <div className="mb-4 flex items-center justify-center gap-2 rounded-xl border border-[#00e58a]/20 bg-[#00e58a]/5 p-3 text-sm text-[#00e58a]">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span>Optimizing high-res photo for AI analysis…</span>
                     </div>
                   )}
                   {imageError && (

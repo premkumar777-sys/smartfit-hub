@@ -65,6 +65,7 @@ import { SplashScreen } from "@/components/SplashScreen";
 import { BottomNavigation } from "@/components/BottomNavigation";
 import { PwaMobileWrapper } from "@/components/PwaMobileWrapper";
 import { usePreventZoom } from "@/hooks/usePreventZoom";
+import { useAndroidBackButton } from "@/hooks/useAndroidBackButton";
 import { initLocalNotificationScheduler } from "@/lib/pushNotifications";
 
 const queryClient = new QueryClient();
@@ -75,6 +76,9 @@ const AppContent = () => {
 
   // Block zooming globally (mobile pinch, double tap, desktop shortcuts)
   usePreventZoom();
+
+  // Handle Android hardware back button and gestures cleanly across routes & dialogs
+  useAndroidBackButton();
 
   // Initialize background local notification scheduler for scheduled daily workout reminders
   useEffect(() => {
