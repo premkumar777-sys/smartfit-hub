@@ -256,21 +256,20 @@ DROP POLICY IF EXISTS "Anyone can view active plans" ON public.plans;
 DROP POLICY IF EXISTS "Users can view own subscriptions" ON public.subscriptions;
 DROP POLICY IF EXISTS "Users can insert own subscriptions" ON public.subscriptions;
 DROP POLICY IF EXISTS "Users can update own subscriptions" ON public.subscriptions;
+DROP POLICY IF EXISTS "Service role full access to subscriptions" ON public.subscriptions;
 DROP POLICY IF EXISTS "Users can view own payments" ON public.payments;
 
 -- Plans policies (public read access for active plans)
 CREATE POLICY "Anyone can view active plans" ON public.plans
   FOR SELECT USING (is_active = true);
 
--- Subscriptions policies (users can only see their own)
+-- Subscriptions policies (users can ONLY view their own subscription)
+-- Direct client INSERT/UPDATE is strictly prohibited to prevent privilege escalation
 CREATE POLICY "Users can view own subscriptions" ON public.subscriptions
   FOR SELECT USING (auth.uid() = user_id);
 
-CREATE POLICY "Users can insert own subscriptions" ON public.subscriptions
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "Users can update own subscriptions" ON public.subscriptions
-  FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Service role full access to subscriptions" ON public.subscriptions
+  FOR ALL TO service_role USING (true) WITH CHECK (true);
 
 -- Payments policies (users can only see their own)
 CREATE POLICY "Users can view own payments" ON public.payments

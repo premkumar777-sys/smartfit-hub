@@ -78,10 +78,20 @@ export default function VerifyPayment() {
         setIsActivatingTrial(true);
 
         try {
+            // First attempt secure RPC function
+            const { data: rpcData, error: rpcError } = await supabase.rpc("activate_trial" as any);
+
+            if (!rpcError) {
+                toast.success("🎉 Your 7-Day Free Trial is now active!");
+                navigate("/dashboard");
+                return;
+            }
+
+            // Fallback for legacy environment if RPC not yet deployed
             const trialEnd = new Date();
             trialEnd.setDate(trialEnd.getDate() + 7);
 
-            const { error } = await supabase
+            const { error: insertError } = await supabase
                 .from("subscriptions")
                 .insert({
                     user_id: user.id,
@@ -94,9 +104,9 @@ export default function VerifyPayment() {
                     cancel_at_period_end: false
                 });
 
-            if (error) {
-                console.error("Trial activation error:", error);
-                toast.error(`Activation failed: ${error.message}`);
+            if (insertError) {
+                console.error("Trial activation error:", insertError || rpcError);
+                toast.error(`Activation failed: ${insertError.message || rpcError?.message}`);
             } else {
                 toast.success("🎉 Your 7-Day Free Trial is now active!");
                 navigate("/dashboard");
