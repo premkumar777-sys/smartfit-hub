@@ -685,7 +685,7 @@ export default function Settings() {
                     </span>
                   </div>
                   <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
-                    This device • Authenticated via Supabase
+                    This device • Secure session
                   </p>
                 </div>
               </div>
