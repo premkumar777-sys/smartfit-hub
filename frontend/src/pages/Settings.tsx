@@ -733,13 +733,10 @@ export default function Settings() {
 
         {/* ── SECTION: Privacy & Cookies ── */}
         <section className="mb-5">
-          <div className="flex items-center justify-between mb-2 px-1">
+          <div className="mb-2 px-1">
             <h2 className="text-sm font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
               Privacy &amp; Cookies
             </h2>
-            <span className="text-[11px] font-semibold text-emerald-600 dark:text-[#00FF9C] flex items-center gap-1">
-              <ShieldCheck className="w-3.5 h-3.5" /> Backend Synced
-            </span>
           </div>
           <div className="bg-white dark:bg-[#181D1A] rounded-2xl border border-emerald-950/5 dark:border-neutral-800 shadow-xs divide-y divide-neutral-100 dark:divide-neutral-800/70 overflow-hidden">
             {/* Cookie Preferences Trigger */}
