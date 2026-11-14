@@ -43,35 +43,41 @@ const Home = () => {
       {/* ═══════════════════════════════════════════════════════════════
           HERO SECTION — Direction 1: The Cyber-Athlete Cinematic Aura
       ═══════════════════════════════════════════════════════════════ */}
-      <section className="relative w-full min-h-screen min-h-dvh overflow-hidden flex flex-col justify-center bg-[#060809]">
+      <section className="relative w-full min-h-screen min-h-dvh overflow-hidden flex flex-col justify-end lg:justify-center bg-[#060809]">
 
         {/* ── Layer 1: High-Definition Cyber-Athlete Looping Video Background ──────── */}
-        <div className="absolute inset-0 z-0 pointer-events-none select-none overflow-hidden flex items-center justify-center">
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            poster="/cyber-athlete-poster.jpg"
-            className="w-full h-full max-w-[400px] sm:max-w-[540px] lg:max-w-[680px] max-h-[80vh] object-contain object-center opacity-90 transition-opacity duration-1000 drop-shadow-[0_0_40px_rgba(0,255,156,0.25)]"
-          >
-            <source src="/cyber-athlete-run.mp4" type="video/mp4" />
-          </video>
+        <div className="absolute inset-0 z-0 pointer-events-none select-none overflow-hidden flex items-start sm:items-center justify-center pt-20 sm:pt-0">
+          <div className="relative w-full max-w-[480px] sm:max-w-[580px] lg:max-w-[700px] aspect-square flex items-center justify-center">
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
+              poster="/cyber-athlete-poster.jpg"
+              className="w-full h-full object-contain opacity-95 transition-opacity duration-1000"
+              style={{
+                maskImage: "radial-gradient(ellipse at center, rgba(0,0,0,1) 45%, rgba(0,0,0,0) 72%)",
+                WebkitMaskImage: "radial-gradient(ellipse at center, rgba(0,0,0,1) 45%, rgba(0,0,0,0) 72%)",
+              }}
+            >
+              <source src="/cyber-athlete-run.mp4" type="video/mp4" />
+            </video>
 
-          {/* ── Layer 2: Volumetric Pulsing Emerald Rim Aura ─────────── */}
-          <motion.div
-            initial={{ opacity: 0.25, scale: 0.95 }}
-            animate={{
-              opacity: [0.25, 0.4, 0.25],
-              scale: [0.95, 1.05, 0.95],
-            }}
-            transition={{
-              duration: 5,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-            className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] sm:w-[600px] lg:w-[800px] h-[350px] sm:h-[600px] lg:h-[800px] rounded-full bg-[radial-gradient(circle,_rgba(0,255,156,0.35)_0%,_rgba(0,255,156,0.08)_50%,_transparent_75%)] blur-3xl pointer-events-none"
-          />
+            {/* Volumetric Pulsing Emerald Rim Aura behind athlete */}
+            <motion.div
+              initial={{ opacity: 0.3, scale: 0.95 }}
+              animate={{
+                opacity: [0.3, 0.5, 0.3],
+                scale: [0.95, 1.05, 0.95],
+              }}
+              transition={{
+                duration: 4.5,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+              className="absolute inset-0 rounded-full bg-[radial-gradient(circle,_rgba(0,255,156,0.38)_0%,_rgba(0,255,156,0.1)_50%,_transparent_75%)] blur-3xl pointer-events-none"
+            />
+          </div>
 
           {/* ── Layer 3: Architectural Dot Grid Overlay ────────────── */}
           <div
@@ -84,13 +90,10 @@ const Home = () => {
 
           {/* ── Layer 4: Multi-Stop OLED Vignette for 100% WCAG AAA Text Contrast ── */}
           {/* Top fade for seamless header blend */}
-          <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-[#060809] via-[#060809]/80 to-transparent" />
+          <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-[#060809] via-[#060809]/85 to-transparent pointer-events-none" />
           
-          {/* Radial center soft shield */}
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(6,8,9,0.3)_0%,_rgba(6,8,9,0.7)_65%,_#060809_100%)]" />
-
           {/* Bottom ground fade into trust bar */}
-          <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-[#060809] via-[#060809]/90 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 h-72 sm:h-80 bg-gradient-to-t from-[#060809] via-[#060809]/95 to-transparent pointer-events-none" />
         </div>
 
         {/* ── Layer 5: Floating Desktop/Tablet Biometric Telemetry Pills ── */}
@@ -147,8 +150,8 @@ const Home = () => {
         </div>
 
         {/* ── Main Content ─────────────────────────────────────────── */}
-        <div className="relative z-10 flex-1 flex items-center justify-center w-full max-w-4xl mx-auto px-5 sm:px-8 lg:px-12 pt-[calc(var(--header-height,80px)+2rem)] pb-12">
-          <div className="w-full flex flex-col items-center text-center gap-5 lg:gap-6">
+        <div className="relative z-10 flex-1 flex flex-col justify-end lg:justify-center items-center w-full max-w-4xl mx-auto px-5 sm:px-8 lg:px-12 pt-[calc(var(--header-height,80px)+1rem)] pb-14 sm:pb-20 lg:pb-12">
+          <div className="w-full flex flex-col items-center text-center gap-3.5 sm:gap-5 lg:gap-6">
 
             {/* Authenticated greeting */}
             {isAuthenticated && user && (
@@ -171,7 +174,7 @@ const Home = () => {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.55 }}
-              className="text-[2.5rem] sm:text-5xl lg:text-6xl xl:text-7xl font-black leading-[1.06] tracking-tight text-white drop-shadow-[0_4px_24px_rgba(0,0,0,0.8)]"
+              className="text-[2.25rem] sm:text-5xl lg:text-6xl xl:text-7xl font-black leading-[1.08] tracking-tight text-white drop-shadow-[0_4px_24px_rgba(0,0,0,0.9)]"
             >
               Start{" "}
               <span className="text-[#00FF9C] drop-shadow-[0_0_30px_rgba(0,255,156,0.4)]">where you are.</span>
@@ -182,7 +185,7 @@ const Home = () => {
               initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.55, delay: 0.08 }}
-              className="text-base sm:text-lg lg:text-xl text-zinc-300 leading-relaxed max-w-xl drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)] font-medium"
+              className="text-sm sm:text-lg lg:text-xl text-zinc-300 leading-relaxed max-w-xl drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)] font-medium"
             >
               A coach that adapts to you. Workouts that fit your day.
             </motion.p>
@@ -192,7 +195,7 @@ const Home = () => {
               initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.55, delay: 0.16 }}
-              className="w-full sm:w-auto flex flex-col sm:flex-row justify-center gap-3 pt-2"
+              className="w-full sm:w-auto flex flex-col sm:flex-row justify-center gap-3 pt-1.5"
             >
               {isAuthenticated ? (
                 <>
