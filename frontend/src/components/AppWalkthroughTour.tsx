@@ -51,8 +51,9 @@ export function AppWalkthroughTour({ forceShow = false, onComplete }: { forceSho
   // Check if tour should run
   useEffect(() => {
     try {
+      const hasTourParam = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("tour") === "true";
       const alreadyCompleted = localStorage.getItem(TOUR_STORAGE_KEY);
-      if (!alreadyCompleted || forceShow) {
+      if (!alreadyCompleted || forceShow || hasTourParam) {
         // Small delay to let initial page layout settle smoothly
         const timer = setTimeout(() => {
           setIsVisible(true);
