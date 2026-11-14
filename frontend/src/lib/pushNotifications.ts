@@ -105,6 +105,7 @@ export async function subscribeToPush(
             user_id: userId,
             subscription: subscriptionData,
             preferred_time: preferredTime,
+            streak_reminders_enabled: true,
             updated_at: new Date().toISOString(),
           },
           { onConflict: "user_id" }
@@ -119,6 +120,134 @@ export async function subscribeToPush(
     console.error("Failed to subscribe to push notifications:", err);
     return { success: false, error: err.message || "Failed to subscribe" };
   }
+}
+
+/**
+ * Unsubscribe user from browser push notifications
+ */
+export async function unsubscribeFromPush(userId?: string | null): Promise<boolean> {
+  if (!isPushSupported()) return false;
+
+  try {
+    const registration = await navigator.serviceWorker.ready;
+    const subscription = await registration.pushManager.getSubscription();
+    if (subscription) {
+      await subscription.unsubscribe();
+    }
+
+    localStorage.removeItem(LOCAL_STORAGE_KEY);
+
+    if (userId) {
+      await supabase
+        .from("user_push_subscriptions")
+        .update({ streak_reminders_enabled: false, updated_at: new Date().toISOString() })
+        .eq("user_id", userId);
+    }
+
+    return true;
+  } catch (err) {
+    console.error("Failed to unsubscribe from push notifications:", err);
+    return false;
+  }
+}
+
+/**
+ * Get athlete's saved reminder time
+ */
+export function getPreferredReminderTime(): string {
+  if (typeof window === "undefined") return "18:30";
+  return localStorage.getItem(LOCAL_REMINDER_TIME_KEY) || "18:30";
+}
+
+/**
+ * Update athlete's reminder time and streak check-in settings
+ */
+export async function updateReminderSettings(
+  userId?: string | null,
+  preferredTime: string = "18:30",
+  streakReminders: boolean = true
+): Promise<boolean> {
+  try {
+    localStorage.setItem(LOCAL_REMINDER_TIME_KEY, preferredTime);
+
+    if (userId) {
+      await supabase
+        .from("user_push_subscriptions")
+        .update({
+          preferred_time: preferredTime,
+          streak_reminders_enabled: streakReminders,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("user_id", userId);
+    }
+    return true;
+  } catch (err) {
+    console.error("Failed to update reminder settings:", err);
+    return false;
+  }
+}
+
+/**
+ * In-browser offline / background scheduler
+ * Checks every minute if current local time matches athlete's preferred reminder time,
+ * firing a rich notification once per calendar day even if backend network is delayed.
+ */
+let schedulerIntervalId: any = null;
+
+export function initLocalNotificationScheduler(name: string = "Athlete") {
+  if (typeof window === "undefined" || !isPushSupported()) return;
+  if (schedulerIntervalId) return; // Already running
+
+  const checkAndNotify = async () => {
+    if (Notification.permission !== "granted") return;
+
+    const preferredTime = getPreferredReminderTime(); // e.g. "18:30"
+    const now = new Date();
+    const currentHour = String(now.getHours()).padStart(2, "0");
+    const currentMin = String(now.getMinutes()).padStart(2, "0");
+    const currentTimeStr = `${currentHour}:${currentMin}`;
+
+    const todayDateKey = now.toISOString().slice(0, 10);
+    const lastFiredKey = `smartfit_last_reminder_date`;
+
+    if (currentTimeStr === preferredTime) {
+      const alreadyFiredToday = localStorage.getItem(lastFiredKey) === todayDateKey;
+      if (!alreadyFiredToday) {
+        localStorage.setItem(lastFiredKey, todayDateKey);
+
+        const reminder = getAdaptiveReminder(0, name);
+        try {
+          const registration = await navigator.serviceWorker.ready;
+          await registration.showNotification(reminder.title, {
+            body: reminder.body,
+            icon: "/pwa-192x192.png",
+            badge: "/favicon.png",
+            data: { url: "/app/today" },
+            vibrate: [150, 75, 150],
+            tag: "smartfit-daily-reminder",
+            renotify: true,
+            actions: [
+              { action: "open", title: "Start Workout" },
+              { action: "dismiss", title: "Later" },
+            ],
+          });
+        } catch (_) {
+          try {
+            new Notification(reminder.title, {
+              body: reminder.body,
+              icon: "/pwa-192x192.png",
+            });
+          } catch (e) {
+            console.warn("Local notification trigger skipped:", e);
+          }
+        }
+      }
+    }
+  };
+
+  // Run initial check and set periodic check every 30 seconds
+  checkAndNotify();
+  schedulerIntervalId = setInterval(checkAndNotify, 30000);
 }
 
 /**

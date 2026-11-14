@@ -18,8 +18,12 @@ import {
   Smartphone,
   KeyRound,
   Mail,
+  Bell,
+  Clock,
+  Sparkles,
 } from "lucide-react";
 import { openCookiePreferencesModal } from "@/lib/cookieConsent";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
@@ -85,6 +89,20 @@ export default function Settings() {
 
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<any>(null);
+
+  const {
+    supported: pushSupported,
+    permission: pushPermission,
+    isSubscribed: pushSubscribed,
+    loading: pushLoading,
+    preferredTime,
+    streakReminders,
+    enableNotifications,
+    disableNotifications,
+    changeReminderTime,
+    toggleStreakReminders,
+    sendTest: sendTestPush,
+  } = usePushNotifications(authUser?.id, profile?.full_name || profile?.username || "Athlete");
   const [preferences, setPreferences] = useState<UserPreferences>(DEFAULT_PREFERENCES);
 
   // Dialog states
@@ -437,6 +455,121 @@ export default function Settings() {
                 aria-label="Toggle voice coach audio cues"
               />
             </div>
+          </div>
+        </section>
+
+        {/* ── SECTION: Notifications & Reminders ── */}
+        <section className="mb-5">
+          <div className="flex items-center justify-between mb-2 px-1">
+            <h2 className="text-sm font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
+              Notifications &amp; Reminders
+            </h2>
+            <span className="text-[11px] font-semibold text-emerald-600 dark:text-[#00FF9C] flex items-center gap-1">
+              <Sparkles className="w-3.5 h-3.5" /> AI Scheduled
+            </span>
+          </div>
+          <div className="bg-white dark:bg-[#181D1A] rounded-2xl border border-emerald-950/5 dark:border-neutral-800 shadow-xs divide-y divide-neutral-100 dark:divide-neutral-800/70 overflow-hidden">
+            {/* Master Push Toggle */}
+            <div className="flex items-center justify-between p-4 min-h-[64px]">
+              <div className="flex items-center gap-3 pr-2 min-w-0">
+                <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/50 flex items-center justify-center shrink-0">
+                  <Bell className="w-4.5 h-4.5 text-emerald-600 dark:text-[#00FF9C]" />
+                </div>
+                <div className="min-w-0">
+                  <p className="font-semibold text-sm leading-snug">Workout reminders</p>
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+                    {pushSubscribed
+                      ? "Daily background push alerts enabled"
+                      : "Receive gentle AI prompts before workout time"}
+                  </p>
+                </div>
+              </div>
+              <Switch
+                checked={pushSubscribed}
+                onCheckedChange={(val) => {
+                  if (val) {
+                    enableNotifications();
+                  } else {
+                    disableNotifications();
+                  }
+                }}
+                disabled={!pushSupported || pushLoading}
+                className="shrink-0 data-[state=checked]:!bg-[#0D3B29] dark:data-[state=checked]:!bg-[#1F7A5A]"
+                aria-label="Toggle workout reminders"
+              />
+            </div>
+
+            {/* Preferred Reminder Time & Options when enabled */}
+            {pushSubscribed && (
+              <>
+                <div className="flex items-center justify-between p-4 min-h-[64px]">
+                  <div className="flex items-center gap-3 pr-2 min-w-0">
+                    <div className="w-9 h-9 rounded-xl bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center shrink-0">
+                      <Clock className="w-4.5 h-4.5 text-neutral-600 dark:text-neutral-300" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-semibold text-sm leading-snug">Preferred reminder time</p>
+                      <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+                        Scheduled for your local daily training window
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 px-3 py-1.5 text-xs">
+                    <select
+                      value={preferredTime}
+                      onChange={(e) => changeReminderTime(e.target.value)}
+                      className="bg-transparent font-semibold text-emerald-600 dark:text-[#00FF9C] focus:outline-none cursor-pointer"
+                    >
+                      <option value="06:30" className="bg-[#181D1A] text-white">06:30 AM</option>
+                      <option value="07:30" className="bg-[#181D1A] text-white">07:30 AM</option>
+                      <option value="12:30" className="bg-[#181D1A] text-white">12:30 PM</option>
+                      <option value="17:30" className="bg-[#181D1A] text-white">05:30 PM</option>
+                      <option value="18:30" className="bg-[#181D1A] text-white">06:30 PM</option>
+                      <option value="19:30" className="bg-[#181D1A] text-white">07:30 PM</option>
+                      <option value="20:30" className="bg-[#181D1A] text-white">08:30 PM</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Streak Shield Check-In Alerts */}
+                <div className="flex items-center justify-between p-4 min-h-[64px]">
+                  <div className="flex items-center gap-3 pr-2 min-w-0">
+                    <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
+                      <ShieldCheck className="w-4.5 h-4.5 text-emerald-500 dark:text-[#00FF9C]" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-semibold text-sm leading-snug">Streak Shield check-in</p>
+                      <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+                        Guilt-free prompt if you miss 24 hours to protect your streak
+                      </p>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={streakReminders}
+                    onCheckedChange={toggleStreakReminders}
+                    className="shrink-0 data-[state=checked]:!bg-[#0D3B29] dark:data-[state=checked]:!bg-[#1F7A5A]"
+                    aria-label="Toggle streak shield check-in"
+                  />
+                </div>
+
+                {/* Send Test Push Notification Button */}
+                <div className="flex items-center justify-between p-4 min-h-[56px] bg-neutral-50/50 dark:bg-neutral-900/30">
+                  <div>
+                    <p className="font-semibold text-xs leading-snug">Test background notification</p>
+                    <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
+                      Dispatches an instant sample push to verify device delivery
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={sendTestPush}
+                    className="px-3 py-1.5 rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-xs font-bold text-neutral-800 dark:text-neutral-200 hover:border-emerald-500/50 hover:text-emerald-600 dark:hover:text-[#00FF9C] transition-all cursor-pointer active:scale-95 shadow-2xs"
+                  >
+                    Test Push
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </section>
 

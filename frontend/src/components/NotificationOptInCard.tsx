@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bell, BellRing, ShieldCheck, Sparkles, X, Check } from "lucide-react";
+import { Bell, BellRing, ShieldCheck, Sparkles, X, Check, Clock } from "lucide-react";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { cn } from "@/lib/utils";
 
@@ -10,10 +10,17 @@ interface NotificationOptInCardProps {
 }
 
 export function NotificationOptInCard({ userId, userName, className }: NotificationOptInCardProps) {
-  const { supported, permission, isSubscribed, loading, enableNotifications, sendTest } =
-    usePushNotifications(userId, userName);
+  const {
+    supported,
+    permission,
+    isSubscribed,
+    loading,
+    preferredTime,
+    changeReminderTime,
+    enableNotifications,
+    sendTest,
+  } = usePushNotifications(userId, userName);
 
-  const [preferredTime, setPreferredTime] = useState("18:30");
   const [dismissed, setDismissed] = useState(() => {
     return localStorage.getItem("smartfit_reminder_prompt_dismissed") === "true";
   });
@@ -65,7 +72,7 @@ export function NotificationOptInCard({ userId, userName, className }: Notificat
 
           <p className="mt-1 text-xs sm:text-sm text-white/60 leading-relaxed">
             {isEnabled
-              ? "Your streak is protected! SmartFit AI will send you gentle, adaptive reminders at your chosen time."
+              ? "Your streak is protected! SmartFit AI dispatches gentle, adaptive reminders at your scheduled workout hour."
               : "Never lose your workout habit. Get gentle, guilt-free AI reminders at your preferred training time."}
           </p>
 
@@ -74,10 +81,11 @@ export function NotificationOptInCard({ userId, userName, className }: Notificat
             {!isEnabled ? (
               <>
                 <div className="flex items-center gap-1.5 rounded-xl border border-white/15 bg-black/40 px-3 py-1.5 text-xs text-white">
+                  <Clock className="w-3.5 h-3.5 text-white/50" />
                   <span className="text-white/50">Remind at:</span>
                   <select
                     value={preferredTime}
-                    onChange={(e) => setPreferredTime(e.target.value)}
+                    onChange={(e) => changeReminderTime(e.target.value)}
                     className="bg-transparent font-semibold text-[#00FF9C] focus:outline-none cursor-pointer"
                   >
                     <option value="06:30" className="bg-[#101412] text-white">06:30 AM</option>
@@ -102,9 +110,9 @@ export function NotificationOptInCard({ userId, userName, className }: Notificat
               </>
             ) : (
               <>
-                <div className="flex items-center gap-1.5 text-xs font-semibold text-[#00FF9C]">
+                <div className="flex items-center gap-1.5 rounded-xl border border-[#00FF9C]/20 bg-[#00FF9C]/10 px-3 py-1.5 text-xs font-semibold text-[#00FF9C]">
                   <Check className="h-4 w-4" />
-                  <span>Configured for daily check-in</span>
+                  <span>Daily check-in at {formatTimeDisplay(preferredTime)}</span>
                 </div>
 
                 <button
@@ -122,4 +130,12 @@ export function NotificationOptInCard({ userId, userName, className }: Notificat
       </div>
     </div>
   );
+}
+
+function formatTimeDisplay(timeStr: string): string {
+  const [hStr, mStr] = timeStr.split(":");
+  const h = parseInt(hStr, 10);
+  const period = h >= 12 ? "PM" : "AM";
+  const displayH = h % 12 || 12;
+  return `${displayH}:${mStr} ${period}`;
 }
