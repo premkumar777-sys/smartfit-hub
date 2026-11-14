@@ -1,7 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 
 export const VAPID_PUBLIC_KEY =
-  "BGvMVWDCL0rK0qhIkCN134DRZwZO8Tzpda2iuJQwyHPWStxgyJKO65dW8mK7glasbVl1AtjHGLfHh13uOW-2cEc";
+  "BH79WHgkFoMF6I5hs9JKPHVt1NTbWAs5IhNXbY6duWWIOZaxZzp-B21GW-tHAYbIwoEAuCY6v9-4juXBCG4v2_c";
 
 const LOCAL_STORAGE_KEY = "smartfit_push_subscription";
 const LOCAL_REMINDER_TIME_KEY = "smartfit_preferred_reminder_time";

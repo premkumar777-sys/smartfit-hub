@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import webpush from "npm:web-push@3.6.7";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -8,6 +9,22 @@ const corsHeaders = {
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+
+const VAPID_PUBLIC_KEY =
+  Deno.env.get("VAPID_PUBLIC_KEY") ||
+  "BH79WHgkFoMF6I5hs9JKPHVt1NTbWAs5IhNXbY6duWWIOZaxZzp-B21GW-tHAYbIwoEAuCY6v9-4juXBCG4v2_c";
+const VAPID_PRIVATE_KEY =
+  Deno.env.get("VAPID_PRIVATE_KEY") ||
+  "2-y_flcE49TqwTs9gjXEjalGtLf4HFZNUS_ig56dLhY";
+const VAPID_SUBJECT =
+  Deno.env.get("VAPID_SUBJECT") || "mailto:contact@smartfitai.in";
+
+// Configure web-push with VAPID credentials
+try {
+  webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
+} catch (e) {
+  console.warn("[send-push-notification] Failed to configure VAPID details:", e);
+}
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
@@ -48,6 +65,36 @@ function getAdaptiveReminder(daysInactive: number = 0, name: string = "Athlete")
   };
 }
 
+/**
+ * Dispatch encrypted Web Push packet via VAPID (RFC 8291 / 8292)
+ */
+async function dispatchPushToDevice(subscription: any, payload: PushPayload) {
+  if (!subscription || !subscription.endpoint) {
+    return { success: false, reason: "Invalid subscription structure" };
+  }
+
+  try {
+    const response = await webpush.sendNotification(
+      subscription,
+      JSON.stringify(payload),
+      {
+        TTL: 86400, // 24 hours
+        urgency: "high",
+      }
+    );
+    return { success: true, statusCode: response.statusCode };
+  } catch (err: any) {
+    console.error("[send-push-notification] Dispatch error:", err?.statusCode, err?.message);
+    const isExpired = err?.statusCode === 404 || err?.statusCode === 410;
+    return {
+      success: false,
+      statusCode: err?.statusCode || 500,
+      expired: isExpired,
+      error: err?.message || "Delivery failed",
+    };
+  }
+}
+
 serve(async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -59,7 +106,7 @@ serve(async (req: Request): Promise<Response> => {
 
     console.log(`[send-push-notification] Processing action=${action}, userId=${userId}`);
 
-    // Action 1: Immediate Test Push for a specific user
+    // Action 1: Immediate Test or Direct Push for a specific user
     if (action === "test" || action === "send_user") {
       if (!userId) {
         return new Response(
@@ -74,7 +121,7 @@ serve(async (req: Request): Promise<Response> => {
         .eq("user_id", userId)
         .single();
 
-      if (subError || !subData) {
+      if (subError || !subData || !subData.subscription) {
         return new Response(
           JSON.stringify({ error: "User has no active push subscription registered" }),
           { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -101,16 +148,27 @@ serve(async (req: Request): Promise<Response> => {
         data: { url: targetUrl },
       };
 
-      // Update last_notified_at
-      await supabase
-        .from("user_push_subscriptions")
-        .update({ last_notified_at: new Date().toISOString() })
-        .eq("user_id", userId);
+      // Physically dispatch encrypted Web Push via VAPID
+      const dispatchResult = await dispatchPushToDevice(subData.subscription, payload);
+
+      // Clean up if subscription expired on Google / Mozilla gateway
+      if (dispatchResult.expired) {
+        console.log(`[send-push-notification] Removing expired subscription for user ${userId}`);
+        await supabase
+          .from("user_push_subscriptions")
+          .delete()
+          .eq("user_id", userId);
+      } else {
+        await supabase
+          .from("user_push_subscriptions")
+          .update({ last_notified_at: new Date().toISOString() })
+          .eq("user_id", userId);
+      }
 
       return new Response(
         JSON.stringify({
-          success: true,
-          message: "Notification payload prepared & dispatched",
+          success: dispatchResult.success,
+          dispatchResult,
           payload,
           endpoint: subData.subscription?.endpoint,
         }),
@@ -142,6 +200,8 @@ serve(async (req: Request): Promise<Response> => {
       const oneDayAgo = new Date(Date.now() - 20 * 60 * 60 * 1000); // 20 hours threshold to avoid duplicate notifications on same day
 
       for (const sub of (subscriptions || [])) {
+        if (!sub.subscription) continue;
+
         // Skip if notified in the last 20 hours
         if (sub.last_notified_at && new Date(sub.last_notified_at) > oneDayAgo) {
           continue;
@@ -157,19 +217,34 @@ serve(async (req: Request): Promise<Response> => {
         const athleteName = profile?.full_name?.split(" ")[0] || profile?.username || "Athlete";
         const reminder = getAdaptiveReminder(sub.days_inactive || 0, athleteName);
 
-        // Update last_notified_at
-        await supabase
-          .from("user_push_subscriptions")
-          .update({
-            last_notified_at: now.toISOString(),
-            updated_at: now.toISOString(),
-          })
-          .eq("id", sub.id);
+        const payload: PushPayload = {
+          title: reminder.title,
+          body: reminder.body,
+          icon: "/pwa-192x192.png",
+          badge: "/favicon.png",
+          data: { url: "/app/today" },
+        };
+
+        // Physically dispatch encrypted Web Push via VAPID
+        const dispatchResult = await dispatchPushToDevice(sub.subscription, payload);
+
+        if (dispatchResult.expired) {
+          await supabase.from("user_push_subscriptions").delete().eq("id", sub.id);
+        } else {
+          await supabase
+            .from("user_push_subscriptions")
+            .update({
+              last_notified_at: now.toISOString(),
+              updated_at: now.toISOString(),
+            })
+            .eq("id", sub.id);
+        }
 
         results.push({
           userId: sub.user_id,
           name: athleteName,
           title: reminder.title,
+          success: dispatchResult.success,
           sentAt: now.toISOString(),
         });
       }
