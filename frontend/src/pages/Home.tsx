@@ -5,6 +5,7 @@ import { Link, Navigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
 import { HowItWorksCarousel } from "@/components/HowItWorksCarousel";
+import { HeroFeatureCarousel } from "@/components/HeroFeatureCarousel";
 
 const Home = () => {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -41,59 +42,27 @@ const Home = () => {
     <div className="min-h-screen bg-[#060809] overflow-x-hidden">
 
       {/* ═══════════════════════════════════════════════════════════════
-          HERO SECTION — Direction 1: The Cyber-Athlete Cinematic Aura
+          HERO SECTION — Clean & Ultra-Modern Fitness Tech Hero
       ═══════════════════════════════════════════════════════════════ */}
-      <section className="relative w-full min-h-screen min-h-dvh overflow-hidden flex flex-col justify-end lg:justify-center bg-[#060809]">
+      <section className="relative w-full min-h-screen min-h-dvh overflow-hidden flex flex-col justify-center bg-[#060809]">
 
-        {/* ── Layer 1: High-Definition Cyber-Athlete Looping Video Background ──────── */}
-        <div className="absolute inset-0 z-0 pointer-events-none select-none overflow-hidden flex items-start sm:items-center justify-center pt-20 sm:pt-0">
-          <div className="relative w-full max-w-[480px] sm:max-w-[580px] lg:max-w-[700px] aspect-square flex items-center justify-center">
-            <video
-              autoPlay
-              loop
-              muted
-              playsInline
-              poster="/cyber-athlete-poster.jpg"
-              className="w-full h-full object-contain opacity-95 transition-opacity duration-1000"
-              style={{
-                maskImage: "radial-gradient(ellipse at center, rgba(0,0,0,1) 45%, rgba(0,0,0,0) 72%)",
-                WebkitMaskImage: "radial-gradient(ellipse at center, rgba(0,0,0,1) 45%, rgba(0,0,0,0) 72%)",
-              }}
-            >
-              <source src="/cyber-athlete-run.mp4" type="video/mp4" />
-            </video>
+        {/* ── Layer 1: Atmospheric Ambient Emerald Lighting ──────── */}
+        <div className="absolute inset-0 z-0 pointer-events-none select-none overflow-hidden flex items-center justify-center">
+          {/* Top Emerald Ambient Radial Glow */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] sm:w-[900px] h-[450px] sm:h-[600px] rounded-full bg-[radial-gradient(ellipse_at_top,_rgba(0,255,156,0.18)_0%,_rgba(0,255,156,0.04)_50%,_transparent_75%)] blur-3xl pointer-events-none" />
 
-            {/* Volumetric Pulsing Emerald Rim Aura behind athlete */}
-            <motion.div
-              initial={{ opacity: 0.3, scale: 0.95 }}
-              animate={{
-                opacity: [0.3, 0.5, 0.3],
-                scale: [0.95, 1.05, 0.95],
-              }}
-              transition={{
-                duration: 4.5,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-              className="absolute inset-0 rounded-full bg-[radial-gradient(circle,_rgba(0,255,156,0.38)_0%,_rgba(0,255,156,0.1)_50%,_transparent_75%)] blur-3xl pointer-events-none"
-            />
-          </div>
-
-          {/* ── Layer 3: Architectural Dot Grid Overlay ────────────── */}
+          {/* Architectural Dot Grid Overlay */}
           <div
-            className="absolute inset-0 opacity-25"
+            className="absolute inset-0 opacity-20"
             style={{
               backgroundImage: "radial-gradient(rgba(255,255,255,0.12) 1px, transparent 1px)",
               backgroundSize: "28px 28px",
             }}
           />
 
-          {/* ── Layer 4: Multi-Stop OLED Vignette for 100% WCAG AAA Text Contrast ── */}
-          {/* Top fade for seamless header blend */}
-          <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-[#060809] via-[#060809]/85 to-transparent pointer-events-none" />
-          
-          {/* Bottom ground fade into trust bar */}
-          <div className="absolute inset-x-0 bottom-0 h-72 sm:h-80 bg-gradient-to-t from-[#060809] via-[#060809]/95 to-transparent pointer-events-none" />
+          {/* Top & Bottom Vignette Fades */}
+          <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-[#060809] via-[#060809]/80 to-transparent pointer-events-none" />
+          <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#060809] via-[#060809]/90 to-transparent pointer-events-none" />
         </div>
 
         {/* ── Layer 5: Floating Desktop/Tablet Biometric Telemetry Pills ── */}
@@ -150,8 +119,8 @@ const Home = () => {
         </div>
 
         {/* ── Main Content ─────────────────────────────────────────── */}
-        <div className="relative z-10 flex-1 flex flex-col justify-end lg:justify-center items-center w-full max-w-4xl mx-auto px-5 sm:px-8 lg:px-12 pt-[calc(var(--header-height,80px)+1rem)] pb-14 sm:pb-20 lg:pb-12">
-          <div className="w-full flex flex-col items-center text-center gap-3.5 sm:gap-5 lg:gap-6">
+        <div className="relative z-10 flex-1 flex flex-col justify-center items-center w-full max-w-4xl mx-auto px-4 sm:px-8 lg:px-12 pt-[calc(var(--header-height,80px)+1.5rem)] pb-12 sm:pb-16">
+          <div className="w-full flex flex-col items-center text-center gap-4 sm:gap-5">
 
             {/* Authenticated greeting */}
             {isAuthenticated && user && (
@@ -174,34 +143,44 @@ const Home = () => {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.55 }}
-              className="text-[2.25rem] sm:text-5xl lg:text-6xl xl:text-7xl font-black leading-[1.08] tracking-tight text-white drop-shadow-[0_4px_24px_rgba(0,0,0,0.9)]"
+              className="text-3xl sm:text-5xl lg:text-6xl font-black leading-[1.1] tracking-tight text-white drop-shadow-[0_4px_24px_rgba(0,0,0,0.9)]"
             >
               Start{" "}
               <span className="text-[#00FF9C] drop-shadow-[0_0_30px_rgba(0,255,156,0.4)]">where you are.</span>
             </motion.h1>
 
-            {/* Supporting Sub-copy — visible on both mobile and desktop */}
+            {/* Supporting Sub-copy */}
             <motion.p
               initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.55, delay: 0.08 }}
-              className="text-sm sm:text-lg lg:text-xl text-zinc-300 leading-relaxed max-w-xl drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)] font-medium"
+              className="text-sm sm:text-base lg:text-lg text-zinc-300 leading-relaxed max-w-xl font-medium"
             >
               A coach that adapts to you. Workouts that fit your day.
             </motion.p>
+
+            {/* ── Interactive Feature Carousel (AI Vision Coach, Meal Scanner, 3D Trainer) ── */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96, y: 16 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.15 }}
+              className="w-full my-2 sm:my-3"
+            >
+              <HeroFeatureCarousel />
+            </motion.div>
 
             {/* Middle CTAs — unified for mobile & desktop */}
             <motion.div
               initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.55, delay: 0.16 }}
-              className="w-full sm:w-auto flex flex-col sm:flex-row justify-center gap-3 pt-1.5"
+              transition={{ duration: 0.55, delay: 0.22 }}
+              className="w-full sm:w-auto flex flex-col sm:flex-row justify-center gap-3 pt-2"
             >
               {isAuthenticated ? (
                 <>
                   <Button
                     asChild
-                    className="w-full sm:w-auto bg-[#00FF9C] hover:bg-[#00e88c] text-black font-bold text-[15px] sm:text-base px-8 h-13 sm:h-14 rounded-xl transition-all duration-200 active:scale-[0.98] shadow-[0_0_28px_rgba(0,255,156,0.35)] hover:shadow-[0_0_36px_rgba(0,255,156,0.55)] cursor-pointer"
+                    className="w-full sm:w-auto bg-[#00FF9C] hover:bg-[#00e88c] text-black font-bold text-[15px] sm:text-base px-8 h-13 sm:h-14 rounded-2xl transition-all duration-200 active:scale-[0.98] shadow-[0_0_28px_rgba(0,255,156,0.35)] hover:shadow-[0_0_36px_rgba(0,255,156,0.55)] cursor-pointer"
                   >
                     <Link to="/dashboard" aria-label="Go to Dashboard">
                       Go to Dashboard <ArrowRight className="ml-2 w-5 h-5" />
@@ -209,7 +188,7 @@ const Home = () => {
                   </Button>
                   <Button
                     asChild
-                    className="w-full sm:w-auto bg-black/40 border border-white/20 hover:border-white/40 hover:bg-white/[0.08] text-white font-semibold text-[15px] sm:text-base px-8 h-13 sm:h-14 rounded-xl transition-all duration-200 backdrop-blur-md cursor-pointer"
+                    className="w-full sm:w-auto bg-black/40 border border-white/20 hover:border-white/40 hover:bg-white/[0.08] text-white font-semibold text-[15px] sm:text-base px-8 h-13 sm:h-14 rounded-2xl transition-all duration-200 backdrop-blur-md cursor-pointer"
                   >
                     <Link to="/profile" aria-label="View Profile">
                       View Profile
@@ -220,14 +199,14 @@ const Home = () => {
                 <>
                   <Button
                     asChild
-                    className="w-full sm:w-auto bg-[#00FF9C] hover:bg-[#00e88c] text-black font-bold text-[15px] sm:text-base px-8 h-13 sm:h-14 rounded-xl transition-all duration-200 active:scale-[0.98] shadow-[0_0_28px_rgba(0,255,156,0.35)] hover:shadow-[0_0_36px_rgba(0,255,156,0.55)] cursor-pointer"
+                    className="w-full sm:w-auto bg-[#00FF9C] hover:bg-[#00e88c] text-black font-bold text-[15px] sm:text-base px-8 h-13 sm:h-14 rounded-2xl transition-all duration-200 active:scale-[0.98] shadow-[0_0_28px_rgba(0,255,156,0.35)] hover:shadow-[0_0_36px_rgba(0,255,156,0.55)] cursor-pointer"
                   >
                     <Link to="/onboarding/basics" aria-label="Start Your Transformation">
                       Start Your Transformation <ArrowRight className="ml-2 w-5 h-5" />
                     </Link>
                   </Button>
                   <Button
-                    className="w-full sm:w-auto bg-black/40 border border-white/20 hover:border-white/40 hover:bg-white/[0.08] text-white font-semibold text-[15px] sm:text-base px-8 h-13 sm:h-14 rounded-xl transition-all duration-200 backdrop-blur-md cursor-pointer"
+                    className="w-full sm:w-auto bg-black/40 border border-white/20 hover:border-white/40 hover:bg-white/[0.08] text-white font-semibold text-[15px] sm:text-base px-8 h-13 sm:h-14 rounded-2xl transition-all duration-200 backdrop-blur-md cursor-pointer"
                     onClick={() =>
                       document
                         .getElementById("how-it-works")
@@ -240,6 +219,20 @@ const Home = () => {
                 </>
               )}
             </motion.div>
+
+            {/* Social Proof Trust Badge */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="flex items-center justify-center gap-1.5 text-xs text-white/50 font-medium pt-1"
+            >
+              <span className="text-amber-400">★</span>
+              <span className="font-semibold text-white/80">4.9 Athlete Rating</span>
+              <span>•</span>
+              <span>10,000+ Workouts Logged</span>
+            </motion.div>
+
 
           </div>
         </div>
