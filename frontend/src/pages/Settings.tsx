@@ -276,6 +276,56 @@ export default function Settings() {
 
   const isPro = hasPremiumAccess || plan?.plan_name?.toLowerCase().includes("pro");
 
+  // Derive dynamic plan label and pricing display matching our actual plans
+  const getPlanDetails = () => {
+    if (!hasPremiumAccess || !plan || plan.plan_id === "free") {
+      return {
+        title: "SmartFit Free",
+        priceLabel: "₹0 • Free Plan",
+        isActive: false,
+        badgeText: "Basic",
+        badgeClass: "bg-neutral-200 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400",
+        expiryText: "Free Tier • Upgrade for AI vision tracking & custom nutrition",
+        ctaText: "Upgrade to SmartFit Pro →",
+      };
+    }
+
+    // Active subscription
+    const rawName = plan.plan_name || "SmartFit Pro";
+    let priceLabel = "Active";
+    if (plan.plan_id === "monthly_31" || rawName.includes("31")) {
+      priceLabel = "₹699 / 31 days";
+    } else if (plan.plan_id === "quarterly_90" || rawName.includes("90")) {
+      priceLabel = "₹1,279 / 90 days";
+    } else if (plan.plan_id === "trial" || rawName.toLowerCase().includes("trial")) {
+      priceLabel = "7-Day Free Trial (₹0)";
+    } else if (rawName.includes("Admin")) {
+      priceLabel = "Lifetime Pro Access (Admin)";
+    } else {
+      priceLabel = "SmartFit Pro Member";
+    }
+
+    const expiryDate = plan.current_period_end
+      ? new Date(plan.current_period_end).toLocaleDateString("en-IN", {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+        })
+      : null;
+
+    return {
+      title: rawName,
+      priceLabel,
+      isActive: true,
+      badgeText: "Active",
+      badgeClass: "bg-[#0D3B29] text-white",
+      expiryText: expiryDate ? `Access valid through ${expiryDate}` : "Lifetime Pro access active",
+      ctaText: "Manage subscription / View Plans",
+    };
+  };
+
+  const planInfo = getPlanDetails();
+
   if (authLoading || loading) {
     return (
       <div
@@ -727,32 +777,40 @@ export default function Settings() {
           <div className="bg-white dark:bg-[#181D1A] rounded-2xl border border-emerald-950/5 dark:border-neutral-800 shadow-xs p-4 space-y-3.5">
             {/* Plan Header */}
             <div className="flex items-center justify-between">
-              <p className="font-bold text-sm text-neutral-900 dark:text-neutral-100">
-                SmartFit Pro <span className="text-neutral-400 font-normal">•</span> $9.99/mo
-              </p>
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#0D3B29] text-white flex items-center gap-1">
-                <Check className="w-3.5 h-3.5" strokeWidth={3} /> Active
+              <div>
+                <p className="font-bold text-sm text-neutral-900 dark:text-neutral-100">
+                  {planInfo.title}
+                </p>
+                <p className="text-xs text-neutral-500 dark:text-neutral-400 font-medium mt-0.5">
+                  {planInfo.priceLabel}
+                </p>
+              </div>
+              <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold flex items-center gap-1 ${planInfo.badgeClass}`}>
+                {planInfo.isActive && <Check className="w-3.5 h-3.5" strokeWidth={3} />}
+                {planInfo.badgeText}
               </span>
             </div>
 
-            {/* Auto-renew box */}
+            {/* Status & Expiry box */}
             <div className="bg-[#EAF5EE] dark:bg-[#1E2D24] p-3 rounded-xl flex items-center justify-between text-xs">
               <div className="flex items-center gap-2 text-neutral-700 dark:text-neutral-300 font-medium">
                 <Calendar className="w-4 h-4 text-neutral-600 dark:text-neutral-300 shrink-0" />
-                <span>Renews Nov 24, 2026</span>
+                <span>{planInfo.expiryText}</span>
               </div>
-              <span className="font-semibold text-neutral-700 dark:text-neutral-300">
-                Auto-renew on
-              </span>
+              {planInfo.isActive && (
+                <span className="font-semibold text-neutral-700 dark:text-neutral-300 text-[11px]">
+                  Protected
+                </span>
+              )}
             </div>
 
             {/* Manage link */}
             <button
               type="button"
               onClick={() => navigate("/pricing")}
-              className="w-full flex items-center justify-between pt-1 text-sm font-semibold text-[#0D3B29] dark:text-[#4CC38A] hover:opacity-85 transition-opacity"
+              className="w-full flex items-center justify-between pt-1 text-sm font-semibold text-[#0D3B29] dark:text-[#4CC38A] hover:opacity-85 transition-opacity cursor-pointer"
             >
-              <span>Manage subscription / Upgrade</span>
+              <span>{planInfo.ctaText}</span>
               <ChevronRight className="w-4 h-4 shrink-0 text-neutral-400" />
             </button>
           </div>
