@@ -231,7 +231,7 @@ export default function TrainerTools() {
                 description: "You have reached the limit of 3 clients on the Free plan. Upgrade to Business Pro to add unlimited clients.",
                 variant: "destructive",
                 action: (
-                    <Button variant="outline" size="sm" className="ml-auto" onClick={() => openPaymentLink(BUSINESS_PLANS[0].link)}>
+                    <Button variant="outline" size="sm" className="ml-auto" onClick={() => navigate('/pricing')}>
                         Upgrade
                     </Button>
                 ),
@@ -550,7 +550,7 @@ export default function TrainerTools() {
                                                 description: "You have reached the limit of 3 clients on the Free plan. Upgrade to Business Pro to add unlimited clients.",
                                                 variant: "destructive",
                                                 action: (
-                                                    <Button variant="outline" size="sm" className="ml-auto" onClick={() => openPaymentLink(BUSINESS_PLANS[0].link)}>
+                                                    <Button variant="outline" size="sm" className="ml-auto" onClick={() => navigate('/pricing')}>
                                                         Upgrade
                                                     </Button>
                                                 ),

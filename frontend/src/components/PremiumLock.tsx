@@ -183,7 +183,7 @@ export function PremiumLock({
                             </Button>
 
                             <p className="text-xs text-zinc-500">
-                                Cancel anytime. Secure payment via Instamojo.
+                                Cancel anytime. 256-bit bank-grade encryption.
                             </p>
                         </div>
                     </CardContent>

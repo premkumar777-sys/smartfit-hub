@@ -1,13 +1,15 @@
 import { Button } from "@/components/ui/button";
-import { Check, Shield, Clock, Trophy, Sparkles } from "lucide-react";
+import { Check, Shield, Clock, Trophy, Sparkles, Globe } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Container } from "@/components/Container";
 import { PRO_PLANS } from "@/config/payments";
 import { Badge } from "@/components/ui/badge";
+import { isAndroidNativeApp } from "@/lib/platform";
 
 export default function Pricing() {
     const navigate = useNavigate();
+    const isAndroidApp = isAndroidNativeApp();
 
     const getPlanFeatures = (planId: string) => {
         const baseFeatures = [
@@ -48,6 +50,13 @@ export default function Pricing() {
                         <p className="text-base md:text-lg text-zinc-400 max-w-xl mx-auto">
                             Choose the plan that matches your training goals. Get premium access to computer vision workout tracking, AI coaching, and custom nutrition guides.
                         </p>
+
+                        {isAndroidApp && (
+                            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-950/40 border border-emerald-500/20 text-xs text-emerald-400 mt-2">
+                                <Sparkles className="w-4 h-4 shrink-0" />
+                                <span>7-Day Free Trial activates directly in-app • Paid plans managed via web portal</span>
+                            </div>
+                        )}
                     </motion.div>
                 </div>
 
@@ -108,13 +117,13 @@ export default function Pricing() {
                                 <div className="mt-8">
                                     <Button
                                         onClick={() => navigate(`/upgrade?plan=${plan.id}`)}
-                                        className={`w-full h-11 font-bold text-xs uppercase tracking-wider rounded-lg transition-colors ${
+                                        className={`w-full h-11 font-bold text-xs uppercase tracking-wider rounded-lg transition-colors cursor-pointer ${
                                             isMonthly 
                                                 ? "bg-[#00FF9C] text-black hover:bg-[#00e08b]" 
                                                 : "border border-zinc-800 bg-transparent text-white hover:bg-zinc-900"
                                         }`}
                                     >
-                                        {isTrial ? "Start Free Trial" : "Choose Plan"}
+                                        {isTrial ? "Start Free Trial" : (isAndroidApp ? "View Plan Details" : "Choose Plan")}
                                     </Button>
                                 </div>
                             </motion.div>
@@ -143,7 +152,7 @@ export default function Pricing() {
                             <Trophy className="w-6 h-6 mx-auto text-[#00FF9C]" />
                             <h4 className="text-base font-bold text-white">100% Secure Checkout</h4>
                             <p className="text-xs text-zinc-400 leading-relaxed">
-                                All transactions are fully encrypted and processed securely via our payments partner Instamojo.
+                                All transactions are fully encrypted and processed securely using bank-grade 256-bit SSL protocols.
                             </p>
                         </div>
                     </div>

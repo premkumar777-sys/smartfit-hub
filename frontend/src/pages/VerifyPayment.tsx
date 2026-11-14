@@ -14,11 +14,14 @@ import {
     Loader2, 
     Zap, 
     Play, 
-    ExternalLink 
+    ExternalLink,
+    Globe,
+    RefreshCw
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 import { PRO_PLANS, openPaymentLink } from "@/config/payments";
+import { isAndroidNativeApp } from "@/lib/platform";
 
 export default function VerifyPayment() {
     const navigate = useNavigate();
@@ -32,41 +35,57 @@ export default function VerifyPayment() {
     const [isActivatingTrial, setIsActivatingTrial] = useState(false);
     const [hasActiveSub, setHasActiveSub] = useState(false);
     const [checkingSub, setCheckingSub] = useState(true);
+    const isAndroidApp = isAndroidNativeApp();
 
     // Check if the user already has a subscription
+    const checkExistingSubscription = async () => {
+        if (!user) {
+            setCheckingSub(false);
+            return false;
+        }
+
+        try {
+            const { data, error } = await supabase
+                .from("subscriptions")
+                .select("*")
+                .eq("user_id", user.id)
+                .eq("status", "active")
+                .order("current_period_end", { ascending: false })
+                .limit(1)
+                .maybeSingle();
+
+            if (error) {
+                console.error("Error checking existing subscription:", error);
+            }
+
+            if (data && new Date(data.current_period_end) > new Date()) {
+                setHasActiveSub(true);
+                return true;
+            } else {
+                setHasActiveSub(false);
+                return false;
+            }
+        } catch (err) {
+            console.error("Subscription validation error:", err);
+            return false;
+        } finally {
+            setCheckingSub(false);
+        }
+    };
+
     useEffect(() => {
-        const checkExistingSubscription = async () => {
-            if (!user) {
-                setCheckingSub(false);
-                return;
-            }
-
-            try {
-                const { data, error } = await supabase
-                    .from("subscriptions")
-                    .select("*")
-                    .eq("user_id", user.id)
-                    .eq("status", "active")
-                    .order("current_period_end", { ascending: false })
-                    .limit(1)
-                    .maybeSingle();
-
-                if (error) {
-                    console.error("Error checking existing subscription:", error);
-                }
-
-                if (data && new Date(data.current_period_end) > new Date()) {
-                    setHasActiveSub(true);
-                }
-            } catch (err) {
-                console.error("Subscription validation error:", err);
-            } finally {
-                setCheckingSub(false);
-            }
-        };
-
         checkExistingSubscription();
     }, [user]);
+
+    const handleRecheckAccess = async () => {
+        setCheckingSub(true);
+        const isActive = await checkExistingSubscription();
+        if (isActive) {
+            toast.success("🎉 Active subscription detected! Pro access unlocked.");
+        } else {
+            toast.info("No active web subscription found yet. If you recently paid, please wait a minute for sync.");
+        }
+    };
 
     // Handle Trial Activation
     const handleActivateTrial = async () => {
@@ -334,29 +353,69 @@ export default function VerifyPayment() {
                                     </div>
                                 </div>
 
-                                {/* Checkout Button */}
-                                <Button
-                                    onClick={handleUpgradeClick}
-                                    disabled={isActivatingTrial}
-                                    className="w-full h-12 bg-[#00FF9C] hover:bg-[#00e08b] text-black font-black text-sm uppercase tracking-wider rounded-lg transition-colors flex items-center justify-center gap-2"
-                                >
-                                    {isActivatingTrial ? (
-                                        <>
-                                            <Loader2 className="w-4 h-4 animate-spin text-black" />
-                                            Activating Trial...
-                                        </>
-                                    ) : selectedPlan.id === "trial" ? (
-                                        <>
-                                            <Play className="w-4 h-4 text-black fill-current" />
-                                            Start 7-Day Free Trial
-                                        </>
-                                    ) : (
-                                        <>
-                                            Upgrade via Instamojo
-                                            <ExternalLink className="w-4 h-4 text-black" />
-                                        </>
-                                    )}
-                                </Button>
+                                {/* Checkout / Compliance Action Area */}
+                                {isAndroidApp && selectedPlan.id !== "trial" ? (
+                                    <div className="space-y-3 pt-2">
+                                        <div className="p-4 rounded-xl bg-emerald-950/30 border border-emerald-500/25 space-y-2 text-left">
+                                            <div className="flex items-center gap-2 text-emerald-400 font-semibold text-xs">
+                                                <Globe className="w-4 h-4 shrink-0" />
+                                                <span>Web-Managed Subscription</span>
+                                            </div>
+                                            <p className="text-xs text-zinc-300 leading-relaxed">
+                                                In accordance with app store policy, paid subscriptions are managed via our web portal. Please visit <span className="font-bold text-white">smartfitai.in</span> in any browser to choose a paid plan.
+                                            </p>
+                                            <p className="text-[11px] text-zinc-400">
+                                                Already subscribed on web? Tap below to sync your Pro access instantly.
+                                            </p>
+                                        </div>
+
+                                        <Button
+                                            type="button"
+                                            onClick={handleRecheckAccess}
+                                            disabled={checkingSub}
+                                            variant="outline"
+                                            className="w-full h-11 border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/10 font-bold text-xs uppercase tracking-wider rounded-lg transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                                        >
+                                            <RefreshCw className={`w-3.5 h-3.5 ${checkingSub ? "animate-spin" : ""}`} />
+                                            {checkingSub ? "Verifying..." : "Check Active Access"}
+                                        </Button>
+
+                                        <Button
+                                            type="button"
+                                            onClick={() => {
+                                                const trialPlan = PRO_PLANS.find(p => p.id === "trial") || PRO_PLANS[0];
+                                                setSelectedPlan(trialPlan);
+                                            }}
+                                            className="w-full h-11 bg-zinc-800 hover:bg-zinc-700 text-white font-bold text-xs uppercase tracking-wider rounded-lg transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                                        >
+                                            <Play className="w-3.5 h-3.5 fill-current text-[#00FF9C]" />
+                                            Switch to 7-Day Free Trial
+                                        </Button>
+                                    </div>
+                                ) : (
+                                    <Button
+                                        onClick={handleUpgradeClick}
+                                        disabled={isActivatingTrial}
+                                        className="w-full h-12 bg-[#00FF9C] hover:bg-[#00e08b] text-black font-black text-sm uppercase tracking-wider rounded-lg transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                                    >
+                                        {isActivatingTrial ? (
+                                            <>
+                                                <Loader2 className="w-4 h-4 animate-spin text-black" />
+                                                Activating Trial...
+                                            </>
+                                        ) : selectedPlan.id === "trial" ? (
+                                            <>
+                                                <Play className="w-4 h-4 text-black fill-current" />
+                                                Start 7-Day Free Trial
+                                            </>
+                                        ) : (
+                                            <>
+                                                Proceed to Checkout
+                                                <ExternalLink className="w-4 h-4 text-black" />
+                                            </>
+                                        )}
+                                    </Button>
+                                )}
                             </Card>
                         </div>
                     </div>

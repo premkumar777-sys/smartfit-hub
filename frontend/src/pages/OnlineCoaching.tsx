@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Check, Calendar, Video, Star, Users, Trophy, ArrowLeft, ExternalLink } from "lucide-react";
 import { motion } from "framer-motion";
 import { openPaymentLink, COACHING_PLAN, WHATSAPP_NUMBER } from "@/config/payments";
+import { isAndroidNativeApp } from "@/lib/platform";
 import { AddClientDialog } from "@/components/trainer/AddClientDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -65,6 +66,16 @@ export default function OnlineCoaching() {
 
     const { isAuthenticated } = useAuth();
     const { hasPremiumAccess } = useSubscription();
+    const isAndroidApp = isAndroidNativeApp();
+
+    const handleCoachingEnroll = () => {
+        if (isAndroidApp) {
+            toast.info("Online coaching enrollment is coordinated directly with our head coach on WhatsApp or on our web portal (smartfitai.in).");
+            window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent("Hi Coach, I'm interested in joining SmartFit Online Coaching!")}`, "_blank");
+            return;
+        }
+        openPaymentLink(COACHING_PLAN.link);
+    };
 
     // Auto-open form if they returned from a successful payment
     useEffect(() => {
@@ -199,10 +210,10 @@ export default function OnlineCoaching() {
                             </p>
                             <div className="flex flex-wrap gap-4">
                                 <Button
-                                    onClick={() => openPaymentLink(COACHING_PLAN.link)}
+                                    onClick={handleCoachingEnroll}
                                     className="bg-[#00FF9C] text-black hover:bg-[#00FF9C]/90 h-12 px-8 text-lg font-bold"
                                 >
-                                    1. Secure Your Spot
+                                    1. {isAndroidApp ? "Connect with Coach" : "Secure Your Spot"}
                                 </Button>
                                 <Button
                                     onClick={() => setIsFormOpen(true)}
@@ -434,10 +445,10 @@ export default function OnlineCoaching() {
                             <div className="space-y-4 w-full max-w-sm mx-auto">
                                 <p className="text-[#00FF9C] text-sm font-medium">Follow these steps carefully:</p>
                                 <Button
-                                    onClick={() => openPaymentLink(COACHING_PLAN.link)}
+                                    onClick={handleCoachingEnroll}
                                     className="w-full bg-[#00FF9C] text-black hover:bg-[#00FF9C]/90 h-14 text-lg font-bold shadow-[0_0_20px_rgba(0,255,156,0.3)]"
                                 >
-                                    1. Secure Your Spot (Pay {COACHING_PLAN.price})
+                                    1. {isAndroidApp ? "Connect with Coach" : `Secure Your Spot (Pay ${COACHING_PLAN.price})`}
                                 </Button>
                                 <Button
                                     onClick={() => setIsFormOpen(true)}

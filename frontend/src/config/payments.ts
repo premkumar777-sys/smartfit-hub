@@ -1,3 +1,5 @@
+import { isAndroidNativeApp } from "@/lib/platform";
+
 /**
  * Payment Configuration for SmartFit AI Hub
  * 
@@ -113,9 +115,16 @@ export function getBusinessPlans(): PaymentPlan[] {
 }
 
 /**
- * Open a payment link in a new tab
+ * Open a payment link in a new tab (Web only).
+ * On Android TWA/App, intercepts to maintain strict compliance with Google Play Policy Section 15.
  */
 export function openPaymentLink(link: string): void {
+    if (isAndroidNativeApp()) {
+        console.warn("External checkout blocked inside Android native/TWA app for Google Play compliance.");
+        alert("Subscriptions are managed via our web portal at https://www.smartfitai.in. Please visit our website in your browser to manage your subscription, then sign in here.");
+        return;
+    }
+
     if (link.startsWith("RAZORPAY_")) {
         console.warn("Payment link not configured yet:", link);
         alert("Payment links are being set up. Please try again later.");
