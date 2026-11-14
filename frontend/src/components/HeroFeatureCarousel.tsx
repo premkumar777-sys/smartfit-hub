@@ -104,7 +104,7 @@ export function HeroFeatureCarousel() {
       onMouseLeave={() => setIsPaused(false)}
     >
       {/* ── Tab Switcher Buttons ── */}
-      <div className="flex items-center justify-center gap-1.5 sm:gap-2.5 p-1 rounded-full bg-white/[0.04] border border-white/10 backdrop-blur-xl mb-4 sm:mb-5 max-w-full overflow-x-auto no-scrollbar">
+      <div className="flex items-center justify-center gap-1 sm:gap-2.5 p-1 rounded-full bg-white/[0.04] border border-white/10 backdrop-blur-xl mb-3.5 sm:mb-5 max-w-full overflow-x-auto no-scrollbar">
         {FEATURE_SLIDES.map((slide, idx) => {
           const isActive = idx === currentIndex;
           const Icon = slide.icon;
@@ -115,13 +115,13 @@ export function HeroFeatureCarousel() {
               type="button"
               onClick={() => setCurrentIndex(idx)}
               className={cn(
-                "flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold transition-all duration-300 cursor-pointer whitespace-nowrap active:scale-95",
+                "flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-full text-[11px] sm:text-sm font-semibold transition-all duration-300 cursor-pointer whitespace-nowrap active:scale-95",
                 isActive
                   ? "bg-[#00FF9C]/15 border border-[#00FF9C] text-[#00FF9C] shadow-[0_0_16px_rgba(0,255,156,0.3)]"
                   : "border border-transparent text-white/60 hover:text-white hover:bg-white/5"
               )}
             >
-              <Icon className={cn("w-3.5 h-3.5", isActive ? "text-[#00FF9C]" : "text-white/50")} />
+              <Icon className={cn("w-3 sm:w-3.5 h-3 sm:h-3.5", isActive ? "text-[#00FF9C]" : "text-white/50")} />
               <span>{slide.tabLabel}</span>
             </button>
           );
