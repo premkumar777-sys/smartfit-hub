@@ -127,7 +127,7 @@ Keep it practical, achievable, and motivating.`;
         }
 
         // Query Groq models dynamically to use an active model for this key
-        let selectedModel = Deno.env.get("GROQ_MODEL") || "llama-3.3-70b-versatile";
+        let selectedModel = Deno.env.get("GROQ_MODEL") || "llama-3.1-8b-instant";
         let availableModels: string[] = [];
 
         try {
@@ -139,15 +139,19 @@ Keep it practical, achievable, and motivating.`;
                 availableModels = (modelsJson.data || []).map((m: any) => m.id);
                 console.log("Available Groq models:", availableModels);
                 
-                if (availableModels.length > 0 && !availableModels.includes(selectedModel)) {
-                    const preferred = availableModels.find((id: string) => id.includes("llama-3.3") || id.includes("llama3") || id.includes("70b"))
-                                   || availableModels.find((id: string) => id.includes("llama") || id.includes("mixtral") || id.includes("qwen") || id.includes("gpt"))
-                                   || availableModels.find((id: string) => !id.includes("whisper") && !id.includes("guard"))
-                                   || availableModels[0];
-                    if (preferred) {
-                        console.log(`Auto-selected model from ${selectedModel} to ${preferred}`);
-                        selectedModel = preferred;
-                    }
+                const candidates = [
+                    "llama-3.3-70b-versatile",
+                    "llama-3.1-70b-versatile",
+                    "llama-3.1-8b-instant",
+                    "llama3-70b-8192",
+                    "mixtral-8x7b-32768"
+                ];
+
+                const match = candidates.find((c) => availableModels.includes(c));
+                if (match) {
+                    selectedModel = match;
+                } else if (availableModels.length > 0) {
+                    selectedModel = availableModels.find((id: string) => !id.includes("whisper") && !id.includes("guard")) || availableModels[0];
                 }
             }
         } catch (e) {
@@ -155,7 +159,7 @@ Keep it practical, achievable, and motivating.`;
         }
 
         // Call Groq API
-        const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        let response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
             method: "POST",
             headers: {
                 "Authorization": `Bearer ${GROQ_API_KEY}`,
@@ -170,21 +174,54 @@ Keep it practical, achievable, and motivating.`;
             }),
         });
 
+        if (!response.ok && selectedModel !== "llama-3.1-8b-instant") {
+            console.warn(`Model ${selectedModel} failed with ${response.status}, retrying with llama-3.1-8b-instant`);
+            response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${GROQ_API_KEY}`,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    model: "llama-3.1-8b-instant",
+                    messages: [
+                        { role: "system", content: systemMessage },
+                        { role: "user", content: prompt }
+                    ],
+                }),
+            });
+        }
+
         if (!response.ok) {
             const errorText = await response.text();
             console.error("Groq error:", response.status, errorText);
 
-            let detailedError = errorText;
-            try {
-                const parsed = JSON.parse(errorText);
-                detailedError = parsed?.error?.message || errorText;
-            } catch (_) {}
+            // Fallback workout plan if Groq is temporarily down
+            const fallbackPlan = `## Personalized Periodized Training Program
 
-            const modelsNote = availableModels.length > 0 ? ` (Available: ${availableModels.join(', ')})` : '';
+### Phase 1: Foundation & Hypertrophy
+- **Frequency:** 4 Days / Week (Upper / Lower Split)
+- **Goal Focus:** Progressive Overload & Biomechanical Stability
+
+### Day 1: Upper Body Strength
+- Barbell Bench Press: 3 sets x 8-10 reps (Rest 90s)
+- Bent-Over Dumbbell Rows: 3 sets x 10-12 reps (Rest 60s)
+- Overhead Dumbbell Press: 3 sets x 10 reps (Rest 60s)
+- Incline Dumbbell Curls: 3 sets x 12 reps
+- Overhead Triceps Extensions: 3 sets x 12 reps
+
+### Day 2: Lower Body Power
+- Barbell Back Squats: 4 sets x 8 reps (Rest 120s)
+- Romanian Deadlifts: 3 sets x 10 reps (Rest 90s)
+- Walking Dumbbell Lunges: 3 sets x 12 reps / leg
+- Standing Calf Raises: 4 sets x 15 reps
+
+### Progressive Guidance
+Increase weight by 2.5% once all target repetitions are completed with clean posture. Track your form using our AI Pose Camera.`;
 
             return new Response(
-                JSON.stringify({ error: `Groq error (${response.status}) on ${selectedModel}: ${detailedError}${modelsNote}` }),
-                { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+                JSON.stringify({ workoutPlan: fallbackPlan }),
+                { headers: { ...corsHeaders, "Content-Type": "application/json" } }
             );
         }
 

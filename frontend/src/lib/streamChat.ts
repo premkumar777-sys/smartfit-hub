@@ -40,7 +40,8 @@ export async function streamChat({
       const contentType = resp.headers.get("content-type") || "";
       if (contentType.includes("application/json")) {
         const data = await resp.json();
-        const errorMessage = data.details ? `${data.error}: ${data.details}` : (data.error || data.reply || `Error ${resp.status}`);
+        console.error("StreamChat backend error payload:", data);
+        const errorMessage = data.error || data.reply || `Error ${resp.status}`;
         throw new Error(errorMessage);
       }
       throw new Error(`Error ${resp.status}`);

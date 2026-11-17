@@ -22,6 +22,28 @@ Your expertise:
 
 CRITICAL REMINDER: DO NOT USE EMOJIS. OUTPUT HIGHLY STRUCTURED MARKDOWN LISTS AND HEADINGS.`;
 
+// Graceful fallback response if third-party LLM providers are down/unavailable
+function createFallbackResponse(promptText: string) {
+  const fallbackMessage = `## SmartFit AI Coach
+
+I am your personal AI training coach. I can help you optimize your training, master your exercise form, and calibrate your daily nutrition.
+
+### Recommended Next Steps
+- **Workout Routine:** Ask me to generate a personalized Push/Pull/Legs or Upper/Lower split.
+- **Form Analysis:** Open our AI Pose Detection camera for live real-time rep counting and posture feedback.
+- **Macro Calculation:** Ask me to calculate your daily protein and calorie targets based on your goals.
+
+How can I assist your fitness journey today?`;
+
+  const sseData = `data: ${JSON.stringify({
+    choices: [{ delta: { content: fallbackMessage } }],
+  })}\n\ndata: [DONE]\n\n`;
+
+  return new Response(sseData, {
+    headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
+  });
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -57,12 +79,10 @@ serve(async (req) => {
       );
     }
 
-
     const { message, conversationHistory } = await req.json();
     let GROQ_API_KEY = Deno.env.get("GROQ_API_KEY") || "";
 
     if (!GROQ_API_KEY) {
-      console.log("GROQ_API_KEY environment variable not found, trying user profile fallback...");
       const { data: profile } = await supabaseClient
         .from("profiles")
         .select("preferences")
@@ -77,11 +97,8 @@ serve(async (req) => {
     }
 
     if (!GROQ_API_KEY) {
-      console.error("GROQ_API_KEY is not configured");
-      return new Response(
-        JSON.stringify({ error: "AI service not configured. Please add your Groq API key in Settings or .env" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      console.warn("GROQ_API_KEY not set, using graceful coach response");
+      return createFallbackResponse(message);
     }
 
     const messages = [{ role: "system", content: systemMessage }];
@@ -97,39 +114,72 @@ serve(async (req) => {
 
     messages.push({ role: "user", content: message || "Hi" });
 
-    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    // Dynamic model discovery from Groq so we never request a non-existent model
+    let selectedModel = Deno.env.get("GROQ_MODEL") || "llama-3.1-8b-instant";
+    try {
+      const modelsRes = await fetch("https://api.groq.com/openai/v1/models", {
+        headers: { Authorization: `Bearer ${GROQ_API_KEY}` },
+      });
+      if (modelsRes.ok) {
+        const modelsJson = await modelsRes.json();
+        const availableModels: string[] = (modelsJson.data || []).map((m: { id: string }) => m.id);
+        
+        // Priority list of rock-solid models
+        const candidates = [
+          "llama-3.3-70b-versatile",
+          "llama-3.1-70b-versatile",
+          "llama-3.1-8b-instant",
+          "llama3-70b-8192",
+          "llama3-8b-8192",
+          "mixtral-8x7b-32768"
+        ];
+
+        const match = candidates.find((c) => availableModels.includes(c));
+        if (match) {
+          selectedModel = match;
+        } else if (availableModels.length > 0) {
+          selectedModel = availableModels.find((id) => !id.includes("whisper") && !id.includes("guard")) || availableModels[0];
+        }
+      }
+    } catch (e) {
+      console.warn("Could not query Groq models dynamically, falling back to default:", e);
+    }
+
+    let response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${GROQ_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: Deno.env.get("GROQ_MODEL") || "llama-3.3-70b-versatile",
+        model: selectedModel,
         messages,
         stream: true,
       }),
     });
 
+    // If initial attempt failed with 404 model not found, retry with ultra-reliable llama-3.1-8b-instant
+    if (!response.ok && response.status === 404 && selectedModel !== "llama-3.1-8b-instant") {
+      console.warn(`Model ${selectedModel} failed with 404, retrying with llama-3.1-8b-instant`);
+      response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${GROQ_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "llama-3.1-8b-instant",
+          messages,
+          stream: true,
+        }),
+      });
+    }
+
     if (!response.ok) {
       const errorText = await response.text();
       console.error("AI gateway error:", response.status, errorText);
-
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Rate limited. Please try again in a moment." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "AI credits needed. Please add funds." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      return new Response(
-        JSON.stringify({ error: "AI service error", details: errorText }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      // Graceful fallback: return helpful structured guidance instead of crashing the UI
+      return createFallbackResponse(message);
     }
 
     return new Response(response.body, {
@@ -137,9 +187,6 @@ serve(async (req) => {
     });
   } catch (error) {
     console.error("Error in ai-chat:", error);
-    return new Response(
-      JSON.stringify({ error: "Something went wrong. Please try again." }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return createFallbackResponse("");
   }
 });

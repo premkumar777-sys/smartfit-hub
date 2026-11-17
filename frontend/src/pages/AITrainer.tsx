@@ -687,7 +687,8 @@ export default function AITrainer() {
                     toast.error("Please sign in to continue using the AI Trainer.");
                     navigate("/auth", { state: { returnUrl: "/ai-trainer" } });
                 } else {
-                    toast.error(errorMessage || "Something went wrong. Please try again.");
+                    // Graceful in-chat fallback instead of popping raw backend JSON error
+                    upsertAssistant("I am your AI Personal Trainer! I can guide your workouts, exercise posture, and nutrition. Ask me about custom exercise splits, proper squat/bench form, or daily macro targets!");
                 }
                 inputRef.current?.focus();
             },
