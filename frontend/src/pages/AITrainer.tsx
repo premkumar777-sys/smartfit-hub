@@ -669,10 +669,20 @@ export default function AITrainer() {
             });
         };
 
+        const userContext = {
+            exercise: selectedExercise,
+            reps: trackedReps,
+            formScore,
+            goal,
+            weight,
+            height,
+        };
+
         await streamChat({
-            functionName: "ai-chat",
+            functionName: "smartfit-chatbot",
             message: content,
             conversationHistory,
+            userContext,
             onDelta: (chunk) => upsertAssistant(chunk),
             onDone: () => {
                 setIsLoading(false);
