@@ -761,8 +761,12 @@ export default function Dashboard() {
           <div className="lg:hidden mb-4">
             <div className="flex items-center justify-between pb-3 border-b border-white/[0.06]">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#00FF9C]/20 to-[#00995E]/10 border border-[#00FF9C]/30 flex items-center justify-center shadow-[0_0_12px_rgba(0,255,156,0.2)]">
-                  <Dumbbell className="w-4 h-4 text-[#00FF9C]" />
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#00FF9C]/20 to-[#00995E]/10 border border-[#00FF9C]/30 flex items-center justify-center shadow-[0_0_12px_rgba(0,255,156,0.25)] p-1 overflow-hidden shrink-0">
+                  <img
+                    src="/favicon.png"
+                    alt="SmartFit AI Logo"
+                    className="w-full h-full object-contain"
+                  />
                 </div>
                 <div className="flex flex-col">
                   <span className="text-sm font-extrabold tracking-tight text-white leading-none">

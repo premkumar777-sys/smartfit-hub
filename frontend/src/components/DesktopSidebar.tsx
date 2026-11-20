@@ -104,8 +104,8 @@ export function DesktopSidebar({ avatarUrl, userName }: DesktopSidebarProps) {
       {/* ── Brand Header ── */}
       <div className="h-20 px-6 flex items-center justify-between border-b border-emerald-950/5 dark:border-neutral-800 shrink-0">
         <Link to="/app/today" className="flex items-center gap-3 group">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#0D3B29] to-[#1F7A5A] dark:from-[#1F7A5A] dark:to-[#4CC38A] flex items-center justify-center text-white shadow-md shadow-emerald-950/10 group-hover:scale-105 transition-transform">
-            <Sparkles className="w-5 h-5 text-[#4CC38A] dark:text-[#EAF5EE]" />
+          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#0D3B29] to-[#1F7A5A] dark:from-[#1F7A5A] dark:to-[#4CC38A] flex items-center justify-center p-2 shadow-md shadow-emerald-950/10 group-hover:scale-105 transition-transform overflow-hidden shrink-0">
+            <img src="/favicon.png" alt="SmartFit AI" className="w-full h-full object-contain" />
           </div>
           <div>
             <span className="font-extrabold text-base tracking-tight text-neutral-900 dark:text-neutral-50 block leading-tight">
