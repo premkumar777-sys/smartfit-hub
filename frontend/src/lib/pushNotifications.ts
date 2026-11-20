@@ -222,13 +222,14 @@ export function initLocalNotificationScheduler(name: string = "Athlete") {
             body: reminder.body,
             icon: "/pwa-192x192.png",
             badge: "/favicon.png",
+            image: "/hero-cyber-athlete.jpg",
             data: { url: "/app/today" },
-            vibrate: [150, 75, 150],
+            vibrate: [200, 100, 200, 100, 200],
             tag: "smartfit-daily-reminder",
             renotify: true,
             actions: [
-              { action: "open", title: "Start Workout" },
-              { action: "dismiss", title: "Later" },
+              { action: "start", title: "🔥 Start Workout" },
+              { action: "plan", title: "📊 View Plan" },
             ],
           });
         } catch (_) {
@@ -236,6 +237,7 @@ export function initLocalNotificationScheduler(name: string = "Athlete") {
             new Notification(reminder.title, {
               body: reminder.body,
               icon: "/pwa-192x192.png",
+              image: "/hero-cyber-athlete.jpg",
             });
           } catch (e) {
             console.warn("Local notification trigger skipped:", e);
@@ -265,9 +267,15 @@ export async function triggerTestNotification(name: string = "Athlete"): Promise
         body: reminder.body,
         icon: "/pwa-192x192.png",
         badge: "/favicon.png",
+        image: "/hero-cyber-athlete.jpg",
         data: { url: "/app/today" },
-        vibrate: [100, 50, 100],
+        vibrate: [200, 100, 200, 100, 200],
         tag: "smartfit-test",
+        renotify: true,
+        actions: [
+          { action: "start", title: "🔥 Start Workout" },
+          { action: "plan", title: "📊 View Plan" },
+        ],
       });
       return true;
     } catch (_) {
@@ -275,6 +283,7 @@ export async function triggerTestNotification(name: string = "Athlete"): Promise
         new Notification(reminder.title, {
           body: reminder.body,
           icon: "/pwa-192x192.png",
+          image: "/hero-cyber-athlete.jpg",
         });
         return true;
       } catch (e) {
