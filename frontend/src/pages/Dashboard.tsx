@@ -32,7 +32,6 @@ import { DesktopSidebar } from "@/components/DesktopSidebar";
 import { getPersonalizedPlan, PersonalizedPlan, hasLocalOnboardingDraft } from "@/lib/onboarding";
 import { getPersonalizedWorkoutHero } from "@/lib/workoutImages";
 import { NotificationOptInCard } from "@/components/NotificationOptInCard";
-import { AppWalkthroughTour } from "@/components/AppWalkthroughTour";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -843,9 +842,6 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
-
-        {/* ── First-Time User Interactive Spotlight Tour ── */}
-        <AppWalkthroughTour />
       </main>
     </div>
   );
