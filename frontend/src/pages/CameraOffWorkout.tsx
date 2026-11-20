@@ -18,7 +18,6 @@ import { Container } from '@/components/Container';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 import { AngleGuidance } from '@/components/AngleGuidance';
-import { WorkoutTimer } from '@/components/WorkoutTimer';
 import { useVoiceCoach } from '@/hooks/useVoiceCoach';
 
 type Exercise = 'squat' | 'pushup' | 'bicep' | 'overheadtriceps' | 'abs' | 'latpulls' | 'chestfly' | 'shoulderpress' | 'pullups' | 'legpress' | 'totalshoulder' | 'tricepext' | 'upperbody' | 'backrelaxing' | 'barshoulder' | 'idle';
@@ -593,16 +592,8 @@ export default function CameraOffWorkout() {
             </div>
           </div>
 
-          {/* Right: Guidance & Timer */}
+          {/* Right: Form Guidance */}
           <div className="space-y-4">
-            {/* Timer */}
-            <WorkoutTimer
-              duration={currentExerciseConfig?.duration || 30}
-              isRunning={isWorkoutActive}
-              onComplete={handleTimerComplete}
-              onTick={handleTimerTick}
-            />
-
             {/* Angle guidance */}
             <AngleGuidance
               exercise={selectedExercise}
