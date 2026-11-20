@@ -51,15 +51,23 @@ self.addEventListener('notificationclick', (event) => {
     targetPath = event.notification.data.url;
   }
 
+  // Construct absolute origin URL so Android App Links intercepts directly into the installed app
+  const fullTargetUrl = new URL(targetPath, self.location.origin).href;
+
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      // 1. If any app window is open (foreground or background), navigate and focus it directly!
       for (const client of clientList) {
-        if (client.url.includes(targetPath) && 'focus' in client) {
+        if ('focus' in client) {
+          if ('navigate' in client) {
+            client.navigate(fullTargetUrl);
+          }
           return client.focus();
         }
       }
+      // 2. If app was closed, open full URL so Android App Links opens com.smartfitai.app
       if (clients.openWindow) {
-        return clients.openWindow(targetPath);
+        return clients.openWindow(fullTargetUrl);
       }
     })
   );
