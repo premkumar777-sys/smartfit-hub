@@ -10,23 +10,16 @@ import { HeroFeatureCarousel } from "@/components/HeroFeatureCarousel";
 const Home = () => {
   const { user, isAuthenticated, isLoading } = useAuth();
 
-  // If the athlete is authenticated, automatically route them straight to their Dashboard
+  // If the athlete is authenticated, automatically route them straight to their Dashboard (like Strava)
   if (isAuthenticated) {
     return <Navigate to="/dashboard" replace />;
   }
 
-  // If auth state is still resolving and a cached user/session exists in local storage,
-  // show a minimal branded loader so there is zero flash of the marketing hero
-  const hasLocalSession =
-    typeof window !== "undefined" &&
-    (Boolean(localStorage.getItem("smartfit_auth_session")) ||
-      Boolean(localStorage.getItem("smartfit_biometric_active_user")) ||
-      Object.keys(localStorage).some((k) => k.startsWith("sb-") && k.endsWith("-auth-token")));
-
-  if (isLoading && hasLocalSession) {
+  // While auth state is resolving on app boot, show branded loading screen so marketing page NEVER flashes
+  if (isLoading) {
     return (
       <div className="min-h-screen min-h-dvh bg-[#060809] flex flex-col items-center justify-center">
-        <div className="w-9 h-9 border-2 border-[#00FF9C] border-t-transparent rounded-full animate-spin mb-3" />
+        <div className="w-10 h-10 border-2 border-[#00FF9C] border-t-transparent rounded-full animate-spin mb-3" />
         <span className="text-xs font-semibold tracking-wider uppercase text-zinc-400">
           Loading your dashboard...
         </span>
