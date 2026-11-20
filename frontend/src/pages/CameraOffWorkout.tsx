@@ -553,7 +553,8 @@ export default function CameraOffWorkout() {
                   autoPlay
                   loop
                   muted
-                  className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
+                  playsInline
+                  className="w-full h-full object-cover transition-all duration-500"
                 />
               )}
               <div className="absolute inset-0 pointer-events-none border-[1px] border-white/5 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
@@ -589,31 +590,6 @@ export default function CameraOffWorkout() {
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-
-            {/* Start/Stop button */}
-            <div className="flex justify-center">
-              {!isWorkoutActive ? (
-                <Button
-                  size="lg"
-                  onClick={handleStartWorkout}
-                  disabled={selectedExercise === 'idle'}
-                  className="px-8 py-6 text-lg"
-                >
-                  <Play className="w-6 h-6 mr-2" />
-                  Start Workout
-                </Button>
-              ) : (
-                <Button
-                  size="lg"
-                  variant="destructive"
-                  onClick={handleStopWorkout}
-                  className="px-8 py-6 text-lg"
-                >
-                  <Square className="w-6 h-6 mr-2" />
-                  Stop Workout
-                </Button>
-              )}
             </div>
           </div>
 
