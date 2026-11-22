@@ -188,10 +188,21 @@ export function Header() {
   };
 
   const isTodayPage = location.pathname === "/app/today" || location.pathname === "/dashboard";
-  const isAppWorkspace = location.pathname.startsWith("/app") || isTodayPage || location.pathname === "/3d-trainer" || location.pathname === "/settings" || location.pathname === "/profile";
-  const isNoProfilePage = location.pathname === "/ai-trainer" || location.pathname === "/home-workouts";
+  const isSettingsPage = location.pathname === "/settings" || location.pathname === "/app/settings";
+  const isProfilePage = location.pathname === "/profile" || location.pathname === "/app/profile";
+  const isWorkoutSessionPage = location.pathname === "/workout-session" || location.pathname.startsWith("/app/workout");
+  const is3dTrainerPage = location.pathname === "/3d-trainer";
 
-  if (isAppWorkspace) {
+  const isExcludedFromHeader = isTodayPage || isSettingsPage || isProfilePage || isWorkoutSessionPage || is3dTrainerPage;
+  const isNoProfilePage = 
+    location.pathname === "/ai-trainer" || 
+    location.pathname === "/home-workouts" ||
+    location.pathname === "/app/progress" ||
+    location.pathname === "/progress" ||
+    location.pathname === "/app/nutrition" ||
+    location.pathname === "/nutrition";
+
+  if (isExcludedFromHeader) {
     return null;
   }
 

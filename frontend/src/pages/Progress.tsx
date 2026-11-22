@@ -514,15 +514,6 @@ export default function Progress() {
       <Container className="relative z-10">
         <div className="mb-7 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="mb-2 -ml-3 text-gray-400 hover:bg-white/5 hover:text-white"
-              onClick={() => navigate(-1)}
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back
-            </Button>
             <h1 className="text-3xl font-bold tracking-tight text-white md:text-4xl">Smart Progress</h1>
             <p className="mt-1 text-sm text-[#8E9BAE]">Your fitness journey, measured over time.</p>
           </div>

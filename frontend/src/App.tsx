@@ -103,13 +103,23 @@ const AppContent = () => {
   const isSettingsPage = location.pathname === "/settings" || location.pathname === "/app/settings";
   const isProfilePage = location.pathname === "/profile" || location.pathname === "/app/profile";
   const isTodayPage = location.pathname === "/app/today" || location.pathname === "/dashboard";
-  const isAITrainerPage = location.pathname === "/ai-trainer";
-  const isAppWorkspace = location.pathname.startsWith("/app") || isTodayPage || isSettingsPage || isProfilePage || isWorkoutSessionPage || location.pathname === "/3d-trainer";
+  const is3dTrainerPage = location.pathname === "/3d-trainer";
+
+  const isMainAppTab =
+    isTodayPage ||
+    location.pathname === "/ai-trainer" ||
+    location.pathname === "/home-workouts" ||
+    location.pathname === "/app/progress" ||
+    location.pathname === "/progress" ||
+    location.pathname === "/app/nutrition" ||
+    location.pathname === "/nutrition" ||
+    location.pathname === "/app/explore" ||
+    location.pathname === "/guides";
 
   const hideLayout = isAuthPage || isWorkoutSessionPage || isOnboardingPage;
-  const hideHeader = hideLayout || isAppWorkspace;
-  const hideFooter = hideLayout || isAppWorkspace || isAITrainerPage;
-  const hideChatbot = hideLayout || isSettingsPage || isAITrainerPage || isWorkoutSessionPage;
+  const hideHeader = hideLayout || isTodayPage || isSettingsPage || isProfilePage || isWorkoutSessionPage || is3dTrainerPage;
+  const hideFooter = hideLayout || isMainAppTab || isSettingsPage || isProfilePage || is3dTrainerPage;
+  const hideChatbot = hideLayout || isSettingsPage || location.pathname === "/ai-trainer" || isWorkoutSessionPage;
 
   const isConfigMissing = !import.meta.env.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL === 'https://placeholder.supabase.co';
 

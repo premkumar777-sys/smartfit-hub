@@ -186,17 +186,6 @@ const AIWorkout = () => {
       <div className="absolute inset-0 z-0 bg-[radial-gradient(circle_at_50%_0%,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent opacity-60" />
 
       <Container className="relative z-10">
-        <div className="flex justify-between items-center mb-3 sm:mb-6">
-          <button
-            onClick={() => navigate(-1)}
-            className="inline-flex items-center text-xs sm:text-sm font-medium text-gray-400 hover:text-white transition-colors cursor-pointer py-1"
-            aria-label="Go back"
-          >
-            <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5" aria-hidden="true" />
-            Back
-          </button>
-        </div>
-
         <div className="text-center mb-6 sm:mb-8 relative">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-primary/10 rounded-full blur-[80px] -z-10" />
           <h1 className="text-4xl md:text-5xl lg:text-7xl font-bold leading-tight mb-3 sm:mb-4 tracking-tight">

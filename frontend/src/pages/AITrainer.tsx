@@ -732,17 +732,6 @@ export default function AITrainer() {
             <Container className={`relative z-10 flex-1 min-h-0 flex flex-col w-full max-w-5xl mx-auto px-3 sm:px-4 ${
                 isAuthenticated ? "pb-[70px] lg:pb-3" : "pb-3"
             }`}>
-                {/* Navigation Back */}
-                <div className="mb-2 shrink-0">
-                    <Link
-                        to="/dashboard"
-                        className="inline-flex items-center text-xs text-gray-400 hover:text-white transition-colors py-1 px-2 rounded-lg hover:bg-white/5"
-                    >
-                        <ArrowLeft className="w-3.5 h-3.5 mr-1.5" />
-                        Back
-                    </Link>
-                </div>
-
                 {/* Studio Mode Segmented Pill Bar (Compact & Clean) */}
                 <div className="flex items-center gap-1.5 p-1 bg-[#121318]/90 border border-white/10 rounded-xl overflow-x-auto no-scrollbar mb-2.5 backdrop-blur-md shrink-0">
                     {[
