@@ -959,19 +959,21 @@ const WorkoutSession = () => {
                                     <Camera className="w-4 h-4 mr-2" /> Start AI Form Check
                                 </Button>
 
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={() => setShow3dPiP((prev) => !prev)}
-                                    className={`font-bold text-xs rounded-xl px-4 py-3 border transition-all cursor-pointer flex items-center gap-2 ${
-                                        show3dPiP
-                                            ? "bg-[#00FF9C]/20 border-[#00FF9C] text-[#00FF9C] shadow-[0_0_15px_rgba(0,255,156,0.3)]"
-                                            : "border-border bg-card/60 hover:bg-card text-foreground"
-                                    }`}
-                                >
-                                    <Video className="w-4 h-4 text-[#00FF9C]" />
-                                    <span>{show3dPiP ? "Hide 3D Demo" : "3D Form Demo"}</span>
-                                </Button>
+                                {isCameraOn && (
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => setShow3dPiP((prev) => !prev)}
+                                        className={`font-bold text-xs rounded-xl px-4 py-3 border transition-all cursor-pointer flex items-center gap-2 ${
+                                            show3dPiP
+                                                ? "bg-[#00FF9C]/20 border-[#00FF9C] text-[#00FF9C] shadow-[0_0_15px_rgba(0,255,156,0.3)]"
+                                                : "border-border bg-card/60 hover:bg-card text-foreground"
+                                        }`}
+                                    >
+                                        <Video className="w-4 h-4 text-[#00FF9C]" />
+                                        <span>{show3dPiP ? "Hide Form Guide" : "Form Guide PiP"}</span>
+                                    </Button>
+                                )}
                             </div>
                         </div>
                     </motion.div>
@@ -996,13 +998,13 @@ const WorkoutSession = () => {
                                 className={`w-full h-full object-contain ${isCameraOn ? "block" : "hidden"}`}
                             />
 
-                            {/* 3D Animated Trainer View when camera is off */}
+                            {/* AI Vision Standby View when camera is off */}
                             {!isCameraOn && (
-                                <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#090D0B] overflow-hidden">
+                                <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-b from-[#0e1310] via-[#090D0B] to-[#060807] overflow-hidden p-6 text-center select-none">
                                     {isModelLoading ? (
                                         <div className="flex flex-col items-center gap-3">
                                             <div className="w-12 h-12 rounded-full border-3 border-[#00FF9C] border-t-transparent animate-spin" />
-                                            <p className="text-xs text-muted-foreground font-semibold">Loading AI Pose Model...</p>
+                                            <p className="text-xs text-muted-foreground font-semibold">Loading AI Pose Detection Engine...</p>
                                         </div>
                                     ) : cameraError ? (
                                         <div className="flex flex-col items-center gap-3 p-6 text-center">
@@ -1013,60 +1015,56 @@ const WorkoutSession = () => {
                                             </Button>
                                         </div>
                                     ) : (
-                                        <div className="relative w-full h-full flex flex-col items-center justify-center group">
-                                            {/* 3D Animated Video Loop */}
-                                            <video
-                                                key={selectedExercise || "squat"}
-                                                src={EXERCISE_3D_VIDEOS[selectedExercise || "squat"]?.videoFile || "/squat.mp4"}
-                                                autoPlay
-                                                loop
-                                                muted={is3dMuted}
-                                                playsInline
-                                                className="w-full h-full object-contain"
-                                            />
+                                        <div className="relative z-10 max-w-md mx-auto flex flex-col items-center">
+                                            {/* Glowing Viewfinder Target Icon */}
+                                            <div className="relative mb-4 group cursor-pointer" onClick={startCamera}>
+                                                <div className="absolute -inset-2 bg-[#00FF9C]/20 rounded-full blur-xl group-hover:bg-[#00FF9C]/30 transition-all animate-pulse" />
+                                                <div className="relative w-20 h-20 rounded-2xl bg-[#141A16] border border-[#00FF9C]/40 flex items-center justify-center shadow-[0_0_30px_rgba(0,255,156,0.2)] group-hover:scale-105 transition-transform">
+                                                    <Camera className="w-9 h-9 text-[#00FF9C]" strokeWidth={1.8} />
+                                                    {/* Corner brackets */}
+                                                    <span className="absolute -top-1 -left-1 w-2.5 h-2.5 border-t-2 border-l-2 border-[#00FF9C]" />
+                                                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 border-t-2 border-r-2 border-[#00FF9C]" />
+                                                    <span className="absolute -bottom-1 -left-1 w-2.5 h-2.5 border-b-2 border-l-2 border-[#00FF9C]" />
+                                                    <span className="absolute -bottom-1 -right-1 w-2.5 h-2.5 border-b-2 border-r-2 border-[#00FF9C]" />
+                                                </div>
+                                            </div>
 
-                                            {/* Top Banner on 3D Demo */}
-                                            <div className="absolute top-3 inset-x-3 flex items-center justify-between pointer-events-none">
-                                                <span className="px-2.5 py-1 rounded-lg bg-black/80 backdrop-blur-md border border-[#00FF9C]/30 text-[11px] font-bold text-[#00FF9C] flex items-center gap-1.5 shadow-md">
-                                                    <span className="w-1.5 h-1.5 rounded-full bg-[#00FF9C] animate-pulse" />
-                                                    3D Trainer: {EXERCISE_3D_VIDEOS[selectedExercise || "squat"]?.name || "Squats"}
+                                            {/* Badge */}
+                                            <span className="px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-[#00FF9C]/10 text-[#00FF9C] border border-[#00FF9C]/30 mb-2.5 flex items-center gap-1.5 shadow-xs">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-[#00FF9C] animate-ping" />
+                                                AI Vision Pose Tracker
+                                            </span>
+
+                                            {/* Title & Info */}
+                                            <h3 className="text-lg sm:text-xl font-extrabold text-white tracking-tight mb-1.5">
+                                                Ready to Track {EXERCISES.find((e) => e.id === selectedExercise)?.name || "Reps"}
+                                            </h3>
+                                            <p className="text-xs text-white/70 leading-relaxed mb-4 max-w-sm">
+                                                Position your device 3–6 feet away so your full body is visible. The camera AI will detect joint angles and count every valid rep automatically.
+                                            </p>
+
+                                            {/* Feature Pills */}
+                                            <div className="flex flex-wrap items-center justify-center gap-1.5 mb-5">
+                                                <span className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-[10px] font-semibold text-white/80">
+                                                    ⚡ Auto Rep Counting
                                                 </span>
-
-                                                <div className="flex items-center gap-2 pointer-events-auto">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setIs3dMuted(!is3dMuted)}
-                                                        className="p-2 rounded-lg bg-black/70 hover:bg-black border border-white/10 text-white text-xs transition-colors cursor-pointer"
-                                                        title={is3dMuted ? "Unmute video" : "Mute video"}
-                                                    >
-                                                        {is3dMuted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5 text-[#00FF9C]" />}
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => navigate("/3d-trainer")}
-                                                        className="px-2.5 py-1 rounded-lg bg-black/70 hover:bg-black border border-white/10 text-white/90 text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
-                                                    >
-                                                        <span>Full 3D Mode</span>
-                                                        <ChevronRight className="w-3.5 h-3.5" />
-                                                    </button>
-                                                </div>
+                                                <span className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-[10px] font-semibold text-white/80">
+                                                    🎯 Real-time Posture AI
+                                                </span>
+                                                <span className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-[10px] font-semibold text-white/80">
+                                                    🔊 Voice Tempo Cues
+                                                </span>
                                             </div>
 
-                                            {/* Bottom Prompt to activate AI camera */}
-                                            <div className="absolute bottom-3 inset-x-3 p-3 rounded-xl bg-black/80 backdrop-blur-md border border-white/10 flex flex-col sm:flex-row items-center justify-between gap-2.5">
-                                                <div className="text-left">
-                                                    <p className="text-xs font-bold text-white">Observing 3D Pro Form</p>
-                                                    <p className="text-[11px] text-white/60">Study the movement above, then activate camera for real-time rep counting.</p>
-                                                </div>
-                                                <Button
-                                                    onClick={startCamera}
-                                                    size="sm"
-                                                    className="bg-[#00FF9C] hover:bg-[#00e58a] text-black font-extrabold text-xs rounded-lg px-4 h-8 shrink-0 shadow-sm cursor-pointer"
-                                                >
-                                                    <Camera className="w-3.5 h-3.5 mr-1.5 text-black" />
-                                                    Start Camera Reps
-                                                </Button>
-                                            </div>
+                                            {/* Launch Camera Button */}
+                                            <Button
+                                                type="button"
+                                                onClick={startCamera}
+                                                className="w-full sm:w-auto px-7 py-3 h-auto rounded-xl bg-[#00FF9C] hover:bg-[#00e58a] text-black font-extrabold text-xs sm:text-sm shadow-[0_0_25px_rgba(0,255,156,0.35)] active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-2"
+                                            >
+                                                <Camera className="w-4 h-4 text-black" />
+                                                <span>Start Camera Reps</span>
+                                            </Button>
                                         </div>
                                     )}
                                 </div>
