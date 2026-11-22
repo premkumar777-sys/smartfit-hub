@@ -218,7 +218,7 @@ const WorkoutSession = () => {
     const gamification = useGamification();
 
     // State
-    const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
+    const [selectedExercise, setSelectedExercise] = useState<Exercise>("squat");
     const [isCameraOn, setIsCameraOn] = useState(false);
     const [isModelLoading, setIsModelLoading] = useState(false);
     const [cameraError, setCameraError] = useState<string | null>(null);
@@ -269,6 +269,7 @@ const WorkoutSession = () => {
 
     // ─── Model Loading ──────────────────────────────────
     const loadModel = useCallback(async () => {
+        if (detectorRef.current) return detectorRef.current;
         setIsModelLoading(true);
         try {
             await tf.ready();
@@ -277,39 +278,81 @@ const WorkoutSession = () => {
                 modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING,
             });
             detectorRef.current = detector;
-            toast.success("AI model loaded successfully");
+            return detector;
         } catch (err) {
             console.error("Error loading model:", err);
-            toast.error("Failed to load AI model. Please refresh and try again.");
+            return null;
         } finally {
             setIsModelLoading(false);
         }
     }, []);
 
+    // Preload AI Pose Model on mount so it is instantly ready
+    useEffect(() => {
+        loadModel();
+    }, [loadModel]);
+
     // ─── Camera Start ───────────────────────────────────
     const startCamera = useCallback(async () => {
-        if (!selectedExercise) {
-            toast.error("Please select an exercise first");
+        setCameraError(null);
+
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            const msg = "Camera access is not supported by your browser environment.";
+            setCameraError(msg);
+            toast.error(msg);
             return;
         }
 
-        setCameraError(null);
-
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: "user", width: 640, height: 480 },
-            });
+            // Flexible constraints designed for mobile front cameras in portrait or landscape
+            let stream: MediaStream;
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: "user",
+                        width: { ideal: 1280, max: 1920 },
+                        height: { ideal: 720, max: 1080 }
+                    },
+                    audio: false
+                });
+            } catch (constraintErr) {
+                console.warn("Retrying with generic camera constraints:", constraintErr);
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: "user" },
+                    audio: false
+                });
+            }
 
             streamRef.current = stream;
             if (videoRef.current) {
                 videoRef.current.srcObject = stream;
-                await videoRef.current.play();
+
+                // Wait for video stream metadata to populate dimensions on mobile
+                await new Promise<void>((resolve) => {
+                    if (!videoRef.current) return resolve();
+                    if (videoRef.current.readyState >= 2) {
+                        resolve();
+                    } else {
+                        videoRef.current.onloadedmetadata = () => resolve();
+                        // 1s timeout safeguard
+                        setTimeout(resolve, 1000);
+                    }
+                });
+
+                try {
+                    await videoRef.current.play();
+                } catch (playErr) {
+                    console.warn("Video play warning (auto-resumed):", playErr);
+                }
             }
 
             setIsCameraOn(true);
 
-            if (!detectorRef.current) {
-                await loadModel();
+            // Ensure model is ready
+            let detector = detectorRef.current;
+            if (!detector) {
+                toast.info("Initializing MoveNet AI pose tracking...");
+                detector = await loadModel();
             }
 
             setSessionActive(true);
@@ -322,18 +365,20 @@ const WorkoutSession = () => {
                 feedbackType: "info",
             });
 
+            toast.success("AI Camera connected! Step back 3-6 ft into view.");
+
             // Start detection loop
             detectPose();
         } catch (err: unknown) {
             console.error("Camera error:", err);
             const msg =
-                err instanceof Error && err.name === "NotAllowedError"
-                    ? "Camera access denied. Please allow camera permission in your browser settings."
-                    : "Could not access camera. Make sure no other app is using it.";
+                err instanceof Error && (err.name === "NotAllowedError" || err.name === "PermissionDeniedError")
+                    ? "Camera permission denied. Please allow camera access in your phone/browser settings."
+                    : "Could not access camera. Please make sure camera permissions are enabled.";
             setCameraError(msg);
             toast.error(msg);
         }
-    }, [selectedExercise, loadModel]);
+    }, [loadModel, detectPose]);
 
     // ─── Camera Stop ────────────────────────────────────
     const stopCamera = useCallback(() => {
@@ -884,21 +929,26 @@ const WorkoutSession = () => {
         <div className="min-h-screen py-20">
             <Container className="space-y-6">
                 {/* Header */}
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                    <div>
-                        <h1 className="text-3xl md:text-4xl font-bold flex items-center gap-3">
-                            <div className="p-2 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600">
-                                <Eye className="w-6 h-6 text-white" />
-                            </div>
-                            Real-Time Form Detection
-                        </h1>
-                        <p className="text-muted-foreground mt-2">
-                            AI-powered pose detection analyzes your movement for perfect form
-                        </p>
+                <div className="flex items-center justify-between pb-3 border-b border-white/10">
+                    <div className="flex items-center gap-3">
+                        <button
+                            type="button"
+                            onClick={() => navigate(-1)}
+                            aria-label="Back"
+                            className="flex items-center justify-center w-10 h-10 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 active:scale-95 transition-transform cursor-pointer shrink-0"
+                        >
+                            <ArrowLeft className="w-5 h-5 text-white/80" strokeWidth={2.2} />
+                        </button>
+                        <div>
+                            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+                                <Eye className="w-5 h-5 text-[#00FF9C]" />
+                                Real-Time Form Detection
+                            </h1>
+                            <p className="text-xs text-white/50">
+                                AI-powered camera pose detection & rep counting
+                            </p>
+                        </div>
                     </div>
-                    <Button variant="ghost" size="lg" onClick={() => navigate(-1)}>
-                        <ArrowLeft className="mr-2 h-4 w-4" /> Back
-                    </Button>
                 </div>
 
                 {/* Exercise Selector Dropdown */}
@@ -984,12 +1034,13 @@ const WorkoutSession = () => {
                     {/* Camera Feed / 3D Trainer Viewport */}
                     <div ref={cameraRef} className="lg:col-span-2">
                         <div className="relative rounded-2xl overflow-hidden bg-black/90 border border-border aspect-video">
-                            {/* Video (hidden, used as source) */}
+                            {/* Video (playsInline, active stream source for MoveNet pose canvas) */}
                             <video
                                 ref={videoRef}
-                                className="hidden"
                                 playsInline
                                 muted
+                                autoPlay
+                                className="invisible absolute pointer-events-none w-px h-px opacity-0"
                             />
 
                             {/* Canvas for skeleton overlay */}
@@ -1154,10 +1205,10 @@ const WorkoutSession = () => {
                                         size="lg"
                                         className="flex-1"
                                         onClick={startCamera}
-                                        disabled={!selectedExercise || isModelLoading}
+                                        disabled={isModelLoading}
                                     >
                                         <Camera className="mr-2 h-5 w-5" />
-                                        {isModelLoading ? "Loading AI..." : "Start Camera"}
+                                        {isModelLoading ? "Initializing AI Engine..." : "Start Camera"}
                                     </Button>
                                     {(sessionStats.duration > 0 || sessionStats.totalReps > 0) && (
                                         <Button
