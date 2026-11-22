@@ -348,14 +348,24 @@ export function MobileMenu({ className, onMenuToggle }: MobileMenuProps) {
 
                 {/* ── Bottom Action Buttons ── */}
                 <div className="pt-6 space-y-3">
-                  {/* Button 1: Get my plan */}
-                  <button
-                    type="button"
-                    onClick={() => handleLinkClick("/onboarding/basics")}
-                    className="w-full h-12 rounded-2xl bg-[#00FF9C] hover:bg-[#00e58a] text-black font-bold text-sm sm:text-base flex items-center justify-center transition-all active:scale-[0.98] cursor-pointer shadow-[0_0_20px_rgba(0,255,156,0.25)]"
-                  >
-                    Get my plan
-                  </button>
+                  {/* Button 1: Dashboard / Get my plan */}
+                  {isAuthenticated ? (
+                    <button
+                      type="button"
+                      onClick={() => handleLinkClick("/dashboard")}
+                      className="w-full h-12 rounded-2xl bg-[#00FF9C] hover:bg-[#00e58a] text-black font-bold text-sm sm:text-base flex items-center justify-center transition-all active:scale-[0.98] cursor-pointer shadow-[0_0_20px_rgba(0,255,156,0.25)]"
+                    >
+                      Go to Dashboard
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => handleLinkClick("/onboarding/basics")}
+                      className="w-full h-12 rounded-2xl bg-[#00FF9C] hover:bg-[#00e58a] text-black font-bold text-sm sm:text-base flex items-center justify-center transition-all active:scale-[0.98] cursor-pointer shadow-[0_0_20px_rgba(0,255,156,0.25)]"
+                    >
+                      Get my plan
+                    </button>
+                  )}
 
                   {/* Button 2: Get it on Google Play */}
                   <a

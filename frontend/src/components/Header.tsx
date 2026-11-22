@@ -189,6 +189,7 @@ export function Header() {
 
   const isTodayPage = location.pathname === "/app/today" || location.pathname === "/dashboard";
   const isAppWorkspace = location.pathname.startsWith("/app") || isTodayPage || location.pathname === "/3d-trainer" || location.pathname === "/settings" || location.pathname === "/profile";
+  const isNoProfilePage = location.pathname === "/ai-trainer" || location.pathname === "/home-workouts";
 
   if (isAppWorkspace) {
     return null;
@@ -261,14 +262,12 @@ export function Header() {
                 </Button>
               )
             )}
-            <AuthMenu />
+            {!isNoProfilePage && <AuthMenu />}
           </div>
 
-            {/* Mobile Navigation Right Side: Auth Menu & Mobile Hamburger Menu */}
+            {/* Mobile Navigation Right Side: Mobile Hamburger Menu */}
             <div className="flex lg:hidden items-center space-x-2 -mr-1">
-              {isAuthenticated ? (
-                <AuthMenu />
-              ) : (
+              {!isAuthenticated && !isLoading && (
                 <button
                   type="button"
                   onClick={() => navigate("/auth")}
