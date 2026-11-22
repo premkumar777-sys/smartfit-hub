@@ -249,6 +249,27 @@ const WorkoutSession = () => {
     const animFrameRef = useRef<number | null>(null);
     const streamRef = useRef<MediaStream | null>(null);
     const repStateRef = useRef(repState);
+    const isCameraOnRef = useRef(false);
+
+    // Audio chime on successful rep completion
+    const playRepChime = useCallback(() => {
+        try {
+            const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+            if (!AudioCtx) return;
+            const ctx = new AudioCtx();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = "sine";
+            osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
+            osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.12); // A5
+            gain.gain.setValueAtTime(0.25, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.18);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.18);
+        } catch (_) {}
+    }, []);
 
     // Keep ref in sync
     useEffect(() => {
@@ -334,8 +355,7 @@ const WorkoutSession = () => {
                         resolve();
                     } else {
                         videoRef.current.onloadedmetadata = () => resolve();
-                        // 1s timeout safeguard
-                        setTimeout(resolve, 1000);
+                        setTimeout(resolve, 800);
                     }
                 });
 
@@ -346,12 +366,12 @@ const WorkoutSession = () => {
                 }
             }
 
+            isCameraOnRef.current = true;
             setIsCameraOn(true);
 
             // Ensure model is ready
             let detector = detectorRef.current;
             if (!detector) {
-                toast.info("Initializing MoveNet AI pose tracking...");
                 detector = await loadModel();
             }
 
@@ -361,11 +381,9 @@ const WorkoutSession = () => {
                 count: 0,
                 phase: "up",
                 angle: 0,
-                feedback: "Get into starting position",
+                feedback: "Camera active! Position yourself in frame.",
                 feedbackType: "info",
             });
-
-            toast.success("AI Camera connected! Step back 3-6 ft into view.");
 
             // Start detection loop
             detectPose();
@@ -382,6 +400,7 @@ const WorkoutSession = () => {
 
     // ─── Camera Stop ────────────────────────────────────
     const stopCamera = useCallback(() => {
+        isCameraOnRef.current = false;
         if (animFrameRef.current) {
             cancelAnimationFrame(animFrameRef.current);
             animFrameRef.current = null;
@@ -409,52 +428,51 @@ const WorkoutSession = () => {
 
     // ─── Pose Detection Loop ───────────────────────────
     const detectPose = useCallback(async () => {
+        if (!isCameraOnRef.current) return;
+
         const video = videoRef.current;
         const canvas = canvasRef.current;
-        const detector = detectorRef.current;
 
-        if (!video || !canvas || !detector || video.readyState < 2) {
+        if (!video || !canvas || video.readyState < 2) {
             animFrameRef.current = requestAnimationFrame(detectPose);
             return;
         }
 
-        try {
-            const poses = await detector.estimatePoses(video);
-            const ctx = canvas.getContext("2d");
-            if (!ctx) return;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+            animFrameRef.current = requestAnimationFrame(detectPose);
+            return;
+        }
 
-            // Clear and draw video frame
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // Sync overlay canvas dimensions with intrinsic video stream
+        if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
+            canvas.width = video.videoWidth || 640;
+            canvas.height = video.videoHeight || 480;
+        }
 
-            // Mirror the canvas
-            ctx.save();
-            ctx.scale(-1, 1);
-            ctx.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
-            ctx.restore();
+        // Clear previous frame's overlay
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            if (poses.length > 0 && poses[0].keypoints) {
-                const keypoints = poses[0].keypoints;
-                const bodyInFrame = drawSkeleton(ctx, keypoints, canvas.width, canvas.height);
-                if (!bodyInFrame) {
+        const detector = detectorRef.current;
+        if (detector) {
+            try {
+                const poses = await detector.estimatePoses(video);
+                if (poses.length > 0 && poses[0].keypoints) {
+                    const keypoints = poses[0].keypoints;
+                    const bodyInFrame = drawSkeleton(ctx, keypoints, canvas.width, canvas.height);
+                    if (bodyInFrame) {
+                        processExercise(keypoints, canvas.width);
+                    }
+                } else {
                     setRepState((prev) => ({
                         ...prev,
-                        feedback: "⚠️ BODY OUT OF FRAME — Step back 3-6 feet so your full body is visible",
-                        feedbackType: "warning",
+                        feedback: "Step into camera view",
+                        feedbackType: "info",
                     }));
-                } else {
-                    processExercise(keypoints, canvas.width);
                 }
-            } else {
-                setRepState((prev) => ({
-                    ...prev,
-                    feedback: "⚠️ NO PERSON DETECTED — Step into camera view",
-                    feedbackType: "warning",
-                }));
+            } catch (err) {
+                // Silently skip transient detection frame error
             }
-        } catch (err) {
-            // Silently skip detection errors
         }
 
         animFrameRef.current = requestAnimationFrame(detectPose);
@@ -707,22 +725,70 @@ const WorkoutSession = () => {
 
         const getKp = (name: string) => {
             const kp = keypoints.find((k) => k.name === name);
-            if (kp && (kp.score ?? 0) > 0.3) {
-                // Mirror x for correct angle calculation
-                return { x: canvasWidth - kp.x, y: kp.y };
+            if (kp && (kp.score ?? 0) > 0.2) {
+                return { x: canvasWidth - kp.x, y: kp.y, score: kp.score ?? 0 };
             }
             return null;
         };
 
-        const [nameA, nameB, nameC] = config.keypointsUsed;
-        const a = getKp(nameA);
-        const b = getKp(nameB);
-        const c = getKp(nameC);
+        // Bilateral joint resolution: inspect both left and right sides, select side with clearer visibility
+        let a: { x: number; y: number } | null = null;
+        let b: { x: number; y: number } | null = null;
+        let c: { x: number; y: number } | null = null;
+
+        if (selectedExercise === "squat" || selectedExercise === "lunge" || selectedExercise === "romanianDeadlift") {
+            const lHip = getKp("left_hip");
+            const lKnee = getKp("left_knee");
+            const lAnkle = getKp("left_ankle");
+
+            const rHip = getKp("right_hip");
+            const rKnee = getKp("right_knee");
+            const rAnkle = getKp("right_ankle");
+
+            const lScore = (lHip?.score || 0) + (lKnee?.score || 0) + (lAnkle?.score || 0);
+            const rScore = (rHip?.score || 0) + (rKnee?.score || 0) + (rAnkle?.score || 0);
+
+            if (rScore > lScore && rHip && rKnee) {
+                a = rHip;
+                b = rKnee;
+                c = rAnkle || { x: rKnee.x, y: rKnee.y + 120 };
+            } else if (lHip && lKnee) {
+                a = lHip;
+                b = lKnee;
+                c = lAnkle || { x: lKnee.x, y: lKnee.y + 120 };
+            }
+        } else if (selectedExercise === "bicepCurl" || selectedExercise === "pushup" || selectedExercise === "shoulderPress" || selectedExercise === "tricepExtension") {
+            const lSho = getKp("left_shoulder");
+            const lElb = getKp("left_elbow");
+            const lWri = getKp("left_wrist");
+
+            const rSho = getKp("right_shoulder");
+            const rElb = getKp("right_elbow");
+            const rWri = getKp("right_wrist");
+
+            const lScore = (lSho?.score || 0) + (lElb?.score || 0) + (lWri?.score || 0);
+            const rScore = (rSho?.score || 0) + (rElb?.score || 0) + (rWri?.score || 0);
+
+            if (rScore > lScore && rSho && rElb && rWri) {
+                a = rSho;
+                b = rElb;
+                c = rWri;
+            } else if (lSho && lElb && lWri) {
+                a = lSho;
+                b = lElb;
+                c = lWri;
+            }
+        } else {
+            const [nameA, nameB, nameC] = config.keypointsUsed;
+            a = getKp(nameA);
+            b = getKp(nameB);
+            c = getKp(nameC);
+        }
 
         if (!a || !b || !c) {
             setRepState((prev) => ({
                 ...prev,
-                feedback: "Position yourself so the camera can see your full body",
+                feedback: "Aligning pose... Step back so body is in view",
                 feedbackType: "warning",
             }));
             return;
@@ -737,9 +803,8 @@ const WorkoutSession = () => {
         let feedbackType: RepState["feedbackType"] = "info";
 
         if (selectedExercise === "bicepCurl" || selectedExercise === "tricepExtension") {
-            // Curl-type: low angle = fully curled/extended, high angle = starting position
-            const extendedThreshold = selectedExercise === "tricepExtension" ? 150 : 140;
-            const contractedThreshold = selectedExercise === "tricepExtension" ? 60 : 50;
+            const extendedThreshold = selectedExercise === "tricepExtension" ? 145 : 140;
+            const contractedThreshold = selectedExercise === "tricepExtension" ? 65 : 60;
             if (current.phase === "up" && angle > extendedThreshold) {
                 newPhase = "down";
                 feedback = selectedExercise === "tricepExtension" ? "Good! Now extend fully" : "Good extension! Now curl up";
@@ -747,17 +812,17 @@ const WorkoutSession = () => {
             } else if (current.phase === "down" && angle < contractedThreshold) {
                 newPhase = "up";
                 newCount = current.count + 1;
-                feedback = `Rep ${newCount}! ${selectedExercise === "tricepExtension" ? "Squeeze those triceps! 💪" : "Great squeeze! 💪"}`;
+                feedback = `Rep ${newCount}! Great squeeze! 💪`;
                 feedbackType = "good";
+                playRepChime();
             } else if (current.phase === "down") {
-                feedback = selectedExercise === "tricepExtension" ? "Extend arms fully overhead" : "Keep curling, squeeze at the top";
+                feedback = selectedExercise === "tricepExtension" ? "Extend arms fully overhead" : "Keep curling, squeeze at top";
                 feedbackType = "info";
             } else {
                 feedback = selectedExercise === "tricepExtension" ? "Lower weight behind head" : "Extend arm fully";
                 feedbackType = "info";
             }
         } else if (selectedExercise === "lateralRaise" || selectedExercise === "jumpingJack") {
-            // Raise-type: high angle = arms raised, low angle = arms down
             if (current.phase === "down" && angle > config.targetAngles.up - 10) {
                 newPhase = "up";
                 feedback = selectedExercise === "jumpingJack" ? "Arms up! Now back down" : "Shoulder height — now lower with control";
@@ -767,6 +832,7 @@ const WorkoutSession = () => {
                 newCount = current.count + 1;
                 feedback = `Rep ${newCount}! Keep going! 🔥`;
                 feedbackType = "good";
+                playRepChime();
             } else if (current.phase === "down") {
                 feedback = selectedExercise === "jumpingJack" ? "Raise arms overhead" : "Raise arms to shoulder height";
                 feedbackType = "info";
@@ -776,32 +842,22 @@ const WorkoutSession = () => {
             }
         } else {
             // Squat, Pushup, Lunge, Shoulder Press, Romanian Deadlift
-            // Low angle = bottom / contracted, high angle = top / extended
-            const depthMessages: Record<string, string> = {
-                squat: "Great depth! Now push up",
-                pushup: "Good depth! Push up strong",
-                lunge: "Deep lunge! Now stand back up",
-                shoulderPress: "Arms overhead! Now lower with control",
-                romanianDeadlift: "Good hip hinge! Drive hips forward to stand",
-            };
-            const driveMessages: Record<string, string> = {
-                squat: "Go lower, aim for 90° at the knee",
-                pushup: "Lower your chest more",
-                lunge: "Lower the back knee toward the floor",
-                shoulderPress: "Lower to 90° at the elbows",
-                romanianDeadlift: "Hinge deeper at the hips",
-            };
-            if (current.phase === "up" && angle < config.targetAngles.down + 10) {
+            // Realistic, forgiving thresholds for mobile training
+            const downThreshold = selectedExercise === "squat" ? 125 : config.targetAngles.down + 12;
+            const upThreshold = selectedExercise === "squat" ? 155 : config.targetAngles.up - 10;
+
+            if (current.phase === "up" && angle < downThreshold) {
                 newPhase = "down";
-                feedback = depthMessages[selectedExercise] ?? "Good depth! Now push up";
+                feedback = selectedExercise === "squat" ? "Good depth! Drive up strong" : "Good depth! Push up";
                 feedbackType = "good";
-            } else if (current.phase === "down" && angle > config.targetAngles.up - 10) {
+            } else if (current.phase === "down" && angle > upThreshold) {
                 newPhase = "up";
                 newCount = current.count + 1;
                 feedback = `Rep ${newCount}! Keep it up! 🔥`;
                 feedbackType = "good";
-            } else if (current.phase === "up" && angle > config.targetAngles.up - 20) {
-                feedback = driveMessages[selectedExercise] ?? "Go deeper";
+                playRepChime();
+            } else if (current.phase === "up" && angle > upThreshold - 15) {
+                feedback = selectedExercise === "squat" ? "Descend into squat" : "Lower with control";
                 feedbackType = "info";
             } else {
                 feedback = "Good form, keep going!";
@@ -1034,19 +1090,19 @@ const WorkoutSession = () => {
                     {/* Camera Feed / 3D Trainer Viewport */}
                     <div ref={cameraRef} className="lg:col-span-2">
                         <div className="relative rounded-2xl overflow-hidden bg-black/90 border border-border aspect-video">
-                            {/* Video (playsInline, active stream source for MoveNet pose canvas) */}
+                            {/* Live Video Feed (Direct hardware-accelerated stream mirrored for natural user perspective) */}
                             <video
                                 ref={videoRef}
                                 playsInline
                                 muted
                                 autoPlay
-                                className="invisible absolute pointer-events-none w-px h-px opacity-0"
+                                className={`w-full h-full object-cover transform -scale-x-100 ${isCameraOn ? "block" : "hidden"}`}
                             />
 
-                            {/* Canvas for skeleton overlay */}
+                            {/* Transparent Canvas Overlay for Real-Time AI Pose Skeleton & Tracking */}
                             <canvas
                                 ref={canvasRef}
-                                className={`w-full h-full object-contain ${isCameraOn ? "block" : "hidden"}`}
+                                className={`absolute inset-0 w-full h-full object-cover pointer-events-none ${isCameraOn ? "block" : "hidden"}`}
                             />
 
                             {/* AI Vision Standby View when camera is off */}
@@ -1205,10 +1261,9 @@ const WorkoutSession = () => {
                                         size="lg"
                                         className="flex-1"
                                         onClick={startCamera}
-                                        disabled={isModelLoading}
                                     >
                                         <Camera className="mr-2 h-5 w-5" />
-                                        {isModelLoading ? "Initializing AI Engine..." : "Start Camera"}
+                                        {isModelLoading ? "Starting Camera (Initializing AI)..." : "Start Camera"}
                                     </Button>
                                     {(sessionStats.duration > 0 || sessionStats.totalReps > 0) && (
                                         <Button
