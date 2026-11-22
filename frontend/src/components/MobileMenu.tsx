@@ -369,7 +369,7 @@ export function MobileMenu({ className, onMenuToggle }: MobileMenuProps) {
 
                   {/* Button 2: Get it on Google Play */}
                   <a
-                    href="https://play.google.com/store/apps"
+                    href="https://play.google.com/store/apps/details?id=com.smartfitai.app"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="w-full h-12 rounded-2xl bg-[#121614] border border-white/10 text-white font-bold text-sm sm:text-base flex items-center justify-center gap-2.5 hover:bg-white/5 shadow-2xs transition-all active:scale-[0.98] cursor-pointer"
