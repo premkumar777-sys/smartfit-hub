@@ -67,6 +67,7 @@ import { PwaMobileWrapper } from "@/components/PwaMobileWrapper";
 import { usePreventZoom } from "@/hooks/usePreventZoom";
 import { useAndroidBackButton } from "@/hooks/useAndroidBackButton";
 import { initLocalNotificationScheduler } from "@/lib/pushNotifications";
+import { NotificationPermissionModal } from "@/components/NotificationPermissionModal";
 
 const queryClient = new QueryClient();
 
@@ -157,6 +158,7 @@ const AppContent = () => {
         <InstallPrompt />
         <ScrollToTop />
         <CookieConsent />
+        <NotificationPermissionModal />
         <ErrorBoundary>
           {!hideChatbot && <FloatingChatbot />}
           {!hideHeader && <Header />}

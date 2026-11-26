@@ -1,0 +1,37 @@
+name: SmartFit AI Daily Push Notifications
+
+on:
+  schedule:
+    # 01:30 UTC = 07:00 AM IST (Morning Motivation & Today's Workout Split)
+    # 07:30 UTC = 01:00 PM IST (Lunch & Meal Tracker Check-in)
+    # 13:00 UTC = 06:30 PM IST (Evening Workout Push & Gym Reminder)
+    # 15:30 UTC = 09:00 PM IST (Night Streak Protection Check-in)
+    - cron: '30 1,7,13,15 * * *'
+  workflow_dispatch: # Allows manual trigger from GitHub Actions UI anytime!
+
+jobs:
+  dispatch-push:
+    name: Dispatch SmartFit Push Notifications
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Send-Push-Notification Edge Function
+        run: |
+          echo "Dispatching SmartFit AI push notifications..."
+          RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" -X POST \
+            "https://qziimtjhbnpwwbjmjlcf.supabase.co/functions/v1/send-push-notification" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6aWltdGpoYm5wd3diam1qbGNmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU1MzM1OTYsImV4cCI6MjA4MTEwOTU5Nn0.XGEUFsYzqNy20f8EJUaoNbrysclCdgoKu4JabZPvnJA' }}" \
+            -d '{"action": "daily_cron"}')
+          
+          BODY=$(echo "$RESPONSE" | sed -e '$d')
+          STATUS=$(echo "$RESPONSE" | tail -n 1 | cut -d: -f2)
+          
+          echo "Status: $STATUS"
+          echo "Response: $BODY"
+          
+          if [ "$STATUS" -ge 200 ] && [ "$STATUS" -lt 300 ]; then
+            echo "Push notifications dispatched successfully!"
+          else
+            echo "Warning: Push dispatcher returned HTTP $STATUS"
+            exit 1
+          fi
