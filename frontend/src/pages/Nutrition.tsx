@@ -200,6 +200,7 @@ export default function Nutrition() {
   const [cameraDevices, setCameraDevices] = useState<MediaDeviceInfo[]>([]);
   const [canSwitchCamera, setCanSwitchCamera] = useState(false);
   const [weightGrams, setWeightGrams] = useState("");
+  const [hasKitchenScale, setHasKitchenScale] = useState(false);
   const [context, setContext] = useState("");
   const [category, setCategory] = useState<MealCategory>(categoryForTime);
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
@@ -402,6 +403,7 @@ export default function Nutrition() {
     setImageError("");
     setCameraError("");
     setWeightGrams("");
+    setHasKitchenScale(false);
     setContext("");
     setCategory(categoryForTime());
     setAnalysis(null);
@@ -559,7 +561,6 @@ export default function Nutrition() {
 
   const analyzeMeal = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const grams = Number(weightGrams);
     if (!userId) {
       toast.error("Sign in to analyze and save a meal.");
       return;
@@ -568,10 +569,13 @@ export default function Nutrition() {
       toast.error("Add a photo of your meal first.");
       return;
     }
-    if (!Number.isFinite(grams) || grams < 1 || grams > 5000) {
-      toast.error("Enter a food-only weight between 1g and 5,000g.");
+
+    const enteredGrams = hasKitchenScale && weightGrams.trim() ? Number(weightGrams) : null;
+    if (enteredGrams !== null && (!Number.isFinite(enteredGrams) || enteredGrams < 1 || enteredGrams > 5000)) {
+      toast.error("Enter a food-only weight between 1g and 5,000g, or switch to Auto-Portion.");
       return;
     }
+
     if (analysisLock.current) return;
 
     analysisLock.current = true;
@@ -588,7 +592,7 @@ export default function Nutrition() {
         body: {
           type: "analyze",
           imagePath: path,
-          totalWeightGrams: grams,
+          totalWeightGrams: enteredGrams, // null invokes auto-portion visual estimation
           context: context.trim(),
           category,
         },
@@ -599,14 +603,18 @@ export default function Nutrition() {
       setAnalysis({
         mealName: data.mealName,
         category,
-        totalWeightGrams: Number(data.totalWeightGrams) || grams,
+        totalWeightGrams: Number(data.totalWeightGrams) || (enteredGrams ?? 0),
         confidence: Number(data.confidence) || 0,
         items: data.items,
         notes: Array.isArray(data.notes) ? data.notes : [],
         imagePath: path,
         submissionId: crypto.randomUUID(),
       });
-      toast.success("Meal analysis is ready to review.");
+      toast.success(
+        enteredGrams
+          ? "Meal analysis calibrated to your scale weight!"
+          : "AI detected foods & estimated portion sizes!"
+      );
     } catch (error) {
       await clearTemporaryImage(path);
       console.error("Meal analysis failed:", error);
@@ -1129,7 +1137,7 @@ export default function Nutrition() {
               <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-[#00e58a]/10 text-[#00e58a]"><ScanLine className="h-5 w-5" /></div>
               <DialogTitle className="text-2xl font-bold">{analysis ? "Review your meal" : "Scan your food"}</DialogTitle>
               <DialogDescription className="text-white/50">
-                {analysis ? "Check the food breakdown and estimates before adding this meal to your day." : "A photo and the food-only weight help us create a better estimate."}
+                {analysis ? "Review your meal breakdown, adjust portions if needed, and log to your day." : "Snap or upload a photo of your meal. SmartFit AI automatically detects foods and portion sizes."}
               </DialogDescription>
             </DialogHeader>
 
@@ -1272,18 +1280,51 @@ export default function Nutrition() {
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <label className="block text-sm font-medium">Total food weight (excluding plate)
-                    <div className="relative mt-2">
-                      <input type="number" min="1" max="5000" step="1" required value={weightGrams} onChange={(event) => setWeightGrams(event.target.value)} placeholder="e.g. 350" className="h-12 w-full rounded-xl border border-white/10 bg-black/30 px-4 pr-12 text-white placeholder:text-white/35" />
-                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-white/40">g</span>
-                    </div>
-                    <span className="mt-2 block text-xs font-normal leading-5 text-white/45">Weigh the food without the plate: weigh the empty plate, then subtract that from the plate-plus-food weight.</span>
-                  </label>
                   <label className="block text-sm font-medium">Meal category
                     <select value={category} onChange={(event) => setCategory(event.target.value as MealCategory)} className="mt-2 h-12 w-full rounded-xl border border-white/10 bg-[#0b0e0c] px-4 text-white">
                       {CATEGORIES.map((item) => <option key={item}>{item}</option>)}
                     </select>
                   </label>
+
+                  {/* AI Auto-Portion vs Kitchen Scale Option */}
+                  <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3.5 flex flex-col justify-between">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="h-4 w-4 text-[#00e58a]" />
+                        <span className="text-xs font-semibold text-white">Portion AI</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setHasKitchenScale(!hasKitchenScale)}
+                        className="text-[11px] font-semibold text-[#00e58a] hover:underline"
+                      >
+                        {hasKitchenScale ? "Use Auto-Portion" : "+ Use Kitchen Scale"}
+                      </button>
+                    </div>
+
+                    {!hasKitchenScale ? (
+                      <p className="mt-2 text-xs leading-relaxed text-white/50">
+                        ⚡ <strong className="text-white/80">Visual Estimation:</strong> AI calculates dish portions &amp; weights automatically from your photo.
+                      </p>
+                    ) : (
+                      <div className="mt-2">
+                        <div className="relative">
+                          <input
+                            type="number"
+                            min="1"
+                            max="5000"
+                            step="1"
+                            value={weightGrams}
+                            onChange={(event) => setWeightGrams(event.target.value)}
+                            placeholder="e.g. 350"
+                            className="h-10 w-full rounded-lg border border-white/10 bg-black/40 px-3 pr-10 text-xs text-white placeholder:text-white/35"
+                          />
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-white/40">g</span>
+                        </div>
+                        <span className="mt-1 block text-[10px] text-white/40">Scale food weight (excluding plate).</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <label className="block text-sm font-medium">Additional context <span className="font-normal text-white/40">(optional)</span>
@@ -1333,14 +1374,47 @@ export default function Nutrition() {
                   </div>
                   <div className="space-y-3">
                     {analysis.items.map((item, index) => (
-                      <div key={`analysis-${index}`} className="grid grid-cols-[minmax(0,1fr)_86px_34px] items-end gap-2 border-t border-white/[0.07] pt-3 first:border-0 first:pt-0">
+                      <div key={`analysis-${index}`} className="grid grid-cols-[minmax(0,1fr)_126px_34px] items-end gap-2 border-t border-white/[0.07] pt-3 first:border-0 first:pt-0">
                         <label className="min-w-0 text-xs text-white/45">Food name
                           <input value={item.name} onChange={(event) => updateAnalysisItem(index, { name: event.target.value })} className="mt-1 h-10 w-full rounded-lg border border-white/10 bg-black/30 px-3 text-sm text-white" />
-                          <span className="mt-1 block truncate text-[11px] text-white/35">{item.source === "user" ? "From your details · " : "Identified in photo · "}{formatNumber(item.calories)} kcal · P {formatNumber(item.protein, 1)}g · C {formatNumber(item.carbs, 1)}g · F {formatNumber(item.fats, 1)}g</span>
+                          <span className="mt-1 block truncate text-[11px] text-white/35">{item.source === "user" ? "From details · " : "AI detected · "}{formatNumber(item.calories)} kcal · P {formatNumber(item.protein, 1)}g · C {formatNumber(item.carbs, 1)}g · F {formatNumber(item.fats, 1)}g</span>
                         </label>
-                        <label className="text-xs text-white/45">Weight (g)
-                          <input type="number" min="1" step="1" value={item.weight_grams} onChange={(event) => updateAnalysisItem(index, { weight_grams: Number(event.target.value) })} className="mt-1 h-10 w-full rounded-lg border border-white/10 bg-black/30 px-2 text-sm text-white" />
-                        </label>
+                        <div className="text-xs text-white/45">
+                          <span className="block text-[11px] mb-1">Portion</span>
+                          <div className="flex h-10 items-center rounded-lg border border-white/10 bg-black/30 px-1">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const step = item.weight_grams > 100 ? 25 : 10;
+                                updateAnalysisItem(index, { weight_grams: Math.max(10, Math.round(item.weight_grams - step)) });
+                              }}
+                              className="flex h-8 w-7 items-center justify-center rounded text-white/60 hover:bg-white/10 hover:text-white active:scale-90"
+                              title="Decrease portion"
+                            >
+                              -
+                            </button>
+                            <input
+                              type="number"
+                              min="1"
+                              step="1"
+                              value={Math.round(item.weight_grams)}
+                              onChange={(event) => updateAnalysisItem(index, { weight_grams: Math.max(1, Number(event.target.value)) })}
+                              className="w-full text-center text-xs font-semibold text-white bg-transparent outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                            />
+                            <span className="text-[10px] text-white/40 pr-0.5">g</span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const step = item.weight_grams > 100 ? 25 : 10;
+                                updateAnalysisItem(index, { weight_grams: Math.round(item.weight_grams + step) });
+                              }}
+                              className="flex h-8 w-7 items-center justify-center rounded text-white/60 hover:bg-white/10 hover:text-white active:scale-90"
+                              title="Increase portion"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
                         <button type="button" onClick={() => removeAnalysisItem(index)} aria-label={`Remove ${item.name}`} className="mb-1 rounded-lg p-2 text-white/40 hover:bg-red-400/10 hover:text-red-300"><Trash2 className="h-4 w-4" /></button>
                         <button type="button" disabled={estimatingItem} onClick={() => void reestimateAnalysisItem(index)} className="col-span-3 justify-self-start text-xs text-[#00e58a] hover:underline disabled:opacity-50">
                           {estimatingItem ? "Updating estimate…" : "Re-estimate nutrition"}

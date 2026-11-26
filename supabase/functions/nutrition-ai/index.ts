@@ -94,34 +94,47 @@ async function callVisionModel(imageUrl: string, prompt: string) {
   const apiKey = Deno.env.get("GROQ_API_KEY")?.trim();
   if (!apiKey) throw new HttpError("Meal analysis is unavailable: the server's GROQ_API_KEY is not configured.", 503);
 
-  const model = Deno.env.get("GROQ_VISION_MODEL")?.trim() || "llama-3.2-11b-vision-preview";
-  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model,
-      temperature: 0.1,
-      max_completion_tokens: 1800,
-      response_format: { type: "json_object" },
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are a cautious food identification and nutrition estimation assistant. Return valid JSON only. Estimates are approximate, never laboratory measurements. Do not claim you used a nutrition database. Do not invent exact amounts of oil, salt, sugar, or hidden ingredients. Distinguish visible foods from details provided by the user. If the photo is unclear or does not show food, return status='unclear', an empty items array, and concise clarification notes.",
-        },
-        {
-          role: "user",
-          content: [
-            { type: "text", text: prompt },
-            { type: "image_url", image_url: { url: imageUrl } },
-          ],
-        },
-      ],
-    }),
-  });
+  const primaryModel = Deno.env.get("GROQ_VISION_MODEL")?.trim() || "llama-3.2-11b-vision-preview";
+  const fallbackModel = primaryModel === "llama-3.2-11b-vision-preview" ? "llama-3.2-90b-vision-preview" : "llama-3.2-11b-vision-preview";
+
+  const tryRequest = async (modelName: string) => {
+    return await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: modelName,
+        temperature: 0.1,
+        max_completion_tokens: 2000,
+        response_format: { type: "json_object" },
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are an expert sports nutritionist and precision culinary vision AI. Return valid JSON only. Accurately identify foods, preparation methods, cooking styles (fried, grilled, boiled, curry with oil), and realistic portion sizes. You possess deep culinary expertise across Indian/South Asian dishes (rotis, chapati, naan, paratha, dal varieties, biryani, paneer, dosa, idli, sambar, poha, upma, curries) as well as global fitness staples (chicken breast, eggs, brown/white rice, oatmeal, whey protein, peanut butter, salads, avocado, salmon, beef). Deconstruct mixed meals into discrete food items with realistic weights in grams and accurate macros. If the photo is unclear or does not show food, return status='unclear', an empty items array, and concise clarification notes.",
+          },
+          {
+            role: "user",
+            content: [
+              { type: "text", text: prompt },
+              { type: "image_url", image_url: { url: imageUrl } },
+            ],
+          },
+        ],
+      }),
+    });
+  };
+
+  let response = await tryRequest(primaryModel);
+  if (!response.ok && (response.status === 404 || response.status === 400 || response.status === 429 || response.status === 503)) {
+    console.warn(`Vision model ${primaryModel} returned HTTP ${response.status}, attempting fallback to ${fallbackModel}...`);
+    try {
+      const fallbackRes = await tryRequest(fallbackModel);
+      if (fallbackRes.ok) response = fallbackRes;
+    } catch (_) {}
+  }
 
   if (!response.ok) {
     console.error("Groq vision request failed:", response.status, (await response.text()).slice(0, 1000));
@@ -262,27 +275,40 @@ serve(async (req) => {
 
     if (body.type !== "analyze") return respond({ error: "Unsupported nutrition analysis request." }, 400);
     const requestedGrams = finiteNumber(body.totalWeightGrams);
+    const hasUserWeight = requestedGrams !== null && requestedGrams >= 1 && requestedGrams <= 5000;
+    const grams = hasUserWeight ? Math.round(requestedGrams) : null;
+
     if (body.context !== undefined && typeof body.context !== "string") {
       return respond({ error: "Meal context must be text." }, 400);
     }
     const context = typeof body.context === "string" ? body.context.trim() : "";
     const category = body.category;
-    if (requestedGrams === null || requestedGrams < 1 || requestedGrams > 5000) {
-      return respond({ error: "Enter a food-only weight between 1g and 5,000g." }, 400);
-    }
     if (context.length > 1000) return respond({ error: "Meal context must be 1,000 characters or fewer." }, 400);
     if (typeof category !== "string" || !categories.has(category)) {
       return respond({ error: "Choose Breakfast, Lunch, Snacks, or Dinner." }, 400);
     }
-    const grams = Math.round(requestedGrams);
+
     const imageUrl = await getImageDataUrl(client, user.id, body.imagePath);
 
-    const result = await callVisionModel(
-      imageUrl,
-      `Analyze this meal photo for meal category ${category}. The user weighed exactly ${grams}g of food, excluding the plate; treat this as the total edible portion, not a per-item weight. ${context ? `Additional user-provided context (treat as user-provided, not image-detected): ${context}` : "No additional ingredient context was supplied."}
+    const promptText = hasUserWeight
+      ? `Analyze this meal photo for meal category ${category}. The user weighed exactly ${grams}g of edible food (excluding plate). ${context ? `User context: ${context}` : ""}
 
-Identify visible food items and likely ingredients, including regional/Indian foods when present. Return JSON only with this shape: {"status":"ok","mealName":"short name","confidence":0.0,"items":[{"name":"food name","weightGrams":0,"source":"image","calories":0,"protein":0,"carbs":0,"fats":0,"fiber":null,"sugar":null,"sodiumMg":null}],"notes":["short uncertainty or ingredient observation"]}. Use 0-1 for confidence. Mark source="image" for items identified from the photo and source="user" only for foods/ingredients explicitly stated in the user's context. Estimate the weights of all items together so their sum is exactly ${grams}g; do not exceed the total. Estimate calories, protein, carbohydrates, and fats for each item using general food-composition knowledge, without claiming database precision. Do not invent exact oil, salt, or sugar quantities; use null for fiber/sugar/sodium if there is not enough information. Separate items when distinguishable. Use concise notes. If the image is unclear or not food, use status='unclear', empty items, and ask for a clearer photo or clarification.`,
-    );
+Identify visible food items, preparation style, and ingredients with precision, including Indian regional dishes (dal, roti, chapati, rice, sabzi, paneer, dosa, idli, biryani) and global fitness nutrition. Return valid JSON only: {"status":"ok","mealName":"short descriptive name","confidence":0.0,"items":[{"name":"food name","weightGrams":0,"source":"image","calories":0,"protein":0,"carbs":0,"fats":0,"fiber":null,"sugar":null,"sodiumMg":null}],"notes":["short actionable fitness or nutritional tip"]}. Distribute the food items so their total weights approximately sum to ${grams}g. Mark source="image" for foods in photo, source="user" only for foods specified exclusively in user context. Provide 1-2 concise fitness or nutritional observations in notes. If photo is unclear or not food, return status='unclear', empty items.`
+      : `Analyze this meal photo for meal category ${category}. The user did NOT use a kitchen scale. You must VISUALLY ESTIMATE the portion size and weight (in grams) for each item on the plate based on standard visual references:
+- 1 standard roti / chapati: ~35-40g (100-120 kcal, 3g P, 20g C, 2g F)
+- 1 medium katori / bowl of dal or curry: ~150g (120-180 kcal)
+- 1 cup cooked white or brown rice: ~150-180g (190-230 kcal, 4g P, 45g C)
+- 1 medium chicken breast (cooked): ~150g (240 kcal, 45g P, 4g F)
+- 1 whole egg: ~50g (75 kcal, 6g P, 5g F), 1 egg white: ~33g
+- 1 medium dosa: ~100-120g (160-200 kcal), 2 idlis: ~100g total
+- 1 serving paneer dish / bhurji: ~120-150g
+- 1 plate biryani / fried rice: ~300-350g (450-600 kcal)
+- Salads / raw veggies: ~80-120g per bowl
+${context ? `Additional user-provided context: ${context}` : ""}
+
+Accurately identify each food item, estimate its realistic weight in grams, and compute calories, protein, carbs, fats, fiber, and sodium. Return valid JSON only: {"status":"ok","mealName":"short descriptive name","confidence":0.0,"items":[{"name":"food name","weightGrams":0,"source":"image","calories":0,"protein":0,"carbs":0,"fats":0,"fiber":null,"sugar":null,"sodiumMg":null}],"notes":["short actionable fitness or nutritional tip"]}. Use 0-1 for confidence. Provide 1-2 concise fitness or nutritional observations in notes. If the photo is unclear or does not show food, return status='unclear', empty items, and ask for a clearer photo.`;
+
+    const result = await callVisionModel(imageUrl, promptText);
 
     if (result.status === "unclear") {
       return respond(
@@ -299,33 +325,38 @@ Identify visible food items and likely ingredients, including regional/Indian fo
       return respond({ error: "The vision service returned an invalid food estimate. Please try another photo." }, 502);
     }
     const items = rawItems as FoodItem[];
-    if (items.length > grams) {
-      return respond({ error: "The image produced too many small food items to estimate reliably. Please add more meal details." }, 422);
-    }
     const rawTotalWeight = items.reduce((total, item) => total + item.weight_grams, 0);
     if (rawTotalWeight <= 0) return respond({ error: "The meal weight could not be estimated. Please try again." }, 502);
 
-    if (Math.abs(rawTotalWeight - grams) / grams > 0.35) {
-      return respond({ error: "The detected portions don't match the food weight closely enough. Please check the weight or add ingredient details and try again." }, 422);
+    let normalizedItems: FoodItem[];
+    let finalTotalWeight: number;
+
+    if (hasUserWeight && grams !== null) {
+      // User entered exact kitchen scale weight: scale items to match total smoothly
+      finalTotalWeight = grams;
+      const factor = grams / rawTotalWeight;
+      let remainingWeight = grams;
+      normalizedItems = items.map((item, index) => {
+        const minimumForRemainingItems = items.length - index - 1;
+        const itemWeight = index === items.length - 1
+          ? remainingWeight
+          : Math.min(
+              Math.max(1, Math.round(item.weight_grams * factor)),
+              remainingWeight - minimumForRemainingItems,
+            );
+        remainingWeight -= itemWeight;
+        return totalFoodItem(item, factor, itemWeight);
+      });
+    } else {
+      // Auto-portion estimation from visual model
+      finalTotalWeight = Math.round(rawTotalWeight);
+      normalizedItems = items;
     }
 
-    const factor = grams / rawTotalWeight;
-    let remainingWeight = grams;
-    const normalizedItems = items.map((item, index) => {
-      const minimumForRemainingItems = items.length - index - 1;
-      const itemWeight = index === items.length - 1
-        ? remainingWeight
-        : Math.min(
-            Math.max(1, Math.round(item.weight_grams * factor)),
-            remainingWeight - minimumForRemainingItems,
-          );
-      remainingWeight -= itemWeight;
-      return totalFoodItem(item, factor, itemWeight);
-    });
     const summary = makeSummary(normalizedItems);
     const confidenceValue = finiteNumber(result.confidence);
     const confidence = confidenceValue === null
-      ? 0.5
+      ? 0.75
       : Math.max(0, Math.min(1, confidenceValue > 1 ? confidenceValue / 100 : confidenceValue));
     const mealName =
       typeof result.mealName === "string" && result.mealName.trim().length > 0
@@ -335,7 +366,7 @@ Identify visible food items and likely ingredients, including regional/Indian fo
     return respond({
       mealName,
       category,
-      totalWeightGrams: grams,
+      totalWeightGrams: finalTotalWeight,
       confidence,
       items: normalizedItems,
       notes: normalizeNotes(result.notes),
