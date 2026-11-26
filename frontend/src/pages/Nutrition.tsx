@@ -618,8 +618,9 @@ export default function Nutrition() {
     } catch (error) {
       await clearTemporaryImage(path);
       console.error("Meal analysis failed:", error);
-      toast.error("Couldn't analyze this meal", {
-        description: error instanceof Error ? error.message : "Please try again with a clearer photo.",
+      const msg = error instanceof Error ? error.message : "Please try again with a clearer photo.";
+      toast.error("Food Scanner", {
+        description: msg,
       });
     } finally {
       analysisLock.current = false;

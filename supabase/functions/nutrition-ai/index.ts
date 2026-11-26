@@ -113,7 +113,7 @@ async function callVisionModel(imageUrl: string, prompt: string) {
           {
             role: "system",
             content:
-              "You are an expert sports nutritionist and precision culinary vision AI. Return valid JSON only. Accurately identify foods, preparation methods, cooking styles (fried, grilled, boiled, curry with oil), and realistic portion sizes. You possess deep culinary expertise across Indian/South Asian dishes (rotis, chapati, naan, paratha, dal varieties, biryani, paneer, dosa, idli, sambar, poha, upma, curries) as well as global fitness staples (chicken breast, eggs, brown/white rice, oatmeal, whey protein, peanut butter, salads, avocado, salmon, beef). Deconstruct mixed meals into discrete food items with realistic weights in grams and accurate macros. If the photo is unclear or does not show food, return status='unclear', an empty items array, and concise clarification notes.",
+              "You are an expert sports nutritionist and precision culinary vision AI. Return valid JSON only. Accurately identify foods, preparation methods, cooking styles (fried, grilled, boiled, curry with oil), and realistic portion sizes. You possess deep culinary expertise across Indian/South Asian dishes (rotis, chapati, naan, paratha, dal varieties, biryani, paneer, dosa, idli, sambar, poha, upma, curries) as well as global fitness staples (chicken breast, eggs, brown/white rice, oatmeal, whey protein, peanut butter, salads, avocado, salmon, beef). Deconstruct mixed meals into discrete food items with realistic weights in grams and accurate macros.\n\nCRITICAL NON-FOOD / INEDIBLE GUARDRAIL:\nFirst, strictly verify if the photo shows edible food or beverages prepared for human consumption. If the image depicts non-food objects (e.g. plastic, packaging with no visible food, wood, furniture, tree leaves / house plants / foliage not prepared as food, metal, paper, toys, shoes, electronics, pets/animals, empty plates/tables, or people without food), you MUST return:\n{\"status\":\"not_food\",\"reason\":\"[Specific friendly explanation: e.g. '🚫 That looks like plastic or packaging rather than edible food. Please snap a picture of your actual meal!' or '🌿 We detected tree leaves or foliage! Unless this is leafy greens or salad, please scan edible food.' or '🪵 That looks like wood or an everyday object. SmartFit AI only calculates macros for edible food and drinks.']\",\"items\":[],\"notes\":[]}.\nIf the photo is too dark or blurry to identify anything, return status='unclear' with a request for a clearer photo.",
           },
           {
             role: "user",
@@ -310,14 +310,22 @@ Accurately identify each food item, estimate its realistic weight in grams, and 
 
     const result = await callVisionModel(imageUrl, promptText);
 
+    if (result.status === "not_food") {
+      const reason =
+        typeof result.reason === "string" && result.reason.trim()
+          ? result.reason.trim()
+          : normalizeNotes(result.notes)[0] || "No edible food or drink was detected in this photo. Please snap a picture of your meal!";
+      return respond({ error: reason }, 422);
+    }
+
     if (result.status === "unclear") {
       return respond(
-        { error: normalizeNotes(result.notes)[0] || "We couldn't identify the food clearly. Try another photo or add more context." },
+        { error: normalizeNotes(result.notes)[0] || "We couldn't identify the food clearly. Please take a clearer photo with good lighting." },
         422,
       );
     }
     if (result.status !== "ok" || !Array.isArray(result.items) || result.items.length === 0 || result.items.length > 20) {
-      return respond({ error: "The vision service couldn't produce a usable food breakdown. Please try again." }, 502);
+      return respond({ error: "No food items were recognized in this photo. Please scan an edible meal or beverage." }, 422);
     }
 
     const rawItems = result.items.map((item) => makeFoodItem(item, "image"));
