@@ -250,6 +250,11 @@ const WorkoutSession = () => {
     const streamRef = useRef<MediaStream | null>(null);
     const repStateRef = useRef(repState);
     const isCameraOnRef = useRef(false);
+    const selectedExerciseRef = useRef(selectedExercise);
+
+    useEffect(() => {
+        selectedExerciseRef.current = selectedExercise;
+    }, [selectedExercise]);
 
     // Audio chime on successful rep completion
     const playRepChime = useCallback(() => {
@@ -308,175 +313,7 @@ const WorkoutSession = () => {
         }
     }, []);
 
-    // Preload AI Pose Model on mount so it is instantly ready
-    useEffect(() => {
-        loadModel();
-    }, [loadModel]);
 
-    // ─── Camera Start ───────────────────────────────────
-    const startCamera = useCallback(async () => {
-        setCameraError(null);
-
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            const msg = "Camera access is not supported by your browser environment.";
-            setCameraError(msg);
-            toast.error(msg);
-            return;
-        }
-
-        try {
-            // Flexible constraints designed for mobile front cameras in portrait or landscape
-            let stream: MediaStream;
-            try {
-                stream = await navigator.mediaDevices.getUserMedia({
-                    video: {
-                        facingMode: "user",
-                        width: { ideal: 1280, max: 1920 },
-                        height: { ideal: 720, max: 1080 }
-                    },
-                    audio: false
-                });
-            } catch (constraintErr) {
-                console.warn("Retrying with generic camera constraints:", constraintErr);
-                stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: "user" },
-                    audio: false
-                });
-            }
-
-            streamRef.current = stream;
-            if (videoRef.current) {
-                videoRef.current.srcObject = stream;
-
-                // Wait for video stream metadata to populate dimensions on mobile
-                await new Promise<void>((resolve) => {
-                    if (!videoRef.current) return resolve();
-                    if (videoRef.current.readyState >= 2) {
-                        resolve();
-                    } else {
-                        videoRef.current.onloadedmetadata = () => resolve();
-                        setTimeout(resolve, 800);
-                    }
-                });
-
-                try {
-                    await videoRef.current.play();
-                } catch (playErr) {
-                    console.warn("Video play warning (auto-resumed):", playErr);
-                }
-            }
-
-            isCameraOnRef.current = true;
-            setIsCameraOn(true);
-
-            // Ensure model is ready
-            let detector = detectorRef.current;
-            if (!detector) {
-                detector = await loadModel();
-            }
-
-            setSessionActive(true);
-            setSessionStartTime(Date.now());
-            setRepState({
-                count: 0,
-                phase: "up",
-                angle: 0,
-                feedback: "Camera active! Position yourself in frame.",
-                feedbackType: "info",
-            });
-
-            // Start detection loop
-            detectPose();
-        } catch (err: unknown) {
-            console.error("Camera error:", err);
-            const msg =
-                err instanceof Error && (err.name === "NotAllowedError" || err.name === "PermissionDeniedError")
-                    ? "Camera permission denied. Please allow camera access in your phone/browser settings."
-                    : "Could not access camera. Please make sure camera permissions are enabled.";
-            setCameraError(msg);
-            toast.error(msg);
-        }
-    }, [loadModel, detectPose]);
-
-    // ─── Camera Stop ────────────────────────────────────
-    const stopCamera = useCallback(() => {
-        isCameraOnRef.current = false;
-        if (animFrameRef.current) {
-            cancelAnimationFrame(animFrameRef.current);
-            animFrameRef.current = null;
-        }
-        if (streamRef.current) {
-            streamRef.current.getTracks().forEach((t) => t.stop());
-            streamRef.current = null;
-        }
-        if (videoRef.current) {
-            videoRef.current.srcObject = null;
-        }
-        setIsCameraOn(false);
-        setSessionActive(false);
-    }, []);
-
-    // Cleanup on unmount
-    useEffect(() => {
-        return () => {
-            stopCamera();
-            if (detectorRef.current) {
-                detectorRef.current.dispose();
-            }
-        };
-    }, [stopCamera]);
-
-    // ─── Pose Detection Loop ───────────────────────────
-    const detectPose = useCallback(async () => {
-        if (!isCameraOnRef.current) return;
-
-        const video = videoRef.current;
-        const canvas = canvasRef.current;
-
-        if (!video || !canvas || video.readyState < 2) {
-            animFrameRef.current = requestAnimationFrame(detectPose);
-            return;
-        }
-
-        const ctx = canvas.getContext("2d");
-        if (!ctx) {
-            animFrameRef.current = requestAnimationFrame(detectPose);
-            return;
-        }
-
-        // Sync overlay canvas dimensions with intrinsic video stream
-        if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
-            canvas.width = video.videoWidth || 640;
-            canvas.height = video.videoHeight || 480;
-        }
-
-        // Clear previous frame's overlay
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        const detector = detectorRef.current;
-        if (detector) {
-            try {
-                const poses = await detector.estimatePoses(video);
-                if (poses.length > 0 && poses[0].keypoints) {
-                    const keypoints = poses[0].keypoints;
-                    const bodyInFrame = drawSkeleton(ctx, keypoints, canvas.width, canvas.height);
-                    if (bodyInFrame) {
-                        processExercise(keypoints, canvas.width);
-                    }
-                } else {
-                    setRepState((prev) => ({
-                        ...prev,
-                        feedback: "Step into camera view",
-                        feedbackType: "info",
-                    }));
-                }
-            } catch (err) {
-                // Silently skip transient detection frame error
-            }
-        }
-
-        animFrameRef.current = requestAnimationFrame(detectPose);
-    }, []);
 
     // ─── Skeleton & Landmark Drawing ──────────────────────
     const drawSkeleton = (
@@ -718,9 +555,10 @@ const WorkoutSession = () => {
         keypoints: poseDetection.Keypoint[],
         canvasWidth: number
     ) => {
-        if (!selectedExercise) return;
+        const currentExercise = selectedExerciseRef.current || selectedExercise;
+        if (!currentExercise) return;
 
-        const config = EXERCISES.find((e) => e.id === selectedExercise);
+        const config = EXERCISES.find((e) => e.id === currentExercise);
         if (!config) return;
 
         const getKp = (name: string) => {
@@ -736,7 +574,7 @@ const WorkoutSession = () => {
         let b: { x: number; y: number } | null = null;
         let c: { x: number; y: number } | null = null;
 
-        if (selectedExercise === "squat" || selectedExercise === "lunge" || selectedExercise === "romanianDeadlift") {
+        if (currentExercise === "squat" || currentExercise === "lunge" || currentExercise === "romanianDeadlift") {
             const lHip = getKp("left_hip");
             const lKnee = getKp("left_knee");
             const lAnkle = getKp("left_ankle");
@@ -757,7 +595,7 @@ const WorkoutSession = () => {
                 b = lKnee;
                 c = lAnkle || { x: lKnee.x, y: lKnee.y + 120 };
             }
-        } else if (selectedExercise === "bicepCurl" || selectedExercise === "pushup" || selectedExercise === "shoulderPress" || selectedExercise === "tricepExtension") {
+        } else if (currentExercise === "bicepCurl" || currentExercise === "pushup" || currentExercise === "shoulderPress" || currentExercise === "tricepExtension") {
             const lSho = getKp("left_shoulder");
             const lElb = getKp("left_elbow");
             const lWri = getKp("left_wrist");
@@ -802,12 +640,12 @@ const WorkoutSession = () => {
         let feedback = "";
         let feedbackType: RepState["feedbackType"] = "info";
 
-        if (selectedExercise === "bicepCurl" || selectedExercise === "tricepExtension") {
-            const extendedThreshold = selectedExercise === "tricepExtension" ? 145 : 140;
-            const contractedThreshold = selectedExercise === "tricepExtension" ? 65 : 60;
+        if (currentExercise === "bicepCurl" || currentExercise === "tricepExtension") {
+            const extendedThreshold = currentExercise === "tricepExtension" ? 145 : 140;
+            const contractedThreshold = currentExercise === "tricepExtension" ? 65 : 60;
             if (current.phase === "up" && angle > extendedThreshold) {
                 newPhase = "down";
-                feedback = selectedExercise === "tricepExtension" ? "Good! Now extend fully" : "Good extension! Now curl up";
+                feedback = currentExercise === "tricepExtension" ? "Good! Now extend fully" : "Good extension! Now curl up";
                 feedbackType = "good";
             } else if (current.phase === "down" && angle < contractedThreshold) {
                 newPhase = "up";
@@ -816,16 +654,16 @@ const WorkoutSession = () => {
                 feedbackType = "good";
                 playRepChime();
             } else if (current.phase === "down") {
-                feedback = selectedExercise === "tricepExtension" ? "Extend arms fully overhead" : "Keep curling, squeeze at top";
+                feedback = currentExercise === "tricepExtension" ? "Extend arms fully overhead" : "Keep curling, squeeze at top";
                 feedbackType = "info";
             } else {
-                feedback = selectedExercise === "tricepExtension" ? "Lower weight behind head" : "Extend arm fully";
+                feedback = currentExercise === "tricepExtension" ? "Lower weight behind head" : "Extend arm fully";
                 feedbackType = "info";
             }
-        } else if (selectedExercise === "lateralRaise" || selectedExercise === "jumpingJack") {
+        } else if (currentExercise === "lateralRaise" || currentExercise === "jumpingJack") {
             if (current.phase === "down" && angle > config.targetAngles.up - 10) {
                 newPhase = "up";
-                feedback = selectedExercise === "jumpingJack" ? "Arms up! Now back down" : "Shoulder height — now lower with control";
+                feedback = currentExercise === "jumpingJack" ? "Arms up! Now back down" : "Shoulder height — now lower with control";
                 feedbackType = "good";
             } else if (current.phase === "up" && angle < config.targetAngles.down + 10) {
                 newPhase = "down";
@@ -834,7 +672,7 @@ const WorkoutSession = () => {
                 feedbackType = "good";
                 playRepChime();
             } else if (current.phase === "down") {
-                feedback = selectedExercise === "jumpingJack" ? "Raise arms overhead" : "Raise arms to shoulder height";
+                feedback = currentExercise === "jumpingJack" ? "Raise arms overhead" : "Raise arms to shoulder height";
                 feedbackType = "info";
             } else {
                 feedback = "Lower arms back down";
@@ -843,12 +681,12 @@ const WorkoutSession = () => {
         } else {
             // Squat, Pushup, Lunge, Shoulder Press, Romanian Deadlift
             // Realistic, forgiving thresholds for mobile training
-            const downThreshold = selectedExercise === "squat" ? 125 : config.targetAngles.down + 12;
-            const upThreshold = selectedExercise === "squat" ? 155 : config.targetAngles.up - 10;
+            const downThreshold = currentExercise === "squat" ? 125 : config.targetAngles.down + 12;
+            const upThreshold = currentExercise === "squat" ? 155 : config.targetAngles.up - 10;
 
             if (current.phase === "up" && angle < downThreshold) {
                 newPhase = "down";
-                feedback = selectedExercise === "squat" ? "Good depth! Drive up strong" : "Good depth! Push up";
+                feedback = currentExercise === "squat" ? "Good depth! Drive up strong" : "Good depth! Push up";
                 feedbackType = "good";
             } else if (current.phase === "down" && angle > upThreshold) {
                 newPhase = "up";
@@ -857,7 +695,7 @@ const WorkoutSession = () => {
                 feedbackType = "good";
                 playRepChime();
             } else if (current.phase === "up" && angle > upThreshold - 15) {
-                feedback = selectedExercise === "squat" ? "Descend into squat" : "Lower with control";
+                feedback = currentExercise === "squat" ? "Descend into squat" : "Lower with control";
                 feedbackType = "info";
             } else {
                 feedback = "Good form, keep going!";
@@ -881,6 +719,178 @@ const WorkoutSession = () => {
             }));
         }
     };
+
+    // ─── Pose Detection Loop ───────────────────────────
+    const detectPose = useCallback(async () => {
+        if (!isCameraOnRef.current) return;
+
+        const video = videoRef.current;
+        const canvas = canvasRef.current;
+
+        if (!video || !canvas || video.readyState < 2) {
+            animFrameRef.current = requestAnimationFrame(detectPose);
+            return;
+        }
+
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+            animFrameRef.current = requestAnimationFrame(detectPose);
+            return;
+        }
+
+        // Sync overlay canvas dimensions with intrinsic video stream
+        if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
+            canvas.width = video.videoWidth || 640;
+            canvas.height = video.videoHeight || 480;
+        }
+
+        // Clear previous frame's overlay
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        const detector = detectorRef.current;
+        if (detector) {
+            try {
+                const poses = await detector.estimatePoses(video);
+                if (poses.length > 0 && poses[0].keypoints) {
+                    const keypoints = poses[0].keypoints;
+                    const bodyInFrame = drawSkeleton(ctx, keypoints, canvas.width, canvas.height);
+                    if (bodyInFrame) {
+                        processExercise(keypoints, canvas.width);
+                    }
+                } else {
+                    setRepState((prev) => ({
+                        ...prev,
+                        feedback: "Step into camera view",
+                        feedbackType: "info",
+                    }));
+                }
+            } catch (err) {
+                // Silently skip transient detection frame error
+            }
+        }
+
+        animFrameRef.current = requestAnimationFrame(detectPose);
+    }, []);
+
+    // ─── Camera Stop ────────────────────────────────────
+    const stopCamera = useCallback(() => {
+        isCameraOnRef.current = false;
+        if (animFrameRef.current) {
+            cancelAnimationFrame(animFrameRef.current);
+            animFrameRef.current = null;
+        }
+        if (streamRef.current) {
+            streamRef.current.getTracks().forEach((t) => t.stop());
+            streamRef.current = null;
+        }
+        if (videoRef.current) {
+            videoRef.current.srcObject = null;
+        }
+        setIsCameraOn(false);
+        setSessionActive(false);
+    }, []);
+
+    // ─── Camera Start ───────────────────────────────────
+    const startCamera = useCallback(async () => {
+        setCameraError(null);
+
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            const msg = "Camera access is not supported by your browser environment.";
+            setCameraError(msg);
+            toast.error(msg);
+            return;
+        }
+
+        try {
+            // Flexible constraints designed for mobile front cameras in portrait or landscape
+            let stream: MediaStream;
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: "user",
+                        width: { ideal: 1280, max: 1920 },
+                        height: { ideal: 720, max: 1080 }
+                    },
+                    audio: false
+                });
+            } catch (constraintErr) {
+                console.warn("Retrying with generic camera constraints:", constraintErr);
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: "user" },
+                    audio: false
+                });
+            }
+
+            streamRef.current = stream;
+            if (videoRef.current) {
+                videoRef.current.srcObject = stream;
+
+                // Wait for video stream metadata to populate dimensions on mobile
+                await new Promise<void>((resolve) => {
+                    if (!videoRef.current) return resolve();
+                    if (videoRef.current.readyState >= 2) {
+                        resolve();
+                    } else {
+                        videoRef.current.onloadedmetadata = () => resolve();
+                        setTimeout(resolve, 800);
+                    }
+                });
+
+                try {
+                    await videoRef.current.play();
+                } catch (playErr) {
+                    console.warn("Video play warning (auto-resumed):", playErr);
+                }
+            }
+
+            isCameraOnRef.current = true;
+            setIsCameraOn(true);
+
+            // Ensure model is ready
+            let detector = detectorRef.current;
+            if (!detector) {
+                detector = await loadModel();
+            }
+
+            setSessionActive(true);
+            setSessionStartTime(Date.now());
+            setRepState({
+                count: 0,
+                phase: "up",
+                angle: 0,
+                feedback: "Camera active! Position yourself in frame.",
+                feedbackType: "info",
+            });
+
+            // Start detection loop
+            detectPose();
+        } catch (err: unknown) {
+            console.error("Camera error:", err);
+            const msg =
+                err instanceof Error && (err.name === "NotAllowedError" || err.name === "PermissionDeniedError")
+                    ? "Camera permission denied. Please allow camera access in your phone/browser settings."
+                    : "Could not access camera. Please make sure camera permissions are enabled.";
+            setCameraError(msg);
+            toast.error(msg);
+        }
+    }, [loadModel, detectPose]);
+
+    // Preload AI Pose Model on mount so it is instantly ready
+    useEffect(() => {
+        loadModel();
+    }, [loadModel]);
+
+    // Cleanup on unmount
+    useEffect(() => {
+        return () => {
+            stopCamera();
+            if (detectorRef.current) {
+                try {
+                    detectorRef.current.dispose();
+                } catch (_) {}
+            }
+        };
+    }, [stopCamera]);
 
     // ─── Reset Session ──────────────────────────────────
     const resetSession = () => {

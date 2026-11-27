@@ -15,13 +15,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Trigger Send-Push-Notification Edge Function
+        env:
+          SUPABASE_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          DEFAULT_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6aWltdGpoYm5wd3diam1qbGNmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU1MzM1OTYsImV4cCI6MjA4MTEwOTU5Nn0.XGEUFsYzqNy20f8EJUaoNbrysclCdgoKu4JabZPvnJA"
         run: |
+          KEY="${SUPABASE_KEY:-$DEFAULT_KEY}"
           echo "Dispatching SmartFit AI push notifications..."
           RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" -X POST \
             "https://qziimtjhbnpwwbjmjlcf.supabase.co/functions/v1/send-push-notification" \
             -H "Content-Type: application/json" \
-            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6aWltdGpoYm5wd3diam1qbGNmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU1MzM1OTYsImV4cCI6MjA4MTEwOTU5Nn0.XGEUFsYzqNy20f8EJUaoNbrysclCdgoKu4JabZPvnJA' }}" \
-            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6aWltdGpoYm5wd3diam1qbGNmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU1MzM1OTYsImV4cCI6MjA4MTEwOTU5Nn0.XGEUFsYzqNy20f8EJUaoNbrysclCdgoKu4JabZPvnJA' }}" \
+            -H "apikey: $KEY" \
+            -H "Authorization: Bearer $KEY" \
             -d '{"action": "daily_cron"}')
           
           BODY=$(echo "$RESPONSE" | sed -e '$d')
@@ -30,10 +34,15 @@ jobs:
           echo "Status: $STATUS"
           echo "Response: $BODY"
           
-          if [ "$STATUS" -ge 200 ] && [ "$STATUS" -lt 300 ]; then
-            echo "Push notifications dispatched successfully!"
-          elif [ "$STATUS" -eq 404 ]; then
-            echo "Notice: send-push-notification function is not yet active/deployed on Supabase (HTTP 404). Please deploy the function in Supabase Dashboard to begin sending live pushes."
-          else
-            echo "Notice: Push dispatcher returned HTTP $STATUS"
-          fi
+          case "$STATUS" in
+            2*)
+              echo "Push notifications dispatched successfully!"
+              ;;
+            404)
+              echo "Notice: send-push-notification function is not yet active/deployed on Supabase (HTTP 404)."
+              ;;
+            *)
+              echo "Notice: Push dispatcher returned HTTP $STATUS"
+              ;;
+          esac
+          exit 0
