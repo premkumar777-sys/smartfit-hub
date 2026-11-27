@@ -52,8 +52,10 @@ interface RepState {
     count: number;
     phase: "up" | "down";
     angle: number;
+    depthProgress: number;
     feedback: string;
     feedbackType: "good" | "warning" | "info";
+    bodyInFrame: boolean;
 }
 
 // ─── Exercise Configs ──────────────────────────────────
@@ -220,14 +222,18 @@ const WorkoutSession = () => {
     // State
     const [selectedExercise, setSelectedExercise] = useState<Exercise>("squat");
     const [isCameraOn, setIsCameraOn] = useState(false);
+    const [facingMode, setFacingMode] = useState<"user" | "environment">("user");
+    const [isSoundMuted, setIsSoundMuted] = useState(false);
     const [isModelLoading, setIsModelLoading] = useState(false);
     const [cameraError, setCameraError] = useState<string | null>(null);
     const [repState, setRepState] = useState<RepState>({
         count: 0,
         phase: "up",
         angle: 0,
+        depthProgress: 0,
         feedback: "Select an exercise and start the camera",
         feedbackType: "info",
+        bodyInFrame: true,
     });
     const [sessionStats, setSessionStats] = useState({
         totalReps: 0,
@@ -251,30 +257,51 @@ const WorkoutSession = () => {
     const repStateRef = useRef(repState);
     const isCameraOnRef = useRef(false);
     const selectedExerciseRef = useRef(selectedExercise);
+    const smoothedAngleRef = useRef<number>(0);
+    const lastRepTimeRef = useRef<number>(0);
 
     useEffect(() => {
         selectedExerciseRef.current = selectedExercise;
     }, [selectedExercise]);
 
-    // Audio chime on successful rep completion
+    // High-definition audio chime & mobile haptic pulse on successful rep completion
     const playRepChime = useCallback(() => {
+        if (isSoundMuted) return;
         try {
+            if (typeof navigator !== "undefined" && navigator.vibrate) {
+                navigator.vibrate([40, 30, 80]);
+            }
             const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
             if (!AudioCtx) return;
             const ctx = new AudioCtx();
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            osc.type = "sine";
-            osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
-            osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.12); // A5
-            gain.gain.setValueAtTime(0.25, ctx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.18);
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-            osc.start();
-            osc.stop(ctx.currentTime + 0.18);
+            
+            // Primary tone (Crisp modern fitness tracker chime)
+            const osc1 = ctx.createOscillator();
+            const gain1 = ctx.createGain();
+            osc1.type = "sine";
+            osc1.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
+            osc1.frequency.exponentialRampToValueAtTime(1174.66, ctx.currentTime + 0.14); // D6
+            gain1.gain.setValueAtTime(0.3, ctx.currentTime);
+            gain1.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.20);
+            osc1.connect(gain1);
+            gain1.connect(ctx.destination);
+            osc1.start();
+            osc1.stop(ctx.currentTime + 0.20);
+
+            // Shimmer harmonic sparkle
+            const osc2 = ctx.createOscillator();
+            const gain2 = ctx.createGain();
+            osc2.type = "triangle";
+            osc2.frequency.setValueAtTime(880, ctx.currentTime + 0.04); // A5
+            osc2.frequency.exponentialRampToValueAtTime(1479.98, ctx.currentTime + 0.18); // F#6
+            gain2.gain.setValueAtTime(0.18, ctx.currentTime + 0.04);
+            gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.24);
+            osc2.connect(gain2);
+            gain2.connect(ctx.destination);
+            osc2.start(ctx.currentTime + 0.04);
+            osc2.stop(ctx.currentTime + 0.24);
         } catch (_) {}
-    }, []);
+    }, [isSoundMuted]);
 
     // Keep ref in sync
     useEffect(() => {
@@ -315,45 +342,69 @@ const WorkoutSession = () => {
 
 
 
-    // ─── Skeleton & Landmark Drawing ──────────────────────
+    // ─── High-Tech Biomechanical Skeleton Rendering ──────────────────────
     const drawSkeleton = (
         ctx: CanvasRenderingContext2D,
         keypoints: poseDetection.Keypoint[],
         canvasWidth: number,
-        canvasHeight: number
-    ) => {
+        canvasHeight: number,
+        activeExercise: Exercise
+    ): boolean => {
         const MIN_CONFIDENCE = 0.25;
-        const mirror = (x: number) => canvasWidth - x;
+        const isMirrored = facingMode === "user";
+        const mirror = (x: number) => (isMirrored ? canvasWidth - x : x);
 
-        // Check if full body is in frame
+        // Check if sufficient keypoints are visible
         const validKps = keypoints.filter((k) => (k.score ?? 0) >= MIN_CONFIDENCE);
         const isBodyVisible = validKps.length >= 6;
 
         if (!isBodyVisible) {
-            // Draw Out Of Frame Warning Box on Canvas
+            // Subtle, sleek corner alignment brackets instead of aggressive screaming red borders
             ctx.save();
-            ctx.strokeStyle = "rgba(239, 68, 68, 0.85)";
-            ctx.lineWidth = 6;
-            ctx.strokeRect(10, 10, canvasWidth - 20, canvasHeight - 20);
-
-            ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
-            ctx.fillRect(canvasWidth / 2 - 180, 20, 360, 48);
-            ctx.strokeStyle = "#ef4444";
-            ctx.lineWidth = 2;
-            ctx.strokeRect(canvasWidth / 2 - 180, 20, 360, 48);
-
-            ctx.fillStyle = "#ef4444";
-            ctx.font = "bold 13px sans-serif";
-            ctx.textAlign = "center";
-            ctx.fillText("⚠️ BODY OUT OF FRAME", canvasWidth / 2, 40);
-            ctx.fillStyle = "#ffffff";
-            ctx.font = "11px sans-serif";
-            ctx.fillText("Step back so head to feet are visible in camera", canvasWidth / 2, 56);
+            ctx.strokeStyle = "rgba(0, 255, 156, 0.3)";
+            ctx.lineWidth = 2.5;
+            const bLen = 28;
+            // Top-left
+            ctx.beginPath(); ctx.moveTo(24, 24 + bLen); ctx.lineTo(24, 24); ctx.lineTo(24 + bLen, 24); ctx.stroke();
+            // Top-right
+            ctx.beginPath(); ctx.moveTo(canvasWidth - 24 - bLen, 24); ctx.lineTo(canvasWidth - 24, 24); ctx.lineTo(canvasWidth - 24, 24 + bLen); ctx.stroke();
+            // Bottom-left
+            ctx.beginPath(); ctx.moveTo(24, canvasHeight - 24 - bLen); ctx.lineTo(24, canvasHeight - 24); ctx.lineTo(24 + bLen, canvasHeight - 24); ctx.stroke();
+            // Bottom-right
+            ctx.beginPath(); ctx.moveTo(canvasWidth - 24 - bLen, canvasHeight - 24); ctx.lineTo(canvasWidth - 24, canvasHeight - 24); ctx.lineTo(canvasWidth - 24, canvasHeight - 24 - bLen); ctx.stroke();
             ctx.restore();
             return false;
         }
 
-        // Draw connections
+        // 1. Semi-transparent Torso Muscle Core
+        const lSho = keypoints.find((k) => k.name === "left_shoulder");
+        const rSho = keypoints.find((k) => k.name === "right_shoulder");
+        const lHip = keypoints.find((k) => k.name === "left_hip");
+        const rHip = keypoints.find((k) => k.name === "right_hip");
+
+        if (
+            lSho && rSho && lHip && rHip &&
+            (lSho.score ?? 0) > MIN_CONFIDENCE &&
+            (rSho.score ?? 0) > MIN_CONFIDENCE &&
+            (lHip.score ?? 0) > MIN_CONFIDENCE &&
+            (rHip.score ?? 0) > MIN_CONFIDENCE
+        ) {
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(mirror(lSho.x), lSho.y);
+            ctx.lineTo(mirror(rSho.x), rSho.y);
+            ctx.lineTo(mirror(rHip.x), rHip.y);
+            ctx.lineTo(mirror(lHip.x), lHip.y);
+            ctx.closePath();
+            ctx.fillStyle = "rgba(0, 255, 156, 0.08)";
+            ctx.fill();
+            ctx.strokeStyle = "rgba(0, 255, 156, 0.35)";
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        // 2. High-Tech Cyberpunk Biomechanical Bones
         const connections = [
             ["nose", "left_eye"], ["nose", "right_eye"],
             ["left_eye", "left_ear"], ["right_eye", "right_ear"],
@@ -366,191 +417,90 @@ const WorkoutSession = () => {
             ["right_hip", "right_knee"], ["right_knee", "right_ankle"],
         ];
 
+        const isLegExercise = activeExercise === "squat" || activeExercise === "lunge" || activeExercise === "romanianDeadlift";
+
         connections.forEach(([nameA, nameB]) => {
             const a = keypoints.find((k) => k.name === nameA);
             const b = keypoints.find((k) => k.name === nameB);
             if (a && b && (a.score ?? 0) >= MIN_CONFIDENCE && (b.score ?? 0) >= MIN_CONFIDENCE) {
+                const isTargetConnection = isLegExercise
+                    ? (nameA.includes("hip") || nameA.includes("knee") || nameA.includes("ankle")) &&
+                      (nameB.includes("hip") || nameB.includes("knee") || nameB.includes("ankle"))
+                    : (nameA.includes("shoulder") || nameA.includes("elbow") || nameA.includes("wrist")) &&
+                      (nameB.includes("shoulder") || nameB.includes("elbow") || nameB.includes("wrist"));
+
+                ctx.save();
                 ctx.beginPath();
                 ctx.moveTo(mirror(a.x), a.y);
                 ctx.lineTo(mirror(b.x), b.y);
-                ctx.strokeStyle = "rgba(0, 255, 156, 0.85)";
-                ctx.lineWidth = 3.5;
+                ctx.lineCap = "round";
+                ctx.lineJoin = "round";
+
+                if (isTargetConnection) {
+                    ctx.shadowColor = "#00FF9C";
+                    ctx.shadowBlur = 10;
+                    ctx.strokeStyle = "#00FF9C";
+                    ctx.lineWidth = 4;
+                } else {
+                    ctx.shadowColor = "rgba(56, 189, 248, 0.4)";
+                    ctx.shadowBlur = 4;
+                    ctx.strokeStyle = "rgba(56, 189, 248, 0.65)";
+                    ctx.lineWidth = 2.5;
+                }
                 ctx.stroke();
+                ctx.restore();
             }
         });
 
-        // ─── 5-Finger Articulated Hand & Finger Tracking ───
-        const drawHandFingers = (
-            elbow: poseDetection.Keypoint | undefined,
-            wrist: poseDetection.Keypoint | undefined,
-            isLeft: boolean
-        ) => {
-            if (!elbow || !wrist || (elbow.score ?? 0) < MIN_CONFIDENCE || (wrist.score ?? 0) < MIN_CONFIDENCE) return;
+        // 3. Concentric Biomechanical Joint Nodes
+        const activeJointNames = isLegExercise
+            ? ["left_hip", "right_hip", "left_knee", "right_knee", "left_ankle", "right_ankle"]
+            : ["left_shoulder", "right_shoulder", "left_elbow", "right_elbow", "left_wrist", "right_wrist"];
 
-            const armDx = wrist.x - elbow.x;
-            const armDy = wrist.y - elbow.y;
-            const armLen = Math.hypot(armDx, armDy);
-            if (armLen === 0) return;
+        keypoints.forEach((kp) => {
+            if ((kp.score ?? 0) < MIN_CONFIDENCE) return;
+            const x = mirror(kp.x);
+            const y = kp.y;
+            const isActiveJoint = activeJointNames.includes(kp.name || "");
 
-            const ux = armDx / armLen;
-            const uy = armDy / armLen;
-            const sideMult = isLeft ? 1 : -1;
-            const wx = mirror(wrist.x);
-            const wy = wrist.y;
-
-            // 5 Digits: Thumb, Index, Middle, Ring, Pinky
-            const fingers = [
-                { name: "Thumb", angleDeg: -35 * sideMult, lenRatio: 0.28, joints: 2 },
-                { name: "Index", angleDeg: -12 * sideMult, lenRatio: 0.38, joints: 3 },
-                { name: "Middle", angleDeg: 0, lenRatio: 0.44, joints: 3 },
-                { name: "Ring", angleDeg: 12 * sideMult, lenRatio: 0.38, joints: 3 },
-                { name: "Pinky", angleDeg: 28 * sideMult, lenRatio: 0.30, joints: 3 },
-            ];
-
-            // Palm Base Reticle
-            ctx.beginPath();
-            ctx.arc(wx, wy, 6, 0, Math.PI * 2);
-            ctx.fillStyle = "#38bdf8";
-            ctx.fill();
-            ctx.strokeStyle = "#ffffff";
-            ctx.lineWidth = 1.5;
-            ctx.stroke();
-
-            fingers.forEach((finger) => {
-                const rad = (finger.angleDeg * Math.PI) / 180;
-                const fx = ux * Math.cos(rad) - uy * Math.sin(rad);
-                const fy = ux * Math.sin(rad) + uy * Math.cos(rad);
-
-                const mFx = -fx;
-                const mFy = fy;
-                const totalLen = Math.max(25, Math.min(75, armLen * finger.lenRatio));
-
-                let prevX = wx;
-                let prevY = wy;
-                const numJoints = finger.joints;
-
-                for (let j = 1; j <= numJoints; j++) {
-                    const frac = j / numJoints;
-                    const jx = wx + mFx * totalLen * frac;
-                    const jy = wy + mFy * totalLen * frac;
-
-                    // Bone Segment
-                    ctx.beginPath();
-                    ctx.moveTo(prevX, prevY);
-                    ctx.lineTo(jx, jy);
-                    ctx.strokeStyle = j === numJoints ? "rgba(56, 189, 248, 0.95)" : "rgba(0, 255, 156, 0.8)";
-                    ctx.lineWidth = j === numJoints ? 2 : 2.5;
-                    ctx.stroke();
-
-                    // Joint Node
-                    ctx.beginPath();
-                    ctx.arc(jx, jy, j === numJoints ? 3.5 : 2.5, 0, Math.PI * 2);
-                    ctx.fillStyle = j === numJoints ? "#38bdf8" : "#00FF9C";
-                    ctx.fill();
-                    ctx.strokeStyle = "#ffffff";
-                    ctx.lineWidth = 1;
-                    ctx.stroke();
-
-                    // Fingertip Reticle Label
-                    if (j === numJoints) {
-                        ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
-                        ctx.fillRect(jx - 14, jy - 14, 28, 11);
-                        ctx.fillStyle = "#38bdf8";
-                        ctx.font = "bold 7px monospace";
-                        ctx.textAlign = "center";
-                        ctx.fillText(finger.name.slice(0, 3).toUpperCase(), jx, jy - 5);
-                    }
-
-                    prevX = jx;
-                    prevY = jy;
-                }
-            });
-        };
-
-        // ─── 3-Toe Foot Tracking ───
-        const drawFootToes = (
-            knee: poseDetection.Keypoint | undefined,
-            ankle: poseDetection.Keypoint | undefined,
-            isLeft: boolean
-        ) => {
-            if (!knee || !ankle || (knee.score ?? 0) < MIN_CONFIDENCE || (ankle.score ?? 0) < MIN_CONFIDENCE) return;
-
-            const legDx = ankle.x - knee.x;
-            const legDy = ankle.y - knee.y;
-            const legLen = Math.hypot(legDx, legDy);
-            if (legLen === 0) return;
-
-            const ux = legDx / legLen;
-            const uy = legDy / legLen;
-            const sideMult = isLeft ? 1 : -1;
-            const ax = mirror(ankle.x);
-            const ay = ankle.y;
-
-            const toes = [
-                { name: "BigToe", angleDeg: -18 * sideMult, lenRatio: 0.22 },
-                { name: "MidToe", angleDeg: 0, lenRatio: 0.25 },
-                { name: "PinkyToe", angleDeg: 18 * sideMult, lenRatio: 0.20 },
-            ];
-
-            toes.forEach((toe) => {
-                const rad = (toe.angleDeg * Math.PI) / 180;
-                const fx = ux * Math.cos(rad) - uy * Math.sin(rad);
-                const fy = ux * Math.sin(rad) + uy * Math.cos(rad);
-
-                const mFx = -fx;
-                const mFy = fy;
-                const totalLen = Math.max(18, Math.min(50, legLen * toe.lenRatio));
-
-                const tx = ax + mFx * totalLen;
-                const ty = ay + mFy * totalLen;
-
+            ctx.save();
+            if (isActiveJoint) {
+                // Pulsing outer halo
                 ctx.beginPath();
-                ctx.moveTo(ax, ay);
-                ctx.lineTo(tx, ty);
-                ctx.strokeStyle = "rgba(56, 189, 248, 0.85)";
-                ctx.lineWidth = 2;
+                ctx.arc(x, y, 9, 0, 2 * Math.PI);
+                ctx.strokeStyle = "rgba(0, 255, 156, 0.6)";
+                ctx.lineWidth = 1.8;
                 ctx.stroke();
 
+                // Inner glowing node
                 ctx.beginPath();
-                ctx.arc(tx, ty, 3, 0, Math.PI * 2);
-                ctx.fillStyle = "#38bdf8";
-                ctx.fill();
-            });
-        };
-
-        // Render Left & Right Hand 5-Finger Skeletons
-        const lElbow = keypoints.find((k) => k.name === "left_elbow");
-        const lWrist = keypoints.find((k) => k.name === "left_wrist");
-        const rElbow = keypoints.find((k) => k.name === "right_elbow");
-        const rWrist = keypoints.find((k) => k.name === "right_wrist");
-        drawHandFingers(lElbow, lWrist, true);
-        drawHandFingers(rElbow, rWrist, false);
-
-        // Render Left & Right Foot Toe Skeletons
-        const lKnee = keypoints.find((k) => k.name === "left_knee");
-        const lAnkle = keypoints.find((k) => k.name === "left_ankle");
-        const rKnee = keypoints.find((k) => k.name === "right_knee");
-        const rAnkle = keypoints.find((k) => k.name === "right_ankle");
-        drawFootToes(lKnee, lAnkle, true);
-        drawFootToes(rKnee, rAnkle, false);
-
-        // Draw keypoints
-        keypoints.forEach((kp) => {
-            if ((kp.score ?? 0) >= MIN_CONFIDENCE) {
-                ctx.beginPath();
-                ctx.arc(mirror(kp.x), kp.y, 6, 0, 2 * Math.PI);
+                ctx.arc(x, y, 5, 0, 2 * Math.PI);
                 ctx.fillStyle = "#00FF9C";
+                ctx.shadowColor = "#00FF9C";
+                ctx.shadowBlur = 8;
                 ctx.fill();
-                ctx.strokeStyle = "#000000";
-                ctx.lineWidth = 2;
+
+                // White diamond center
+                ctx.beginPath();
+                ctx.arc(x, y, 2.5, 0, 2 * Math.PI);
+                ctx.fillStyle = "#ffffff";
+                ctx.fill();
+            } else {
+                ctx.beginPath();
+                ctx.arc(x, y, 4, 0, 2 * Math.PI);
+                ctx.fillStyle = "#38bdf8";
+                ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
+                ctx.lineWidth = 1;
+                ctx.fill();
                 ctx.stroke();
             }
+            ctx.restore();
         });
 
         return true;
     };
 
-    // ─── Exercise Processing ───────────────────────────
+    // ─── Exercise Processing & Biomechanics Math ───────────────────────────
     const processExercise = (
         keypoints: poseDetection.Keypoint[],
         canvasWidth: number
@@ -561,10 +511,11 @@ const WorkoutSession = () => {
         const config = EXERCISES.find((e) => e.id === currentExercise);
         if (!config) return;
 
+        const isMirrored = facingMode === "user";
         const getKp = (name: string) => {
             const kp = keypoints.find((k) => k.name === name);
             if (kp && (kp.score ?? 0) > 0.2) {
-                return { x: canvasWidth - kp.x, y: kp.y, score: kp.score ?? 0 };
+                return { x: isMirrored ? canvasWidth - kp.x : kp.x, y: kp.y, score: kp.score ?? 0 };
             }
             return null;
         };
@@ -626,96 +577,132 @@ const WorkoutSession = () => {
         if (!a || !b || !c) {
             setRepState((prev) => ({
                 ...prev,
-                feedback: "Aligning pose... Step back so body is in view",
+                bodyInFrame: false,
+                feedback: "Aligning pose... Step back into full view",
                 feedbackType: "warning",
             }));
             return;
         }
 
-        const angle = calculateAngle(a, b, c);
-        const current = repStateRef.current;
+        const rawAngle = calculateAngle(a, b, c);
 
+        // Exponential Moving Average (EMA) smoothing to eliminate ugly jitter & flickering numbers
+        if (smoothedAngleRef.current === 0) {
+            smoothedAngleRef.current = rawAngle;
+        } else {
+            smoothedAngleRef.current = smoothedAngleRef.current * 0.65 + rawAngle * 0.35;
+        }
+        const angle = Math.round(smoothedAngleRef.current);
+
+        // Calculate Range of Motion (ROM) / Depth percentage
+        let depthProgress = 0;
+        if (currentExercise === "squat" || currentExercise === "lunge" || currentExercise === "romanianDeadlift") {
+            const minA = config.targetAngles.down; // e.g. 90
+            const maxA = config.targetAngles.up;   // e.g. 160
+            depthProgress = Math.min(100, Math.max(0, Math.round(((maxA - angle) / (maxA - minA)) * 100)));
+        } else if (currentExercise === "bicepCurl") {
+            depthProgress = Math.min(100, Math.max(0, Math.round(((160 - angle) / (160 - 40)) * 100)));
+        } else if (currentExercise === "tricepExtension") {
+            depthProgress = Math.min(100, Math.max(0, Math.round(((angle - 50) / (160 - 50)) * 100)));
+        } else if (currentExercise === "pushup") {
+            depthProgress = Math.min(100, Math.max(0, Math.round(((160 - angle) / (160 - 90)) * 100)));
+        } else if (currentExercise === "lateralRaise" || currentExercise === "jumpingJack") {
+            depthProgress = Math.min(100, Math.max(0, Math.round(((angle - 20) / (90 - 20)) * 100)));
+        } else {
+            const span = config.targetAngles.up - config.targetAngles.down;
+            depthProgress = span > 0 ? Math.min(100, Math.max(0, Math.round(((config.targetAngles.up - angle) / span) * 100))) : 50;
+        }
+
+        const current = repStateRef.current;
         let newPhase = current.phase;
         let newCount = current.count;
         let feedback = "";
         let feedbackType: RepState["feedbackType"] = "info";
 
         if (currentExercise === "bicepCurl" || currentExercise === "tricepExtension") {
-            const extendedThreshold = currentExercise === "tricepExtension" ? 145 : 140;
-            const contractedThreshold = currentExercise === "tricepExtension" ? 65 : 60;
-            if (current.phase === "up" && angle > extendedThreshold) {
+            if (current.phase === "up" && depthProgress >= 80) {
                 newPhase = "down";
-                feedback = currentExercise === "tricepExtension" ? "Good! Now extend fully" : "Good extension! Now curl up";
+                feedback = currentExercise === "tricepExtension" ? "Great stretch! Now extend fully" : "Good contraction! Squeeze biceps";
                 feedbackType = "good";
-            } else if (current.phase === "down" && angle < contractedThreshold) {
-                newPhase = "up";
-                newCount = current.count + 1;
-                feedback = `Rep ${newCount}! Great squeeze! 💪`;
-                feedbackType = "good";
-                playRepChime();
+            } else if (current.phase === "down" && depthProgress <= 25) {
+                const now = Date.now();
+                if (now - lastRepTimeRef.current > 650) {
+                    lastRepTimeRef.current = now;
+                    newPhase = "up";
+                    newCount = current.count + 1;
+                    feedback = `Rep ${newCount}! Great squeeze! 💪`;
+                    feedbackType = "good";
+                    playRepChime();
+                }
             } else if (current.phase === "down") {
-                feedback = currentExercise === "tricepExtension" ? "Extend arms fully overhead" : "Keep curling, squeeze at top";
+                feedback = currentExercise === "tricepExtension" ? "Extend arms fully overhead" : "Lower with full control";
                 feedbackType = "info";
             } else {
-                feedback = currentExercise === "tricepExtension" ? "Lower weight behind head" : "Extend arm fully";
+                feedback = currentExercise === "tricepExtension" ? "Lower weight behind head" : "Curl up with steady power";
                 feedbackType = "info";
             }
         } else if (currentExercise === "lateralRaise" || currentExercise === "jumpingJack") {
-            if (current.phase === "down" && angle > config.targetAngles.up - 10) {
+            if (current.phase === "down" && depthProgress >= 80) {
                 newPhase = "up";
-                feedback = currentExercise === "jumpingJack" ? "Arms up! Now back down" : "Shoulder height — now lower with control";
+                feedback = currentExercise === "jumpingJack" ? "Arms up! Now back down" : "Shoulder height reached! Lower slow";
                 feedbackType = "good";
-            } else if (current.phase === "up" && angle < config.targetAngles.down + 10) {
-                newPhase = "down";
-                newCount = current.count + 1;
-                feedback = `Rep ${newCount}! Keep going! 🔥`;
-                feedbackType = "good";
-                playRepChime();
+            } else if (current.phase === "up" && depthProgress <= 25) {
+                const now = Date.now();
+                if (now - lastRepTimeRef.current > 650) {
+                    lastRepTimeRef.current = now;
+                    newPhase = "down";
+                    newCount = current.count + 1;
+                    feedback = `Rep ${newCount}! Keep the rhythm! 🔥`;
+                    feedbackType = "good";
+                    playRepChime();
+                }
             } else if (current.phase === "down") {
-                feedback = currentExercise === "jumpingJack" ? "Raise arms overhead" : "Raise arms to shoulder height";
+                feedback = currentExercise === "jumpingJack" ? "Raise arms overhead" : "Raise arms to shoulder plane";
                 feedbackType = "info";
             } else {
-                feedback = "Lower arms back down";
+                feedback = "Lower with control";
                 feedbackType = "info";
             }
         } else {
-            // Squat, Pushup, Lunge, Shoulder Press, Romanian Deadlift
-            // Realistic, forgiving thresholds for mobile training
-            const downThreshold = currentExercise === "squat" ? 125 : config.targetAngles.down + 12;
-            const upThreshold = currentExercise === "squat" ? 155 : config.targetAngles.up - 10;
-
-            if (current.phase === "up" && angle < downThreshold) {
+            // Squats, Pushups, Lunges, Shoulder Press, Romanian Deadlift
+            if (current.phase === "up" && depthProgress >= 80) {
                 newPhase = "down";
-                feedback = currentExercise === "squat" ? "Good depth! Drive up strong" : "Good depth! Push up";
+                feedback = currentExercise === "squat" ? "Perfect depth! Drive up strong" : "Great depth! Push up now";
                 feedbackType = "good";
-            } else if (current.phase === "down" && angle > upThreshold) {
-                newPhase = "up";
-                newCount = current.count + 1;
-                feedback = `Rep ${newCount}! Keep it up! 🔥`;
-                feedbackType = "good";
-                playRepChime();
-            } else if (current.phase === "up" && angle > upThreshold - 15) {
-                feedback = currentExercise === "squat" ? "Descend into squat" : "Lower with control";
+            } else if (current.phase === "down" && depthProgress <= 25) {
+                const now = Date.now();
+                if (now - lastRepTimeRef.current > 650) {
+                    lastRepTimeRef.current = now;
+                    newPhase = "up";
+                    newCount = current.count + 1;
+                    feedback = `Rep ${newCount}! Clean form! 🔥`;
+                    feedbackType = "good";
+                    playRepChime();
+                }
+            } else if (current.phase === "up" && depthProgress < 40) {
+                feedback = currentExercise === "squat" ? "Descend smoothly into squat" : "Lower with control";
                 feedbackType = "info";
             } else {
-                feedback = "Good form, keep going!";
-                feedbackType = "info";
+                feedback = depthProgress >= 60 ? "Almost at parallel, sink slightly deeper!" : "Good form, drive through heels!";
+                feedbackType = depthProgress >= 60 ? "good" : "info";
             }
         }
 
         setRepState({
             count: newCount,
             phase: newPhase,
-            angle: Math.round(angle),
+            angle,
+            depthProgress,
             feedback,
             feedbackType,
+            bodyInFrame: true,
         });
 
         if (newCount > current.count) {
             setSessionStats((prev) => ({
                 ...prev,
                 totalReps: prev.totalReps + 1,
-                bestAngle: Math.min(prev.bestAngle || 999, Math.round(angle)),
+                bestAngle: Math.min(prev.bestAngle || 999, angle),
             }));
         }
     };
@@ -748,18 +735,27 @@ const WorkoutSession = () => {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         const detector = detectorRef.current;
+        const activeEx = selectedExerciseRef.current || selectedExercise;
         if (detector) {
             try {
                 const poses = await detector.estimatePoses(video);
                 if (poses.length > 0 && poses[0].keypoints) {
                     const keypoints = poses[0].keypoints;
-                    const bodyInFrame = drawSkeleton(ctx, keypoints, canvas.width, canvas.height);
+                    const bodyInFrame = drawSkeleton(ctx, keypoints, canvas.width, canvas.height, activeEx);
                     if (bodyInFrame) {
                         processExercise(keypoints, canvas.width);
+                    } else {
+                        setRepState((prev) => ({
+                            ...prev,
+                            bodyInFrame: false,
+                            feedback: "Step back 2-3 feet to frame full body",
+                            feedbackType: "warning",
+                        }));
                     }
                 } else {
                     setRepState((prev) => ({
                         ...prev,
+                        bodyInFrame: false,
                         feedback: "Step into camera view",
                         feedbackType: "info",
                     }));
@@ -770,7 +766,7 @@ const WorkoutSession = () => {
         }
 
         animFrameRef.current = requestAnimationFrame(detectPose);
-    }, []);
+    }, [facingMode]);
 
     // ─── Camera Stop ────────────────────────────────────
     const stopCamera = useCallback(() => {
@@ -791,8 +787,9 @@ const WorkoutSession = () => {
     }, []);
 
     // ─── Camera Start ───────────────────────────────────
-    const startCamera = useCallback(async () => {
+    const startCamera = useCallback(async (desiredFacing?: "user" | "environment") => {
         setCameraError(null);
+        const mode = desiredFacing || facingMode;
 
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
             const msg = "Camera access is not supported by your browser environment.";
@@ -802,21 +799,24 @@ const WorkoutSession = () => {
         }
 
         try {
-            // Flexible constraints designed for mobile front cameras in portrait or landscape
+            if (streamRef.current) {
+                streamRef.current.getTracks().forEach((t) => t.stop());
+                streamRef.current = null;
+            }
+
             let stream: MediaStream;
             try {
                 stream = await navigator.mediaDevices.getUserMedia({
                     video: {
-                        facingMode: "user",
+                        facingMode: { ideal: mode },
                         width: { ideal: 1280, max: 1920 },
                         height: { ideal: 720, max: 1080 }
                     },
                     audio: false
                 });
             } catch (constraintErr) {
-                console.warn("Retrying with generic camera constraints:", constraintErr);
                 stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: "user" },
+                    video: { facingMode: mode },
                     audio: false
                 });
             }
@@ -825,44 +825,43 @@ const WorkoutSession = () => {
             if (videoRef.current) {
                 videoRef.current.srcObject = stream;
 
-                // Wait for video stream metadata to populate dimensions on mobile
                 await new Promise<void>((resolve) => {
                     if (!videoRef.current) return resolve();
                     if (videoRef.current.readyState >= 2) {
                         resolve();
                     } else {
                         videoRef.current.onloadedmetadata = () => resolve();
-                        setTimeout(resolve, 800);
+                        setTimeout(resolve, 600);
                     }
                 });
 
                 try {
                     await videoRef.current.play();
                 } catch (playErr) {
-                    console.warn("Video play warning (auto-resumed):", playErr);
+                    console.warn("Video play warning:", playErr);
                 }
             }
 
             isCameraOnRef.current = true;
             setIsCameraOn(true);
 
-            // Ensure model is ready
             let detector = detectorRef.current;
             if (!detector) {
                 detector = await loadModel();
             }
 
             setSessionActive(true);
-            setSessionStartTime(Date.now());
+            setSessionStartTime((prev) => prev || Date.now());
             setRepState({
-                count: 0,
+                count: repStateRef.current.count,
                 phase: "up",
                 angle: 0,
+                depthProgress: 0,
                 feedback: "Camera active! Position yourself in frame.",
                 feedbackType: "info",
+                bodyInFrame: true,
             });
 
-            // Start detection loop
             detectPose();
         } catch (err: unknown) {
             console.error("Camera error:", err);
@@ -873,7 +872,15 @@ const WorkoutSession = () => {
             setCameraError(msg);
             toast.error(msg);
         }
-    }, [loadModel, detectPose]);
+    }, [facingMode, loadModel, detectPose]);
+
+    const toggleCameraFacing = () => {
+        const nextMode = facingMode === "user" ? "environment" : "user";
+        setFacingMode(nextMode);
+        if (isCameraOn) {
+            startCamera(nextMode);
+        }
+    };
 
     // Preload AI Pose Model on mount so it is instantly ready
     useEffect(() => {
@@ -1099,17 +1106,17 @@ const WorkoutSession = () => {
                 <div className="grid lg:grid-cols-3 gap-6">
                     {/* Camera Feed / 3D Trainer Viewport */}
                     <div ref={cameraRef} className="lg:col-span-2">
-                        <div className="relative rounded-2xl overflow-hidden bg-black/90 border border-border aspect-video">
-                            {/* Live Video Feed (Direct hardware-accelerated stream mirrored for natural user perspective) */}
+                        <div className="relative rounded-3xl overflow-hidden bg-neutral-950 border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.8)] w-full min-h-[480px] sm:min-h-[560px] lg:h-[620px]">
+                            {/* Live Video Feed (mirrored when selfie camera, normal when rear camera) */}
                             <video
                                 ref={videoRef}
                                 playsInline
                                 muted
                                 autoPlay
-                                className={`w-full h-full object-cover transform -scale-x-100 ${isCameraOn ? "block" : "hidden"}`}
+                                className={`w-full h-full object-cover ${facingMode === "user" ? "transform -scale-x-100" : ""} ${isCameraOn ? "block" : "hidden"}`}
                             />
 
-                            {/* Transparent Canvas Overlay for Real-Time AI Pose Skeleton & Tracking */}
+                            {/* Transparent Canvas Overlay for Biomechanical AI Pose Skeleton & Tracking */}
                             <canvas
                                 ref={canvasRef}
                                 className={`absolute inset-0 w-full h-full object-cover pointer-events-none ${isCameraOn ? "block" : "hidden"}`}
@@ -1127,14 +1134,14 @@ const WorkoutSession = () => {
                                         <div className="flex flex-col items-center gap-3 p-6 text-center">
                                             <AlertTriangle className="w-10 h-10 text-yellow-500" />
                                             <p className="text-xs text-muted-foreground max-w-sm">{cameraError}</p>
-                                            <Button onClick={startCamera} variant="outline" className="text-xs">
+                                            <Button onClick={() => startCamera()} variant="outline" className="text-xs">
                                                 Try Camera Again
                                             </Button>
                                         </div>
                                     ) : (
                                         <div className="relative z-10 max-w-md mx-auto flex flex-col items-center">
                                             {/* Glowing Viewfinder Target Icon */}
-                                            <div className="relative mb-4 group cursor-pointer" onClick={startCamera}>
+                                            <div className="relative mb-4 group cursor-pointer" onClick={() => startCamera()}>
                                                 <div className="absolute -inset-2 bg-[#00FF9C]/20 rounded-full blur-xl group-hover:bg-[#00FF9C]/30 transition-all animate-pulse" />
                                                 <div className="relative w-20 h-20 rounded-2xl bg-[#141A16] border border-[#00FF9C]/40 flex items-center justify-center shadow-[0_0_30px_rgba(0,255,156,0.2)] group-hover:scale-105 transition-transform">
                                                     <Camera className="w-9 h-9 text-[#00FF9C]" strokeWidth={1.8} />
@@ -1176,7 +1183,7 @@ const WorkoutSession = () => {
                                             {/* Launch Camera Button */}
                                             <Button
                                                 type="button"
-                                                onClick={startCamera}
+                                                onClick={() => startCamera()}
                                                 className="w-full sm:w-auto px-7 py-3 h-auto rounded-xl bg-[#00FF9C] hover:bg-[#00e58a] text-black font-extrabold text-xs sm:text-sm shadow-[0_0_25px_rgba(0,255,156,0.35)] active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-2"
                                             >
                                                 <Camera className="w-4 h-4 text-black" />
@@ -1193,7 +1200,7 @@ const WorkoutSession = () => {
                                     initial={{ opacity: 0, scale: 0.9, y: 10 }}
                                     animate={{ opacity: 1, scale: 1, y: 0 }}
                                     exit={{ opacity: 0, scale: 0.9, y: 10 }}
-                                    className="absolute bottom-4 right-4 z-20 w-44 sm:w-52 md:w-60 rounded-xl overflow-hidden border border-[#00FF9C]/40 bg-black/90 shadow-2xl backdrop-blur-md"
+                                    className="absolute bottom-16 right-3 sm:right-4 z-30 w-44 sm:w-52 md:w-60 rounded-2xl overflow-hidden border border-[#00FF9C]/40 bg-black/95 shadow-2xl backdrop-blur-md"
                                 >
                                     <div className="px-2.5 py-1.5 bg-[#121614] border-b border-white/10 flex items-center justify-between">
                                         <span className="text-[10px] font-bold text-[#00FF9C] flex items-center gap-1">
@@ -1225,38 +1232,147 @@ const WorkoutSession = () => {
                                 </motion.div>
                             )}
 
-                            {/* Rep counter overlay */}
+                            {/* Ultra-Sleek Real-Time Form HUD Overlay */}
                             {isCameraOn && (
                                 <>
-                                    <div className="absolute top-4 left-4 bg-black/70 backdrop-blur-sm rounded-xl px-4 py-2 border border-white/10">
-                                        <p className="text-xs text-muted-foreground uppercase tracking-wider">
-                                            Reps
-                                        </p>
-                                        <p className="text-3xl font-bold text-primary tabular-nums">
-                                            {repState.count}
-                                        </p>
+                                    {/* Top Glass Navigation & Status Bar */}
+                                    <div className="absolute top-3 inset-x-3 z-20 flex items-center justify-between gap-2 pointer-events-none">
+                                        {/* Live Exercise Pill */}
+                                        <div className="pointer-events-auto flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/65 backdrop-blur-md border border-white/10 text-white shadow-lg">
+                                            <span className="w-2 h-2 rounded-full bg-[#00FF9C] animate-pulse" />
+                                            <span className="text-xs font-black uppercase tracking-wide text-white">
+                                                {exerciseConfig?.name || "Exercise"}
+                                            </span>
+                                            <span className="text-[10px] text-white/50 border-l border-white/15 pl-2 font-mono">
+                                                Goal: {exerciseConfig?.targetAngles.down}°
+                                            </span>
+                                        </div>
+
+                                        {/* Out of Frame Alert Pill */}
+                                        {!repState.bodyInFrame && (
+                                            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 backdrop-blur-md border border-amber-500/40 text-amber-300 text-xs font-semibold animate-pulse shadow-lg">
+                                                <AlertTriangle className="w-3.5 h-3.5" />
+                                                <span className="hidden sm:inline">Step back to frame body</span>
+                                                <span className="sm:hidden">Step back</span>
+                                            </div>
+                                        )}
+
+                                        {/* Action Tools */}
+                                        <div className="pointer-events-auto flex items-center gap-1.5">
+                                            {/* Audio Toggle */}
+                                            <button
+                                                type="button"
+                                                onClick={() => setIsSoundMuted(!isSoundMuted)}
+                                                className="p-2 rounded-full bg-black/65 hover:bg-black/90 backdrop-blur-md border border-white/10 text-white/80 hover:text-white transition-all cursor-pointer shadow-md"
+                                                title={isSoundMuted ? "Unmute audio chimes" : "Mute audio chimes"}
+                                            >
+                                                {isSoundMuted ? <VolumeX className="w-4 h-4 text-red-400" /> : <Volume2 className="w-4 h-4 text-[#00FF9C]" />}
+                                            </button>
+
+                                            {/* Flip Camera */}
+                                            <button
+                                                type="button"
+                                                onClick={toggleCameraFacing}
+                                                className="p-2 rounded-full bg-black/65 hover:bg-black/90 backdrop-blur-md border border-white/10 text-white/80 hover:text-white transition-all cursor-pointer shadow-md"
+                                                title="Switch front / rear camera"
+                                            >
+                                                <RotateCcw className="w-4 h-4 text-sky-400" />
+                                            </button>
+
+                                            {/* Form Guide PiP */}
+                                            <button
+                                                type="button"
+                                                onClick={() => setShow3dPiP(!show3dPiP)}
+                                                className={`px-2.5 py-1.5 rounded-full backdrop-blur-md border text-xs font-bold transition-all cursor-pointer shadow-md flex items-center gap-1.5 ${
+                                                    show3dPiP
+                                                        ? "bg-[#00FF9C]/20 border-[#00FF9C] text-[#00FF9C]"
+                                                        : "bg-black/65 hover:bg-black/90 border-white/10 text-white/80"
+                                                }`}
+                                            >
+                                                <Video className="w-3.5 h-3.5 text-[#00FF9C]" />
+                                                <span className="hidden sm:inline">3D Guide</span>
+                                            </button>
+                                        </div>
                                     </div>
 
-                                    <div className="absolute top-4 right-4 bg-black/70 backdrop-blur-sm rounded-xl px-4 py-2 border border-white/10">
-                                        <p className="text-xs text-muted-foreground uppercase tracking-wider">
-                                            Angle
-                                        </p>
-                                        <p className="text-3xl font-bold text-white tabular-nums">
-                                            {repState.angle}°
-                                        </p>
+                                    {/* Left: Athletic Rep Counter Card */}
+                                    <div className="absolute top-16 left-3 sm:left-4 z-10 flex flex-col items-start gap-2">
+                                        <div className="rounded-2xl bg-black/70 backdrop-blur-xl border border-white/15 p-3.5 sm:p-4 shadow-2xl text-left min-w-[100px] sm:min-w-[125px]">
+                                            <div className="flex items-center justify-between gap-2 mb-0.5">
+                                                <span className="text-[10px] font-extrabold uppercase tracking-widest text-white/60">
+                                                    Reps
+                                                </span>
+                                                <Flame className="w-3.5 h-3.5 text-orange-400 animate-pulse" />
+                                            </div>
+                                            <div className="text-4xl sm:text-5xl font-black text-[#00FF9C] tracking-tight tabular-nums drop-shadow-[0_0_15px_rgba(0,255,156,0.4)]">
+                                                {repState.count}
+                                            </div>
+                                            <div className="mt-1 flex items-center gap-1">
+                                                <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${
+                                                    repState.phase === "down"
+                                                        ? "bg-orange-500/20 text-orange-400 border border-orange-500/40"
+                                                        : "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40"
+                                                }`}>
+                                                    {repState.phase === "down" ? "LOWERING" : "DRIVE UP"}
+                                                </span>
+                                            </div>
+                                        </div>
                                     </div>
 
-                                    <div
-                                        className={`absolute bottom-4 left-4 right-4 rounded-xl px-4 py-3 border backdrop-blur-sm ${repState.feedbackType === "good"
-                                            ? "bg-green-500/20 border-green-500/30 text-green-400"
-                                            : repState.feedbackType === "warning"
-                                                ? "bg-yellow-500/20 border-yellow-500/30 text-yellow-400"
-                                                : "bg-blue-500/20 border-blue-500/30 text-blue-400"
-                                            }`}
-                                    >
-                                        <p className="text-sm font-medium text-center">
-                                            {repState.feedback}
-                                        </p>
+                                    {/* Right: Range of Motion & Live Depth Meter */}
+                                    <div className="absolute top-16 right-3 sm:right-4 z-10 flex flex-col items-center">
+                                        <div className="rounded-2xl bg-black/70 backdrop-blur-xl border border-white/15 p-3 sm:p-4 shadow-2xl flex flex-col items-center min-w-[85px] sm:min-w-[100px]">
+                                            <span className="text-[10px] font-extrabold uppercase tracking-widest text-white/60 mb-1">
+                                                Angle
+                                            </span>
+                                            <span className="text-2xl sm:text-3xl font-black text-white tabular-nums tracking-tight font-mono">
+                                                {repState.angle}°
+                                            </span>
+
+                                            {/* Live Vertical Depth Gauge */}
+                                            <div className="w-3.5 h-24 sm:h-28 bg-white/10 rounded-full mt-2.5 relative overflow-hidden p-0.5 flex flex-col justify-end">
+                                                {/* Target line indicator */}
+                                                <div className="absolute top-[20%] inset-x-0 h-0.5 bg-yellow-400 z-10 opacity-75" title="Target Zone" />
+                                                
+                                                {/* Filling depth liquid bar */}
+                                                <div
+                                                    className={`w-full rounded-full transition-all duration-75 ${
+                                                        repState.depthProgress >= 80
+                                                            ? "bg-gradient-to-t from-emerald-500 to-[#00FF9C] shadow-[0_0_12px_#00FF9C]"
+                                                            : "bg-gradient-to-t from-sky-500 to-sky-300"
+                                                    }`}
+                                                    style={{ height: `${repState.depthProgress}%` }}
+                                                />
+                                            </div>
+
+                                            <span className={`text-[10px] font-extrabold uppercase mt-2 tracking-wider ${
+                                                repState.depthProgress >= 80 ? "text-[#00FF9C]" : "text-white/60"
+                                            }`}>
+                                                {repState.depthProgress >= 80 ? "PERFECT" : `${repState.depthProgress}%`}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* Bottom Floating Coaching Pill */}
+                                    <div className="absolute bottom-4 inset-x-4 sm:inset-x-8 z-10 flex justify-center pointer-events-none">
+                                        <div className={`px-4 sm:px-6 py-2.5 rounded-2xl backdrop-blur-xl border shadow-2xl text-center max-w-md w-full transition-all duration-200 flex items-center justify-center gap-2.5 ${
+                                            repState.feedbackType === "good"
+                                                ? "bg-emerald-950/85 border-emerald-500/50 text-emerald-300 shadow-[0_0_25px_rgba(0,255,156,0.25)]"
+                                                : repState.feedbackType === "warning"
+                                                    ? "bg-amber-950/85 border-amber-500/50 text-amber-300"
+                                                    : "bg-black/80 border-white/15 text-white/90"
+                                        }`}>
+                                            {repState.feedbackType === "good" ? (
+                                                <CheckCircle2 className="w-4 h-4 text-[#00FF9C] shrink-0" />
+                                            ) : repState.feedbackType === "warning" ? (
+                                                <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+                                            ) : (
+                                                <Sparkles className="w-4 h-4 text-sky-400 shrink-0" />
+                                            )}
+                                            <p className="text-xs sm:text-sm font-bold tracking-wide truncate">
+                                                {repState.feedback}
+                                            </p>
+                                        </div>
                                     </div>
                                 </>
                             )}
